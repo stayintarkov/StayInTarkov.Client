@@ -1,0 +1,17 @@
+{
+  "HOST_RAID": "ホストする",
+  "BACK": "戻る (ESC)",
+  "PLAY_SINGLE_PLAYER": "1人でプレイ",
+  "JOIN": "参加",
+  "SERVER": "サーバー",
+  "SERVER_NAME": "サーバー名",
+  "PLAYERS": "プレイヤ",
+  "LOCATION": "地域",
+  "RAID": "レイド",
+  "START": "開始",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "待機する全プレイヤーの数 (自分を含む)",
+  "REQUIRE_PASSWORD": "暗証番号が必要です",
+  "PASSWORD": "暗証番号",
+  "AI_AMOUNT": "AI Amount",
+  "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once."
+}

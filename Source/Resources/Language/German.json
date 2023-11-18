@@ -1,0 +1,19 @@
+{
+  "HOST_RAID": "Raid Hosten",
+  "BACK": "Zurück (esc)",
+  "PLAY_SINGLE_PLAYER": "Einzelspieler",
+  "JOIN": "Beitreten",
+  "SERVER": "Server",
+  "SERVER_NAME": "Servername",
+  "PLAYERS": "Spieler",
+  "LOCATION": "Ort",
+  "RAID": "Raid",
+  "START": "Start",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Number of Players to Wait For (Including You)",
+  "REQUIRE_PASSWORD": "Require Password",
+  "PASSWORD": "Password",
+  "AI_AMOUNT": "AI Amount",
+  "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once."
+
+
+}
