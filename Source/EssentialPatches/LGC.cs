@@ -11,6 +11,12 @@ namespace StayInTarkov.EssentialPatches
     //This portion of the code is under MIT License.
     internal class LGC
     {
+
+        public static string IllegalMessage { get; }
+            = StayInTarkovPlugin.LanguageDictionaryLoaded && StayInTarkovPlugin.LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
+            ? StayInTarkovPlugin.LanguageDictionary["ILLEGAL_MESSAGE"]
+            : "Illegal game found. Please buy, install and launch the game once.";
+        
         //Computer\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov
         //InstallLocation
         //DisplayVersion
@@ -54,12 +60,13 @@ namespace StayInTarkov.EssentialPatches
             return (curDir == loc);
         }
 
-        public static void RunTarkovLGC()
+        public static bool RunTarkovLGC(BepInEx.Configuration.ConfigFile config)
         {
             if (IfDirFromTarkov())
             {
                 //make sure we are not on live, so we quit
-                Application.Quit();
+                //Application.Quit();
+               return false;
             }
             //  tbh, checking this is shit.
             //  I rather just let it install on live and always patch before someone start the game,
@@ -70,9 +77,10 @@ namespace StayInTarkov.EssentialPatches
                 var hash = sha.ComputeHash(File.ReadAllBytes(item.Key));
                 var hash_string = Convert.ToString(hash).Replace("-", "");
                 if (item.Value != hash_string)
-                    Application.Quit();
+                    return false;//Application.Quit();
             }
             sha.Dispose();
+            return true;
         }
 
         static readonly Dictionary<string, string> sha1_kv = new()
