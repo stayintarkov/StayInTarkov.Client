@@ -1,6 +1,6 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server with the ultimate goal of "Offline" Coop 
 </div>
 
@@ -8,7 +8,7 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
 </div>
@@ -47,20 +47,22 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * Please do not hand over money expecting help or a solution. 
 * This is a hobby, for fun, project. Please don't treat it seriously. 
 * Paulov: I know this is a semi-broken attempt but will try to fix as best I can. SIT Contributors: "We can do it!"
+* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
+
 
 ## SPT-AKI Requirement
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
+## [Wiki](https://github.com/stayintarkov/StayInTarkov.Client/blob/master/wiki/Home.md)
 **The Wiki is has been constructed by various contributors. All instructions are also kept within the source in the wiki directory.**
-  - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
+  - ### [Setup Manuals](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Guides-English)
+  - ### [FAQs](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-English)
 
 ## Coop
 
 ### PREREQUISITE
-You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
+You must have the [SPT-Aki mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
 
 ### Can Coop use BSG's Coop code?
 No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.

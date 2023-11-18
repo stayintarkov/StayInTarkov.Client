@@ -1,6 +1,6 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 SPT-Akiサーバー基盤の「オフライン」協力プレイを目標としたEscape From TarkovのBepInExモジュール
 </div>
 
@@ -8,7 +8,7 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [Deutsch](README_DE.md) **|** [简体中文](README_CN.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md)
 </div>
@@ -45,15 +45,16 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 * 助けや解決先を為にお金は払わないことにして下さい。
 * これはただ趣味で、楽で作成するプロジェクトです。軽く受け入れて下さい。
 * 私はコミュニティに騙すことはしません。これが半分失敗したこととしても私は精一杯で直していこうと思います。
+* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI 要件
 * Stay in Tarkovは[AKIサーバー最新版](https://dev.sp-tarkov.com/SPT-AKI/Server)を使用して動作できます。SPT-Akiについては[こっち](https://www.sp-tarkov.com/)で詳しく調べます。
 * このプロジェクトをSPT-AkiのClientにインストールしないようにご注意下さい！サーバーにインストールして下さい！
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
+## [Wiki](https://github.com/stayintarkov/StayInTarkov.Client/wiki)
 **Wikiは様々な人によって作成されてますので壊れてしまう可能性もあります！そして全てのWikiソースはDirectoryに保管されます。**
-  - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
+  - ### [Setup Manuals](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Guides-English)
+  - ### [FAQs](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-English)
 
 ## 協力プレイ
 
@@ -62,10 +63,10 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 * 協力プレイ機能はまだ開発中です。
 * ほとんどの機能の利用は可能ですが、問題点とバグが多くあり、完璧ではなりません。
 * こっちの人達から全ての地域をテストしましたが、最もいい作動はFACTORYとTHE LABでした。CPUとネットワークからのリソースが消耗しやすいですがこっちらに影響を与えるのは他の人の繋がりとAIの数でした。
-* ホストをする方法と協力プレイをする方法はこっちらから英語ですが詳しく読めます。 [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/HOSTING-English.md)
+* ホストをする方法と協力プレイをする方法はこっちらから英語ですが詳しく読めます。 [HOSTING.md Document](https://github.com/stayintarkov/StayInTarkov.Client/wiki/HOSTING-English.md)
 
 ### 要件
-まず、進むためには [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) が要件となります。このモジュールをサーバに適用してから作動します。協力プレイのモジュールが必要がなければBepInExのコンフィグのファイルで直接修正する必要があります。
+まず、進むためには [SPT-Aki mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) が要件となります。このモジュールをサーバに適用してから作動します。協力プレイのモジュールが必要がなければBepInExのコンフィグのファイルで直接修正する必要があります。
 
 ### 協力プレイはBSGのコードを使いますか？
 いいえ、BSGサーバーのコードは明確な理由でクライアントから隠されてあります。
@@ -77,7 +78,7 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 - クライアント＞サーバー＞クライアント（動きと回転と視線など）間に送信を引き続いて必要な要素を使用してデータを送信します。（AIのコードはUpdateとLateUpdateの命令および機能のチェックのたびに表現を実行されますのでネットワークにフラッド*が発生します。）
 *フラッドはネットワークに大量のデータを運ぶ時に発生することです。DDoSによく使われます。
 - 機能とメソッドは簡単に「複製」できるModuleReplicationPatchクラスを使用します。
-- JSON TCP HttpとWeb Socketを通じた全てのサーバーの通信は「バックエンド」の作業を処理するために[SPT-Akiが開発した "Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server)でこの[typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)を使用しました。
+- JSON TCP HttpとWeb Socketを通じた全てのサーバーの通信は「バックエンド」の作業を処理するために[SPT-Akiが開発した "Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server)でこの[typescript mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)を使用しました。
 - 協力プレイの準備が始まるとCoopGameComponentがゲーム内のワールドに追加し、PlayerReplicatedComponentにポーリングされます。
 
 ## SPT-Aki

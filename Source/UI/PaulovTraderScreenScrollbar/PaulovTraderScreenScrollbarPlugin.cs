@@ -1,15 +1,9 @@
 ﻿using BepInEx;
-using DrakiaXYZ.BigBrain.Patches;
 using EFT.UI;
 using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,22 +43,24 @@ namespace SIT.Core.UI.PaulovTraderScreenScrollbar
         [PatchPostfix]
         public static void Postfix(TraderScreensGroup __instance)
         {
-            
             var container = GameObject.Find("Container");
+            var containerRect = container.RectTransform();
 
             var traderCards = GameObject.Find("TraderCards");
-            var traderCardsRect = traderCards.GetComponent<RectTransform>();
+            var traderCardsRect = traderCards.RectTransform();
             traderCardsRect.position = new Vector3(0, traderCardsRect.position.y, 0);
+
             var scrollRect = traderCards.AddComponent<ScrollRect>();
             scrollRect.content = traderCardsRect;
             scrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
             scrollRect.horizontal = true;
             scrollRect.vertical = false;
             scrollRect.scrollSensitivity = 20;
-            //scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.viewport = containerRect;
+            scrollRect.movementType = ScrollRect.MovementType.Elastic;
 
-            //var contentSizeFitter = traderCards.AddComponent<ContentSizeFitter>();
-            //contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var contentSizeFitter = container.AddComponent<ContentSizeFitter>();
+            contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         }
     }

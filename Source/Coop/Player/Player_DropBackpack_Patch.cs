@@ -58,14 +58,9 @@ namespace SIT.Coop.Core.Player
 
             EFT.Player.PlayerInventoryController playerInventoryController = itemController as EFT.Player.PlayerInventoryController;
             if (playerInventoryController == null)
-            {
                 playerInventoryController = new(__instance, __instance.Profile, false);
-                playerInventoryController.ResetDiscardLimits();
-            }
 
-            if (PlayerInventoryController_ThrowItem_Patch.CallLocally.Contains(__instance.ProfileId))
-                PlayerInventoryController_ThrowItem_Patch.CallLocally.Remove(__instance.ProfileId);
-
+            PlayerInventoryController_ThrowItem_Patch.CallLocally.Remove(__instance.ProfileId);
             PlayerInventoryController_ThrowItem_Patch.PostPatch(playerInventoryController, backpack, __instance.Profile);
         }
 

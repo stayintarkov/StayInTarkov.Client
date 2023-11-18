@@ -93,10 +93,7 @@ namespace SIT.Core.Coop.Player
                 {
                     EFT.Player.PlayerInventoryController playerInventoryController = itemController as EFT.Player.PlayerInventoryController;
                     if (playerInventoryController == null)
-                    {
                         playerInventoryController = new(player, player.Profile, false);
-                        playerInventoryController.ResetDiscardLimits();
-                    }
 
                     List<ItemsCount> destroyedItems = GetDestroyedItemsFromItem(playerInventoryController, item);
                     if (destroyedItems.Count != 0)
@@ -127,8 +124,13 @@ namespace SIT.Core.Coop.Player
         {
             List<ItemsCount> destroyedItems = new();
 
-            if (playerInventoryController.HasDiscardLimit(item, out int itemDiscardLimit) && item.StackObjectsCount > itemDiscardLimit)
-                destroyedItems.Add(new ItemsCount(item, item.StackObjectsCount - itemDiscardLimit, itemDiscardLimit));
+            //if (playerInventoryController.HasDiscardLimit(item, out int itemDiscardLimit) && item.StackObjectsCount > itemDiscardLimit)
+            if (playerInventoryController.HasDiscardLimits && item.LimitedDiscard)
+            {
+                int itemDiscardLimit = item.DiscardLimit.Value;
+                if (item.StackObjectsCount > itemDiscardLimit)
+                    destroyedItems.Add(new ItemsCount(item, item.StackObjectsCount - itemDiscardLimit, itemDiscardLimit));
+            }
 
             if (item.IsContainer && destroyedItems.Count == 0)
             {
@@ -143,8 +145,11 @@ namespace SIT.Core.Coop.Player
                         if (itemInContainer == item)
                             continue;
 
-                        if (playerInventoryController.HasDiscardLimit(itemInContainer, out int itemInContainerDiscardLimit))
+                        //if (playerInventoryController.HasDiscardLimit(itemInContainer, out int itemInContainerDiscardLimit))
+                        if (playerInventoryController.HasDiscardLimits && itemInContainer.LimitedDiscard)
                         {
+                            int itemInContainerDiscardLimit = itemInContainer.DiscardLimit.Value;
+
                             if (!destroyedItems.Any(x => x.Item.TemplateId == itemInContainer.TemplateId))
                             {
                                 string templateId = itemInContainer.TemplateId;
