@@ -1,6 +1,6 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 逃离塔科夫的BepInEx MOD，为了配合SPT-Aki在逃离塔科夫离线模式下进行合作游戏。
 </div>
 
@@ -8,7 +8,7 @@
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)]((https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [简体中文](README_CN.md)
 </div>
@@ -39,14 +39,15 @@ SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE�
 * 我不会对社区撒谎，我知道目前这只是个半成品项目，但我会尽我所能的去修复完善它 **我不会提供任何支持与帮助**
 * 2023年7月30日后，Issues(问题反馈) & Discussions(讨论区) 将被关闭
 * __欢迎各位的PR，感谢提出Pull Requests的贡献者们__
+* * SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI 需求
 * Stay in Tarkov 需要 [最新的SPT-AKI服务器](https://dev.sp-tarkov.com/SPT-AKI/Server) 来运行. 你可以通过这个链接来了解什么是 SPT-Aki [here](https://www.sp-tarkov.com/).
 * 不要把SPT-AKI客户端模块与SIT同时安装! 只需要安装服务端模块即可!
 
-## [中文Wiki](https://github.com/paulov-t/SIT.Core/wiki/%E4%BB%8B%E7%BB%8D(Intro)-Home)
-  - ### [部署教程](https://github.com/paulov-t/SIT.Core/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
-  - ### [疑难解答](https://github.com/paulov-t/SIT.Core/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
+## [中文Wiki](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E4%BB%8B%E7%BB%8D(Intro)-Home)
+  - ### [部署教程](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
+  - ### [疑难解答](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
 
 ## 合作相关
 
@@ -57,10 +58,10 @@ SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE�
 * 但是“可以玩”与“完美运行”是完全不同的概念，玩家间的数据不同步，各种问题与bug是预期范围内的。
 * 我测试了所有地图，目前效果最好的两张图是`工厂`与`实验室` 。
 * 服务器与主机与客户端的网络状态/硬件配置，以及主机上的AI数量会剧烈影响游戏性能
-* 更多有关运行服务器与游戏合作注意事项在 [如何开打](https://github.com/paulov-t/SIT.Core/wiki/%E5%BC%80%E5%A7%8B%E4%B8%80%E5%9C%BA%E6%B8%B8%E6%88%8F-HOSTING)这里
+* 更多有关运行服务器与游戏合作注意事项在 [如何开打](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E5%BC%80%E5%A7%8B%E4%B8%80%E5%9C%BA%E6%B8%B8%E6%88%8F-HOSTING)这里
 
 ### 预先准备
-你必须将 [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) 安装到你的SPT-AKi服务器上来让mod工作。
+你必须将 [SPT-Aki mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) 安装到你的SPT-AKi服务器上来让mod工作。
 
 如果你不需要使用Coop功能，则你必须要在BepInEx配置文件中禁用掉
 
@@ -72,7 +73,7 @@ SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE�
 - 项目使用多种BepInEx Harmony补丁对Unity组件修改来实现功能
 - 那些需要不断在客户端与服务器之间同步的数据 (移动，视角变换等等) 使用组件来传输数据 (AI的代码在每一帧都执行一遍Update/LateUpdate命令和函数，从而导致大量的网络数据传输)
 - 那些可以被轻松 "复现" 的功能与方法则使用 ModuleReplicationPatch 抽象类处理 以实现双向调用。
-- 服务器所有的通信都通过JSON TCP Http 与 Web Socket 调用由SPT-Aki开发的 ["Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server) 来处理，使用[SIT.Aki-Server-Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) 来处理后端相关工作
+- 服务器所有的通信都通过JSON TCP Http 与 Web Socket 调用由SPT-Aki开发的 ["Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server) 来处理，使用[SIT.Aki-Server-Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) 来处理后端相关工作
 - 当一个合作游戏开始时（除了藏身处），CoopGameComponent会附加到GameWorld对象上，并轮询数据传递给PlayerReplicatedComponent
 
 

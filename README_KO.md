@@ -1,6 +1,6 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 SPT-Aki 서버와 함께 사용할 수 있는 Escape From Tarkov BepInEx 모듈로, 최종 목표는 '오프라인' 협동 모드입니다. 
 </div>
 
@@ -8,7 +8,7 @@ SPT-Aki 서버와 함께 사용할 수 있는 Escape From Tarkov BepInEx 모듈�
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) 
 </div>
@@ -48,15 +48,16 @@ Stay in Tarkov 프로젝트는 Battlestate Games(BSG)가 Escape from Tarkov의 �
 * 해결책이나 도움을 기대하고 돈을 지불하지 마십시오. 
 * 이 프로젝트는 취미로 만들어졌으며, 재미를 위한 것입니다. 진지하게 다루지 마십시오. 
 * 이것은 반쯤 망가진 시도이지만, 최선을 다해 수정하겠습니다. 
+* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI 요구사항
 * Tarkov에서 Stay in Tarkov 모드를 사용하려면 [최신 버전의 AKI 서버](https://dev.sp-tarkov.com/SPT-AKI/Server)가 필요합니다. SPT-Aki에 대해 자세히 알아보려면 [여기](https://www.sp-tarkov.com/)를 방문하십시오.
 * SPT-Aki 클라이언트에 이것을 설치하지 마십시오! 서버에만 설치하십시오!
 
-## [위키](https://github.com/paulov-t/SIT.Core/wiki)
+## [위키](https://github.com/stayintarkov/StayInTarkov.Client/wiki)
 **위키는 여러 기여자에 의해 작성되었습니다. 모든 지침은 위키 디렉토리의 소스 내에서도 확인할 수 있습니다.**
-  - ### [설치 매뉴얼](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
+  - ### [설치 매뉴얼](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Guides-English)
+  - ### [FAQs](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-English)
 
 ## Coop
 
@@ -65,12 +66,12 @@ Stay in Tarkov 프로젝트는 Battlestate Games(BSG)가 Escape from Tarkov의 �
 * Coop는 개발 초기 단계입니다. 
 * 대부분의 기능은 (대략) 작동하며, 버그가 있을 수 있습니다. "Playable"과 "perfect"는 매우 다른 것입니다. 지연(비동기화), 문제 및 버그가 예상됩니다.
 * 제 테스트에는 모든 맵이 포함되어 있습니다. 가장 잘 작동하는 맵은 Factory와 Labs입니다. 성능은 서버 및 클라이언트의 CPU/인터넷 및 서버의 AI 수에 매우 의존합니다.
-* HOSTING 및 COOP에 대한 자세한 정보는 [HOSTING.md 문서](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-English.md)를 참고하세요.
+* HOSTING 및 COOP에 대한 자세한 정보는 [HOSTING.md 문서](https://github.com/stayintarkov/StayInTarkov.Client/wiki/en/Guides/HOSTING-English.md)를 참고하세요.
 * 호스트 및 서버는 안정적인 연결과 최소 5-10mbps의 업로드 속도가 필요합니다. AI는 실행에 많은 CPU 및 네트워크 대역폭을 사용합니다.
 * 많은 사람들이 그렇게 말하지만, 세계 각국의 사람들과 함께 플레이할 수 있습니다(로컬 네트워크만 가능한 것은 아닙니다). 나는 200ms 이상의 핑을 가진 사람들과 함께 플레이했습니다. 그들은 라이브와 유사한 지연이 발생하지만 다른 방식으로 표시됩니다.
 
 ### 사전 요구사항
-이 모듈을 사용하려면 서버에 [SPT-Aki 모드](https://github.com/paulov-t/SIT.Aki-Server-Mod)가 설치되어 있어야 합니다. Coop 모듈을 사용하지 않으려면 BepInEx 구성 파일에서 비활성화해야 합니다.
+이 모듈을 사용하려면 서버에 [SPT-Aki 모드](https://github.com/stayintarkov/SIT.Aki-Server-Mod)가 설치되어 있어야 합니다. Coop 모듈을 사용하지 않으려면 BepInEx 구성 파일에서 비활성화해야 합니다.
 
 ### Coop은 BSG의 Coop 코드를 사용할 수 있습니까?
 아니요. BSG 서버 코드는 명백한 이유로 클라이언트에서 숨겨져 있습니다. 따라서 BSG의 Coop 구현은 PvPvE와 동일한 온라인 서버를 사용합니다. 우리는 이것을 보지 못하기 때문에 이를 사용할 수 없습니다.
@@ -79,7 +80,7 @@ Stay in Tarkov 프로젝트는 Battlestate Games(BSG)가 Escape from Tarkov의 �
 - 이 프로젝트는 BepInEx Harmony 패치의 여러 가지 방법과 Unity 구성 요소를 결합하여 목표를 달성합니다.
 - 클라이언트->서버->클라이언트 간의 지속적인 폴링이 필요한 기능/방법(이동, 회전, 보기 등)은 데이터를 보내기 위해 구성 요소를 사용합니다(AI 코드는 업데이트/레이트 업데이트 명령 및 함수를 실행하고 모든 틱마다 실행되므로 네트워크 플러드를 유발합니다).
 - "복제"할 수 있는 기능/방법은 ModuleReplicationPatch 추상 클래스를 사용하여 호출을 쉽게 왕복합니다.
-- 모든 서버 통신은 JSON TCP Http 및 Web Socket 호출을 통해 이루어지며, [SPT-Aki에서 개발한 "Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server)를 사용하여 [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)를 사용하여 "백엔드" 작업을 처리합니다.
+- 모든 서버 통신은 JSON TCP Http 및 Web Socket 호출을 통해 이루어지며, [SPT-Aki에서 개발한 "Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server)를 사용하여 [typescript mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)를 사용하여 "백엔드" 작업을 처리합니다.
 - CoopGameComponent는 Coop 준비 게임이 시작될 때 GameWorld 개체에 연결됩니다(숨은 장소가 아닌 모든 게임). CoopGameComponent는 정보를 위해 서버를 폴링하고 데이터를 PlayerReplicatedComponent에 전달합니다.
 
 ## SPT-Aki

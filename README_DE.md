@@ -1,6 +1,6 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" Coop-Modus zu emulieren.
 </div>
 
@@ -8,7 +8,7 @@ Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" C
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [简体中文](README_CN.md)
 
@@ -38,15 +38,16 @@ Sobald BSG allerdings solch einen Spielmodus anbietet wird das Projekt sofort ei
 * Das ist ein Hobbyprojekt, des Spaßes halber. Nehmt es nicht zu ernst.
 * Das Projekt geht weder gegen BSG noch die Tarkov-Community!
 * Pull-Requests sind gerne gesehen!
+* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI Voraussetzung
 * Stay in Tarkov benötigt den neusten [AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) um zu funktionieren. Du kannst mehr über SPT-AKI [hier](https://www.sp-tarkov.com/) erfahren.
 * NICHT DEN KLIENTEN! DU BRAUCHST DEN SERVER!
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
+## [Wiki](https://github.com/stayintarkov/StayInTarkov.Client/wiki)
 **Das Wiki wird von mehreren Autoren verwaltet und ist möglicherweise nicht immer ganz aktuell!**
-  - ### [Setup](https://github.com/paulov-t/SIT.Core/wiki/Home-Deutsch)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-Deutsch)
+  - ### [Setup](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-Deutsch)
+  - ### [FAQs](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-Deutsch)
 
 ## Coop
 
@@ -55,10 +56,10 @@ Sobald BSG allerdings solch einen Spielmodus anbietet wird das Projekt sofort ei
 * Coop ist im Anfangsstadium. 
 * Die meisten Sachen funktionieren einigermaßen und im Grunde ist es "spielbar". Verwechsel hier aber spielbar nicht mit perfekt, erwarte Bugs, Lag, Desync und anderes!
 * Alle Karten wurden getestet. Factory und Labs laufen am flüssigsten. Performance ist trotzdem abhängig von deinem CPU und der Verbindung zwischen dir und dem Server.
-* Mehr Infos zum Hosten findest du [hier](https://github.com/paulov-t/SIT.Core/wiki/Home-Deutsch).
+* Mehr Infos zum Hosten findest du [hier](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-Deutsch).
 
 ### Voraussetzung
-Du brauchst den [SIT-Servermod](https://github.com/paulov-t/SIT.Aki-Server-Mod) und musst ihn auf deinem SPT-AKI Server installieren.
+Du brauchst den [SIT-Servermod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) und musst ihn auf deinem SPT-AKI Server installieren.
 
 ### Nutzt der Coop Netzwerkcode von BSG?
 Nein, alles Serverseitige ist aus diversen Gründen für Klienten nicht einseh- und deshalb nicht nutzbar.
@@ -67,7 +68,7 @@ Nein, alles Serverseitige ist aus diversen Gründen für Klienten nicht einseh- 
 - Das Projekt baut auf diversen BepInEx Harmony Patches im Zusammenspiel mit Unity-Komponenten auf.
 - Features/Methoden erfordern konstanten austausch zwischen Clienten und Server (Bewegung, Rotation usw.) und nutzen angehängte Komponenten um Daten zu senden und empfangen.
 - Features/Methoden die einfach replitziert werden können nutzen eine abstrakte `ModuleReplicationPatch` Klasse zum senden/empfangen.
-- Sämtliche Kommunikation geschiet via JSON TCP Http und WebSockets zum ["Web Server" von SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server). Der Servermod ist in Typescript und handhabt das "backend".
+- Sämtliche Kommunikation geschiet via JSON TCP Http und WebSockets zum ["Web Server" von SPT-Aki](https://github.com/stayintarkov/SIT.Aki-Server-Mod). Der Servermod ist in Typescript und handhabt das "backend".
 - Ein `CoopGameComponent` wird in die Spielweld geladen sobald ein Coop-Fähiges spielt gestartet wurde (alles ausser deinem Hideout), kümmert sich um die Serverkommunikation und gibt alles an das `PlayerReplicatedComponent` weiter.
 
 ## SPT-Aki
