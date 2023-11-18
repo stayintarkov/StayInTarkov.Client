@@ -59,7 +59,7 @@ namespace DrakiaXYZ.Waypoints.Components
             mesh.uv = uvs;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-            
+
 
             // Set mesh of our gameObject
             GetComponent<MeshFilter>().mesh = mesh;

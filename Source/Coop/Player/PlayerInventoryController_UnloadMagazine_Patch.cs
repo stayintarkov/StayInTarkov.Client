@@ -1,16 +1,10 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Coop.NetworkPacket;
-using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {

@@ -1,7 +1,6 @@
 ﻿using EFT.UI;
 using SIT.Tarkov.Core;
 using System.Reflection;
-using UnityEngine;
 
 
 namespace StayInTarkov.UI

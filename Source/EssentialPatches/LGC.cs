@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using Microsoft.Win32;
 using UnityEngine;
 
 namespace StayInTarkov.EssentialPatches
@@ -68,7 +68,7 @@ namespace StayInTarkov.EssentialPatches
             foreach (var item in sha1_kv)
             {
                 var hash = sha.ComputeHash(File.ReadAllBytes(item.Key));
-                var hash_string = Convert.ToString(hash).Replace("-","");
+                var hash_string = Convert.ToString(hash).Replace("-", "");
                 if (item.Value != hash_string)
                     Application.Quit();
             }

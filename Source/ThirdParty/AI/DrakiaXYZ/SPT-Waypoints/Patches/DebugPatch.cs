@@ -1,13 +1,7 @@
-﻿using Comfort.Common;
-using DrakiaXYZ.Waypoints.Components;
-using DrakiaXYZ.Waypoints.Helpers;
+﻿using DrakiaXYZ.Waypoints.Components;
 using EFT;
-using EFT.Game.Spawning;
 using SIT.Tarkov.Core;
-using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
-using UnityEngine.AI;
 
 namespace DrakiaXYZ.Waypoints.Patches
 {

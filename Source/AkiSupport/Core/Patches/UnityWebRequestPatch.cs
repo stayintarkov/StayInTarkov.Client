@@ -1,6 +1,6 @@
+using SIT.Tarkov.Core;
 using System.Reflection;
 using UnityEngine.Networking;
-using SIT.Tarkov.Core;
 
 namespace Aki.Core.Patches
 {

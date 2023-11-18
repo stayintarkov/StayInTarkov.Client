@@ -1,5 +1,4 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Tarkov.Core;
@@ -52,7 +51,7 @@ namespace SIT.Coop.Core.Player
             , Meds0 meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
-            { 
+            {
                 CallLocally.Remove(__instance.ProfileId);
                 return;
             }

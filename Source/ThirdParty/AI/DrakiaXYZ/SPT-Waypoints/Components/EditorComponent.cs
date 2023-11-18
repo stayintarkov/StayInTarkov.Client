@@ -153,7 +153,7 @@
 //                // Write output to file
 //                Save();
 //            }
-            
+
 //            if (Settings.RemoveWaypointKey.Value.IsDown())
 //            {
 //                if (DeleteNearestAddedWaypoint(player.Position))

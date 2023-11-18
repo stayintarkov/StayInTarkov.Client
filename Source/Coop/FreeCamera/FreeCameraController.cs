@@ -62,7 +62,7 @@ namespace SIT.Core.Coop.FreeCamera
         private DateTime _lastTime = DateTime.MinValue;
 
         int DeadTime = 0;
-        
+
 
         public void Update()
         {

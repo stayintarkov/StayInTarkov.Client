@@ -164,7 +164,7 @@ namespace SIT.Core.Coop
             }
 
 
-            if(CoopGameComponentParent != null) 
+            if (CoopGameComponentParent != null)
                 GameObject.DestroyImmediate(CoopGameComponentParent);
 
             //GCHelpers.DisableGC(true);
