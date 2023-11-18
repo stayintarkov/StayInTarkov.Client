@@ -66,6 +66,13 @@ namespace SIT.Tarkov.Core
 
                 var path = jObj["path"].ToString();
                 var dependencyKeys = jObj["dependencyKeys"].ToObject<string[]>();
+
+                // if server bundle, patch the bundle path to use the backend URL
+                if (path.Substring(0, 14) == "/files/bundle/")
+                {
+                    path = StayInTarkovHelperConstants.GetBackendUrl() + path;
+                }
+
                 var bundle = new BundleInfo(key, path, dependencyKeys);
 
                 StayInTarkovHelperConstants.Logger.LogInfo($"Adding Custom Bundle : {path}");
