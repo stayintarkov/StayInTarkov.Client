@@ -5,9 +5,10 @@ using System.IO;
 using System.Security.Cryptography;
 using UnityEngine;
 
+
 namespace StayInTarkov.EssentialPatches
 {
-    //Made by SlejmUr <slejmur@protonmail.com>
+    //Made by SlejmUr <slejmur@protonmail.com>, modified for SIT
     //This portion of the code is under MIT License.
     internal class LGC
     {
@@ -62,10 +63,14 @@ namespace StayInTarkov.EssentialPatches
 
         public static bool RunTarkovLGC(BepInEx.Configuration.ConfigFile config)
         {
+            var lcRemover = config.Bind<bool>("Debug Settings", "LC Remover", false).Value;
+            if (lcRemover)
+                return true;
             if (IfDirFromTarkov())
             {
                 //make sure we are not on live, so we quit
                 //Application.Quit();
+               StayInTarkovHelperConstants.Logger.LogError(IllegalMessage);
                return false;
             }
             //  tbh, checking this is shit.
@@ -77,9 +82,14 @@ namespace StayInTarkov.EssentialPatches
                 var hash = sha.ComputeHash(File.ReadAllBytes(item.Key));
                 var hash_string = Convert.ToString(hash).Replace("-", "");
                 if (item.Value != hash_string)
-                    return false;//Application.Quit();
+                {
+                    StayInTarkovHelperConstants.Logger.LogError(IllegalMessage); //CRCErrorMsg?
+                    return false;
+                }
+                //Application.Quit();
             }
             sha.Dispose();
+            //StayInTarkovHelperConstants.Logger.LogError("Legal game, have fun!");
             return true;
         }
 
