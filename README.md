@@ -47,7 +47,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * Please do not hand over money expecting help or a solution. 
 * This is a hobby, for fun, project. Please don't treat it seriously. 
 * Paulov: I know this is a semi-broken attempt but will try to fix as best I can. SIT Contributors: "We can do it!"
-* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
+* [SIT Discord](https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 
 ## SPT-AKI Requirement
