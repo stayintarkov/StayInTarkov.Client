@@ -1,5 +1,5 @@
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 Um módulo BepInEx de Escape From Tarkov projetado para ser usado com o servidor SPT-Aki com o objetivo final de "Coop Offline"
 </div>
 
@@ -7,7 +7,7 @@ Um módulo BepInEx de Escape From Tarkov projetado para ser usado com o servidor
 
 <div align=center>
 
-![GitHub (todas as versões)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub lançamento (mais recente por data)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+![GitHub (todas as versões)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub lançamento (mais recente por data)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
 [English](README.md) **|** [简体中文](README_CN.md) **|** [Português-Brasil](README_PT_BR.md)
 
@@ -37,15 +37,16 @@ O objetivo do projeto é simples: criar uma experiência de coop PvE que mantenh
 * Isso é um hobby, para diversão, um projeto. Por favor, não o leve a sério.
 * Não engano a comunidade. Eu sei que esta é uma tentativa semi-funcional, mas vou tentar corrigir da melhor forma possível.
 * Pull Requests são encorajados!
+* SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## Requisitos do SPT-AKI
 * Stay in Tarkov funciona com o [último AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) para ser executado. Você pode saber mais sobre o SPT-Aki [aqui](https://www.sp-tarkov.com/).
 * NÃO INSTALE ISSO NO CLIENTE DO SPT-Aki! INSTALE APENAS NO SERVIDOR!
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
+## [Wiki](https://github.com/stayintarkov/StayInTarkov.Client/wiki)
 **A Wiki está em construção por vários colaboradores. Ela pode estar incompleta! Todas as instruções também estão disponíveis no código-fonte, no diretório wiki.**
-  - ### [Manuais de Configuração](https://github.com/paulov-t/SIT.Core/wiki/Guides-Portuguese)
-  - ### [Perguntas Frequentes](https://github.com/paulov-t/SIT.Core/wiki/FAQs-Portuguese)
+  - ### [Manuais de Configuração](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Guides-Portuguese)
+  - ### [Perguntas Frequentes](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-Portuguese)
 
 ## Coop
 
@@ -54,10 +55,10 @@ O objetivo do projeto é simples: criar uma experiência de coop PvE que mantenh
 * O coop está em estágios iniciais de desenvolvimento.
 * A maioria dos recursos funciona (mais ou menos) e é "jogável (mais ou menos) com prováveis bugs". "Jogável" e perfeito são duas coisas muito diferentes. Espere lag (dessincronia), problemas e bugs.
 * Meus testes incluíram todos os mapas. Os mapas que funcionam melhor são Factory e Labs. O desempenho depende muito da CPU/Internet do servidor e dos clientes e do número de IAs no servidor.
-* Mais informações sobre HOSPEDAGEM & COOP estão no [Documento HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-Portuguese.md)
+* Mais informações sobre HOSPEDAGEM & COOP estão no [Documento HOSTING.md](https://github.com/stayintarkov/StayInTarkov.Client/wiki/en/Guides/HOSTING-Portuguese.md)
 
 ### PRÉ-REQUISITO
-Você deve ter o mod [SPT-Aki](https://github.com/paulov-t/SIT.Aki-Server-Mod) instalado em seu servidor para que este módulo funcione. Se você não deseja usar o módulo Coop, você deve desativá-lo no arquivo de configuração do BepInEx.
+Você deve ter o mod [SPT-Aki](https://github.com/stayintarkov/SIT.Aki-Server-Mod) instalado em seu servidor para que este módulo funcione. Se você não deseja usar o módulo Coop, você deve desativá-lo no arquivo de configuração do BepInEx.
 
 ### O Coop pode usar o código da BSG?
 Não. O código do servidor da BSG é oculto do cliente por razões óbvias. Portanto, a implementação da BSG do coop usa os mesmos servidores online do PvPvE. Nós não temos acesso a isso, então não podemos usar isso.
@@ -66,7 +67,7 @@ Não. O código do servidor da BSG é oculto do cliente por razões óbvias. Por
 - O projeto usa vários métodos de patches Harmony do BepInEx em conjunto com Componentes Unity para alcançar seus objetivos.
 - Recursos/Métodos que requerem sondagem constante entre Cliente->Servidor->Cliente (Mover, Girar, Olhar, etc) usam Componentes para enviar dados (o código da IA executa os comandos Update/LateUpdate e a função a cada tick, causando assim inundação de rede).
 - Recursos/Métodos que podem ser facilmente "replicados" usam a classe abstrata ModuleReplicationPatch para fazer uma chamada de ida e volta facilmente.
-- Toda a comunicação do servidor é feita por meio de chamadas JSON TCP Http e Web Socket para o ["Servidor Web" desenvolvido por SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server), usando um [mod typescript](https://github.com/paulov-t/SIT.Aki-Server-Mod) para lidar com o trabalho "em segundo plano".
+- Toda a comunicação do servidor é feita por meio de chamadas JSON TCP Http e Web Socket para o ["Servidor Web" desenvolvido por SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server), usando um [mod typescript](https://github.com/stayintarkov/SIT.Aki-Server-Mod) para lidar com o trabalho "em segundo plano".
 - CoopGameComponent é anexado ao objeto GameWorld quando um jogo pronto para Coop é iniciado (qualquer jogo que não seja Hideout). CoopGameComponent verifica o servidor em busca de informações e passa os dados para o PlayerReplicatedComponent.
 
 ## SPT-Aki
