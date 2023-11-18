@@ -2,7 +2,6 @@
 using EFT.UI;
 using Microsoft.Win32;
 using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.IO;

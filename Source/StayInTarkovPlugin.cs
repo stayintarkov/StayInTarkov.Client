@@ -236,7 +236,7 @@ namespace StayInTarkov
                 if (!url.Contains("https"))
                 {
                     new TransportPrefixPatch().Enable();
-                    new SIT.Tarkov.Core.WebSocketPatch().Enable();
+                    new Aki.Core.Patches.WebSocketPatch().Enable();
                 }
 
             }
