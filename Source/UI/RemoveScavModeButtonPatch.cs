@@ -17,18 +17,17 @@ namespace StayInTarkov.UI
         }
 
         [PatchPostfix]
-        static void PatchPostfix(
-            EFT.UI.Matchmaker.MatchMakerSideSelectionScreen __instance,
-            DefaultUIButton ____savagesBigButton,
-            UIAnimatedToggleSpawner ____savagesButton,
-            DefaultUIButton ____pmcBigButton
-            )
+        static void PatchPostfix()
         {
-            ____savagesBigButton.enabled = false;
-            ____savagesButton.SpawnableToggle.enabled = false;
-            ____savagesButton.gameObject.SetActive(false);
-            //____savagesBigButton.transform.parent.gameObject.SetActive(false);
-
+            var selecttxt = GameObject.Find("SideSelectionCaption");
+            selecttxt.active = false;
+            var savages = GameObject.Find("Savage");
+            savages.active = false;
+            var pmcdesc = GameObject.Find("Description");
+            pmcdesc.active = false;
+            var pmcs = GameObject.Find("PMCs");
+            pmcs.transform.localScale = new Vector3( (float)1.3, (float)1.3, (float)1.0);
+            pmcs.transform.position = new Vector3((Screen.width / 2) - 293, (Screen.height / 2) - 130, 0);
         }
     }
 }
