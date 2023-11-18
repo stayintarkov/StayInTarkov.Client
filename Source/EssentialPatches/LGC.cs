@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using UnityEngine;
-
+﻿using SIT.Tarkov.Core;
 
 namespace StayInTarkov.EssentialPatches
 {
