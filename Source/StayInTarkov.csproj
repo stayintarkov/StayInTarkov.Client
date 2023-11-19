@@ -15,7 +15,6 @@
     <EmbeddedResource Include="Resources\Language\English.json">
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\French.json" />
-    </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\Japanese.json">
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\SimplifiedChinese.json">
