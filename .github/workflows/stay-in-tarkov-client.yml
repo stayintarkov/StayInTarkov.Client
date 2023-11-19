@@ -62,9 +62,7 @@ jobs:
 
     - name: Zip remaining files
       run: |
-          cd ${{ env.SolutionName }}-${{ matrix.configuration }}
-          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-          Compress-Archive -Path * -DestinationPath ../${{ env.SolutionName }}-${{ matrix.configuration }}.zip
+          Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
 
 
 
@@ -76,9 +74,11 @@ jobs:
         path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
         if-no-files-found: error
     
-
     - name: Set build date
-      run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      run: |
+        $NOW=& Get-Date -format yyyy-MM-dd
+        echo "NOW=$NOW" >> $env:GITHUB_ENV
+        
     # Create release from the compressed file if pushed to master
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -87,4 +87,4 @@ jobs:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client-v1.${{ github.run_number }}
+        tag_name: StayInTarkov.Client-${{ $env:GITHUB_ENV }}-v1.${{ github.run_number }}
