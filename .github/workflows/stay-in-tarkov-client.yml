@@ -74,7 +74,7 @@ jobs:
       run: |
         mkdir extracted_files
         tar -xf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -C extracted_files
-        Copy-Item -Path .\extracted_files/StayInTarkov.dll .\extracted_files/Assembly-CSharp.dll -Destination $GITHUB_WORKSPACE/ -Force
+        Copy-Item -Path .\extracted_files/StayInTarkov.dll, .\extracted_files/Assembly-CSharp.dll -Destination $GITHUB_WORKSPACE/ -Force
 
     # Create release from the extracted files
     - name: Create Release
