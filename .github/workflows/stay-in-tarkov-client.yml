@@ -62,9 +62,8 @@ jobs:
 
     - name: Zip remaining files
       run: |
-        cd ${{ env.SolutionName }}-${{ matrix.configuration }}
-        Compress-Archive -Path * -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-          
+          cd ${{ env.SolutionName }}-${{ matrix.configuration }}
+          Compress-Archive -Path * -DestinationPath ../${{ env.SolutionName }}-${{ matrix.configuration }}.zip
 
 
 
