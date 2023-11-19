@@ -61,7 +61,6 @@ jobs:
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\Newtonsoft.Json.dll
 
 
-    
 
     # Upload artifact unless its merge to master
     - name: Upload artifact
@@ -72,13 +71,12 @@ jobs:
         if-no-files-found: error
     
 
-
     - name: Set build date
       run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
     # Create release from the compressed file if pushed to master
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+      if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
       with:
         draft: true
         generate_release_notes: true
