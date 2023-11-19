@@ -35,9 +35,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    
-    - name: Set build date
-      run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
 
     # Install the .NET Core workload
@@ -71,6 +68,9 @@ jobs:
         if-no-files-found: error
     
 
+
+    - name: Set build date
+      run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
     # Create release from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
