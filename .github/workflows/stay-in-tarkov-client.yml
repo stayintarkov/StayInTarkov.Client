@@ -74,8 +74,10 @@ jobs:
       run: |
         mkdir extracted_files
         tar -xf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -C extracted_files
-        Copy-Item -Path D:\a\StayInTarkov.Client\StayInTarkov.Client\extracted_files\StayInTarkov.dll, D:\a\StayInTarkov.Client\StayInTarkov.Client\extracted_files\Assembly-CSharp.dll -Destination $GITHUB_WORKSPACE -Force
-
+        Get-ChildItem -Path "D:\a\StayInTarkov.Client\StayInTarkov.Client\extracted_files\StayInTarkov.dll" -Filter "*.dll" | ForEach-Object {
+          $file = $_.FullName
+          Copy-Item -Path $file -Destination $GITHUB_WORKSPACE -Force
+        }
     # Create release from the extracted files
     - name: Create Release
       uses: softprops/action-gh-release@v1
