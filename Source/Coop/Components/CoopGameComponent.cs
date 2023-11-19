@@ -1254,7 +1254,7 @@ namespace SIT.Core.Coop
             var h = 0.2f; // proportional height (0..1)
             var rectEndOfGameMessage = UnityEngine.Rect.zero;
             rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
-            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2;
+            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + (Screen.height/3);
             rectEndOfGameMessage.width = Screen.width * w;
             rectEndOfGameMessage.height = Screen.height * h;
 
@@ -1275,22 +1275,22 @@ namespace SIT.Core.Coop
             {
                 case EQuitState.YourTeamIsDead:
                     //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
-                    if (GUI.Button(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle))
+                    if (GUI.Button(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle))
                     {
-
+                        
                     }
                     break;
                 case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YourTeamHasExtracted:
-                    GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
                     break;
             }
 
