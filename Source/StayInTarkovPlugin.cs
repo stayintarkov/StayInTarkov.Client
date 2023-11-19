@@ -139,7 +139,9 @@ namespace StayInTarkov
                 default:
                     stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
                     break;
-
+                case "fr":
+                    stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("French.json")));
+                    break;
             }
 
             if (stream == null)
