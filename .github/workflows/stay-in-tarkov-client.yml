@@ -79,10 +79,8 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-      env:
-        BUILD_DATETIME: ${{ env.BUILD_DATETIME }}
       with:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
+        tag_name: StayInTarkov.Client-v1.${{ github.run_number }}
