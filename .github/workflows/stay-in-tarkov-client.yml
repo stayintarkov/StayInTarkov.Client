@@ -75,7 +75,7 @@ jobs:
 
     - name: Set build date
       run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-    # Create release from the compressed file
+    # Create release from the compressed file if pushed to master
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
