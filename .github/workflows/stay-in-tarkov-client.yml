@@ -57,9 +57,6 @@ jobs:
         dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
         tar -cf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
     
-    - name: Read Version Number
-      id: version
-      run: echo ::set-output name=version::$(cat version.txt)
 
     # Upload artifact unless its merge to master
     - name: Upload artifact
@@ -77,4 +74,4 @@ jobs:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client $(date +"%Y-%m-%d")v${{ steps.version.outputs.version }}
+        tag_name: StayInTarkov.Client ${{ matrix.configuration }}$(date +"%Y-%m-%d")v
