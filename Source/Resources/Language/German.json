@@ -13,6 +13,8 @@
   "REQUIRE_PASSWORD": "Passwort für die Lobby",
   "PASSWORD": "Passwort",
   "AI_AMOUNT": "KI Menge",
+  "AI_DIFFICULTY": "AI Difficulty",
+  "AI_BOSSES_ENABLED": "Enable Bosses",
   "ILLEGAL_MESSAGE": "Illegale Spielekopie erkannt! Bitte kaufe dir Escape from Tarkov und starte es mindestens ein mal.",
   "RAID_PLAYER_EXTRACTED": "Du bist entkommen! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
   "RAID_PLAYER_EXTRACTED_HOST": "Du bist entkommen! Bitte warte bis alle Spieler entkommen sind oder verlasse die Lobby mit F8.",

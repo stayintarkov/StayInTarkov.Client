@@ -13,6 +13,8 @@
   "REQUIRE_PASSWORD": "暗証番号が必要です",
   "PASSWORD": "暗証番号",
   "AI_AMOUNT": "AI Amount",
+  "AI_DIFFICULTY": "AI Difficulty",
+  "AI_BOSSES_ENABLED": "Enable Bosses",
   "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once.",
   "RAID_PLAYER_EXTRACTED": "You have extracted! Please wait for the game to end or quit now using the F8 Key.",
   "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait for all players to extract or quit now using the F8 Key.",
