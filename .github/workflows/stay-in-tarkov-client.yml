@@ -74,4 +74,4 @@ jobs:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client ${{ matrix.configuration }}$(date +"%Y-%m-%d")v
+        tag_name: StayInTarkov.Client $(date +"%Y-%m-%d")v${{ github.run_number }}
