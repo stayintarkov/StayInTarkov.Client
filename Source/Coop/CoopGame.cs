@@ -10,8 +10,6 @@ using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.AI.PMCLogic.Friendly.Companion;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.Components;
 using SIT.Core.Coop.FreeCamera;
@@ -22,14 +20,9 @@ using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace SIT.Core.Coop
 {
@@ -52,7 +45,7 @@ namespace SIT.Core.Coop
     /// </summary>
     public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-       
+
         public new bool InRaid { get { return true; } }
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
@@ -131,7 +124,7 @@ namespace SIT.Core.Coop
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
-           
+
 
             // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
@@ -364,7 +357,7 @@ namespace SIT.Core.Coop
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-             
+
                 localPlayer
                    = (await CoopPlayer.Create(
                        //= (await LocalPlayer.Create(
@@ -551,7 +544,7 @@ namespace SIT.Core.Coop
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
-            
+
             // ---------------------------------------------
             // Here we can wait for other players, if desired
             await Task.Run(async () =>
@@ -638,10 +631,10 @@ namespace SIT.Core.Coop
                     friendlyBot.IsFriendlyBot = true;
                     //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
                     //companionComponent.CoopPlayer = friendlyBot;
-                    if(!FriendlyPlayers.ContainsKey(profileClone.Id))
+                    if (!FriendlyPlayers.ContainsKey(profileClone.Id))
                         FriendlyPlayers.Add(profileClone.Id, friendlyBot);
 
-                    
+
                 }
             }
 
@@ -774,7 +767,7 @@ namespace SIT.Core.Coop
                     this.BossWaveManager.Stop();
             }
 
-           
+
 
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");

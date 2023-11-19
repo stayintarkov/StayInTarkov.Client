@@ -8,7 +8,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
@@ -119,49 +118,49 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             //taskScheduler.Do((s) =>
             //{
-                TriggerPressedPacket tpp = new(player.ProfileId);
+            TriggerPressedPacket tpp = new(player.ProfileId);
 
-                //Logger.LogInfo("Pressed:Replicated");
-                if (!dict.ContainsKey("data"))
-                    return;
+            //Logger.LogInfo("Pressed:Replicated");
+            if (!dict.ContainsKey("data"))
+                return;
 
-                tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
+            tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
 
-                if (HasProcessed(GetType(), player, tpp))
-                    return;
+            if (HasProcessed(GetType(), player, tpp))
+                return;
 
-                if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                    return;
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                return;
 
-                if (CallLocally.Contains(player.ProfileId))
-                    return;
+            if (CallLocally.Contains(player.ProfileId))
+                return;
 
-                CallLocally.Add(player.ProfileId);
+            CallLocally.Add(player.ProfileId);
 
-                bool pressed = tpp.pr; // bool.Parse(dict["pr"].ToString());
+            bool pressed = tpp.pr; // bool.Parse(dict["pr"].ToString());
 
-                if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            {
+                try
                 {
-                    try
+                    //if (pressed && dict.ContainsKey("rX"))
+                    if (prc.IsClientDrone && tpp.rX != 0)
                     {
-                        //if (pressed && dict.ContainsKey("rX"))
-                        if (prc.IsClientDrone && tpp.rX != 0)
-                        {
-                            var rotat = new Vector2(tpp.rX, tpp.rY);
-                            player.Rotation = rotat;
-                        }
-                        //firearmCont.SetTriggerPressed(pressed);
-                        firearmCont.StartCoroutine(SetTriggerPressedCR(player, firearmCont, pressed));
-
-                        //ReplicatedShotEffects(player, pressed);
-
-
+                        var rotat = new Vector2(tpp.rX, tpp.rY);
+                        player.Rotation = rotat;
                     }
-                    catch (Exception e)
-                    {
-                        Logger.LogInfo(e);
-                    }
+                    //firearmCont.SetTriggerPressed(pressed);
+                    firearmCont.StartCoroutine(SetTriggerPressedCR(player, firearmCont, pressed));
+
+                    //ReplicatedShotEffects(player, pressed);
+
+
                 }
+                catch (Exception e)
+                {
+                    Logger.LogInfo(e);
+                }
+            }
             //});
         }
 

@@ -1,10 +1,7 @@
 ﻿using BepInEx;
-using DrakiaXYZ.BigBrain.Brains;
 using DrakiaXYZ.Waypoints.Helpers;
 using DrakiaXYZ.Waypoints.Patches;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -48,9 +45,9 @@ namespace DrakiaXYZ.Waypoints
             }
 
             // Note: We only include this in debug builds for now, because we're not shipping BigBrain
-//#if DEBUG
+            //#if DEBUG
             //BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 2);
-//#endif
+            //#endif
         }
     }
 }

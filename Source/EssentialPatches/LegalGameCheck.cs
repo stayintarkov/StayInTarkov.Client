@@ -1,13 +1,6 @@
-﻿using Comfort.Common;
-using EFT.UI;
-using Microsoft.Win32;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using UnityEngine;
 
 namespace StayInTarkov.EssentialPatches
 {
@@ -60,7 +53,7 @@ namespace StayInTarkov.EssentialPatches
             {
                 StayInTarkovHelperConstants.Logger.LogError(ex.ToString());
             }
-                                 
+
             Checked = true;
             LegalGameFound = false;
             StayInTarkovHelperConstants.Logger.LogError(IllegalMessage);

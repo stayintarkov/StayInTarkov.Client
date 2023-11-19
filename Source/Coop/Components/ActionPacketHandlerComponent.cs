@@ -4,16 +4,12 @@ using EFT;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Core.Coop.World;
-using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -28,7 +24,7 @@ namespace SIT.Core.Coop.Components
         public ManualLogSource Logger { get; private set; }
 
         private List<string> RemovedFromAIPlayers = new();
-        
+
         private CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
 
         private CoopGameComponent CoopGameComponent { get; set; }
@@ -40,7 +36,7 @@ namespace SIT.Core.Coop.Components
             Logger = BepInEx.Logging.Logger.CreateLogSource("ActionPacketHandlerComponent");
             Logger.LogDebug("Awake");
 
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>(); 
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
             ActionPacketsMovement = new();
         }
 
@@ -118,7 +114,7 @@ namespace SIT.Core.Coop.Components
                         continue;
                     }
                 }
-                if(stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
+                if (stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
                 {
                     Logger.LogDebug($"ActionPacketsMovement took {stopwatchActionPacketsMovement.ElapsedMilliseconds}ms to process!");
                 }
@@ -171,7 +167,7 @@ namespace SIT.Core.Coop.Components
             }
 
             bool result = ProcessPlayerPacket(packet);
-            if(!result)
+            if (!result)
                 result = ProcessWorldPacket(ref packet);
 
             return result;

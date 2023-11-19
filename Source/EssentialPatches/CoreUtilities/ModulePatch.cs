@@ -8,10 +8,14 @@ using System.Reflection;
 
 namespace SIT.Tarkov.Core
 {
+    /// <summary>
+    /// Original Code From: SPT-AKI
+    /// https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Reflection/Patching/ModulePatch.cs
+    /// Changes Made By: Paulov
+    /// </summary>
     public abstract class ModulePatch : IDisposable
     {
         private readonly Harmony _harmony;
-        //private static Harmony _harmony;
         private readonly List<HarmonyMethod> _prefixList;
         private readonly List<HarmonyMethod> _postfixList;
         private readonly List<HarmonyMethod> _transpilerList;

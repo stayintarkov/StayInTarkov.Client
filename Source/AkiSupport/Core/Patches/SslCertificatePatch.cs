@@ -1,7 +1,7 @@
+using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Networking;
-using SIT.Tarkov.Core;
 
 namespace Aki.Core.Patches
 {
@@ -11,18 +11,18 @@ namespace Aki.Core.Patches
     /// Modified by: Paulov
     /// </summary>
     public class SslCertificatePatch : ModulePatch
-	{
-		protected override MethodBase GetTargetMethod()
-		{
-			return StayInTarkovHelperConstants.EftTypes.Single(x => x.BaseType == typeof(CertificateHandler))
-				.GetMethod("ValidateCertificate", StayInTarkovHelperConstants.PrivateFlags);
-		}
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return StayInTarkovHelperConstants.EftTypes.Single(x => x.BaseType == typeof(CertificateHandler))
+                .GetMethod("ValidateCertificate", StayInTarkovHelperConstants.PrivateFlags);
+        }
 
-		[PatchPrefix]
-		private static bool PatchPrefix(ref bool __result)
-		{
-			__result = true;
-			return false; // Skip origial
-		}
-	}
+        [PatchPrefix]
+        private static bool PatchPrefix(ref bool __result)
+        {
+            __result = true;
+            return false; // Skip origial
+        }
+    }
 }

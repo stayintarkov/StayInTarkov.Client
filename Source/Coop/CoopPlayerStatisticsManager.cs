@@ -1,8 +1,4 @@
 ﻿using EFT;
-using EFT.HealthSystem;
-using EFT.InventoryLogic;
-using System;
-using System.Collections.Generic;
 
 namespace SIT.Core.Coop
 {
@@ -19,7 +15,7 @@ namespace SIT.Core.Coop
 
         protected override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
         {
-            
+
         }
     }
 }

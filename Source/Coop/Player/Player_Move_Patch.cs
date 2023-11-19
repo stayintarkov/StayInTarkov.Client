@@ -1,5 +1,4 @@
-﻿using EFT;
-using SIT.Coop.Core.Player;
+﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Tarkov.Core;
 using StayInTarkov;
@@ -84,7 +83,7 @@ namespace SIT.Core.Coop.Player
             playerMovePacket.dY = direction.y;
 
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
-            
+
             var serialized = playerMovePacket.Serialize();
             if (serialized == null)
                 return;
@@ -168,7 +167,7 @@ namespace SIT.Core.Coop.Player
 
                     UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
-                   
+
                     playerReplicatedComponent.ReplicatedMovementSpeed = spd;
                     playerReplicatedComponent.ReplicatedDirection = null;
 
@@ -185,6 +184,6 @@ namespace SIT.Core.Coop.Player
             }
         }
 
-        
+
     }
 }

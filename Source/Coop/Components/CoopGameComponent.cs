@@ -2,16 +2,13 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using EFT.UI;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.Components;
-using SIT.Core.Coop.World;
 using SIT.Tarkov.Core;
 using StayInTarkov;
-using StayInTarkov.AkiSupport.Singleplayer.Patches.Quests;
 using StayInTarkov.Coop;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
@@ -21,10 +18,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Scripting;
 
 using Rect = UnityEngine.Rect;
 
@@ -1373,7 +1368,7 @@ namespace SIT.Core.Coop
 
             foreach (var pl in PlayerUsers)
             {
-                if (pl == null) 
+                if (pl == null)
                     continue;
 
                 if (pl.HealthController == null)

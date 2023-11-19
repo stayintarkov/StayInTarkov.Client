@@ -2,7 +2,6 @@ using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using FilesChecker;
-using HarmonyLib;
 using Newtonsoft.Json;
 using StayInTarkov;
 using StayInTarkov.EssentialPatches;
@@ -12,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using UnityEngine.Assertions;
 using static StayInTarkov.PaulovJsonConverters;
 
 namespace SIT.Tarkov.Core
@@ -61,7 +59,7 @@ namespace SIT.Tarkov.Core
         /// <summary>
         /// Method that returns the Backend Url (Example: https://127.0.0.1)
         /// </summary>
-        private static string RealWSURL;   
+        private static string RealWSURL;
         public static string GetBackendUrl()
         {
             if (string.IsNullOrEmpty(backendUrl))
@@ -95,7 +93,7 @@ namespace SIT.Tarkov.Core
         public static ManualLogSource Logger { get; private set; }
 
         public static Type JsonConverterType { get; }
-        public static Newtonsoft.Json.JsonConverter[] JsonConverterDefault { get; }
+        public static JsonConverter[] JsonConverterDefault { get; }
 
         private static ISession _backEndSession;
         public static ISession BackEndSession
@@ -116,14 +114,14 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public static Newtonsoft.Json.JsonConverter[] GetJsonConvertersBSG()
+        public static JsonConverter[] GetJsonConvertersBSG()
         {
             return JsonConverterDefault;
         }
 
-        public static List<Newtonsoft.Json.JsonConverter> GetJsonConvertersPaulov()
+        public static List<JsonConverter> GetJsonConvertersPaulov()
         {
-            var converters = new List<Newtonsoft.Json.JsonConverter>();
+            var converters = new List<JsonConverter>();
             converters.Add(new DateTimeOffsetJsonConverter());
             converters.Add(new SimpleCharacterControllerJsonConverter());
             converters.Add(new CollisionFlagsJsonConverter());
@@ -132,7 +130,7 @@ namespace SIT.Tarkov.Core
             return converters;
         }
 
-        private static List<Newtonsoft.Json.JsonConverter> SITSerializerConverters;
+        private static List<JsonConverter> SITSerializerConverters;
 
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
@@ -205,14 +203,6 @@ namespace SIT.Tarkov.Core
         {
             try
             {
-                //result = JsonConvert.DeserializeObject<T>(str
-                //        , new JsonSerializerSettings()
-                //        {
-                //            Converters = JsonConverterDefault
-                //            ,
-                //            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                //        }
-                //        );
                 result = SITParseJson<T>(str);
                 return true;
             }
@@ -246,7 +236,7 @@ namespace SIT.Tarkov.Core
 
             FilesCheckerTypes = typeof(ICheckResult).Assembly.GetTypes();
             DisplayMessageNotifications.MessageNotificationType = EftTypes.Single(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public).Select(y => y.Name).Contains("DisplayMessageNotification"));
-          
+
             JsonConverterType = typeof(AbstractGame).Assembly.GetTypes()
                .First(t => t.GetField("Converters", BindingFlags.Static | BindingFlags.Public) != null);
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
