@@ -1,7 +1,3 @@
-####
-#### StayInTarkov Build Workflow
-####  
-
 name: SIT Build
 
 on:
@@ -56,7 +52,15 @@ jobs:
       run: |
         mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
         dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
-        tar -cf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
+
+    - name: Remove unnecessary files
+      run: |
+          del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
+          del ${{ env.SolutionName }}-${{ matrix.configuration }}\PresentationFramework.xml
+          del ${{ env.SolutionName }}-${{ matrix.configuration }}\PresentationFramework.dll
+          del ${{ env.SolutionName }}-${{ matrix.configuration }}\Newtonsoft.Json.dll
+
+
     
 
     # Upload artifact unless its merge to master
@@ -69,14 +73,9 @@ jobs:
     
 
 
-    # Extract the required files from the zipped artifact
-    - name: Extract DLLs
-      run: |
-        mkdir extracted_files
-        tar -xf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -C extracted_files
-        Copy-Item -Path .\extracted_files/StayInTarkov.dll .\extracted_files/Assembly-CSharp.dll -Destination $GITHUB_WORKSPACE/ -Force
-
-    # Create release from the extracted files
+    - name: Set build date
+      run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+    # Create release from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
@@ -85,7 +84,5 @@ jobs:
       with:
         draft: true
         generate_release_notes: true
-        files: |
-          $GITHUB_WORKSPACE/StayInTarkov.dll
-          $GITHUB_WORKSPACE/Assembly-CSharp.dll
+        files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
         tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
