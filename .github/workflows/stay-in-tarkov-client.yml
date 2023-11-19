@@ -60,6 +60,12 @@ jobs:
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\PresentationFramework.dll
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\Newtonsoft.Json.dll
 
+    - name: Zip remaining files
+      run: |
+        cd ${{ env.SolutionName }}-${{ matrix.configuration }}
+        Compress-Archive -Path * -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
+          
+
 
 
     # Upload artifact unless its merge to master
