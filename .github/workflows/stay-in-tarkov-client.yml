@@ -36,6 +36,7 @@ jobs:
       with:
         fetch-depth: 0
 
+
     # Install the .NET Core workload
     - name: Install .NET Core
       uses: actions/setup-dotnet@v3
@@ -57,6 +58,7 @@ jobs:
         dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
         tar -cf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
     
+
     # Upload artifact unless its merge to master
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -64,13 +66,27 @@ jobs:
         name: StayInTarkov-Build-${{ matrix.configuration }}
         path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
         if-no-files-found: error
+    
 
-    # Create release from the compressed file
+
+    # Extract the required files from the zipped artifact
+    - name: Extract DLLs
+      run: |
+        mkdir extracted_files
+        tar -xf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -C extracted_files
+        mv extracted_files/**/*.dll extracted_files/
+        mv extracted_files/StayInTarkov.dll extracted_files/Assembly-CSharp.dll $GITHUB_WORKSPACE/
+
+    # Create release from the extracted files
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+      env:
+        BUILD_DATETIME: ${{ env.BUILD_DATETIME }}
       with:
         draft: true
         generate_release_notes: true
-        files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: release
+        files: |
+          $GITHUB_WORKSPACE/StayInTarkov.dll
+          $GITHUB_WORKSPACE/Assembly-CSharp.dll
+        tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
