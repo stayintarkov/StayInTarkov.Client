@@ -73,7 +73,7 @@ jobs:
     - name: Extract DLLs using 7zip
       run: |
         7z x ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -oextracted_files
-        Copy-Item -Path "extracted_files\*.dll" -Destination $GITHUB_WORKSPACE -Force
+        Copy-Item -Path "extracted_files\**\*.dll" -Destination $GITHUB_WORKSPACE -Force
     # Create release from the extracted files
     - name: Create Release
       uses: softprops/action-gh-release@v1
