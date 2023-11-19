@@ -477,10 +477,9 @@ namespace SIT.Core.Coop.Components
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
                 MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
-                MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
+                //MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
-
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
                 FixesHideoutMusclePain();
