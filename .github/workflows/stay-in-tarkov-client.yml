@@ -68,7 +68,7 @@ jobs:
     # Create release from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: github.event_name == 'push' && github.event.repository == 'master'
+      if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
       with:
         draft: true
         generate_release_notes: true
