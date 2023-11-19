@@ -2,6 +2,7 @@
 using EFT;
 using SIT.Core.Coop;
 using SIT.Tarkov.Core;
+using StayInTarkov;
 using StayInTarkov.AkiSupport.Singleplayer.Models.Healing;
 using StayInTarkov.Health;
 using StayInTarkov.Networking;

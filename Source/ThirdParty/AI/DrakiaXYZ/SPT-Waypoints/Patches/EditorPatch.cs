@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using DrakiaXYZ.Waypoints.Components;
+using EFT;
 using SIT.Tarkov.Core;
 using System.Reflection;
 

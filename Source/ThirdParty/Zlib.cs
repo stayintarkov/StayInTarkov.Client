@@ -1,4 +1,8 @@
 using ComponentAce.Compression.Libs.zlib;
+using SIT.Tarkov.Core;
+using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.ThirdParty

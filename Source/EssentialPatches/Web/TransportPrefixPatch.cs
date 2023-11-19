@@ -89,7 +89,8 @@ namespace StayInTarkov.EssentialPatches.Web
         [PatchPrefix]
         private static bool PatchPrefix(string uri)
         {
-            uri.Replace("https://", "http://");
+            uri
+                .Replace("https://", "http://");
             return true;
         }
     }

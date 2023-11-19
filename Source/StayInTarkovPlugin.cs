@@ -9,28 +9,33 @@ using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
 using SIT.Core.AI.PMCLogic.Roaming;
+using SIT.Core.AI.PMCLogic.RushSpawn;
+using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Coop.AI;
+using SIT.Core.Core;
 using SIT.Core.Core.FileChecker;
 using SIT.Core.Other;
 using SIT.Tarkov.Core;
 using StayInTarkov.AkiSupport.Custom;
+using StayInTarkov.AkiSupport.Singleplayer.Patches.Healing;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.EssentialPatches.Web;
-using StayInTarkov.Health;
 using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using StayInTarkov.Health;
 
 namespace StayInTarkov
 {
@@ -52,7 +57,7 @@ namespace StayInTarkov
         public static string EFTAssemblyVersion { get; internal set; }
         public static string EFTEXEFileVersion { get; internal set; }
 
-        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();
+        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();    
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
@@ -81,7 +86,7 @@ namespace StayInTarkov
 
         void Update()
         {
-            if (!LegalGameCheck.Checked)
+            if (!LegalGameCheck.Checked) 
                 LegalGameCheck.LegalityCheck(Config);
 
             if (Singleton<PreloaderUI>.Instantiated && !shownCheckError && !LegalGameCheck.LegalGameFound)
@@ -155,7 +160,7 @@ namespace StayInTarkov
                     LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
 
-
+               
             }
 
             // Load English Language Stream to Fill any missing expected statements in the Dictionary
@@ -163,7 +168,7 @@ namespace StayInTarkov
             {
                 foreach (var kvp in JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd()))
                 {
-                    if (!LanguageDictionary.ContainsKey(kvp.Key))
+                    if(!LanguageDictionary.ContainsKey(kvp.Key))
                         LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
             }
@@ -223,7 +228,7 @@ namespace StayInTarkov
                 new BattlEyePatchFirstPassUpdate().Enable();
                 // Web Requests
                 new SslCertificatePatch().Enable();
-                new UnityWebRequestPatch().Enable();
+                new Aki.Core.Patches.UnityWebRequestPatch().Enable();
                 new SendCommandsPatch().Enable();
 
                 //https to http | wss to ws
@@ -231,7 +236,7 @@ namespace StayInTarkov
                 if (!url.Contains("https"))
                 {
                     new TransportPrefixPatch().Enable();
-                    new WebSocketPatch().Enable();
+                    new SIT.Tarkov.Core.WebSocketPatch().Enable();
                 }
 
             }
@@ -289,7 +294,7 @@ namespace StayInTarkov
                 }
 
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 Logger.LogError($"{nameof(EnableSPPatches)} failed.");
                 Logger.LogError(ex);
@@ -352,9 +357,48 @@ namespace StayInTarkov
 
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
+            //GetPoolManager();
+            //GetBackendConfigurationInstance();
+
             if (Singleton<GameWorld>.Instantiated)
                 gameWorld = Singleton<GameWorld>.Instance;
         }
+
+        //private void GetBackendConfigurationInstance()
+        //{
+        //    //if (
+        //    //    PatchConstants.BackendStaticConfigurationType != null &&
+        //    //    PatchConstants.BackendStaticConfigurationConfigInstance == null)
+        //    //{
+        //    //    PatchConstants.BackendStaticConfigurationConfigInstance = ReflectionHelpers.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
+        //    //    //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
+        //    //}
+
+        //    if (PatchConstants.BackendStaticConfigurationConfigInstance != null
+        //        && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.CharacterControllerInstance
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
+        //        //Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
+        //    }
+
+        //    if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
+        //        && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.ClientPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+
+        //        PatchConstants.CharacterControllerSettings.ObservedPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+
+        //        PatchConstants.CharacterControllerSettings.BotPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
+        //    }
+
+        //}
+
 
         private void LogDependancyErrors()
         {
@@ -394,7 +438,7 @@ namespace StayInTarkov
 
         }
 
-
+       
 
     }
 }

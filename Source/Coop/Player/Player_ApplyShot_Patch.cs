@@ -3,6 +3,7 @@ using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;

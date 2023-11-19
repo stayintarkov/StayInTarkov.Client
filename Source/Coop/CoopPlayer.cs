@@ -75,8 +75,8 @@ namespace SIT.Core.Coop
             }
             player.IsYourPlayer = isYourPlayer;
 
-            InventoryController inventoryController = isYourPlayer && !isClientDrone
-                ? new CoopInventoryController(player, profile, true)
+            InventoryController inventoryController = isYourPlayer && !isClientDrone 
+                ? new CoopInventoryController(player, profile, true) 
                 : new CoopInventoryControllerForClientDrone(player, profile, true);
 
             if (questController == null && isYourPlayer)
@@ -84,7 +84,7 @@ namespace SIT.Core.Coop
                 questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
                 questController.Run();
             }
-
+            
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
@@ -94,7 +94,7 @@ namespace SIT.Core.Coop
                 , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
                 , async: false);
-
+         
             player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
             player._handsController.Spawn(1f, delegate
             {
@@ -142,7 +142,7 @@ namespace SIT.Core.Coop
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // If we are not using the Client Side Damage, then only run this on the server
-                if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
+                if(MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)               
                     SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
                 else
                     SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
@@ -310,8 +310,8 @@ namespace SIT.Core.Coop
             }
 
             // If using Client Side Damage Model and Pressing the Trigger, send rotation to Server
-            if (coopGC.SITConfig.useClientSideDamageModel
-                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
+            if(coopGC.SITConfig.useClientSideDamageModel
+                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId) 
                 && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
             {
                 // Send to Server

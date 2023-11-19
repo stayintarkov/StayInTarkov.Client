@@ -47,7 +47,7 @@ namespace SIT.Core.Coop.NetworkPacket
         public string StackSlotItemAddressDescriptorJson { get; set; }
 
         public ItemMovePlayerPacket(string profileId, string itemId, string templateId, string method
-
+            
             , SlotItemAddressDescriptor slotItemAddressDescriptor
             , GridItemAddressDescriptor gridItemAddressDescriptor
             , StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor
@@ -56,13 +56,13 @@ namespace SIT.Core.Coop.NetworkPacket
             )
             : base(profileId, itemId, templateId, method)
         {
-            if (slotItemAddressDescriptor != null)
+            if ( slotItemAddressDescriptor != null )
                 SlotItemAddressDescriptorJson = slotItemAddressDescriptor.ToJson();
 
-            if (gridItemAddressDescriptor != null)
+            if ( gridItemAddressDescriptor != null )
                 GridItemAddressDescriptorJson = gridItemAddressDescriptor.ToJson();
 
-            if (stackSlotItemAddressDescriptor != null)
+            if( stackSlotItemAddressDescriptor != null )
                 StackSlotItemAddressDescriptorJson = stackSlotItemAddressDescriptor.ToJson();
 
         }

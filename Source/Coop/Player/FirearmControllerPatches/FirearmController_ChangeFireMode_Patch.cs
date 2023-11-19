@@ -1,5 +1,6 @@
 ﻿using EFT.InventoryLogic;
 using Newtonsoft.Json;
+using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Tarkov.Core;
 using StayInTarkov;

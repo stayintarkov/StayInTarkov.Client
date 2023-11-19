@@ -3,17 +3,12 @@
   <PropertyGroup>
 	<TargetFramework>net472</TargetFramework>
     <AssemblyName>StayInTarkov</AssemblyName>
+    <Description>Stay in Tarkov plugin for Escape From Tarkov</Description>
+    <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
+	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	  <Deterministic>false</Deterministic>
-	  <PackageProjectUrl>https://github.com/stayintarkov/StayInTarkov.Client</PackageProjectUrl>
-	  <Description>StayInTarkov</Description>
-	  <RepositoryType>git</RepositoryType>
-	  <Version>2.0.0.0</Version>
-	  <Company>Paulov</Company>
-	  <Copyright>Copyright © Paulov 2023</Copyright>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
-	  <RepositoryUrl>https://github.com/stayintarkov/StayInTarkov.Client</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,16 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2019.4.39" IncludeAssets="compile" />
   </ItemGroup>
   
@@ -88,6 +77,9 @@
       <HintPath>..\References\ItemComponent.Types.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="PresentationFramework">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Sirenix.Serialization">
       <HintPath>..\References\Sirenix.Serialization.dll</HintPath>
       <Private>False</Private>
@@ -132,16 +124,6 @@
 		  <HintPath>..\References\websocket-sharp.dll</HintPath>
 		  <Private>False</Private>
     </Reference>
-	  <Reference Include="Newtonsoft.Json">
-		  <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
   </ItemGroup>
-
-	<Target Name="SetSourceRevisionId" BeforeTargets="InitializeSourceControlInformation">
-		<Exec Command="git describe --long --always --exclude=* --abbrev=8" ConsoleToMSBuild="True" IgnoreExitCode="False">
-			<Output PropertyName="SourceRevisionId" TaskParameter="ConsoleOutput" />
-		</Exec>
-	</Target>
-
+  
 </Project>

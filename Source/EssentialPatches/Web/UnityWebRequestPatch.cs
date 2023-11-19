@@ -1,14 +1,12 @@
 using System.Reflection;
 using UnityEngine.Networking;
-using SIT.Tarkov.Core;
 
-namespace Aki.Core.Patches
+namespace SIT.Tarkov.Core
 {
-    /// <summary>
-    /// Credit: UnityWebRequestPatch from SPT-Aki https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Core/Patches/
-    /// </summary>
     public class UnityWebRequestPatch : ModulePatch
     {
+        private static UnityEngine.Networking.CertificateHandler _certificateHandler = new FakeCertificateHandler();
+
         protected override MethodBase GetTargetMethod()
         {
             return typeof(UnityWebRequestTexture).GetMethod(nameof(UnityWebRequestTexture.GetTexture), new[] { typeof(string) });
@@ -17,9 +15,9 @@ namespace Aki.Core.Patches
         [PatchPostfix]
         private static void PatchPostfix(UnityWebRequest __result)
         {
-            __result.certificateHandler = new FakeCertificateHandler();
-            __result.disposeCertificateHandlerOnDispose = true;
-            __result.timeout = 15000;
+            __result.certificateHandler = _certificateHandler;
+            __result.disposeCertificateHandlerOnDispose = false;
+            __result.timeout = 1000;
         }
 
         internal class FakeCertificateHandler : UnityEngine.Networking.CertificateHandler

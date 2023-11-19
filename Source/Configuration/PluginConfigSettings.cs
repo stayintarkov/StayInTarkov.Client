@@ -73,13 +73,13 @@ namespace SIT.Core.Configuration
             }
 
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
-            public bool SETTING_DEBUGShowPlayerList
-            {
-                get
-                {
+            public bool SETTING_DEBUGShowPlayerList 
+            { 
+                get 
+                { 
                     return StayInTarkovPlugin.Instance.Config.Bind
                        ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
-                }
+                } 
             }
 
             public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
