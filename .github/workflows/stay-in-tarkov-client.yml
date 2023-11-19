@@ -1,98 +1,79 @@
 name: SIT Build
 
 on:
-    push:
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
-    pull_request:
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
+  push:
+    paths-ignore:
+      - '.github/*'
+      - '.github/*_TEMPLATE/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '.github/*'
+      - '.github/*_TEMPLATE/**'
+      - '*.md'
 
 jobs:
-  
   build:
-
     strategy:
       matrix:
         configuration: [Release, Debug]
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
+    runs-on: windows-latest
 
     env:
       SolutionName: StayInTarkov                              
-      CSProj: Source/StayInTarkov.csproj               
+      CSProj: Source/StayInTarkov.csproj
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
 
-    # Install the .NET Core workload
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
 
-    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
+      - name: dotnet Restore
+        run: dotnet restore
 
-    # Restore all projects
-    - name: dotnet Restore
-      run: dotnet restore
+      - name: dotnet Publish
+        run: |
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+          tar -cf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
 
-    # Publish the Launcher as Self-Contained Single-File
-    - name: dotnet Publish
-      run: |
-        mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-        dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
-        tar -cf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
-    
+      - name: Extract DLLs using 7zip
+        run: |
+          7z x ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -oextracted_files
+          Copy-Item -Path "extracted_files\StayInTarkov-*/Assembly-CSharp.dll" -Destination extracted_files -Force
+          Copy-Item -Path "extracted_files\StayInTarkov-*/StayInTarkov.dll" -Destination extracted_files -Force
 
-    # Upload artifact unless its merge to master
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: StayInTarkov-Build-${{ matrix.configuration }}
-        path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
-        if-no-files-found: error
-    
+      - name: Create DLLs only ZIP file
+        run: |
+          7z a -tzip ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip extracted_files\*.dll
 
+      - name: Upload DLLs-only artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: StayInTarkov-Build-${{ matrix.configuration }}_DLLsOnly
+          path: ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip
+          if-no-files-found: error
 
-# Extract the required DLL files from the built artifact
-- name: Extract DLLs using 7zip
-  run: |
-    7z x ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -oextracted_files
-    Copy-Item -Path "extracted_files\StayInTarkov-*/Assembly-CSharp.dll" -Destination extracted_files -Force
-    Copy-Item -Path "extracted_files\StayInTarkov-*/StayInTarkov.dll" -Destination extracted_files -Force
+      - name: Set build date
+        run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-# Create a new ZIP file containing only the necessary DLL files
-- name: Create DLLs only ZIP file
-  run: |
-    7z a -tzip ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip extracted_files\*.dll
-
-# Upload the DLLs-only ZIP file as a build artifact
-- name: Upload DLLs-only artifact
-  uses: actions/upload-artifact@v3
-  with:
-    name: StayInTarkov-Build-${{ matrix.configuration }}_DLLsOnly
-    path: ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip
-    if-no-files-found: error
-
-# Create release from the DLLs-only ZIP file
-- name: Create Release for DLLs-only
-  uses: softprops/action-gh-release@v1
-  if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-  env:
-    BUILD_DATETIME: ${{ env.BUILD_DATETIME }}
-  with:
-    draft: true
-    generate_release_notes: true
-    files: ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip
-    tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
+      - name: Create Release for DLLs-only
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+        env:
+          BUILD_DATETIME: ${{ env.BUILD_DATETIME }}
+        with:
+          draft: true
+          generate_release_notes: true
+          files: ${{ env.SolutionName }}-${{ matrix.configuration }}_DLLsOnly.zip
+          tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
