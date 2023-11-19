@@ -179,8 +179,8 @@ namespace SIT.Core.Coop.Components
             //Make the window slightly bigger on smaller screens so our elements fit
             if(Screen.height <= 1000)
             {
-                windowWidthFraction = 0.5f;
-                windowHeightFraction = 0.5f;
+                windowWidthFraction = 0.55f;
+                windowHeightFraction = 0.55f;
             }
 
             // Calculate the position and size of the main window
