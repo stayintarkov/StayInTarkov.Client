@@ -2,11 +2,19 @@
 using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
+using SIT.Coop.Core.Matchmaker;
+using SIT.Core.Configuration;
+using SIT.Core.Coop;
+using SIT.Core.Coop.FreeCamera;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using StayInTarkov;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SIT.Coop.Core.LocalGame
 {
@@ -111,7 +119,7 @@ namespace SIT.Coop.Core.LocalGame
 
         }
 
-
+        
 
     }
 }

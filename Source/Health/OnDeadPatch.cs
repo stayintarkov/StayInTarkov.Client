@@ -1,6 +1,7 @@
 ﻿using EFT;
 using Newtonsoft.Json;
 using SIT.Tarkov.Core;
+using StayInTarkov;
 using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System;

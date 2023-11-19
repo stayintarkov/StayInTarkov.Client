@@ -1,10 +1,11 @@
+using System;
 using BepInEx;
+using StayInTarkov.AkiSupport.Singleplayer.Patches;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Healing;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Progression;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Quests;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix;
-using System;
 
 namespace StayInTarkov.AkiSupport.Singleplayer
 {

@@ -3,10 +3,6 @@ using System;
 
 namespace SIT.Tarkov.Core
 {
-    /// <summary>
-    /// Code from: SPT-AKI
-    /// https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Reflection/Patching/Attributes.cs
-    /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Method)]
     public class PatchPrefixAttribute : Attribute

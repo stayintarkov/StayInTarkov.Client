@@ -1,8 +1,12 @@
 ﻿using EFT;
 using SIT.Tarkov.Core;
 using StayInTarkov;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
@@ -26,7 +30,7 @@ namespace SIT.Core.Coop
             EFT.Player getPlayer = bot.GetPlayer;
             GetLogger(typeof(BotCreatorTeleportPMCPatch)).LogInfo("Postfix");
 
-            if (bot.Profile.Info.Settings != null)
+            if(bot.Profile.Info.Settings != null)
             {
                 if (bot.Profile.Info.Settings.Role == (WildSpawnType)0x27
                     || bot.Profile.Info.Settings.Role == (WildSpawnType)0x26

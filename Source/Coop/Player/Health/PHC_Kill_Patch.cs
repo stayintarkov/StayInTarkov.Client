@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
+using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Tarkov.Core;
 using StayInTarkov;

@@ -57,7 +57,7 @@ namespace StayInTarkov
 
         public static object GetItemComponent(Item dogtagItem)
         {
-            MethodInfo method = GetAllMethodsForType(dogtagItem.GetType()).FirstOrDefault(x => x.Name == "GetItemComponent");
+            MethodInfo method = ReflectionHelpers.GetAllMethodsForType(dogtagItem.GetType()).FirstOrDefault(x => x.Name == "GetItemComponent");
             MethodInfo generic = method.MakeGenericMethod(typeof(DogtagComponent));
             var itemComponent = generic.Invoke(dogtagItem, null);
             return itemComponent;
@@ -65,9 +65,9 @@ namespace StayInTarkov
 
         public static Item GetDogtagItem(Player __instance)
         {
-            var equipment = GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
-            var dogtagSlot = GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });
-            var dogtagItem = GetFieldOrPropertyFromInstance<object>(dogtagSlot, "ContainedItem", false) as Item;
+            var equipment = ReflectionHelpers.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
+            var dogtagSlot = ReflectionHelpers.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });
+            var dogtagItem = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(dogtagSlot, "ContainedItem", false) as Item;
             return dogtagItem;
         }
 
@@ -237,6 +237,8 @@ namespace StayInTarkov
             var t = o.GetType();
             return GetAllFieldsForType(t);
         }
+
+        private static Dictionary<string, IEnumerable<FieldInfo>> m_CachedFieldInfos = new();
 
         public static List<FieldInfo> GetAllFieldsForType(Type t)
         {

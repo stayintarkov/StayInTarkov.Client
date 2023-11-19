@@ -1,13 +1,32 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.Bots;
+using EFT.Game.Spawning;
 using EFT.InputSystem;
+using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
+using Newtonsoft.Json;
+using SIT.Coop.Core.Matchmaker;
+using SIT.Coop.Core.Player;
+using SIT.Core.AI.PMCLogic.Friendly.Companion;
+using SIT.Core.Configuration;
+using SIT.Core.Coop.Components;
+using SIT.Core.Coop.FreeCamera;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Policy;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -77,7 +96,7 @@ namespace StayInTarkov.Coop
             , TimeSpan sessionTime) where T : ASITGame
         {
 
-            var r =
+            var r = 
                smethod_0<T>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 

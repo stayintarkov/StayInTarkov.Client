@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
-    internal class CoopInventoryControllerForClientDrone
+    internal class CoopInventoryControllerForClientDrone 
         : InventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
-        public CoopInventoryControllerForClientDrone(EFT.Player player, Profile profile, bool examined)
+        public CoopInventoryControllerForClientDrone(EFT.Player player, Profile profile, bool examined) 
             : base(profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));

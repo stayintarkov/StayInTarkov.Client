@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Core.Coop.ItemControllerPatches;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace SIT.Core.Coop
 
             // Find a Player
             var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
+            if (coopGC == null) 
                 return false;
 
             if (!coopGC.Players.ContainsKey(controllerId))

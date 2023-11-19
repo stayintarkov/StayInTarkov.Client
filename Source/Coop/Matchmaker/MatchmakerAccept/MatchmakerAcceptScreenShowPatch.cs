@@ -2,6 +2,7 @@
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using SIT.Core.Coop.Components;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;

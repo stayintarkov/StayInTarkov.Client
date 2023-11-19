@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
+using SIT.Core.AkiSupport.Airdrops;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
