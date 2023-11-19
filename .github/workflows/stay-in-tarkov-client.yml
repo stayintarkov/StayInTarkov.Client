@@ -12,6 +12,9 @@ on:
         - '.github/*_TEMPLATE/**'
         - '*.md'
 
+permissions:
+  contents: write
+
 jobs:
   
   build:
