@@ -1,3 +1,4 @@
+
 ####
 #### StayInTarkov Build Workflow
 ####  
@@ -69,16 +70,9 @@ jobs:
     
 
 
-    # Extract the required files from the zipped artifact
-    - name: Extract DLLs
-      run: |
-        mkdir extracted_files
-        tar -xf ${{ env.SolutionName }}-${{ matrix.configuration }}.zip -C extracted_files
-        Get-ChildItem -Path "D:\a\StayInTarkov.Client\StayInTarkov.Client\extracted_files\StayInTarkov.dll" -Filter "*.dll" | ForEach-Object {
-          $file = $_.FullName
-          Copy-Item -Path $file -Destination $GITHUB_WORKSPACE -Force
-        }
-    # Create release from the extracted files
+    - name: Set build date
+      run: echo "BUILD_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+    # Create release from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
@@ -87,7 +81,5 @@ jobs:
       with:
         draft: true
         generate_release_notes: true
-        files: |
-          $GITHUB_WORKSPACE/StayInTarkov.dll
-          $GITHUB_WORKSPACE/Assembly-CSharp.dll
+        files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
         tag_name: StayInTarkov.Client-${{ env.BUILD_DATETIME }}v1.${{ github.run_number }}
