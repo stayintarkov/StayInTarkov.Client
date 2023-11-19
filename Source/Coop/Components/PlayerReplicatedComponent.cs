@@ -34,6 +34,8 @@ namespace SIT.Coop.Core.Player
         public float ReplicatedMovementSpeed { get; set; }
         private float PoseLevelSmoothed { get; set; } = 1;
 
+        private HashSet<IPlayerPacketHandlerComponent> PacketHandlerComponents { get; } = new();
+
         void Awake()
         {
             //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
@@ -94,6 +96,10 @@ namespace SIT.Coop.Core.Player
             }
 
             //GCHelpers.EnableGC();
+
+            // TODO: Add PacketHandlerComponents here. Possibly via Reflection?
+            //PacketHandlerComponents.Add(new MoveOperationPlayerPacketHandler());
+
         }
 
         public void ProcessPacket(Dictionary<string, object> packet)
@@ -116,16 +122,13 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-
-            //var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
-            //if (packetHandlerComponents != null)
-            //{
-            //    packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
-            //    foreach (var packetHandlerComponent in packetHandlerComponents)
-            //    {
-            //        packetHandlerComponent.ProcessPacket(packet);
-            //    }
-            //}
+            if (PacketHandlerComponents != null)
+            {
+                foreach (var packetHandlerComponent in PacketHandlerComponents)
+                {
+                    packetHandlerComponent.ProcessPacket(packet);
+                }
+            }
         }
 
         void ProcessPlayerState(Dictionary<string, object> packet)
