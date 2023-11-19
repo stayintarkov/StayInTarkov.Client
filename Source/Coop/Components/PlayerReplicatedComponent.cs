@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
+using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
@@ -11,6 +12,8 @@ using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
@@ -21,7 +24,7 @@ namespace SIT.Coop.Core.Player
     /// <summary>
     /// Player Replicated Component is the Player/AI direct communication to the Server
     /// </summary>
-    internal class PlayerReplicatedComponent : MonoBehaviour, IPlayerPacketHandlerComponent
+    internal class PlayerReplicatedComponent : MonoBehaviour
     {
         internal const int PacketTimeoutInSeconds = 1;
         //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
@@ -39,6 +42,10 @@ namespace SIT.Coop.Core.Player
         void Awake()
         {
             //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
+            // ----------------------------------------------------
+            // Create a BepInEx Logger for CoopGameComponent
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(PlayerReplicatedComponent));
+            Logger.LogDebug($"{nameof(PlayerReplicatedComponent)}:Awake");
         }
 
         void Start()
@@ -99,7 +106,23 @@ namespace SIT.Coop.Core.Player
 
             // TODO: Add PacketHandlerComponents here. Possibly via Reflection?
             //PacketHandlerComponents.Add(new MoveOperationPlayerPacketHandler());
+            var packetHandlers = Assembly.GetAssembly(typeof(IPlayerPacketHandlerComponent))
+               .GetTypes()
+               .Where(x => x.GetInterface(nameof(IPlayerPacketHandlerComponent)) != null);
+            foreach (var handler in packetHandlers)
+            {
+                if (handler.IsAbstract
+                    || handler == typeof(IPlayerPacketHandlerComponent)
+                    || handler.Name == nameof(IPlayerPacketHandlerComponent)
+                    )
+                    continue;
 
+                if (PacketHandlerComponents.Any(x => x.GetType().Name == handler.Name))
+                    continue;
+
+                PacketHandlerComponents.Add((IPlayerPacketHandlerComponent)Activator.CreateInstance(handler));
+                Logger.LogDebug($"Added {handler.Name} to {nameof(PacketHandlerComponents)}");
+            }
         }
 
         public void ProcessPacket(Dictionary<string, object> packet)
@@ -111,6 +134,11 @@ namespace SIT.Coop.Core.Player
 
             ProcessPlayerState(packet);
 
+            // Iterate through the PacketHandlerComponents
+            foreach (var packetHandlerComponent in PacketHandlerComponents)
+            {
+                packetHandlerComponent.ProcessPacket(packet);
+            }
 
             if (!ModuleReplicationPatch.Patches.ContainsKey(method))
                 return;
@@ -122,13 +150,7 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            if (PacketHandlerComponents != null)
-            {
-                foreach (var packetHandlerComponent in PacketHandlerComponents)
-                {
-                    packetHandlerComponent.ProcessPacket(packet);
-                }
-            }
+          
         }
 
         void ProcessPlayerState(Dictionary<string, object> packet)
@@ -435,6 +457,7 @@ namespace SIT.Coop.Core.Player
         public float LastSpeed { get; private set; }
         public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
         public bool TriggerPressed { get; internal set; }
+        public ManualLogSource Logger { get; private set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {
