@@ -73,4 +73,4 @@ jobs:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: release
+        tag_name: v$(date +"%Y%m%d")-${{ github.run_number }}
