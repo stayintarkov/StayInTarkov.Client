@@ -5,10 +5,16 @@
 name: SIT Build
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    types: [opened, edited, review_requested, closed]
+    push:
+        paths-ignore:
+        - '.github/*'
+        - '.github/*_TEMPLATE/**'
+        - '*.md'
+    pull_request:
+        paths-ignore:
+        - '.github/*'
+        - '.github/*_TEMPLATE/**'
+        - '*.md'
 
 jobs:
   
@@ -54,7 +60,6 @@ jobs:
     # Upload artifact unless its merge to master
     - name: Upload artifact
       uses: actions/upload-artifact@v3
-      if: github.event_name == 'pull_request' 
       with:
         name: StayInTarkov-Build-${{ matrix.configuration }}
         path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
@@ -67,5 +72,5 @@ jobs:
       with:
         draft: true
         generate_release_notes: true
-        files: ${{ env.SolutionName }}.zip
+        files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
         tag_name: release
