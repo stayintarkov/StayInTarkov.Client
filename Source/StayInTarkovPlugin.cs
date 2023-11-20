@@ -266,6 +266,9 @@ namespace StayInTarkov
                 //// --------- SCAV MODE ---------------------
                 new RemoveScavModeButtonPatch().Enable();
 
+                //// --------- READY Button ---------------------
+                new RemoveReadyButtonPatch().Enable();
+
                 //// --------- Airdrop -----------------------
                 //new AirdropPatch().Enable();
 
