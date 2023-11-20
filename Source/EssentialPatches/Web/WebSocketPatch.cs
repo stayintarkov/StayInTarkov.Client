@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     public class WebSocketPatch : ModulePatch
     {

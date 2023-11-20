@@ -1,7 +1,7 @@
 ﻿using FilesChecker;
 using System;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     /// <summary>
     /// SPT-Aki FakeFileCheckerResult

@@ -1,13 +1,11 @@
-﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Core.Coop.Player.GrenadeControllerPatches
+namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
     internal class GrenadeController_LowThrow_Patch : ModuleReplicationPatch
     {

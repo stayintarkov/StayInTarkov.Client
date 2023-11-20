@@ -1,15 +1,12 @@
-﻿using EFT;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using StayInTarkov.Core.Player;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
 
     /// <summary>

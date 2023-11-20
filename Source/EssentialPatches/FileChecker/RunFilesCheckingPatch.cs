@@ -1,10 +1,8 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Core.FileChecker
+namespace StayInTarkov.FileChecker
 {
     /// <summary>
     /// SIT - RunFilesCheckingPatch

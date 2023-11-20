@@ -1,5 +1,4 @@
-﻿using SIT.Tarkov.Core;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 
 namespace StayInTarkov.Health

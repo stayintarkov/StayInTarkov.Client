@@ -1,15 +1,13 @@
 ﻿using Comfort.Common;
 using EFT.InventoryLogic;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.Proceed
+namespace StayInTarkov.Coop.Player.Proceed
 {
     internal class Player_Proceed_QuickKnifeKick_Patch : ModuleReplicationPatch
     {

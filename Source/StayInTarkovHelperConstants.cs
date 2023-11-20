@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using UnityEngine.Assertions;
 using static StayInTarkov.PaulovJsonConverters;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     /// <summary>
     /// Credit: SPT-Aki

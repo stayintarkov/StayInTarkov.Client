@@ -2,11 +2,11 @@
 using Aki.Custom.Airdrops.Utils;
 using Comfort.Common;
 using EFT;
-using SIT.Core.AkiSupport.Airdrops.Models;
-using SIT.Core.AkiSupport.Airdrops.Utils;
-using SIT.Core.AkiSupport.Airdrops;
 using UnityEngine;
 using BepInEx.Logging;
+using StayInTarkov.AkiSupport.Airdrops.Models;
+using StayInTarkov.AkiSupport.Airdrops;
+using StayInTarkov.AkiSupport.Airdrops.Utils;
 
 namespace Aki.Custom.Airdrops
 {

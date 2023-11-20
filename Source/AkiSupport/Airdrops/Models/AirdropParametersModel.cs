@@ -1,6 +1,6 @@
 ﻿using Aki.Custom.Airdrops.Models;
 
-namespace SIT.Core.AkiSupport.Airdrops.Models
+namespace StayInTarkov.AkiSupport.Airdrops.Models
 {
     /// <summary>
     /// Created by: SPT-Aki team

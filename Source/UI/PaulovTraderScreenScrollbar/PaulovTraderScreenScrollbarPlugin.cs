@@ -1,13 +1,11 @@
 ﻿using BepInEx;
 using EFT.UI;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SIT.Core.UI.PaulovTraderScreenScrollbar
+namespace StayInTarkov.UI.PaulovTraderScreenScrollbar
 {
     /// <summary>
     /// Created by: Paulov

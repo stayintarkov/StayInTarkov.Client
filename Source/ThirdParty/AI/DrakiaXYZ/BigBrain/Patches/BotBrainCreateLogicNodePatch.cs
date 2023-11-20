@@ -2,7 +2,7 @@
 using DrakiaXYZ.BigBrain.Internal;
 using EFT;
 using HarmonyLib;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 using System;
 using System.Reflection;
 

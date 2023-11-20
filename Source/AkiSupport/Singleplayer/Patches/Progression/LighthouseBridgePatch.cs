@@ -1,6 +1,5 @@
 ﻿using Comfort.Common;
 using EFT;
-using SIT.Tarkov.Core;
 using StayInTarkov.AkiSupport.Singleplayer.Components;
 using System.Reflection;
 

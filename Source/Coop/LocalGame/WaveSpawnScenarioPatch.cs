@@ -1,11 +1,9 @@
 ﻿using BepInEx.Configuration;
 using EFT;
-using SIT.Core.Configuration;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Configuration;
 using System.Reflection;
 
-namespace SIT.Coop.Core.LocalGame
+namespace StayInTarkov.Coop.LocalGame
 {
     internal class WaveSpawnScenarioPatch : ModulePatch
     {

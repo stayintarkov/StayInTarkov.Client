@@ -1,6 +1,4 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 

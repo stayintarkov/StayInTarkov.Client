@@ -1,12 +1,10 @@
-﻿using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.GrenadeControllerPatches
+namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
     internal class GrenadeController_ExamineWeapon_Patch : ModuleReplicationPatch
     {

@@ -1,8 +1,9 @@
 using System.Reflection;
 using UnityEngine.Networking;
 
-namespace SIT.Tarkov.Core
-{
+namespace StayInTarkov
+{ 
+    /// WE ARE NOT PATHCING WITH THIS - TO BE REMOVED
     public class UnityWebRequestPatch : ModulePatch
     {
         private static UnityEngine.Networking.CertificateHandler _certificateHandler = new FakeCertificateHandler();

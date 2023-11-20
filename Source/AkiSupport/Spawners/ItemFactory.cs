@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core.Spawners
+namespace StayInTarkov.Spawners
 {
     public class ItemFactory
     {

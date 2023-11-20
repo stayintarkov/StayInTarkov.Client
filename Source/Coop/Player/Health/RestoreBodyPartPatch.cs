@@ -1,8 +1,6 @@
 ﻿using EFT.HealthSystem;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -10,7 +8,7 @@ using System.Reflection;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
 
-namespace SIT.Core.Coop.Player.Health
+namespace StayInTarkov.Coop.Player.Health
 {
     internal class RestoreBodyPartPatch : ModuleReplicationPatch
     {

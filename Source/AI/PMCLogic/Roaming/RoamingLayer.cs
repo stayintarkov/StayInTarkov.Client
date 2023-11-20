@@ -3,7 +3,7 @@ using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using UnityEngine;
 
-namespace SIT.Core.AI.PMCLogic.Roaming
+namespace StayInTarkov.AI.PMCLogic.Roaming
 {
     /// <summary>
     /// Created by: DrakiaXYZ

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.Core.AI.PMCLogic
+namespace StayInTarkov.AI.PMCLogic
 {
     /// <summary>
     /// Paulov: TODO: Work in Progress - Stubbed for later use

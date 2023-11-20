@@ -8,14 +8,6 @@ using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
-using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.AI.PMCLogic.Friendly.Companion;
-using SIT.Core.Configuration;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.FreeCamera;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -126,7 +118,7 @@ namespace StayInTarkov.Coop
             return r;
         }
 
-        public Dictionary<string, Player> Bots { get; set; } = new Dictionary<string, Player>();
+        public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
         /// <summary>
         /// Matchmaker countdown
@@ -151,7 +143,7 @@ namespace StayInTarkov.Coop
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
-        private Func<Player, GamePlayerOwner> func_1;
+        private Func<EFT.Player, GamePlayerOwner> func_1;
 
 
         public new void method_6(string backendUrl, string locationId, int variantId)
