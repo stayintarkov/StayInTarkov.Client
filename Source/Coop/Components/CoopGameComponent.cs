@@ -576,9 +576,11 @@ namespace StayInTarkov.Coop
 
         private async Task ReadFromServerCharacters()
         {
-            Dictionary<string, object> d = new();
-            d.Add("serverId", GetServerId());
-            d.Add("pL", new List<string>());
+            Dictionary<string, object> d = new()
+            {
+                { "serverId", GetServerId() },
+                { "pL", new List<string>() }
+            };
 
             // -----------------------------------------------------------------------------------------------------------
             // We must filter out characters that already exist on this match!
@@ -1083,33 +1085,34 @@ namespace StayInTarkov.Coop
 
         private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
-            Dictionary<string, object> dictPlayerState = new();
+            Dictionary<string, object> dictPlayerState = new()
+            {
+                // --- The important Ids
+                { "profileId", player.ProfileId },
+                { "serverId", GetServerId() },
 
-            // --- The important Ids
-            dictPlayerState.Add("profileId", player.ProfileId);
-            dictPlayerState.Add("serverId", GetServerId());
+                // --- Positional 
+                { "pX", player.Position.x },
+                { "pY", player.Position.y },
+                { "pZ", player.Position.z },
+                { "rX", player.Rotation.x },
+                { "rY", player.Rotation.y },
 
-            // --- Positional 
-            dictPlayerState.Add("pX", player.Position.x);
-            dictPlayerState.Add("pY", player.Position.y);
-            dictPlayerState.Add("pZ", player.Position.z);
-            dictPlayerState.Add("rX", player.Rotation.x);
-            dictPlayerState.Add("rY", player.Rotation.y);
+                // --- Positional 
+                { "pose", player.MovementContext.PoseLevel },
+                //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+                { "spr", player.Physical.Sprinting },
+                //if (player.MovementContext.IsSprintEnabled)
+                //{
+                //    prc.ReplicatedDirection = new Vector2(1, 0);
+                //}
+                //dictPlayerState.Add("tp", prc.TriggerPressed);
+                { "alive", player.HealthController.IsAlive },
+                { "tilt", player.MovementContext.Tilt },
+                { "prn", player.MovementContext.IsInPronePose },
 
-            // --- Positional 
-            dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            dictPlayerState.Add("spr", player.Physical.Sprinting);
-            //if (player.MovementContext.IsSprintEnabled)
-            //{
-            //    prc.ReplicatedDirection = new Vector2(1, 0);
-            //}
-            //dictPlayerState.Add("tp", prc.TriggerPressed);
-            dictPlayerState.Add("alive", player.HealthController.IsAlive);
-            dictPlayerState.Add("tilt", player.MovementContext.Tilt);
-            dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-
-            dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
+                { "t", DateTime.Now.Ticks.ToString("G") }
+            };
             // ---------- 
             //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
             //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
@@ -1195,26 +1198,33 @@ namespace StayInTarkov.Coop
 
             if (normalLabelStyle == null)
             {
-                normalLabelStyle = new GUIStyle(GUI.skin.label);
-                normalLabelStyle.fontSize = 16;
-                normalLabelStyle.fontStyle = FontStyle.Bold;
+                normalLabelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 16,
+                    fontStyle = FontStyle.Bold
+                };
             }
             if (middleLabelStyle == null)
             {
-                middleLabelStyle = new GUIStyle(GUI.skin.label);
-                middleLabelStyle.fontSize = 18;
-                middleLabelStyle.fontStyle = FontStyle.Bold;
-                middleLabelStyle.alignment = TextAnchor.MiddleCenter;
+                middleLabelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 18,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
             }
             if (middleLargeLabelStyle == null)
             {
-                middleLargeLabelStyle = new GUIStyle(middleLabelStyle);
-                middleLargeLabelStyle.fontSize = 24;
+                middleLargeLabelStyle = new GUIStyle(middleLabelStyle)
+                {
+                    fontSize = 24
+                };
             }
 
-            var rect = new UnityEngine.Rect(GuiX, 5, GuiWidth, 100);
-
-            rect.y = 5;
+            var rect = new UnityEngine.Rect(GuiX, 5, GuiWidth, 100)
+            {
+                y = 5
+            };
             GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 

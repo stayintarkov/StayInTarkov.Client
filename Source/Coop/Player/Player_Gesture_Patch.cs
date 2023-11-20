@@ -48,9 +48,11 @@ namespace StayInTarkov.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("g", gesture.ToString());
-            dictionary.Add("m", "Gesture");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "g", gesture.ToString() },
+                { "m", "Gesture" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
             if (!LastGesture.ContainsKey(player.ProfileId))

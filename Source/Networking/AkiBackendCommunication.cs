@@ -139,9 +139,11 @@ namespace StayInTarkov.Networking
             Logger.LogDebug(wsUrl);
 
             //WebSocketPreviousReceived = new HashSet<string>();
-            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-            WebSocket.WaitTime = TimeSpan.FromMinutes(1);
-            WebSocket.EmitOnPing = true;
+            WebSocket = new WebSocketSharp.WebSocket(wsUrl)
+            {
+                WaitTime = TimeSpan.FromMinutes(1),
+                EmitOnPing = true
+            };
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
             // ---

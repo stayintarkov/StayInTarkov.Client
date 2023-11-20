@@ -12,19 +12,27 @@ namespace StayInTarkov.Coop
         {
             if (location is GridItemAddress gridItemAddress)
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = new();
-                gridItemAddressDescriptor.Container = new ContainerDescriptor();
-                gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
-                gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
-                gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
+                GridItemAddressDescriptor gridItemAddressDescriptor = new()
+                {
+                    Container = new ContainerDescriptor
+                    {
+                        ContainerId = location.Container.ID,
+                        ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null
+                    },
+                    LocationInGrid = gridItemAddress.LocationInGrid
+                };
                 dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
             }
             else if (location is SlotItemAddress slotItemAddress)
             {
-                SlotItemAddressDescriptor slotItemAddressDescriptor = new();
-                slotItemAddressDescriptor.Container = new ContainerDescriptor();
-                slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
-                slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new()
+                {
+                    Container = new ContainerDescriptor
+                    {
+                        ContainerId = location.Container.ID,
+                        ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null
+                    }
+                };
 
                 dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
             }

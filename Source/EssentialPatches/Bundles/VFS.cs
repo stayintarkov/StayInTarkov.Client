@@ -201,8 +201,10 @@ namespace StayInTarkov
         /// </summary>
         public static void DeleteFile(string filepath)
         {
-            FileInfo file = new(filepath);
-            file.IsReadOnly = false;
+            FileInfo file = new(filepath)
+            {
+                IsReadOnly = false
+            };
             file.Delete();
         }
 

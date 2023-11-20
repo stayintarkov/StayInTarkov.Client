@@ -57,9 +57,11 @@ namespace StayInTarkov.Coop.Player.Health
             }
 
 
-            RemoveNegativeEffectsPacket removeNegativeEffectsPacket = new();
-            removeNegativeEffectsPacket.ProfileId = player.ProfileId;
-            removeNegativeEffectsPacket.BodyPart = bodyPart;
+            RemoveNegativeEffectsPacket removeNegativeEffectsPacket = new()
+            {
+                ProfileId = player.ProfileId,
+                BodyPart = bodyPart
+            };
             var json = removeNegativeEffectsPacket.ToJson();
             AkiBackendCommunication.Instance.SendDataToPool(json);
         }

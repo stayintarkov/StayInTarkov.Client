@@ -50,9 +50,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
-            dictionary.Add("m", "ToggleLauncher");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "t", DateTime.Now.Ticks.ToString("G") },
+                { "m", "ToggleLauncher" }
+            };
             AkiBackendCommunication.Instance.SendDataToPool(dictionary.ToJson());
         }
 

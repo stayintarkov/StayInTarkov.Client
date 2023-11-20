@@ -358,9 +358,11 @@ namespace StayInTarkov.Core.Player
                 var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
                 if (bodyPartHealth.AtMinimum)
                 {
-                    var packet = new Dictionary<string, object>();
-                    packet.Add("dmt", EDamageType.Undefined.ToString());
-                    packet.Add("m", "Kill");
+                    var packet = new Dictionary<string, object>
+                    {
+                        { "dmt", EDamageType.Undefined.ToString() },
+                        { "m", "Kill" }
+                    };
                     AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
                 }
             }

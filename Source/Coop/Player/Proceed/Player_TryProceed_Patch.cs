@@ -65,12 +65,14 @@ namespace StayInTarkov.Coop.Player
             }
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new();
-            args.Add("m", "TryProceed");
-            args.Add("t", DateTime.Now.Ticks);
-            args.Add("item.id", item.Id);
-            args.Add("item.tpl", item.TemplateId);
-            args.Add("s", scheduled.ToString());
+            Dictionary<string, object> args = new()
+            {
+                { "m", "TryProceed" },
+                { "t", DateTime.Now.Ticks },
+                { "item.id", item.Id },
+                { "item.tpl", item.TemplateId },
+                { "s", scheduled.ToString() }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, args);
         }
 

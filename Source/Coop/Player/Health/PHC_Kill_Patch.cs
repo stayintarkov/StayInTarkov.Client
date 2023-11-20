@@ -67,8 +67,10 @@ namespace StayInTarkov.Coop.Player.Health
                 return;
             }
 
-            KillPacket killPacket = new(player.ProfileId);
-            killPacket.DamageType = damageType;
+            KillPacket killPacket = new(player.ProfileId)
+            {
+                DamageType = damageType
+            };
             var json = killPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(json);
         }

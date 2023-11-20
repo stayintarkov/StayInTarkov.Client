@@ -52,9 +52,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("p", p);
-            dictionary.Add("m", "Loot");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "p", p },
+                { "m", "Loot" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 

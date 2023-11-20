@@ -46,8 +46,10 @@ namespace StayInTarkov.Coop.LocalGame
                 TOD_Sky.Instance.Components.Time.GameDateTime = Singleton<GameWorld>.Instance.GameDateTime;
                 WeatherClass[] randomWeatherNodes = WeatherClass.GetRandomTestWeatherNodes(600, 12);
                 long time = randomWeatherNodes[0].Time;
-                randomWeatherNodes[0] = new WeatherClass() { };
-                randomWeatherNodes[0].Time = time;
+                randomWeatherNodes[0] = new WeatherClass
+                {
+                    Time = time
+                };
                 ReflectionHelpers.GetMethodForType(typeof(WeatherController), "method_0").Invoke(WeatherController.Instance, new object[] { randomWeatherNodes });
             }
 

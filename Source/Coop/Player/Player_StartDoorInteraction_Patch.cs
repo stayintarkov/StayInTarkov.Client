@@ -73,11 +73,15 @@ namespace StayInTarkov.Coop.Player
                 ItemAddress itemAddress = keyInteractionResult.DiscardResult != null ? keyInteractionResult.From : key.Item.Parent;
                 if (itemAddress is GridItemAddress grid)
                 {
-                    GridItemAddressDescriptor gridItemAddressDescriptor = new();
-                    gridItemAddressDescriptor.Container = new();
-                    gridItemAddressDescriptor.Container.ContainerId = grid.Container.ID;
-                    gridItemAddressDescriptor.Container.ParentId = grid.Container.ParentItem?.Id;
-                    gridItemAddressDescriptor.LocationInGrid = grid.LocationInGrid;
+                    GridItemAddressDescriptor gridItemAddressDescriptor = new()
+                    {
+                        Container = new()
+                        {
+                            ContainerId = grid.Container.ID,
+                            ParentId = grid.Container.ParentItem?.Id
+                        },
+                        LocationInGrid = grid.LocationInGrid
+                    };
                     dict.Add("keyParentGrid", gridItemAddressDescriptor);
                 }
 

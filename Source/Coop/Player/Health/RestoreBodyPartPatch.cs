@@ -50,10 +50,12 @@ namespace StayInTarkov.Coop.Player.Health
             }
 
 
-            RestoreBodyPartPacket restoreBodyPartPacket = new();
-            restoreBodyPartPacket.ProfileId = player.ProfileId;
-            restoreBodyPartPacket.BodyPart = bodyPart.ToString();
-            restoreBodyPartPacket.HealthPenalty = healthPenalty;
+            RestoreBodyPartPacket restoreBodyPartPacket = new()
+            {
+                ProfileId = player.ProfileId,
+                BodyPart = bodyPart.ToString(),
+                HealthPenalty = healthPenalty
+            };
             //var json = restoreBodyPartPacket.ToJson();
             //Logger.LogInfo(json);
             AkiBackendCommunication.Instance.SendDataToPool(restoreBodyPartPacket.Serialize());

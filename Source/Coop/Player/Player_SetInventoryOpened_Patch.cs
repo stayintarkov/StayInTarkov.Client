@@ -44,10 +44,12 @@ namespace StayInTarkov.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("o", opened.ToString());
-            dictionary.Add("m", "SetInventoryOpened");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "t", DateTime.Now.Ticks },
+                { "o", opened.ToString() },
+                { "m", "SetInventoryOpened" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
             //dictionary.Clear();
             //dictionary = null;

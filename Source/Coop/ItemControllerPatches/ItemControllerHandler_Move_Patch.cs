@@ -124,29 +124,41 @@ namespace StayInTarkov.Coop.ItemControllerPatches
 
             if (to is GridItemAddress gridItemAddress)
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = new();
-                gridItemAddressDescriptor.Container = new();
-                gridItemAddressDescriptor.Container.ContainerId = to.Container.ID;
-                gridItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
-                gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
+                GridItemAddressDescriptor gridItemAddressDescriptor = new()
+                {
+                    Container = new()
+                    {
+                        ContainerId = to.Container.ID,
+                        ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null
+                    },
+                    LocationInGrid = gridItemAddress.LocationInGrid
+                };
                 dictionary.Add("grad", gridItemAddressDescriptor);
             }
 
             if (to is SlotItemAddress slotItemAddress)
             {
-                SlotItemAddressDescriptor slotItemAddressDescriptor = new();
-                slotItemAddressDescriptor.Container = new();
-                slotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
-                slotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new()
+                {
+                    Container = new()
+                    {
+                        ContainerId = to.Container.ID,
+                        ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null
+                    }
+                };
                 dictionary.Add("sitad", slotItemAddressDescriptor);
             }
 
             if (to is StackSlotItemAddress stackSlotItemAddress)
             {
-                StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor = new();
-                stackSlotItemAddressDescriptor.Container = new();
-                stackSlotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
-                stackSlotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
+                StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor = new()
+                {
+                    Container = new()
+                    {
+                        ContainerId = to.Container.ID,
+                        ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null
+                    }
+                };
                 dictionary.Add("ssad", stackSlotItemAddressDescriptor);
             }
 

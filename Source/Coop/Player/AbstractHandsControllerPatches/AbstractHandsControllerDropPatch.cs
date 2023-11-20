@@ -51,8 +51,10 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("m", "CheckAmmo");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "m", "CheckAmmo" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 

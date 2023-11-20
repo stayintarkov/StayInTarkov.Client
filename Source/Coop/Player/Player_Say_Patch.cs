@@ -46,15 +46,17 @@ namespace StayInTarkov.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("event", @event);
-            dictionary.Add("demand", demand.ToString());
-            dictionary.Add("delay", delay.ToString());
-            dictionary.Add("mask", mask);
-            dictionary.Add("probability", probability.ToString());
-            dictionary.Add("aggressive", aggressive.ToString());
-            dictionary.Add("m", "Say");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "t", DateTime.Now.Ticks },
+                { "event", @event },
+                { "demand", demand.ToString() },
+                { "delay", delay.ToString() },
+                { "mask", mask },
+                { "probability", probability.ToString() },
+                { "aggressive", aggressive.ToString() },
+                { "m", "Say" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 

@@ -257,9 +257,11 @@ namespace StayInTarkov.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                Dictionary<string, string> hostPingerPacket = new();
-                hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
-                hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
+                Dictionary<string, string> hostPingerPacket = new()
+                {
+                    { "HostPing", DateTime.UtcNow.Ticks.ToString() },
+                    { "serverId", coopGameComponent.ServerId }
+                };
                 AkiBackendCommunication.Instance.SendDataToPool(hostPingerPacket.ToJson());
             }
         }
@@ -298,9 +300,11 @@ namespace StayInTarkov.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                Dictionary<string, object> timeAndWeatherDict = new();
-                timeAndWeatherDict.Add("TimeAndWeather", true);
-                timeAndWeatherDict.Add("serverId", coopGameComponent.ServerId);
+                Dictionary<string, object> timeAndWeatherDict = new()
+                {
+                    { "TimeAndWeather", true },
+                    { "serverId", coopGameComponent.ServerId }
+                };
 
                 if (GameDateTime != null)
                     timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);

@@ -82,10 +82,12 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("rX", ____player.Rotation.x);
-            dictionary.Add("rY", ____player.Rotation.y);
-            dictionary.Add("m", "PullRingForHighThrow");
+            Dictionary<string, object> dictionary = new()
+            {
+                { "rX", ____player.Rotation.x },
+                { "rY", ____player.Rotation.y },
+                { "m", "PullRingForHighThrow" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
 
             //Logger.LogDebug("GrenadeController_PullRingForHighThrow_Patch:PostPatch");

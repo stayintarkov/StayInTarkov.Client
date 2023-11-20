@@ -87,10 +87,12 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             LastPress[player.ProfileId] = pressed;
 
-            TriggerPressedPacket triggerPressedPacket = new(player.ProfileId);
-            triggerPressedPacket.pr = pressed;
-            triggerPressedPacket.rX = player.Rotation.x;
-            triggerPressedPacket.rY = player.Rotation.y;
+            TriggerPressedPacket triggerPressedPacket = new(player.ProfileId)
+            {
+                pr = pressed,
+                rX = player.Rotation.x,
+                rY = player.Rotation.y
+            };
             var serialized = triggerPressedPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }

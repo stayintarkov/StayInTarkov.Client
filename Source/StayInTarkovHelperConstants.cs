@@ -120,12 +120,14 @@ namespace StayInTarkov
 
         public static List<Newtonsoft.Json.JsonConverter> GetJsonConvertersPaulov()
         {
-            var converters = new List<Newtonsoft.Json.JsonConverter>();
-            converters.Add(new DateTimeOffsetJsonConverter());
-            converters.Add(new SimpleCharacterControllerJsonConverter());
-            converters.Add(new CollisionFlagsJsonConverter());
-            converters.Add(new PlayerJsonConverter());
-            converters.Add(new NotesJsonConverter());
+            var converters = new List<Newtonsoft.Json.JsonConverter>
+            {
+                new DateTimeOffsetJsonConverter(),
+                new SimpleCharacterControllerJsonConverter(),
+                new CollisionFlagsJsonConverter(),
+                new PlayerJsonConverter(),
+                new NotesJsonConverter()
+            };
             return converters;
         }
 

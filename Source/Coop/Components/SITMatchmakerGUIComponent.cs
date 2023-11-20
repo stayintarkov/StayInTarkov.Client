@@ -187,9 +187,11 @@ namespace StayInTarkov.Coop.Components
                 var buttonY = Screen.height * 0.75f - buttonHeight;
 
                 // Define a GUIStyle for Host Game and Play single player
-                GUIStyle gamemodeButtonStyle = new(GUI.skin.button);
-                gamemodeButtonStyle.fontSize = 24;
-                gamemodeButtonStyle.fontStyle = FontStyle.Bold;
+                GUIStyle gamemodeButtonStyle = new(GUI.skin.button)
+                {
+                    fontSize = 24,
+                    fontStyle = FontStyle.Bold
+                };
 
                 // Create "Host Game" button
                 if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
@@ -221,9 +223,11 @@ namespace StayInTarkov.Coop.Components
                 var backButtonY = Screen.height * 0.95f - 40;
 
                 // Define a GUIStyle for the "Back" button with larger and bold text
-                GUIStyle buttonStyle = new(GUI.skin.button);
-                buttonStyle.fontSize = 24;
-                buttonStyle.fontStyle = FontStyle.Bold;
+                GUIStyle buttonStyle = new(GUI.skin.button)
+                {
+                    fontSize = 24,
+                    fontStyle = FontStyle.Bold
+                };
 
                 if (GUI.Button(new UnityEngine.Rect(backButtonX, backButtonY, 200, 40), StayInTarkovPlugin.LanguageDictionary["BACK"], buttonStyle))
                 {
@@ -377,14 +381,18 @@ namespace StayInTarkov.Coop.Components
 
 
             // Define the button style
-            GUIStyle buttonStyle = new(GUI.skin.button);
-            buttonStyle.fontSize = 14;
-            buttonStyle.padding = new RectOffset(6, 6, 6, 6);
+            GUIStyle buttonStyle = new(GUI.skin.button)
+            {
+                fontSize = 14,
+                padding = new RectOffset(6, 6, 6, 6)
+            };
 
             // Define the label style
-            GUIStyle labelStyle = new(GUI.skin.label);
-            labelStyle.alignment = TextAnchor.MiddleCenter;
-            labelStyle.fontSize = 14;
+            GUIStyle labelStyle = new(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 14
+            };
             labelStyle.normal.textColor = Color.white;
 
             // Calculate the number of rows and columns
@@ -505,16 +513,20 @@ namespace StayInTarkov.Coop.Components
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
-            GUIStyle labelStyle = new(GUI.skin.label);
-            labelStyle.alignment = TextAnchor.MiddleCenter;
-            labelStyle.fontSize = 18;
+            GUIStyle labelStyle = new(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 18
+            };
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
             // Define a style for buttons
-            GUIStyle buttonStyle = new(GUI.skin.button);
-            buttonStyle.fontSize = 30;
-            buttonStyle.fontStyle = FontStyle.Bold;
+            GUIStyle buttonStyle = new(GUI.skin.button)
+            {
+                fontSize = 30,
+                fontStyle = FontStyle.Bold
+            };
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
@@ -637,9 +649,11 @@ namespace StayInTarkov.Coop.Components
             }
 
             // Style for back and start button
-            GUIStyle smallButtonStyle = new(GUI.skin.button);
-            smallButtonStyle.fontSize = 18;
-            smallButtonStyle.alignment = TextAnchor.MiddleCenter;
+            GUIStyle smallButtonStyle = new(GUI.skin.button)
+            {
+                fontSize = 18,
+                alignment = TextAnchor.MiddleCenter
+            };
 
             // Back button
             if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"], smallButtonStyle))

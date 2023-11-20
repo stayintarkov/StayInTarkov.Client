@@ -71,16 +71,18 @@ namespace StayInTarkov.Coop.Player
             if (prc.IsClientDrone)
                 return;
 
-            PlayerMovePacket playerMovePacket = new(player.ProfileId);
-            playerMovePacket.ProfileId = player.ProfileId;
-            playerMovePacket.pX = player.Position.x;
-            playerMovePacket.pY = player.Position.y;
-            playerMovePacket.pZ = player.Position.z;
+            PlayerMovePacket playerMovePacket = new(player.ProfileId)
+            {
+                ProfileId = player.ProfileId,
+                pX = player.Position.x,
+                pY = player.Position.y,
+                pZ = player.Position.z,
 
-            playerMovePacket.dX = direction.x;
-            playerMovePacket.dY = direction.y;
+                dX = direction.x,
+                dY = direction.y,
 
-            playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
+                spd = player.MovementContext.CharacterMovementSpeed
+            };
 
             var serialized = playerMovePacket.Serialize();
             if (serialized == null)

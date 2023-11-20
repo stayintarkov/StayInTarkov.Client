@@ -85,11 +85,13 @@ namespace DrakiaXYZ.Waypoints.Components
                 // If the door was locked, we want to keep track of it to remove the blocker when it's unlocked
                 if (door != null && door.DoorState == EDoorState.Locked)
                 {
-                    DoorContainer doorContainer = new();
-                    doorContainer.door = door;
-                    doorContainer.collider = collider;
-                    doorContainer.navMeshObstacle = navMeshObstacle;
-                    doorContainer.sphere = drawDebugSphere(obstacleObject.transform.position, 0.5f, Color.red);
+                    DoorContainer doorContainer = new()
+                    {
+                        door = door,
+                        collider = collider,
+                        navMeshObstacle = navMeshObstacle,
+                        sphere = drawDebugSphere(obstacleObject.transform.position, 0.5f, Color.red)
+                    };
                     doorList.Add(doorContainer);
                 }
                 else
