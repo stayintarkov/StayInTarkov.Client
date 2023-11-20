@@ -91,7 +91,7 @@ jobs:
     # Create release from the compressed file if pushed to master
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: (${{ matrix.configuration }} == 'Release' && ((github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true))
+      if: (${{ matrix.configuration }} == 'Release')
       with:
         draft: true
         generate_release_notes: true
