@@ -29,10 +29,8 @@ namespace StayInTarkov.UI
             pmcdesc.active = false;
 
             var pmcs = GameObject.Find("PMCs");
-            var pmccanvas = GameObject.Find("PMCPlayerMV");
-
-            pmcs.transform.localScale = new Vector3(1.1f, 1.1f, 1.0f);
-            pmcs.transform.position = new Vector3((Screen.width / 2) - (pmccanvas.RectTransform().rect.width / 2), (Screen.height / 2) - (Screen.height/10) , 0);
+            var mmSSC = pmcs.transform.parent.gameObject;
+            pmcs.transform.position = new Vector3(mmSSC.transform.position.x / 1.305f, pmcs.transform.position.y * 0.75f, 0);
         }
     }
 }
