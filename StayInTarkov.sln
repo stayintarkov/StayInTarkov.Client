@@ -7,7 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayInTarkov", "Source\Stay
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{5FB59896-3353-49B8-9F79-B908539EAF92}"
 	ProjectSection(SolutionItems) = preProject
-		.github\ReleaseNotes.txt = .github\ReleaseNotes.txt
 		COMPILE.md = COMPILE.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
@@ -16,6 +15,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 		README_JA.md = README_JA.md
 		README_KO.md = README_KO.md
 		README_PO.md = README_PO.md
+		.github\ReleaseNotes.txt = .github\ReleaseNotes.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{A9DAB29E-F626-40EE-9A5C-FF3C2F3C8D39}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{DEB9463E-0556-44FD-A150-BFAFBB433D0B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\publish-wiki.yml = .github\workflows\publish-wiki.yml
+		.github\workflows\stay-in-tarkov-client.yml = .github\workflows\stay-in-tarkov-client.yml
 	EndProjectSection
 EndProject
 Global
@@ -31,6 +39,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A9DAB29E-F626-40EE-9A5C-FF3C2F3C8D39} = {5FB59896-3353-49B8-9F79-B908539EAF92}
+		{DEB9463E-0556-44FD-A150-BFAFBB433D0B} = {A9DAB29E-F626-40EE-9A5C-FF3C2F3C8D39}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {59210E5E-F991-4F88-82E5-D450610C8B01}
