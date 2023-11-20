@@ -220,12 +220,12 @@ namespace StayInTarkov
                 new ConsistencyMultiPatch().Enable();
                 new RunFilesCheckingPatch().Enable();
                 // BattlEye
-                new AntiCheatPatch().Enable();
+                new BattlEyePatch().Enable();
                 new BattlEyePatchFirstPassRun().Enable();
                 new BattlEyePatchFirstPassUpdate().Enable();
                 // Web Requests
                 new SslCertificatePatch().Enable();
-                new Aki.Core.Patches.UnityWebRequestPatch().Enable();
+                new UnityWebRequestPatch().Enable();
                 new SendCommandsPatch().Enable();
 
                 //https to http | wss to ws
