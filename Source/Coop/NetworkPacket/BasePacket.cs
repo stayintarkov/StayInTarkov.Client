@@ -171,7 +171,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
-        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new Dictionary<Type, PropertyInfo[]>();
+        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new();
 
         static SerializerExtensions()
         {

@@ -187,7 +187,7 @@ namespace StayInTarkov.Coop.Components
                 var buttonY = Screen.height * 0.75f - buttonHeight;
 
                 // Define a GUIStyle for Host Game and Play single player
-                GUIStyle gamemodeButtonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle gamemodeButtonStyle = new(GUI.skin.button);
                 gamemodeButtonStyle.fontSize = 24;
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
@@ -221,7 +221,7 @@ namespace StayInTarkov.Coop.Components
                 var backButtonY = Screen.height * 0.95f - 40;
 
                 // Define a GUIStyle for the "Back" button with larger and bold text
-                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle buttonStyle = new(GUI.skin.button);
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -377,12 +377,12 @@ namespace StayInTarkov.Coop.Components
 
 
             // Define the button style
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.padding = new RectOffset(6, 6, 6, 6);
 
             // Define the label style
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 14;
             labelStyle.normal.textColor = Color.white;
@@ -505,14 +505,14 @@ namespace StayInTarkov.Coop.Components
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 18;
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
             // Define a style for buttons
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 30;
             buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -607,7 +607,7 @@ namespace StayInTarkov.Coop.Components
                         if (showBotAmountField)
                         {
                             y += 20;
-                            Rect botAmountGridRect = new Rect(botAmountX, y, botAmountOptions.Count() * 75, 25);
+                            Rect botAmountGridRect = new(botAmountX, y, botAmountOptions.Count() * 75, 25);
 
                             botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, botAmountOptions, 5);
 
@@ -637,7 +637,7 @@ namespace StayInTarkov.Coop.Components
             }
 
             // Style for back and start button
-            GUIStyle smallButtonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle smallButtonStyle = new(GUI.skin.button);
             smallButtonStyle.fontSize = 18;
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 

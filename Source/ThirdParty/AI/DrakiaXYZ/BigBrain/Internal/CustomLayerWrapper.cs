@@ -108,7 +108,7 @@ namespace DrakiaXYZ.BigBrain.Internal
             }
         }
 
-        static internal GClass121 GetLogicInstance(BotOwner botOwner)
+        internal static GClass121 GetLogicInstance(BotOwner botOwner)
         {
             // Sanity check
             if (botOwner == null || botOwner.Brain?.Agent == null)

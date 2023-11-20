@@ -257,7 +257,7 @@ namespace StayInTarkov.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                Dictionary<string, string> hostPingerPacket = new Dictionary<string, string>();
+                Dictionary<string, string> hostPingerPacket = new();
                 hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
                 hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
                 AkiBackendCommunication.Instance.SendDataToPool(hostPingerPacket.ToJson());

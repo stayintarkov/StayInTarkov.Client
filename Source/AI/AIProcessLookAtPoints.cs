@@ -28,7 +28,7 @@ namespace StayInTarkov.AI
                 _owner.Steering.LookToPoint(_owner.Memory.LastEnemy.EnemyLastPosition);
                 return;
             }
-            if (nullable_0.HasValue && int_0 >= 0 && (double)Time.time - _owner.Memory.GoalTarget.CreatedTime > (double)_owner.Settings.FileSettings.Look.MIN_LOOK_AROUD_TIME)
+            if (nullable_0.HasValue && int_0 >= 0 && (double)Time.time - _owner.Memory.GoalTarget.CreatedTime > _owner.Settings.FileSettings.Look.MIN_LOOK_AROUD_TIME)
             {
                 _owner.Memory.GoalTarget.PointLookComplete(int_0);
                 nullable_0 = null;

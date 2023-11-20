@@ -14,7 +14,7 @@ namespace DrakiaXYZ.Waypoints.Components
     internal class NavMeshDebugComponent : MonoBehaviour, IDisposable
     {
         private NavMeshTriangulation meshData;
-        private static List<UnityEngine.Object> gameObjects = new List<UnityEngine.Object>();
+        private static List<UnityEngine.Object> gameObjects = new();
 
         public void Dispose()
         {
@@ -47,7 +47,7 @@ namespace DrakiaXYZ.Waypoints.Components
             Vector3[] adjustedVertices = meshData.vertices.Select(v => new Vector3(v.x, v.y + Settings.NavMeshOffset.Value, v.z)).ToArray();
 
             // Create our new mesh and add all the vertices
-            Mesh mesh = new Mesh();
+            Mesh mesh = new();
             mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.vertices = adjustedVertices;
             mesh.triangles = meshData.indices;
@@ -76,7 +76,7 @@ namespace DrakiaXYZ.Waypoints.Components
                 {
                     string jsonString = JsonConvert.SerializeObject(meshData, Formatting.Indented);
                     File.Create(meshFilename).Dispose();
-                    StreamWriter streamWriter = new StreamWriter(meshFilename);
+                    StreamWriter streamWriter = new(meshFilename);
                     streamWriter.Write(jsonString);
                     streamWriter.Flush();
                     streamWriter.Close();

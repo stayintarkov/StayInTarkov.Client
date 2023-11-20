@@ -78,7 +78,7 @@ namespace StayInTarkov.Coop.Player.Health
             if (!dict.ContainsKey("data"))
                 return;
 
-            KillPacket killPacket = new KillPacket(player.ProfileId);
+            KillPacket killPacket = new(player.ProfileId);
             killPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, killPacket))

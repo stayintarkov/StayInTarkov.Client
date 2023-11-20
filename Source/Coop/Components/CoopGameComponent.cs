@@ -1358,7 +1358,7 @@ namespace StayInTarkov.Coop
 
 
             if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
             var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
             if (ownPlayer == null)
@@ -1418,7 +1418,7 @@ namespace StayInTarkov.Coop
 
 
             if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
             var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
             if (ownPlayer == null)

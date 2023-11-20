@@ -5,14 +5,14 @@ namespace DrakiaXYZ.Waypoints.Helpers
 {
     internal class ExportModel
     {
-        public Dictionary<string, ExportZoneModel> zones = new Dictionary<string, ExportZoneModel>();
+        public Dictionary<string, ExportZoneModel> zones = new();
     }
 
     internal class ExportZoneModel
     {
-        public List<CustomPatrol> patrols = new List<CustomPatrol>();
-        public List<ExportNavigationPoint> coverPoints = new List<ExportNavigationPoint>();
-        public List<ExportNavigationPoint> ambushPoints = new List<ExportNavigationPoint>();
+        public List<CustomPatrol> patrols = new();
+        public List<ExportNavigationPoint> coverPoints = new();
+        public List<ExportNavigationPoint> ambushPoints = new();
     }
 
     internal class ExportNavigationPoint

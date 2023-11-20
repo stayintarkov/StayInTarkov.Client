@@ -162,7 +162,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
             ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine
+            ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine
 
                 , () =>
                 {
