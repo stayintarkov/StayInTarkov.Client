@@ -9,11 +9,14 @@
   "LOCATION": "Ort",
   "RAID": "Raid",
   "START": "Start",
-  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Number of Players to Wait For (Including You)",
-  "REQUIRE_PASSWORD": "Require Password",
-  "PASSWORD": "Password",
-  "AI_AMOUNT": "AI Amount",
-  "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once."
-
-
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Spieleranzahl (inklusive dir)",
+  "REQUIRE_PASSWORD": "Passwort für die Lobby",
+  "PASSWORD": "Passwort",
+  "AI_AMOUNT": "KI Menge",
+  "ILLEGAL_MESSAGE": "Illegale Spielekopie erkannt! Bitte kaufe dir Escape from Tarkov und starte es mindestens ein mal.",
+  "RAID_PLAYER_EXTRACTED": "Du bist entkommen! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_EXTRACTED_HOST": "Du bist entkommen! Bitte warte bis alle Spieler entkommen sind oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_DEAD": "Du bist tot! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_TEAM_EXTRACTED": "Dein Team ist entkommen! Verlasse die Lobby mit F8.",
+  "RAID_TEAM_DEAD": "Dein Team ist tot! Verlasse die Lobby mit F8."
 }

@@ -1,0 +1,22 @@
+{
+  "HOST_RAID": "Host Raid",
+  "BACK": "Retour (ECH)",
+  "PLAY_SINGLE_PLAYER": "Jouer en solo",
+  "JOIN": "Rejoindre",
+  "SERVER": "Server",
+  "SERVER_NAME": "Nom du server",
+  "PLAYERS": "Joueurs",
+  "LOCATION": "Emplacement",
+  "RAID": "Raid",
+  "START": "Lancer",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Nombre de joueurs à attendre (y compris vous)",
+  "REQUIRE_PASSWORD": "Mot de passe requis",
+  "PASSWORD": "Mot de passe",
+  "AI_AMOUNT": "Nombre d'IA'",
+  "ILLEGAL_MESSAGE": "Jeu illégal trouvé. Veuillez acheter, installer le jeu et le lancer au moins une fois.",
+  "RAID_TEAM_DEAD": "Votre équipe est morte ! Quittez maintenant en utilisant la touche F8.",
+  "RAID_TEAM_EXTRACTED": "Votre équipe s'est extraite ! Quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_DEAD": "Vous êtes mort ! Veuillez attendre la fin du jeu ou quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_EXTRACTED": "Vous vous êtes extrait ! Attendez la fin du jeu ou quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_EXTRACTED_HOST": "Vous vous êtes extrait ! Veuillez attendre que tous les joueurs soient sortis/morts ou quittez maintenant en utilisant la touche F8."
+}
