@@ -1,13 +1,12 @@
 ﻿using Comfort.Common;
 using StayInTarkov.Coop.Player.GrenadeControllerPatches;
-using StayInTarkov;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using StayInTarkov.Core.Player;
-using StayInTarkov.Coop.Web;
 
 namespace StayInTarkov.Coop.Player.Proceed
 {
@@ -111,17 +110,17 @@ namespace StayInTarkov.Coop.Player.Proceed
                         {
                             //Logger.LogInfo($"Player_Proceed_Throwable_Patch. Found {IResult.Value.GetType().FullName}");
 
-                        if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)))
-                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)).MethodName);
+                            if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)))
+                                ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)).MethodName);
 
-                        if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)))
-                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)).MethodName);
+                            if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)))
+                                ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)).MethodName);
 
-                        if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)))
-                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)).MethodName);
+                            if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)))
+                                ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)).MethodName);
 
-                        if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)))
-                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)).MethodName);
+                            if (ModuleReplicationPatch.Patches.Values.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)))
+                                ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.Values.First(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)).MethodName);
 
                             // Enable patches
                             new GrenadeController_HighThrow_Patch(IResult.Value.GetType()).Enable();

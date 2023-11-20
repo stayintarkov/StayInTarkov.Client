@@ -88,7 +88,7 @@ namespace StayInTarkov.Coop
 
             // Find a Player
             var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null) 
+            if (coopGC == null)
                 return false;
 
             if (!coopGC.Players.ContainsKey(controllerId))

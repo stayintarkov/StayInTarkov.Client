@@ -7,7 +7,7 @@ using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
-using StayInTarkov;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,6 @@ using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
-using StayInTarkov.Coop.Web;
 
 namespace StayInTarkov.Core.Player
 {
@@ -149,7 +148,7 @@ namespace StayInTarkov.Core.Player
                 return;
             }
 
-          
+
         }
 
         void ProcessPlayerState(Dictionary<string, object> packet)

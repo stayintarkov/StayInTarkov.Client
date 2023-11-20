@@ -1,10 +1,10 @@
 ﻿using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using StayInTarkov.Core.Player;
 
 namespace StayInTarkov.Coop.Player
 {
@@ -81,7 +81,7 @@ namespace StayInTarkov.Coop.Player
             playerMovePacket.dY = direction.y;
 
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
-            
+
             var serialized = playerMovePacket.Serialize();
             if (serialized == null)
                 return;
@@ -165,7 +165,7 @@ namespace StayInTarkov.Coop.Player
 
                     UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
-                   
+
                     playerReplicatedComponent.ReplicatedMovementSpeed = spd;
                     playerReplicatedComponent.ReplicatedDirection = null;
 
@@ -182,6 +182,6 @@ namespace StayInTarkov.Coop.Player
             }
         }
 
-        
+
     }
 }

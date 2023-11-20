@@ -9,7 +9,6 @@ using StayInTarkov.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace StayInTarkov.Coop.Player
@@ -62,7 +61,7 @@ namespace StayInTarkov.Coop.Player
                 //    GameObject.Destroy(CullingManager.Instance.gameObject);
                 //    CullingManager.Destroy(CullingManager.Instance);
                 //}
-            
+
             }
             else
             {
@@ -76,9 +75,9 @@ namespace StayInTarkov.Coop.Player
             //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
             // If a Player
-            if(
+            if (
                 PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed
-                && ( __instance.ProfileId.StartsWith("pmc") || __instance.ProfileId.StartsWith("scav"))
+                && (__instance.ProfileId.StartsWith("pmc") || __instance.ProfileId.StartsWith("scav"))
                 )
                 DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 

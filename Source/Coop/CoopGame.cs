@@ -9,24 +9,17 @@ using EFT.UI;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.FreeCamera;
-using StayInTarkov;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
-using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Configuration;
 
 namespace StayInTarkov.Coop
 {
@@ -49,7 +42,7 @@ namespace StayInTarkov.Coop
     /// </summary>
     public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-       
+
         public new bool InRaid { get { return true; } }
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
@@ -128,7 +121,7 @@ namespace StayInTarkov.Coop
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
-           
+
 
             // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
@@ -361,7 +354,7 @@ namespace StayInTarkov.Coop
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-             
+
                 localPlayer
                    = (await CoopPlayer.Create(
                        //= (await LocalPlayer.Create(
@@ -548,7 +541,7 @@ namespace StayInTarkov.Coop
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
-            
+
             // ---------------------------------------------
             // Here we can wait for other players, if desired
             await Task.Run(async () =>
@@ -635,10 +628,10 @@ namespace StayInTarkov.Coop
                     friendlyBot.IsFriendlyBot = true;
                     //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
                     //companionComponent.CoopPlayer = friendlyBot;
-                    if(!FriendlyPlayers.ContainsKey(profileClone.Id))
+                    if (!FriendlyPlayers.ContainsKey(profileClone.Id))
                         FriendlyPlayers.Add(profileClone.Id, friendlyBot);
 
-                    
+
                 }
             }
 
@@ -771,7 +764,7 @@ namespace StayInTarkov.Coop
                     this.BossWaveManager.Stop();
             }
 
-           
+
 
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");

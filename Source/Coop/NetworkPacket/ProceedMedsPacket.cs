@@ -1,10 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
@@ -17,7 +11,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public int Variant { get; set; }
 
         public ProceedMedsPacket(
-            string profileId, string itemId, string templateId, string bodyPart, int variant) 
+            string profileId, string itemId, string templateId, string bodyPart, int variant)
             : base(profileId, itemId, templateId, "ProceedMeds")
         {
             BodyPart = bodyPart;

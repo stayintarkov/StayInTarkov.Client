@@ -1,21 +1,17 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.Bots;
-using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
-using StayInTarkov;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
@@ -326,7 +322,7 @@ namespace StayInTarkov.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20, 20, 200, 200), ErrorMessage);
 
             if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {

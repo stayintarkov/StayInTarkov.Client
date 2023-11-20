@@ -2,9 +2,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using FilesChecker;
-using HarmonyLib;
 using Newtonsoft.Json;
-using StayInTarkov;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.UI;
 using System;
@@ -12,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using UnityEngine.Assertions;
 using static StayInTarkov.PaulovJsonConverters;
 
 namespace StayInTarkov
@@ -61,7 +58,7 @@ namespace StayInTarkov
         /// <summary>
         /// Method that returns the Backend Url (Example: https://127.0.0.1)
         /// </summary>
-        private static string RealWSURL;   
+        private static string RealWSURL;
         public static string GetBackendUrl()
         {
             if (string.IsNullOrEmpty(backendUrl))
@@ -246,7 +243,7 @@ namespace StayInTarkov
 
             FilesCheckerTypes = typeof(ICheckResult).Assembly.GetTypes();
             DisplayMessageNotifications.MessageNotificationType = EftTypes.Single(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public).Select(y => y.Name).Contains("DisplayMessageNotification"));
-          
+
             JsonConverterType = typeof(AbstractGame).Assembly.GetTypes()
                .First(t => t.GetField("Converters", BindingFlags.Static | BindingFlags.Public) != null);
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];

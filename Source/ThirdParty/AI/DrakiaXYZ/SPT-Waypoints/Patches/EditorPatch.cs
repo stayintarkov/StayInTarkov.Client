@@ -1,5 +1,4 @@
-﻿using DrakiaXYZ.Waypoints.Components;
-using EFT;
+﻿using EFT;
 using StayInTarkov;
 using System.Reflection;
 

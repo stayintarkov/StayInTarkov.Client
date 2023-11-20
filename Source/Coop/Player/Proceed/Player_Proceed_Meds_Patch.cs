@@ -49,7 +49,7 @@ namespace StayInTarkov.Coop.Player
             , Meds0 meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
-            { 
+            {
                 CallLocally.Remove(__instance.ProfileId);
                 return;
             }

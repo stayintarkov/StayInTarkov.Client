@@ -8,29 +8,27 @@ using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
+using StayInTarkov.AI.PMCLogic.Roaming;
+using StayInTarkov.AkiSupport.Custom;
+using StayInTarkov.AkiSupport.SITFixes;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.AI;
-using StayInTarkov.AkiSupport.Custom;
-using StayInTarkov.AkiSupport.Singleplayer.Patches.Healing;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.EssentialPatches.Web;
+using StayInTarkov.FileChecker;
+using StayInTarkov.Health;
+using StayInTarkov.ThirdParty;
 using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using StayInTarkov.Health;
-using StayInTarkov.Configuration;
-using StayInTarkov.ThirdParty;
-using StayInTarkov.FileChecker;
-using StayInTarkov.AkiSupport.SITFixes;
-using StayInTarkov.AI.PMCLogic.Roaming;
 
 namespace StayInTarkov
 {
@@ -52,7 +50,7 @@ namespace StayInTarkov
         public static string EFTAssemblyVersion { get; internal set; }
         public static string EFTEXEFileVersion { get; internal set; }
 
-        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();    
+        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
@@ -81,7 +79,7 @@ namespace StayInTarkov
 
         void Update()
         {
-            if (!LegalGameCheck.Checked) 
+            if (!LegalGameCheck.Checked)
                 LegalGameCheck.LegalityCheck(Config);
 
             if (Singleton<PreloaderUI>.Instantiated && !shownCheckError && !LegalGameCheck.LegalGameFound)
@@ -157,7 +155,7 @@ namespace StayInTarkov
                     LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
 
-               
+
             }
 
             // Load English Language Stream to Fill any missing expected statements in the Dictionary
@@ -165,7 +163,7 @@ namespace StayInTarkov
             {
                 foreach (var kvp in JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd()))
                 {
-                    if(!LanguageDictionary.ContainsKey(kvp.Key))
+                    if (!LanguageDictionary.ContainsKey(kvp.Key))
                         LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
             }
@@ -294,7 +292,7 @@ namespace StayInTarkov
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.LogError($"{nameof(EnableSPPatches)} failed.");
                 Logger.LogError(ex);
@@ -438,7 +436,7 @@ namespace StayInTarkov
 
         }
 
-       
+
 
     }
 }
