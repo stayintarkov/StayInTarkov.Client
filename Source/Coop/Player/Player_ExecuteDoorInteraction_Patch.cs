@@ -1,16 +1,13 @@
 ﻿using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_ExecuteDoorInteraction_Patch : ModuleReplicationPatch
     {
@@ -105,7 +102,7 @@ namespace SIT.Coop.Core.Player
             {
                 string itemId = dict["keyItemId"].ToString();
                 if (!ItemFinder.TryFindItem(itemId, out Item item))
-                    item = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, dict["keyTemplateId"].ToString());
+                    item = Spawners.ItemFactory.CreateItem(itemId, dict["keyTemplateId"].ToString());
 
                 if (item != null)
                 {

@@ -1,12 +1,10 @@
-﻿using SIT.Tarkov.Core;
-using StayInTarkov;
-using StayInTarkov.Networking;
+﻿using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     internal class FirearmController_ToggleLauncher_Patch : ModuleReplicationPatch
     {

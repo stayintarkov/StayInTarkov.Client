@@ -1,6 +1,6 @@
 ﻿using DrakiaXYZ.BigBrain.Brains;
 using HarmonyLib;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

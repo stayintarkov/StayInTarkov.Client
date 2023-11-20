@@ -2,11 +2,11 @@
 using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.AkiSupport.Airdrops
+namespace StayInTarkov.AkiSupport.Airdrops
 {
     /// <summary>
     /// Created by: SPT-Aki team

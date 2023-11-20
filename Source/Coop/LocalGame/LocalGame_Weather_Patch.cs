@@ -1,15 +1,12 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Weather;
-using SIT.Coop.Core.LocalGame;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Matchmaker;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop.LocalGame
+namespace StayInTarkov.Coop.LocalGame
 {
     public class LocalGame_Weather_Patch : ModulePatch
     {

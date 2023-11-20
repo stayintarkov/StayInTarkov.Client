@@ -1,9 +1,7 @@
 ﻿using EFT.Hideout;
 using EFT;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.ItemControllerPatches;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,8 +9,9 @@ using System.Reflection;
 using Comfort.Common;
 using BepInEx.Logging;
 using StayInTarkov;
+using StayInTarkov.Coop.Web;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     public class FirearmController_ReloadMag_Patch : ModuleReplicationPatch
     {

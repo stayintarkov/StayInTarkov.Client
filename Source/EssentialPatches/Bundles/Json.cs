@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     public static class Json
     {

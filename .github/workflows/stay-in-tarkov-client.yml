@@ -65,9 +65,6 @@ jobs:
     - name: Remove unnecessary files
       run: |
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
-          del ${{ env.SolutionName }}-${{ matrix.configuration }}\PresentationFramework.xml
-          del ${{ env.SolutionName }}-${{ matrix.configuration }}\PresentationFramework.dll
-          del ${{ env.SolutionName }}-${{ matrix.configuration }}\Newtonsoft.Json.dll
 
     - name: Zip remaining files
       run: |

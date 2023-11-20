@@ -1,13 +1,9 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Core.Coop;
-using SIT.Core.Coop.Player;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_DropBackpack_Patch : ModuleReplicationPatch
     {

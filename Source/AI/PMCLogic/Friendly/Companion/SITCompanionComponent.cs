@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using SIT.Core.Coop;
+using StayInTarkov.Coop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace SIT.Core.AI.PMCLogic.Friendly.Companion
+namespace StayInTarkov.AI.PMCLogic.Friendly.Companion
 {
     /// <summary>
     /// Created by: Paulov

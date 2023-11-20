@@ -1,12 +1,9 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_SwitchHeadLights_Patch : ModuleReplicationPatch
     {

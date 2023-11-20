@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace SIT.Core.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket
 {
     public abstract class BasePacket : ISITPacket
     {

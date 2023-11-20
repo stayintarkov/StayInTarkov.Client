@@ -1,12 +1,10 @@
 ﻿using EFT.UI;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SIT.Core.Coop.FreeCamera
+namespace StayInTarkov.Coop.FreeCamera
 {
     internal class FadeBlackScreenPatch : ModulePatch
     {

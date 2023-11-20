@@ -1,15 +1,12 @@
 ﻿using EFT.InventoryLogic;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     public class FirearmController_ChangeFireMode_Patch : ModuleReplicationPatch
     {

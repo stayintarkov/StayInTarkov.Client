@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace SIT.Tarkov.Core.Bundles
+namespace StayInTarkov.Bundles
 {
     public static class BundleSetup
     {

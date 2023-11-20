@@ -1,12 +1,10 @@
-﻿using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.KnifeControllerPatches
+namespace StayInTarkov.Coop.Player.KnifeControllerPatches
 {
     internal class KnifeController_MakeAlternativeKick_Patch : ModuleReplicationPatch
     {

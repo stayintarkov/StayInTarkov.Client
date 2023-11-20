@@ -1,16 +1,13 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_Proceed_Meds_Patch : ModuleReplicationPatch
     {

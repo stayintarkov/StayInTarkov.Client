@@ -1,4 +1,4 @@
-using SIT.Tarkov.Core;
+using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ namespace Aki.Core.Patches
     /// <summary>
     /// Credit: BattlEyePatch from SPT-Aki https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Core/Patches/BattlEyePatch.cs
     /// </summary>
+    /// WE ARE NOT PATHCING WITH THIS - TO BE REMOVED
     public class BattlEyePatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()

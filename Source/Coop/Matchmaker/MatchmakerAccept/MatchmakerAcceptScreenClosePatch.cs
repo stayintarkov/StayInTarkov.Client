@@ -1,9 +1,8 @@
-﻿using SIT.Tarkov.Core;
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public class MatchmakerAcceptScreenClosePatch : ModulePatch
     {
@@ -11,7 +10,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static Type GetThisType()
         {
-            return Tarkov.Core.StayInTarkovHelperConstants.EftTypes
+            return StayInTarkovHelperConstants.EftTypes
                  .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
         }
 

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket
 {
     public class ProceedMedsPacket : ItemPlayerPacket
     {

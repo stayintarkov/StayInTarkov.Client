@@ -8,18 +8,8 @@ using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
-using SIT.Core.AI.PMCLogic.Roaming;
-using SIT.Core.AI.PMCLogic.RushSpawn;
-using SIT.Core.AkiSupport.Airdrops;
-using SIT.Core.AkiSupport.Custom;
-using SIT.Core.AkiSupport.SITFixes;
-using SIT.Core.Configuration;
-using SIT.Core.Coop;
-using SIT.Core.Coop.AI;
-using SIT.Core.Core;
-using SIT.Core.Core.FileChecker;
-using SIT.Core.Other;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop;
+using StayInTarkov.Coop.AI;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Healing;
 using StayInTarkov.EssentialPatches;
@@ -36,6 +26,11 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using StayInTarkov.Health;
+using StayInTarkov.Configuration;
+using StayInTarkov.ThirdParty;
+using StayInTarkov.FileChecker;
+using StayInTarkov.AkiSupport.SITFixes;
+using StayInTarkov.AI.PMCLogic.Roaming;
 
 namespace StayInTarkov
 {
@@ -238,7 +233,7 @@ namespace StayInTarkov
                 if (!url.Contains("https"))
                 {
                     new TransportPrefixPatch().Enable();
-                    new SIT.Tarkov.Core.WebSocketPatch().Enable();
+                    new WebSocketPatch().Enable();
                 }
 
             }

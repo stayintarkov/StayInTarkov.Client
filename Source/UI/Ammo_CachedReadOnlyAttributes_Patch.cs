@@ -1,11 +1,9 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Other.UI
+namespace StayInTarkov.UI
 {
 
     /// <summary>

@@ -3,16 +3,12 @@ using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Core.Configuration;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.World;
-using SIT.Tarkov.Core;
-using StayInTarkov;
-using StayInTarkov.AkiSupport.Singleplayer.Patches.Quests;
-using StayInTarkov.Coop;
+using StayInTarkov.Configuration;
+using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
@@ -28,7 +24,7 @@ using UnityEngine.Scripting;
 
 using Rect = UnityEngine.Rect;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     /// <summary>
     /// Coop Game Component is the User 1-2-1 communication to the Server

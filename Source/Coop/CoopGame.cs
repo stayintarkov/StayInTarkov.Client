@@ -9,13 +9,8 @@ using EFT.UI;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.AI.PMCLogic.Friendly.Companion;
-using SIT.Core.Configuration;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.FreeCamera;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov;
 using StayInTarkov.Coop;
 using StayInTarkov.Networking;
@@ -30,8 +25,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Configuration;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     public class FriendlyAIPMCSystem
     {

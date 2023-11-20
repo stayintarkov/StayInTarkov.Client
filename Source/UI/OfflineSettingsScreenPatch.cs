@@ -1,7 +1,6 @@
 ﻿using EFT;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;

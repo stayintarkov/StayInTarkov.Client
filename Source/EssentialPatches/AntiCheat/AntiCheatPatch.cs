@@ -1,9 +1,8 @@
-using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
 
     /// <summary>

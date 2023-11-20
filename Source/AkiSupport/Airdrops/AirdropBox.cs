@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.AkiSupport.Airdrops
+namespace StayInTarkov.AkiSupport.Airdrops
 {
     /// <summary>
     /// Created by: SPT-Aki team
