@@ -11,6 +11,12 @@ on:
         - '.github/*'
         - '.github/*_TEMPLATE/**'
         - '*.md'
+    workflow_dispatch:
+        paths-ignore:
+        - '.github/*'
+        - '.github/*_TEMPLATE/**'
+        - '*.md'
+
 
 permissions:
   contents: write
@@ -21,7 +27,7 @@ jobs:
 
     strategy:
       matrix:
-        configuration: [Release, Debug]
+        configuration: [Release]
 
     runs-on: windows-latest  # For a list of available runner types, refer to
 
@@ -79,15 +85,15 @@ jobs:
     
     - name: Set build date
       run: |
-        $NOW=& Get-Date -format yyyy-MM-dd
+        $NOW=& Get-Date -format yyyy-MM-dd-HH-mm
         echo "NOW=$NOW" >> $env:GITHUB_ENV
         
     # Create release from the compressed file if pushed to master
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+      if: (${{ matrix.configuration }} == 'Release')
       with:
         draft: true
         generate_release_notes: true
         files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client-${{ env.NOW }}-v1.${{ github.run_number }}
+        tag_name: StayInTarkov.Client-${{ env.NOW }}
