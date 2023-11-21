@@ -67,8 +67,14 @@ namespace StayInTarkov.Coop.Player.Proceed
                         {
                             callback = (IResult) =>
                             {
-                                botOwner.WeaponManager.Selector.TakePrevWeapon();
-                                botOwner.AITaskManager.RegisterDelayedTask(botOwner, 1f, new Action(botOwner.Medecine.FirstAid.CheckParts));
+                                if (IResult.Succeed)
+                                {
+                                    IResult.Value.SetOnUsedCallback((_) =>
+                                    {
+                                        botOwner.WeaponManager.Selector.TakePrevWeapon();
+                                        botOwner.AITaskManager.RegisterDelayedTask(botOwner, 1f, new Action(botOwner.Medecine.FirstAid.CheckParts));
+                                    });
+                                }
                             };
                         }
                     }

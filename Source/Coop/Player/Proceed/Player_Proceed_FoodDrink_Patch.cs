@@ -67,7 +67,13 @@ namespace StayInTarkov.Coop.Player.Proceed
                         {
                             callback = (IResult) =>
                             {
-                                botOwner.WeaponManager.Selector.TakePrevWeapon();
+                                if (IResult.Succeed)
+                                {
+                                    IResult.Value.SetOnUsedCallback((_) =>
+                                    {
+                                        botOwner.WeaponManager.Selector.TakePrevWeapon();
+                                    });
+                                }
                             };
                         }
                     }
