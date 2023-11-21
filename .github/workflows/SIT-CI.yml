@@ -1,7 +1,7 @@
 name: SIT CI
 
 on:
-  push:
+  push :
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
@@ -11,7 +11,6 @@ on:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'      
-  workflow_dispatch:
 
 
 jobs:
