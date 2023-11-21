@@ -1,11 +1,6 @@
 name: SIT CI
 
 on:
-  push:
-    paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
   pull_request:
     types:
       - closed
