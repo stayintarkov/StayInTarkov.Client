@@ -2,15 +2,13 @@ name: SIT CI
 
 on:
   push:
-    branches:
-      - 'GitHub-actions-CI/CD' # CHANGE TO MASTER BEFORE PR
+    branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE PR
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
-    branches:
-      - 'GitHub-actions-CI/CD' # CHANGE TO MASTER BEFORE PR
+    branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE PR
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
