@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace StayInTarkov.Coop.Player
+namespace StayInTarkov.Coop.Player.InteractionPatches
 {
     internal class Player_ExecuteDoorInteraction_Patch : ModuleReplicationPatch
     {
