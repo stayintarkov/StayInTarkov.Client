@@ -7,7 +7,7 @@ using System.IO;
  * Original Source is found here - https://dev.sp-tarkov.com/SPT-AKI/Modules
  * Paulov. Made changes to have better reflection and less hardcoding
  */
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     public static class VFS
     {

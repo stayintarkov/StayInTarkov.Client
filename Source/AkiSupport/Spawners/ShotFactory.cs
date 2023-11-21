@@ -6,7 +6,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Tarkov.Core.Spawners
+namespace StayInTarkov.Spawners
 {
     public class ShotFactory
     {

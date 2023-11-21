@@ -4,7 +4,7 @@ using EFT.InventoryLogic;
 using System;
 using System.Collections.Generic;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopPlayerStatisticsManager : AStatisticsManagerForPlayer, IStatisticsManager
     {

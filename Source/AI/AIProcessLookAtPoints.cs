@@ -1,7 +1,7 @@
 ﻿using EFT;
 using UnityEngine;
 
-namespace SIT.Core.AI
+namespace StayInTarkov.AI
 {
     /// <summary>
     /// Created by: DrakiaXYZ 

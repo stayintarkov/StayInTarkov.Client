@@ -1,5 +1,4 @@
 ﻿using BepInEx.Logging;
-using SIT.Tarkov.Core;
 using System;
 using System.Diagnostics;
 using System.Runtime;

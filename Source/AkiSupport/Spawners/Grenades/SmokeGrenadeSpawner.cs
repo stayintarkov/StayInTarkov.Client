@@ -1,4 +1,4 @@
-﻿namespace SIT.Tarkov.Core.Spawners.Grenades
+﻿namespace StayInTarkov.Spawners.Grenades
 {
     public class SmokeGrenadeSpawner : GrenadeSpawner
     {

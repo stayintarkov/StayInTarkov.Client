@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SIT.Core.Coop.Components
+namespace StayInTarkov.Coop.Components
 {
     internal interface IPlayerPacketHandlerComponent
     {

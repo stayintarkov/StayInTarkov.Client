@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket
 {
     internal class PlayerRotatePacket : BasePlayerPacket
     {

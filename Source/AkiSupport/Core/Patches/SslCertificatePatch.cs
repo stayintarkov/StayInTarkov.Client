@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Networking;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 
 namespace Aki.Core.Patches
 {

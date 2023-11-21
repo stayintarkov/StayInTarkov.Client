@@ -1,10 +1,8 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.AkiSupport.SITFixes
+namespace StayInTarkov.AkiSupport.SITFixes
 {
     /// <summary>
     /// Created by: Paulov

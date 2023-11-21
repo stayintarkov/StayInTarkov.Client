@@ -1,7 +1,7 @@
 using System;
 using System.Reflection.Emit;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     public class Code
     {

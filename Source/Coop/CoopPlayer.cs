@@ -3,12 +3,11 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.Player;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Player.FirearmControllerPatches;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {

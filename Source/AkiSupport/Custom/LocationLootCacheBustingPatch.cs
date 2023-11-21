@@ -1,5 +1,4 @@
-﻿using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov;
 using System;
 using System.Linq;
 using System.Reflection;

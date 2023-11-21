@@ -1,6 +1,5 @@
 using EFT;
 using EFT.InventoryLogic;
-using SIT.Tarkov.Core;
 using System;
 using System.Reflection;
 

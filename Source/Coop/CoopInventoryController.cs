@@ -2,13 +2,13 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Core.Coop.NetworkPacket;
+using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopInventoryController
         : EFT.Player.PlayerInventoryController, ICoopInventoryController

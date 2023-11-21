@@ -1,11 +1,9 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.World;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.World;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -17,7 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.Coop.Components
+namespace StayInTarkov.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {

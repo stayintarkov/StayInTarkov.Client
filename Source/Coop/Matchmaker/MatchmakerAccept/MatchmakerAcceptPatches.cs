@@ -2,17 +2,13 @@
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SIT.Core;
-using SIT.Core.Coop.Matchmaker;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Coop.Core.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public enum EMatchmakerType
     {

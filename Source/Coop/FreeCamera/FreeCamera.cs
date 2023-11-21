@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using UnityEngine;
 
-namespace SIT.Core.Coop.FreeCamera
+namespace StayInTarkov.Coop.FreeCamera
 {
     /// <summary>
     /// A simple free camera to be added to a Unity game object.

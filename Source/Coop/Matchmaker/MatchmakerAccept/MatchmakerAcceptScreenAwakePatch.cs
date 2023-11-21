@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public class MatchmakerAcceptScreenAwakePatch : ModulePatch
     {

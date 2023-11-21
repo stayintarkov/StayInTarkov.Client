@@ -1,8 +1,7 @@
 ﻿using BepInEx.Configuration;
 using BepInEx.Logging;
-using StayInTarkov;
 
-namespace SIT.Core.Configuration
+namespace StayInTarkov.Configuration
 {
     /// <summary>
     /// Created by: Paulov

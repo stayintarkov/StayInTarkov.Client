@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     /// <summary>
     /// Credit: SPT-Aki ConsistencySinglePatch - https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Core/Patches/ConsistencySinglePatch.cs

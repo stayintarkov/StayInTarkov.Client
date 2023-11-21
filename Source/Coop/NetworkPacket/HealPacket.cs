@@ -1,4 +1,4 @@
-﻿namespace SIT.Core.Coop.NetworkPacket
+﻿namespace StayInTarkov.Coop.NetworkPacket
 {
     public class HealPacket : BasePlayerPacket
     {

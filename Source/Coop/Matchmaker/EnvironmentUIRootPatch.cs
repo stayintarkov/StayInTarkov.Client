@@ -1,9 +1,7 @@
 ﻿using EFT.UI;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Tarkov.Core;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public class EnvironmentUIRootPatch : ModulePatch
     {

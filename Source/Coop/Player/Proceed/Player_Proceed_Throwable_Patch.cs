@@ -1,16 +1,15 @@
 ﻿using Comfort.Common;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.Player.GrenadeControllerPatches;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.Player.GrenadeControllerPatches;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using StayInTarkov.Core.Player;
+using StayInTarkov.Coop.Web;
 
-namespace SIT.Core.Coop.Player.Proceed
+namespace StayInTarkov.Coop.Player.Proceed
 {
     internal class Player_Proceed_Throwable_Patch : ModuleReplicationPatch
     {

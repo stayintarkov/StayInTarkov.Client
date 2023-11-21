@@ -3,12 +3,10 @@ using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Core.Coop.Player;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Player;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
@@ -18,8 +16,9 @@ using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
+using StayInTarkov.Coop.Web;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Core.Player
 {
     /// <summary>
     /// Player Replicated Component is the Player/AI direct communication to the Server
@@ -89,7 +88,7 @@ namespace SIT.Coop.Core.Player
                         itemId = sb.ToString().Substring(0, 24);
                     }
 
-                    Item dogtag = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+                    Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
 
                     if (dogtag != null)
                     {

@@ -3,7 +3,6 @@ using System.Reflection;
 using Comfort.Common;
 using EFT;
 using HarmonyLib;
-using SIT.Tarkov.Core;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
 {

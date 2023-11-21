@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace SIT.Core.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket
 {
     public class PlayerStatePacket : BasePlayerPacket
     {
