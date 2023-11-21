@@ -7,16 +7,12 @@ on:
       - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
-        branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE PR
-    paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
+        branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE P
+        paths-ignore:
+        - '.github/*'
+        - '.github/*_TEMPLATE/**'
+        - '*.md'
   workflow_dispatch:
-    paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
 
 jobs:
   build:
