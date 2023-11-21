@@ -1,4 +1,4 @@
-name: Comment on Pull request
+name: Comment on PR
 
 on:
   workflow_run:
@@ -56,7 +56,7 @@ jobs:
       - name: Update Comment
         env:
           JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ env.PREVIOUS_JOB_ID }}"
-          ARTIFACT_URL: "${{ github.server_url }}/${{ github.repository }}/suites/{{ env.SUITE_ID }}/artifacts/$ {{ env.ARTIFACT_ID }}"
+          ARTIFACT_URL: "${{ github.server_url }}/${{ github.repository }}/suites/{{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
           HEAD_SHA: "${{ env.HEAD_SHA }}"
         uses: peter-evans/create-or-update-comment@v3
         with:
