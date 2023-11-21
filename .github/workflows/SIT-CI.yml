@@ -3,7 +3,6 @@ name: SIT CI
 on:
   pull_request:
     types:
-      - closed
       - opened
       - synchronize
     paths-ignore:
