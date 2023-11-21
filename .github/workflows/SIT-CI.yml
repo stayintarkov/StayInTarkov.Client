@@ -2,16 +2,19 @@ name: SIT CI
 
 on:
   push:
+    branches:
+      - 'GitHub-actions-CI/CD' # CHANGE TO MASTER BEFORE P
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
-        branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE P
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
+    branches:
+      - 'GitHub-actions-CI/CD' # CHANGE TO MASTER BEFORE P
+    paths-ignore:
+      - '.github/*'
+      - '.github/*_TEMPLATE/**'
+      - '*.md'      
   workflow_dispatch:
 
 jobs:
