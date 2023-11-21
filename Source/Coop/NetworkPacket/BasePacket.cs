@@ -11,11 +11,8 @@ namespace StayInTarkov.Coop.NetworkPacket
 {
     public abstract class BasePacket : ISITPacket
     {
-        [JsonIgnore]
-        static Random Randomizer { get; } = new Random();
-
         [JsonProperty(PropertyName = "serverId")]
-        public string ServerId { get; set; } = CoopGameComponent.GetServerId();
+        public string ServerId { get; set; }
 
         [JsonIgnore]
         private string _t;
@@ -25,9 +22,6 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             get
             {
-                if (string.IsNullOrEmpty(_t))
-                    _t = DateTime.Now.Ticks.ToString("G");
-
                 return _t;
             }
             set
@@ -36,32 +30,24 @@ namespace StayInTarkov.Coop.NetworkPacket
             }
         }
 
-        private double? _token;
-
-        [JsonProperty(PropertyName = "tkn")]
-        public double Token
-        {
-            get { return _token.HasValue ? _token.Value : Randomizer.NextDouble(); }
-            set { _token = value; }
-        }
-
-
         [JsonProperty(PropertyName = "m")]
-        public virtual string Method { get; set; } = null;
+        public virtual string Method { get; set; }
 
         //[JsonProperty(PropertyName = "pong")]
         //public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
 
-        public BasePacket()
+        public BasePacket(string method)
         {
+            Method = method;
             ServerId = CoopGameComponent.GetServerId();
+            TimeSerializedBetter = DateTime.Now.Ticks.ToString("G");
         }
 
         public static PropertyInfo[] GetPropertyInfos(ISITPacket packet)
         {
             var allProps = ReflectionHelpers.GetAllPropertiesForObject(packet);
             var allPropsFiltered = allProps
-              .Where(x => x.Name != "ServerId" && x.Name != "Method" && x.Name != "Randomizer")
+              .Where(x => x.Name != "ServerId" && x.Name != "Method")
               .OrderByDescending(x => x.Name == "ProfileId").ToArray();
             return allPropsFiltered;
         }
