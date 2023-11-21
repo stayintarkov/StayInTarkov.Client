@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Build:
+  Build-SIT:
 
     strategy:
       matrix:
