@@ -5,10 +5,13 @@ on:
     types:
       - opened
       - synchronize
+      - reopened
     paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
+      - '.github/**'
       - '*.md'
+    branches:
+      - GH-CI-CD # CHANGE BEFORE PR
+
   workflow_dispatch:
 
 
@@ -61,10 +64,10 @@ jobs:
         run: |
           Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
 
-      # Upload artifact
+      # Upload artifact with github commit SHA
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: StayInTarkov-Debug-${{ matrix.configuration }}
+          name: ${{ env.SolutionName }}-${{ matrix.configuration }}-${{ github.sha }}
           path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
           if-no-files-found: error
