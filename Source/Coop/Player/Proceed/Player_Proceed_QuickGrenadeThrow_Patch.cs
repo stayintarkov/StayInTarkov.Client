@@ -9,11 +9,11 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Proceed
 {
-    internal class Player_Proceed_QuickKnifeKick_Patch : ModuleReplicationPatch
+    internal class Player_Proceed_QuickGrenadeThrow_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
 
-        public override string MethodName => "ProceedQuickKnifeKick";
+        public override string MethodName => "ProceedQuickGrenadeThrow";
 
         public static List<string> CallLocally = new();
 
@@ -21,20 +21,20 @@ namespace StayInTarkov.Coop.Player.Proceed
         {
             return ReflectionHelpers.GetAllMethodsForType(InstanceType).FirstOrDefault(x => x.Name == "Proceed"
                    && x.GetParameters().Length == 3
-                   && x.GetParameters()[0].Name == "knife"
+                   && x.GetParameters()[0].Name == "throwWeap"
                    && x.GetParameters()[1].Name == "callback"
                    && x.GetParameters()[2].Name == "scheduled"
-                   && x.GetParameters()[1].ParameterType == typeof(Callback<IHandsController7>));
+                   && x.GetParameters()[1].ParameterType == typeof(Callback<IGrenadeQuickUseController>));
         }
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            return CallLocally.Contains(__instance.ProfileId);
+            return true; // Only AI use QuickGrenadeThrow.
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance, KnifeComponent knife, bool scheduled)
+        public static void PostPatch(EFT.Player __instance, ThrowWeap throwWeap, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -42,11 +42,8 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
             }
 
-            if (knife.Item is Knife0 knife0)
-            {
-                PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife0.Id, knife0.TemplateId, scheduled, "ProceedQuickKnifeKick");
-                AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
-            }
+            PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, throwWeap.Id, throwWeap.TemplateId, scheduled, "ProceedQuickGrenadeThrow");
+            AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -62,19 +59,19 @@ namespace StayInTarkov.Coop.Player.Proceed
 
             if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
-                if (item.TryGetItemComponent(out KnifeComponent knifeComponent))
+                if (item is ThrowWeap throwWeap)
                 {
                     CallLocally.Add(player.ProfileId);
-                    player.Proceed(knifeComponent, (Callback<IHandsController7>)null, playerProceedPacket.Scheduled);
+                    player.Proceed(throwWeap, (Callback<IGrenadeQuickUseController>)null, playerProceedPacket.Scheduled);
                 }
                 else
                 {
-                    Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Item {playerProceedPacket.ItemId} doesn't has KnifeComponent!");
+                    Logger.LogError($"Player_Proceed_QuickGrenadeThrow_Patch:Replicated. Item {playerProceedPacket.ItemId} is not a ThrowWeap!");
                 }
             }
             else
             {
-                Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Cannot found item {playerProceedPacket.ItemId}!");
+                Logger.LogError($"Player_Proceed_QuickGrenadeThrow_Patch:Replicated. Cannot found item {playerProceedPacket.ItemId}!");
             }
         }
     }
