@@ -97,8 +97,8 @@ namespace StayInTarkov
         public static Type JsonConverterType { get; }
         public static Newtonsoft.Json.JsonConverter[] JsonConverterDefault { get; }
 
-        private static ISession _backEndSession;
-        public static ISession BackEndSession
+        private static IBackEndSession _backEndSession;
+        public static IBackEndSession BackEndSession
         {
             get
             {
@@ -107,9 +107,9 @@ namespace StayInTarkov
                     _backEndSession = Singleton<TarkovApplication>.Instance.GetClientBackEndSession();
                 }
 
-                if (_backEndSession == null && Singleton<ClientApplication<ISession>>.Instantiated)
+                if (_backEndSession == null && Singleton<ClientApplication<IBackEndSession>>.Instantiated)
                 {
-                    _backEndSession = Singleton<ClientApplication<ISession>>.Instance.GetClientBackEndSession();
+                    _backEndSession = Singleton<ClientApplication<IBackEndSession>>.Instance.GetClientBackEndSession();
                 }
 
                 return _backEndSession;
@@ -226,9 +226,9 @@ namespace StayInTarkov
             }
         }
 
-        public static ClientApplication<ISession> GetClientApp()
+        public static ClientApplication<IBackEndSession> GetClientApp()
         {
-            return Singleton<ClientApplication<ISession>>.Instance;
+            return Singleton<ClientApplication<IBackEndSession>>.Instance;
         }
 
         public static TarkovApplication GetMainApp()

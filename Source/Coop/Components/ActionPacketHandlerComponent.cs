@@ -265,14 +265,14 @@ namespace StayInTarkov.Coop.Components
 
                         if (!MatchmakerAcceptPatches.IsClient)
                         {
-                            var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(Singleton<AbstractGame>.Instance);
+                            var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<AbstractGame>.Instance);
                             if (botController != null)
                             {
                                 if (!RemovedFromAIPlayers.Contains(profileId))
                                 {
                                     RemovedFromAIPlayers.Add(profileId);
                                     Logger.LogDebug("Removing Client Player to Enemy list");
-                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
+                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotsController), typeof(BotSpawner)).GetValue(botController);
                                     botSpawner.DeletePlayer(plyr);
                                 }
                             }

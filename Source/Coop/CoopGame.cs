@@ -54,31 +54,31 @@ namespace StayInTarkov.Coop
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
-        public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+        public IBackEndSession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
-        BotControllerClass IBotGame.BotsController
+        BotsController IBotGame.BotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
-        private static BotControllerClass botControllerClass;
+        private static BotsController BotsController;
 
-        public BotControllerClass PBotsController
+        public BotsController PBotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
@@ -113,10 +113,10 @@ namespace StayInTarkov.Coop
             , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
-            , ISession backEndSession
+            , IBackEndSession backEndSession
             , TimeSpan sessionTime)
         {
-            botControllerClass = null;
+            BotsController = null;
 
             Logger = BepInEx.Logging.Logger.CreateLogSource("Coop Game Mode");
             Logger.LogInfo("CoopGame.Create");

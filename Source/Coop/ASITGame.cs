@@ -26,31 +26,31 @@ namespace StayInTarkov.Coop
     {
         public new bool InRaid { get { return true; } }
 
-        public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+        public IBackEndSession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
-        BotControllerClass IBotGame.BotsController
+        BotsController IBotGame.BotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
-        private static BotControllerClass botControllerClass;
+        private static BotsController BotsController;
 
-        public BotControllerClass PBotsController
+        public BotsController PBotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
@@ -84,7 +84,7 @@ namespace StayInTarkov.Coop
             , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
-            , ISession backEndSession
+            , IBackEndSession backEndSession
             , TimeSpan sessionTime) where T : ASITGame
         {
 

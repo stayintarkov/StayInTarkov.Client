@@ -975,7 +975,7 @@ namespace StayInTarkov.Coop
                 {
                     if (LocalGameInstance != null)
                     {
-                        var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                        var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(this.LocalGameInstance);
                         if (botController != null)
                         {
                             Logger.LogDebug("Adding Client Player to Enemy list");

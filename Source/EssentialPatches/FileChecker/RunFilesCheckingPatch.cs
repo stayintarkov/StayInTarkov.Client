@@ -11,7 +11,7 @@ namespace StayInTarkov.FileChecker
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(CommonClientApplication<ISession>), "RunFilesChecking");
+            return ReflectionHelpers.GetMethodForType(typeof(CommonClientApplication<IBackEndSession>), "RunFilesChecking");
         }
 
         [PatchPrefix]

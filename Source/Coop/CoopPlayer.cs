@@ -98,7 +98,7 @@ namespace StayInTarkov.Coop
             player._handsController.Spawn(1f, delegate
             {
             });
-            player.AIData = new AiDataClass(null, player);
+            player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
