@@ -2,27 +2,26 @@ name: SIT CI
 
 on:
   push:
+    branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE PR
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
+    branches: [GitHub-actions-CI/CD] # CHANGE TO MASTER BEFORE PR
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
-      - '*.md'
+      - '*.md'      
   workflow_dispatch:
-    paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
 
 jobs:
-  build:
+  Build-SIT:
 
     strategy:
       matrix:
         configuration: [Debug]
+        
 
     runs-on: windows-latest
 
@@ -36,24 +35,24 @@ jobs:
         with:
           fetch-depth: 0
 # Install the .NET Core workload
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
 
     # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
 
     # Restore all projects
-    - name: dotnet Restore
-      run: dotnet restore
+      - name: dotnet Restore
+        run: dotnet restore
 
     # Build the project
-    - name: dotnet Publish
-      run: |
-        mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-        dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+      - name: dotnet Publish
+        run: |
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
       # Remove unnecessary files
       - name: Remove unnecessary files
@@ -69,6 +68,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: StayInTarkov-Build-${{ matrix.configuration }}
+          name: StayInTarkov-Debug-${{ matrix.configuration }}
           path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
           if-no-files-found: error
