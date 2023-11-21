@@ -1,16 +1,21 @@
 name: SIT CI
 
 on:
-  push :
+  push:
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
+    types:
+      - closed
+      - opened
+      - synchronize
     paths-ignore:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
-      - '*.md'      
+      - '*.md'
+  workflow_dispatch:
 
 
 jobs:
