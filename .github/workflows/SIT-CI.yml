@@ -11,7 +11,7 @@ on:
       - '.github/**'
       - '*.md'
     branches:
-      - GH-CI-CD # CHANGE BEFORE PR
+      - "master" # CHANGE BEFORE PR
 
   workflow_dispatch:
 
