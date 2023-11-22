@@ -22,7 +22,7 @@ jobs:
     env:
       SolutionName: StayInTarkov                              
       CSProj: Source/StayInTarkov.csproj
-      ARTIFACT_NAME: artifact.txt 
+      ARTIFACT_NAME: artifact.txt # Modify the artifact name as needed
 
     steps:
       - name: Checkout
@@ -67,10 +67,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const artifactList = await github.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo
+            const { context, github } = require('@actions/github');
+
+            const { owner, repo } = context.repo;
+            const artifactList = await github.rest.actions.listArtifactsForRepo({
+              owner: owner,
+              repo: repo
             });
+            
             const artifact = artifactList.data.artifacts.find(a => a.name === context.env.ARTIFACT_NAME);
             if (artifact) {
               const artifactURL = artifact.archive_download_url;
@@ -79,7 +83,9 @@ jobs:
               **Artifact Uploaded**
               You can download the artifact [here](${artifactURL}).
               `;
-              await github.issues.createComment({
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
                 issue_number: prNumber,
                 body: body
               });
