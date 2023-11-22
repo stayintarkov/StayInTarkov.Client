@@ -5,7 +5,7 @@ on:
     types:
       - "completed"
     workflows:
-      - "SIT-CI"
+      - SIT CI
 
 jobs:
   comment-on-pr:
