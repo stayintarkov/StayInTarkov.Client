@@ -32,8 +32,10 @@ jobs:
           fetch-depth: 0
 
       - name: List files in directory
+        shell: pwsh
         run: |
-          ls -la StayInTarkov-Debug\
+          Get-ChildItem -Path StayInTarkov-Debug\
+
 
 
       - name: Upload artifact
