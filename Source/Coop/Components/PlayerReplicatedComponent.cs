@@ -68,14 +68,6 @@ namespace StayInTarkov.Core.Player
                     if (dogtagSlot == null)
                         return;
 
-                    Item dogtagContainter = null;
-                    foreach (Item item in player.Inventory.GetAllItemByTemplate("55d7217a4bdc2d86028b456d"))
-                        if (item.IsContainer)
-                            dogtagContainter = item; // should be only 1 result.
-
-                    if (dogtagContainter == null)
-                        return;
-
                     string itemId = "";
                     using (SHA256 sha256 = SHA256.Create())
                     {
@@ -422,20 +414,9 @@ namespace StayInTarkov.Core.Player
                 if (_playerMovePatch == null)
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-                _playerMovePatch?.ReplicatedMove(player
-                    , new PlayerMovePacket(player.ProfileId)
-                    {
-                        dX = ReplicatedDirection.Value.x,
-                        dY = ReplicatedDirection.Value.y,
-                        spd = ReplicatedMovementSpeed,
-                        //spr = ShouldSprint,
-                    }
-                  );
+                _playerMovePatch?.ReplicatedMove(player,
+                    new PlayerMovePacket(player.ProfileId, 0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
             }
-
-
-
-
         }
 
         Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
