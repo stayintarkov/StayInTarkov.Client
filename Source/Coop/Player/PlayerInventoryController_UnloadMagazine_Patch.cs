@@ -43,7 +43,7 @@ namespace StayInTarkov.Coop.Player
         {
             //GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogInfo("Replicated");
 
-            UnloadMagazinePacket itemPacket = new(null, null, null);
+            ItemPlayerPacket itemPacket = new(null, null, null, null);
 
             if (dict.ContainsKey("data"))
             {

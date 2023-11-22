@@ -17,6 +17,12 @@ namespace StayInTarkov.Coop.Player
             return method;
         }
 
+        [PatchPrefix]
+        public static bool PrePatch(EFT.Player __instance)
+        {
+            return false;
+        }
+
         [PatchPostfix]
         public static void PatchPostfix(EFT.Player __instance)
         {
