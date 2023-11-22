@@ -11,7 +11,7 @@ on:
       - '.github/**'
       - '*.md'
     branches:
-      - master # CHANGE BEFORE PR
+      - "master" # CHANGE BEFORE PR
 
   workflow_dispatch:
 
