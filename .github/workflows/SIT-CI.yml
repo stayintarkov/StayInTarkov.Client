@@ -2,18 +2,13 @@ name: SIT CI
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [opened, synchronize, reopened]
+    branches:
+      - GH-CI-CD # Adjust as needed
     paths-ignore:
       - '.github/**'
       - '*.md'
-    branches:
-      - GH-CI-CD # CHANGE BEFORE PR
-
   workflow_dispatch:
-
 
 jobs:
   Build-SIT:
@@ -21,53 +16,71 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug]
-        
 
     runs-on: windows-latest
 
     env:
       SolutionName: StayInTarkov                              
-      CSProj: Source/StayInTarkov.csproj               
+      CSProj: Source/StayInTarkov.csproj
+      ARTIFACT_NAME: artifact.txt 
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-# Install the .NET Core workload
+
       - name: Install .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
 
-    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.0.2
 
-    # Restore all projects
       - name: dotnet Restore
         run: dotnet restore
 
-    # Build the project
       - name: dotnet Publish
         run: |
           mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
           dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
-      # Remove unnecessary files
       - name: Remove unnecessary files
         run: |
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
 
-      # Zip remaining files
       - name: Zip remaining files
         run: |
           Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
 
-      # Upload artifact with github commit SHA
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.SolutionName }}-${{ matrix.configuration }}-${{ github.sha }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
           if-no-files-found: error
+
+      - name: Comment artifact URL on PR
+        uses: actions/github-script@v5
+        if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const artifactList = await github.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const artifact = artifactList.data.artifacts.find(a => a.name === context.env.ARTIFACT_NAME);
+            if (artifact) {
+              const artifactURL = artifact.archive_download_url;
+              const prNumber = context.payload.pull_request.number;
+              const body = `
+              **Artifact Uploaded**
+              You can download the artifact [here](${artifactURL}).
+              `;
+              await github.issues.createComment({
+                issue_number: prNumber,
+                body: body
+              });
+            }
