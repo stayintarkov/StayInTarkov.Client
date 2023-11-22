@@ -45,7 +45,12 @@ jobs:
 
           echo "Head sha: $HEAD_SHA"
           echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
-
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: find-comment
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: 'github-actions[bot]'
       - name: Update Comment
         env:
           JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/\
@@ -55,20 +60,34 @@ jobs:
         with:
           issue-number: ${{ env.PR_NUMBER }}
           body: |-
-            ## Build Preview
+            ![badge]
+            
+            Build Successful! You can find a link to the downloadable artifact below.
+            
+            | Name     | Link                    |
+            | -------- | ----------------------- |
+            | Commit   | ${{ env.HEAD_SHA }}     |
+            | Logs     | ${{ env.JOB_PATH }}     |
+            | Download | ${{ env.ARTIFACT_URL }} |
+            
+            [badge]: https://img.shields.io/badge/Build_Success!-0d1117?style=for-the-badge&labelColor=3fb950&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZmZmZmZmIj48cGF0aCBkPSJNMjEuMDMgNS43MmEuNzUuNzUgMCAwIDEgMCAxLjA2bC0xMS41IDExLjVhLjc0Ny43NDcgMCAwIDEtMS4wNzItLjAxMmwtNS41LTUuNzVhLjc1Ljc1IDAgMSAxIDEuMDg0LTEuMDM2bDQuOTcgNS4xOTVMMTkuOTcgNS43MmEuNzUuNzUgMCAwIDEgMS4wNiAwWiI+PC9wYXRoPjwvc3ZnPg==
 
-            [![badge]]($JOB_PATH)
-
-            You can find files attached to the below linked Workflow Run URL (Logs).
-
-            Please note that files only stay for around 90 days!
-
-            | Name      | Link
-            --------------------------------------------------------------------
-            | Commit    | ${{ env.HEAD_SHA }}
-
-            | Logs      | ${{ env.JOB_PATH }}
-
-            | Jar Files | ${{ env. ARTIFACT_URL }}
-
-            [badge]: https://img.shields.io/badge/Build-Success!-3fb950?logo=github&style=for-the-badge
+      - name: Update Comment
+        if: ${{ failure() }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+              issue-number: ${{ needs.buildJars.outputs.comment_id }}
+              body: |-
+                ## Build Preview
+                
+                [![badge]](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+                
+                There was an issue generating the Jar files from your Pull request.
+                Please review the logs linked below for further information.
+                
+                | Name   | Link                                                                                |
+                |--------|-------------------------------------------------------------------------------------|
+                | Commit | ${{ github.event.pull_request.head.sha }}                                           |
+                | Logs   | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+                
+                [badge]: https://img.shields.io/badge/Build-Failure!-f85149?logo=github&style=for-the-badge
