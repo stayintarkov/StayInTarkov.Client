@@ -8,13 +8,6 @@ Causé par :
 Assurez-vous que la redirection de port est correctement configurée afin que vous puissiez vous connecter à votre IP externe.
 
 Si vous jouez en solo, n'utilisez aucune de ces options, laissez 127.0.0.1 et désactivez External IP Finder.
-
-Voir : 
-- [Discussion#139](https://github.com/paulov-t/SIT.Core/discussions/139)
-- [Discussion#24](https://github.com/paulov-t/SIT.Core/discussions/24)
-- [Issue#115](https://github.com/paulov-t/SIT.Core/issues/115)
-- [Issue#60](https://github.com/paulov-t/SIT.Core/issues/60#issuecomment-1560461446)
-
 ---
 
 ### Où dois-je installer les mods ?
@@ -24,11 +17,6 @@ Installez les mods clients dans `<dossier du jeu>/BepInEx/plugins/`.
 
 ### Mods serveur
 Installez les mods serveur dans `<dossier serveur>/users/mods/`.
-
-Voir :
-- [Discussion#111](https://github.com/paulov-t/SIT.Core/discussions/111)
-- [Discussion#134](https://github.com/paulov-t/SIT.Core/discussions/134)
-
 ---
 
 ## Étape de configuration du DDNS. Si vous n'avez pas d'adresse IP publique statique et que vous souhaitez utiliser un nom de domaine pour vous connecter au serveur.

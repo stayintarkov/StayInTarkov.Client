@@ -1,7 +1,7 @@
 ﻿# 架设服务器
 
 ## 如何让其他玩家加入你的SPT-Aki服务器?
-* 查看 [通常部署方式-SETUP-STANDARD](https://github.com/paulov-t/SIT.Core/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD) 具体步骤参见 [保姆级教程](https://github.com/paulov-t/SIT.Core/wiki/%E4%BF%9D%E5%A7%86%E7%BA%A7%E6%95%99%E7%A8%8B-Step-By-Step-Installation-Guide)
+* 查看 [通常部署方式-SETUP-STANDARD](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD) 具体步骤参见 [保姆级教程](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E4%BF%9D%E5%A7%86%E7%BA%A7%E6%95%99%E7%A8%8B-Step-By-Step-Installation-Guide)
 
 ## 如何加入其他人的对战
 目前这是一个实验性的功能，随时都会发生变化
