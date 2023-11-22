@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop
         public static bool Prefix(TarkovApplication __instance)
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Prefix");
-            
+
             if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return true;
 
@@ -97,10 +97,10 @@ namespace StayInTarkov.Coop
 
             IBackEndSession session = CurrentSession;
             //IBackEndSession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<IBackEndSession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
-            
+
             Profile profile = session.Profile;
             Profile profileScav = session.ProfileOfPet;
-            
+
             profile.Inventory.Stash = null;
             profile.Inventory.QuestStashItems = null;
             profile.Inventory.DiscardLimits = new System.Collections.Generic.Dictionary<string, int>();  // Singleton<ItemFactory>.Instance.GetDiscardLimits();
@@ -158,7 +158,7 @@ namespace StayInTarkov.Coop
                 , EUpdateQueue.Update
                 , session
                 , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
-                //}
+            //}
             );
             Singleton<AbstractGame>.Create(localGame);
             await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>

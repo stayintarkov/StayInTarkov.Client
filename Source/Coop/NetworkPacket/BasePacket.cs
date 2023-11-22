@@ -157,7 +157,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
-        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new Dictionary<Type, PropertyInfo[]>();
+        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new();
 
         static SerializerExtensions()
         {
@@ -216,10 +216,10 @@ namespace StayInTarkov.Coop.NetworkPacket
                     default:
 
                         // Process an Enum
-                        if(prop.PropertyType.IsEnum)
+                        if (prop.PropertyType.IsEnum)
                             prop.SetValue(obj, Enum.Parse(prop.PropertyType, separatedPacket[index].ToString()));
                         // Unknown Object. What should we do with this?
-                        else 
+                        else
                             StayInTarkovHelperConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
                         break;
                 }

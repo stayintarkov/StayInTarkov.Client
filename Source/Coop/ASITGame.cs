@@ -1,24 +1,12 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.Bots;
-using EFT.Game.Spawning;
 using EFT.InputSystem;
-using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -59,7 +47,7 @@ namespace StayInTarkov.Coop
             get
             {
                 if (WeatherController.Instance != null)
-                    return new WeatherCurve(new WeatherClass[1] { new WeatherClass() });
+                    return new WeatherCurve(new WeatherClass[1] { new() });
 
                 return null;
             }
@@ -88,7 +76,7 @@ namespace StayInTarkov.Coop
             , TimeSpan sessionTime) where T : ASITGame
         {
 
-            var r = 
+            var r =
                smethod_0<T>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 

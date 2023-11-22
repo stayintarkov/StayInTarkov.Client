@@ -25,7 +25,7 @@ namespace StayInTarkov.Coop
         {
             return base.ApplyItem(item, bodyPart, amount);
         }
-        
+
         protected override void AddEffectToList(AbstractHealthEffect effect)
         {
             base.AddEffectToList(effect);

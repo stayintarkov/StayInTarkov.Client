@@ -1,15 +1,13 @@
-﻿using EFT.Hideout;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
 using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Comfort.Common;
-using BepInEx.Logging;
-using StayInTarkov;
-using StayInTarkov.Coop.Web;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
@@ -187,7 +185,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                     //else
                     //{
                     //    //firearmCont.StartCoroutine(nameof(Reload));
-                //}
+                    //}
                 }
                 );
         }
@@ -222,7 +220,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + itemController.GetType());
 
             var address = itemController.ToGridItemAddress(gridAddressGrid);
-            if( address == null)
+            if (address == null)
             {
                 GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogError("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot.Unable to find Address!");
                 return false;

@@ -66,7 +66,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             FCPickupPicket pickupPicket = new(player.ProfileId, p);
             AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
 
-            
+
 
         }
 

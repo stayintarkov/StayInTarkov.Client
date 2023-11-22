@@ -1,8 +1,8 @@
-﻿using System.Linq;
-using System.Reflection;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using HarmonyLib;
+using System.Linq;
+using System.Reflection;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
 {

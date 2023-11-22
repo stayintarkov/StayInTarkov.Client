@@ -1,8 +1,4 @@
 ﻿using EFT;
-using EFT.HealthSystem;
-using EFT.InventoryLogic;
-using System;
-using System.Collections.Generic;
 
 namespace StayInTarkov.Coop
 {
@@ -19,7 +15,7 @@ namespace StayInTarkov.Coop
 
         protected override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
         {
-            
+
         }
     }
 }
