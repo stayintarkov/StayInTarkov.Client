@@ -2,10 +2,7 @@ name: SIT CI
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [opened, synchronize, reopened]
     branches:
       - GH-CI-CD # Adjust as needed
     paths-ignore:
@@ -15,15 +12,17 @@ on:
 
 jobs:
   Build-SIT:
+
     strategy:
       matrix:
         configuration: [Debug]
+
     runs-on: windows-latest
 
     env:
       SolutionName: StayInTarkov                              
       CSProj: Source/StayInTarkov.csproj
-      ARTIFACT_NAME: artifact.txt
+      ARTIFACT_NAME: artifact.txt # Modify the artifact name as needed
 
     steps:
       - name: Checkout
@@ -31,7 +30,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Rest of your build steps...
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: dotnet Restore
+        run: dotnet restore
+
+      - name: dotnet Publish
+        run: |
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+
+      - name: Remove unnecessary files
+        run: |
+          del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
+
+      - name: Zip remaining files
+        run: |
+          Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -47,29 +68,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { context, github } = require('@actions/github');
-            const { owner, repo } = context.repo;
-            
-            try {
-              const artifactList = await github.rest.actions.listArtifactsForRepo({
-                owner: owner,
-                repo: repo
-              });
 
-              const artifact = artifactList.data.artifacts.find(a => a.name === context.env.ARTIFACT_NAME);
-              if (artifact) {
-                const artifactURL = artifact.archive_download_url;
-                const prNumber = context.payload.pull_request.number;
-                const body = `
-                  **Artifact Uploaded**
-                  You can download the artifact [here](${artifactURL}).
-                `;
-                await github.rest.issues.createComment({
-                  owner: owner,
-                  repo: repo,
-                  issue_number: prNumber,
-                  body: body
-                });
-              }
-            } catch (error) {
-              console.error('Error:', error.message);
+            const { owner, repo } = context.repo;
+            const artifactList = await github.rest.actions.listArtifactsForRepo({
+              owner: owner,
+              repo: repo
+            });
+            
+            const artifact = artifactList.data.artifacts.find(a => a.name === context.env.ARTIFACT_NAME);
+            if (artifact) {
+              const artifactURL = artifact.archive_download_url;
+              const prNumber = context.payload.pull_request.number;
+              const body = `
+              **Artifact Uploaded**
+              You can download the artifact [here](${artifactURL}).
+              `;
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: prNumber,
+                body: body
+              });
             }
