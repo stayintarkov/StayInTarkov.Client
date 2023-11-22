@@ -47,6 +47,11 @@ jobs:
           
           echo "Head SHA: $HEAD_SHA"
           echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
+
+      - name: List files in directory
+        run: |
+          ls -la StayInTarkov-Debug\
+
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: find-comment
