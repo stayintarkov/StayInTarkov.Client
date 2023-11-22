@@ -31,7 +31,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Rest of your build steps...
+      - name: List files in directory
+        run: |
+          ls -la StayInTarkov-Debug\
+
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
