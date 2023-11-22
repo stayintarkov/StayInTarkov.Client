@@ -3,15 +3,13 @@ using EFT;
 using EFT.InputSystem;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Matchmaker;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     /// <summary>
     /// Created by: Paulov

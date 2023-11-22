@@ -5,7 +5,6 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using System.Linq;
-using SIT.Core.AkiSupport.Airdrops;
 using Aki.Custom.Airdrops.Models;
 using StayInTarkov.Networking;
 

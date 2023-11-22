@@ -1,8 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using SIT.Core.Other.UI;
+using StayInTarkov.UI;
 
-namespace SIT.Core.Other
+namespace StayInTarkov.ThirdParty
 {
     public class ThirdPartyModPatches
     {

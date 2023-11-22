@@ -1,5 +1,4 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class BotCreatorTeleportPMCPatch : ModulePatch
     {

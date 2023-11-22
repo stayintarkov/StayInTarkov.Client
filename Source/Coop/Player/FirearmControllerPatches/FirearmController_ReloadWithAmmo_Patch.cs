@@ -1,15 +1,13 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     public class FirearmController_ReloadWithAmmo_Patch : ModuleReplicationPatch
     {

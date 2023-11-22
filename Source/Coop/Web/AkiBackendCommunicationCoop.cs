@@ -1,9 +1,9 @@
-﻿using SIT.Core.Coop;
+﻿using StayInTarkov.Coop;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 
-namespace SIT.Coop.Core.Web
+namespace StayInTarkov.Coop.Web
 {
     public class AkiBackendCommunicationCoop : AkiBackendCommunication
     {

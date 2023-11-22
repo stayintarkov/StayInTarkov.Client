@@ -4,9 +4,9 @@ using EFT;
 using UnityEngine.AI;
 using UnityEngine;
 using Comfort.Common;
-using SIT.Core.Coop;
+using StayInTarkov.Coop;
 
-namespace SIT.Core.AI.PMCLogic.RushSpawn
+namespace StayInTarkov.AI.PMCLogic.RushSpawn
 {
     /// <summary>
     /// Created by: Paulov

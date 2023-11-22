@@ -1,13 +1,11 @@
-﻿using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     internal class FirearmController_SetLightsState_Patch : ModuleReplicationPatch
     {

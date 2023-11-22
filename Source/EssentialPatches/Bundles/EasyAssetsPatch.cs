@@ -2,7 +2,6 @@
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;

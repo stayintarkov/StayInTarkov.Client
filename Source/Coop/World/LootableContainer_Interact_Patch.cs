@@ -1,7 +1,5 @@
 ﻿using EFT;
 using EFT.Interactive;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Concurrent;
@@ -9,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop.World
+namespace StayInTarkov.Coop.World
 {
     internal class LootableContainer_Interact_Patch : ModulePatch
     {

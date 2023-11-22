@@ -1,11 +1,9 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     public class Player_ApplyDamageInfo_Patch : ModuleReplicationPatch
     {

@@ -1,8 +1,6 @@
-﻿using SIT.Tarkov.Core;
-using StayInTarkov;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace SIT.Core.Coop.Sounds
+namespace StayInTarkov.Coop.Sounds
 {
     internal class WeaponSoundPlayer_FireSonicSound_Patch : ModulePatch
     {

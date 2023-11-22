@@ -1,14 +1,12 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     public static class ItemFinder
     {

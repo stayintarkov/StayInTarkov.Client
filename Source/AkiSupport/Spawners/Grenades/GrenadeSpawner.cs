@@ -2,7 +2,7 @@
 using EFT;
 using UnityEngine;
 
-namespace SIT.Tarkov.Core.Spawners.Grenades
+namespace StayInTarkov.Spawners.Grenades
 {
     public class GrenadeSpawner : MonoBehaviour
     {

@@ -1,15 +1,12 @@
-﻿using Comfort.Common;
-using EFT;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using EFT.InventoryLogic;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.Proceed
+namespace StayInTarkov.Coop.Player.Proceed
 {
     internal class Player_Proceed_Weapon_Patch : ModuleReplicationPatch
     {
@@ -19,47 +16,22 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public static List<string> CallLocally = new();
 
-        public static MethodInfo method1 = null;
-
         protected override MethodBase GetTargetMethod()
         {
-            var t = typeof(EFT.Player);
-            if (t == null)
-                Logger.LogInfo($"Player_Proceed_Weapon_Patch:Type is NULL");
-
-            method1 = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed"
-                && x.GetParameters().Length == 3
-                && x.GetParameters()[0].Name == "weapon"
-                && x.GetParameters()[0].ParameterType == typeof(EFT.InventoryLogic.Weapon)
-                && x.GetParameters()[1].Name == "callback"
-                && x.GetParameters()[1].ParameterType == typeof(Callback<IFirearmHandsController>)
-                && x.GetParameters()[2].Name == "scheduled"
-
-
-                );
-
-            return method1;
+            return ReflectionHelpers.GetAllMethodsForType(InstanceType).FirstOrDefault(x => x.Name == "Proceed" && x.GetParameters()[0].Name == "weapon");
         }
 
-
         [PatchPrefix]
-        public static bool PrePatch(
-           EFT.Player __instance
-            )
+        public static bool PrePatch(EFT.Player __instance)
         {
-            //if (CallLocally.TryGetValue(__instance.ProfileId, out var expecting) && expecting)
-            //{
-            //    return true;
-            //}
+            // Giving 'false' to AI and player can cause some major issue!
+            // return CallLocally.Contains(__instance.ProfileId) || IsHighPingOrAI(__instance);
 
-            // AI require this to ALWAYS run otherwise the AI won't start =(
             return true;
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance
-            , EFT.InventoryLogic.Weapon weapon
-            , bool scheduled)
+        public static void PostPatch(EFT.Player __instance, Weapon weapon, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -67,47 +39,36 @@ namespace SIT.Core.Coop.Player.Proceed
                 return;
             }
 
-            // Stop Client Drone sending a Proceed back to the player
-            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return;
-            }
-
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new();
-            ItemAddressHelpers.ConvertItemAddressToDescriptor(weapon.CurrentAddress, ref args);
-
-            args.Add("m", "ProceedWeapon");
-            args.Add("t", DateTime.Now.Ticks);
-            args.Add("item.id", weapon.Id);
-            args.Add("item.tpl", weapon.TemplateId);
-            args.Add("s", scheduled.ToString());
-            AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, args);
+            PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, weapon.Id, weapon.TemplateId, scheduled, "ProceedWeapon");
+            AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            if (!dict.ContainsKey("data"))
                 return;
 
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
+            PlayerProceedPacket playerProceedPacket = new(null, null, null, true, null);
+            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;
 
-            var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString());
-
-            if (!allItemsOfTemplate.Any())
-                return;
-
-            var item = allItemsOfTemplate.FirstOrDefault(x => x.Id == dict["item.id"].ToString());
-
-            if (item != null && item is EFT.InventoryLogic.Weapon weapon)
+            if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
-                CallLocally.Add(player.ProfileId);
-
-                var callback = new Callback<IFirearmHandsController>((IResult) => { });
-                method1.Invoke(player, new object[] { weapon, callback, true });
+                if (item is Weapon weapon)
+                {
+                    CallLocally.Add(player.ProfileId);
+                    player.Proceed(weapon, null, playerProceedPacket.Scheduled);
+                }
+                else
+                {
+                    Logger.LogError($"Player_Proceed_Weapon_Patch:Replicated. Item {playerProceedPacket.ItemId} is not a Weapon!");
+                }
+            }
+            else
+            {
+                Logger.LogError($"Player_Proceed_Weapon_Patch:Replicated. Cannot found item {playerProceedPacket.ItemId}!");
             }
         }
     }

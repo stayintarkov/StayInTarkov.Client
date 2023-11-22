@@ -1,15 +1,12 @@
-﻿using EFT;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using StayInTarkov.Core.Player;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
 
     /// <summary>
@@ -74,17 +71,8 @@ namespace SIT.Core.Coop.Player
             if (prc.IsClientDrone)
                 return;
 
-            PlayerMovePacket playerMovePacket = new(player.ProfileId);
-            playerMovePacket.ProfileId = player.ProfileId;
-            playerMovePacket.pX = player.Position.x;
-            playerMovePacket.pY = player.Position.y;
-            playerMovePacket.pZ = player.Position.z;
+            PlayerMovePacket playerMovePacket = new(player.ProfileId, player.Position.x, player.Position.y, player.Position.z, direction.x, direction.y, player.MovementContext.CharacterMovementSpeed);
 
-            playerMovePacket.dX = direction.x;
-            playerMovePacket.dY = direction.y;
-
-            playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
-            
             var serialized = playerMovePacket.Serialize();
             if (serialized == null)
                 return;
@@ -122,23 +110,8 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket ReplicatedPMP = new(player.ProfileId);
-
-            //if (dict.ContainsKey("data"))
-            //{
-            ReplicatedPMP = new PlayerMovePacket(player.ProfileId);
-            ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
-            //GetLogger(typeof(Player_Move_Patch)).LogDebug(dict["data"].ToString());
-            //}
-            //else
-            //{
-            //    ReplicatedPMP = new PlayerMovePacket(player.ProfileId)
-            //    {
-            //        dX = float.Parse(dict["dX"].ToString()),
-            //        dY = float.Parse(dict["dY"].ToString()),
-            //        spd = float.Parse(dict["spd"].ToString()),
-            //    };
-            //}
+            PlayerMovePacket ReplicatedPMP = new(null, 0, 0, 0, 0, 0, 0);
+            ReplicatedPMP = ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
             ReplicatedMove(player, ReplicatedPMP);
 
             ReplicatedPMP = null;

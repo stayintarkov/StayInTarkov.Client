@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static EFT.ClientPlayer;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopPlayerClient : CoopPlayer
     {

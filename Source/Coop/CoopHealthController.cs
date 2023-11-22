@@ -2,7 +2,7 @@
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopHealthController : PlayerHealthController
     {

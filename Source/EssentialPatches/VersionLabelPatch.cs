@@ -1,8 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT.UI;
 using HarmonyLib;
-using SIT.Core;
-using SIT.Tarkov.Core;
 using System;
 using System.Diagnostics;
 using System.IO;

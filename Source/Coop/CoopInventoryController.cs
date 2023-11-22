@@ -2,13 +2,13 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Core.Coop.NetworkPacket;
+using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopInventoryController
         : EFT.Player.PlayerInventoryController, ICoopInventoryController
@@ -49,7 +49,7 @@ namespace SIT.Core.Coop
             ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
 
             BepInLogger.LogInfo("UnloadMagazine");
-            UnloadMagazinePacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId);
+            ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
             var serialized = unloadMagazinePacket.Serialize();
 
             //if (AlreadySent.Contains(serialized))
@@ -73,10 +73,10 @@ namespace SIT.Core.Coop
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
 
-        public void ReceiveUnloadMagazineFromServer(UnloadMagazinePacket unloadMagazinePacket)
+        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
         {
             BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
-            if (ItemFinder.TryFindItem(unloadMagazinePacket.MagazineId, out Item magazine))
+            if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
             {
                 ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
                 base.UnloadMagazine((MagazineClass)magazine);
@@ -89,6 +89,6 @@ namespace SIT.Core.Coop
 
     public interface ICoopInventoryController
     {
-        public void ReceiveUnloadMagazineFromServer(UnloadMagazinePacket unloadMagazinePacket);
+        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket);
     }
 }

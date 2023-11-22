@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SIT.Tarkov.Core;
 using System;
 using System.Globalization;
 using System.Reflection;

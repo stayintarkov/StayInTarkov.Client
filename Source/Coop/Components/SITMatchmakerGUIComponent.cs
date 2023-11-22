@@ -5,10 +5,8 @@ using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Tarkov.Core;
 using StayInTarkov;
-using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
@@ -21,7 +19,7 @@ using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
-namespace SIT.Core.Coop.Components
+namespace StayInTarkov.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {

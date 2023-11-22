@@ -1,10 +1,9 @@
 using EFT;
-using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.AkiSupport.Custom
+namespace StayInTarkov.AkiSupport.Custom
 {
     /// <summary>
     /// Created by: SPT-Aki

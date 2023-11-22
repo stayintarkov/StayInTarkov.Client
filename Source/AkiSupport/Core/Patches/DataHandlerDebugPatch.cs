@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FilesChecker;
 using HarmonyLib;
 using System;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 
 namespace Aki.Core.Patches
 {

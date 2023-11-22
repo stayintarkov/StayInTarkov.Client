@@ -11,7 +11,7 @@ using UnityEngine.Build.Pipeline;
  * Paulov. Made changes to have better reflection and less hardcoding
  */
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     public class EasyBundlePatch : ModulePatch
     {

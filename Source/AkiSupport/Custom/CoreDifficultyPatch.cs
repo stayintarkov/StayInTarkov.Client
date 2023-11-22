@@ -1,4 +1,3 @@
-using SIT.Tarkov.Core;
 using StayInTarkov.Networking;
 using System.Linq;
 using System.Reflection;

@@ -2,12 +2,12 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Core.Coop.NetworkPacket;
+using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.NetworkPacket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopInventoryControllerForClientDrone 
         : InventoryController, ICoopInventoryController
@@ -38,10 +38,10 @@ namespace SIT.Core.Coop
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
 
-        public void ReceiveUnloadMagazineFromServer(UnloadMagazinePacket unloadMagazinePacket)
+        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
         {
             BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
-            if (ItemFinder.TryFindItem(unloadMagazinePacket.MagazineId, out Item magazine))
+            if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
             {
                 ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
                 base.UnloadMagazine((MagazineClass)magazine).ContinueWith(x =>
