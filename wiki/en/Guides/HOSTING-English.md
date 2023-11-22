@@ -1,7 +1,7 @@
 ﻿# HOSTING
 
 ## How to allow others to join your SPT-Aki Server?
-* Follow [SETUP-STANDARD](https://github.com/paulov-t/SIT.Core/wiki/Setup-Standard-English) or [SETUP-HAMACHI](https://github.com/paulov-t/SIT.Core/wiki/Setup-Hamachi-English)
+* Follow [SETUP-STANDARD](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Setup-Standard-English) or [SETUP-HAMACHI](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Setup-Hamachi-English)
 
 ## How to join each other's match
 THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME AND LIKELY TO CHANGE

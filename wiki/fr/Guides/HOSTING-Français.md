@@ -2,7 +2,7 @@
 
 
 ## Comment permettre à d'autres personnes de rejoindre votre serveur SPT-Aki ?
-* Suivez [SETUP-STANDARD](https://github.com/paulov-t/SIT.Core/wiki/Setup-Standard-French) ou [SETUP-HAMACHI](https://github.com/paulov-t/SIT.Core/wiki/Setup-Hamachi-French)
+* Suivez [SETUP-STANDARD](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Setup-Standard-French) ou [SETUP-HAMACHI](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Setup-Hamachi-French)
 
 
 ## Comment rejoindre le match d'un autre joueur ?

@@ -1,6 +1,6 @@
 # Guide d'installation
 
-## Voici un guide simple pour installer [SIT.Core](https://github.com/paulov-t/SIT.Core) et le faire fonctionner avec des amis en utilisant [Hamachi](https://www.vpn.net/) (ou un programme similaire) et [SIT.Launcher](https://github.com/paulov-t/SIT.Launcher).
+## Voici un guide simple pour installer [SIT.Core](https://github.com/stayintarkov/StayInTarkov.Client) et le faire fonctionner avec des amis en utilisant [Hamachi](https://www.vpn.net/) (ou un programme similaire) et [SIT.Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic).
 
 ### LISEZ CECI AVANT DE COMMENCER !
 Vous devez acheter et avoir une installation active de [Escape From Tarkov](https://www.escapefromtarkov.com/) pour que cela fonctionne.
@@ -20,11 +20,11 @@ Mais cette fois-ci, créez également un dossier appelé "Server"\
 SITCOOP/Serveur
 2. Télécharger et extraire la dernière version de [SPT-AKI Stable Release](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) dans le dossier Serveur.
 3. Lancez Aki.Server.exe, vous pouvez le fermer une fois qu'il dit "Happy playing".
-4. Téléchargez [SIT.Aki server mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) et installez-le comme vous le feriez pour n'importe quel autre mod sur AKI Server.
+4. Téléchargez [SIT.Aki server mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) et installez-le comme vous le feriez pour n'importe quel autre mod sur AKI Server.
 Le chemin du dossier du mod devrait ressembler à ceci:\
 C:\SITCOOP\Server\user\mods\SIT.Aki-Server-Mod-master\
 Pour être sûr de ne pas avoir de dossiers supplémentaires, le dossier SIT.Aki-Server-Mod-master doit contenir le fichier package.json.
-5. Configurez http.json et coopconfig.json comme décrit dans [Paulov-t's HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/Hosting-French).
+5. Configurez http.json et coopconfig.json comme décrit dans [Paulov-t's HOSTING.md](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Hosting-French).
 Si vous utilisez Hamachi, utilisez Hamachi Ipv4 pour http.json et coopconfig.json.
 *n'utilisez jamais 127.0.0.1 ou Localhost!*
 6. Démarrez le serveur (en tant qu'administrateur) et allez à la section d'installation du client.

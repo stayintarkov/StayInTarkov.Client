@@ -14,9 +14,9 @@ Ao longo do guia, faremos referência a `SIT_DIR` como o diretório raiz para in
 
 # Instalação
 
-## 1. [SIT Launcher](https://github.com/paulov-t/SIT.Launcher/releases) (usando instalação automática)
+## 1. [SIT Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic/releases) (usando instalação automática)
 
-1. Baixe a versão mais recente do `SIT Launcher` na página de [Releases](https://github.com/paulov-t/SIT.Launcher/releases).
+1. Baixe a versão mais recente do `SIT Launcher` na página de [Releases](https://github.com/stayintarkov/SIT.Launcher.Classic/releases).
 2. Descompacte o arquivo e extraia o conteúdo para `SIT_DIR/launcher`.
 3. Execute `SIT.Launcher.exe`.
 4. Na primeira vez em que você executar o launcher, ele solicitará uma instalação: 
@@ -33,8 +33,8 @@ Ao longo do guia, faremos referência a `SIT_DIR` como o diretório raiz para in
 1. Baixe a versão mais recente do `SPT-AKI Server` na página de [Releases](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases).
 2. Descompacte o arquivo e extraia o conteúdo para `SIT_DIR/server`.
 
-## 3. [SIT Server Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)
-1. Baixe o arquivo zip do mod do servidor no [GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod) (procure por ele sob o grande botão verde: *Code > Download Zip*).
+## 3. [SIT Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
+1. Baixe o arquivo zip do mod do servidor no [GitHub](https://github.com/stayintarkov/SIT.Aki-Server-Mod) (procure por ele sob o grande botão verde: *Code > Download Zip*).
 2. Descompacte o arquivo e extraia o conteúdo para `SIT_DIR/server/user/mods`.
 
     *O diretório `user/mods` é criado automaticamente quando o servidor é executado pela primeira vez. Execute `Aki.Server.exe` para criar a pasta. Pare e feche o servidor assim que o diretório for criado para continuar o processo de instalação.*
@@ -104,4 +104,4 @@ Inicie o jogo através do `SIT Launcher`.
 
 ## 3. Crie um lobby
 
-Consulte [Como se juntar ao jogo de outras pessoas](https://github.com/paulov-t/SIT.Core/wiki/HOSTING.md#how-to-join-each-others-match) para obter instruções no jogo.
+Consulte [Como se juntar ao jogo de outras pessoas](https://github.com/stayintarkov/StayInTarkov.Client/wiki/HOSTING.md#how-to-join-each-others-match) para obter instruções no jogo.

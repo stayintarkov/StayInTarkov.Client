@@ -1,6 +1,6 @@
 ﻿
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
+<h1 style="text-align: center"> StayInTarkov.Client </h1>
 Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" Coop-Modus zu emulieren.
 </div>
 

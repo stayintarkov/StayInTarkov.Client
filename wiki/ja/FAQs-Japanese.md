@@ -9,13 +9,6 @@
 ポートフォワーディングの設定を正確にすることにします。外部IPに繋ぐための設定です。
 
 シングルプレイヤーでする際にはExternal IP Finderを消し、127.0.0.1のままで設定を残してください。
-
-こちらを参考してください。 
-- [Discussion#139](https://github.com/paulov-t/SIT.Core/discussions/139)
-- [Discussion#24](https://github.com/paulov-t/SIT.Core/discussions/24)
-- [Issue#115](https://github.com/paulov-t/SIT.Core/issues/115)
-- [Issue#60](https://github.com/paulov-t/SIT.Core/issues/60#issuecomment-1560461446)
-
 ---
 
 ## MODはどこでインストールしますか？
@@ -25,11 +18,6 @@
 
 ### サーバー側のMOD
 `<サーバーのフォルダ>/user/mods/`にサーバー側のMODを置きます
-
-こちらを参考してください。 
-- [Discussion#111](https://github.com/paulov-t/SIT.Core/discussions/111)
-- [Discussion#134](https://github.com/paulov-t/SIT.Core/discussions/134)
-
 ---
 
 ## DDNS設定の段階です。固定パブリックIPアドレスがなくてドメインを使用してサーバーに連結する際
