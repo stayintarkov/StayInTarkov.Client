@@ -603,6 +603,11 @@ namespace StayInTarkov.Coop.Components
                         Rect botDifficultyGridRect = new Rect(botSettingsX, y + 70, BotDifficultyStringOptions.Count() * 80, 30);
                         botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
+                        //Bosses enabled - disabled
+                        CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
+                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 110, 200, 25), BotBossesEnabled, "");
+                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 110, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]);
+
                         break;
                 }
             }
