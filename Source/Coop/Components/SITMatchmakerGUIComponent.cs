@@ -46,13 +46,17 @@ namespace StayInTarkov.Coop.Components
         private bool StopAllTasks = false;
 
         private bool showPasswordField = false;
-        private bool showBotAmountField = true;
 
         private string passwordInput = "";
         private string passwordClientInput = "";
 
         private int botAmountInput = 0;
-        private string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
+        private int botDifficultyInput = 0;
+
+        private string[] BotAmountStringOptions = new string[] { "AsOnline", "None", "Low", "Medium", "High", "Horde" };
+        private string[] BotDifficultyStringOptions = new string[] { "AsOnline", "Easy", "Medium", "Hard", "Impossible", "Random" };
+
+        private bool BotBossesEnabled = true;
 
         private const float verticalSpacing = 10f;
 
@@ -163,8 +167,15 @@ namespace StayInTarkov.Coop.Components
         void OnGUI()
         {
             // Define the proportions for the main window and the host game window (same size)
-            var windowWidthFraction = 0.33f;
-            var windowHeightFraction = 0.33f;
+            var windowWidthFraction = 0.4f;
+            var windowHeightFraction = 0.4f;
+
+            //Make the window slightly bigger on smaller screens so our elements fit
+            if(Screen.height <= 1000)
+            {
+                windowWidthFraction = 0.55f;
+                windowHeightFraction = 0.55f;
+            }
 
             // Calculate the position and size of the main window
             var windowWidth = Screen.width * windowWidthFraction;
@@ -172,9 +183,13 @@ namespace StayInTarkov.Coop.Components
             var windowX = (Screen.width - windowWidth) / 2;
             var windowY = (Screen.height - windowHeight) / 2;
 
+            //Set the window to be slightly higher on smaller screens to compensate for the window being bigger
+            if (Screen.height <= 1000)
+                windowY = (Screen.height - windowHeight) / 4;
+
             // Create the main window rectangle
             windowRect = new UnityEngine.Rect(windowX, windowY, windowWidth, windowHeight);
-            var serverBrowserRect = new UnityEngine.Rect(windowX, Screen.height * 0.3f, windowWidth, windowHeight);
+            var serverBrowserRect = new UnityEngine.Rect(windowX, windowY, windowWidth, windowHeight);
 
             if (showServerBrowserWindow)
             {
@@ -551,22 +566,13 @@ namespace StayInTarkov.Coop.Components
                         break;
 
                     case 2:
-                        // Calculate the width of the "Require Password" text
-                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"])).x;
-
-                        // Calculate the position for the checkbox and text to center-align them
-                        var horizontalSpacing = 10;
-                        var checkboxX = halfWindowWidth - requirePasswordTextWidth / 2 - horizontalSpacing;
-                        var textX = checkboxX + 20;
-
-                        // Disable the checkbox to prevent interaction
-                        //GUI.enabled = false;
+                        CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]), halfWindowWidth);
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(checkboxX, y, 200, 30), showPasswordField, "");
+                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(textX, y, requirePasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
+                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
 
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
@@ -580,59 +586,24 @@ namespace StayInTarkov.Coop.Components
                         break;
 
                     case 3:
-                        // Calculate the width of the "AI Amount" text
-                        var botAmountLabelWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x;
+                        var botSettingtFieldWidth = 350;
+                        var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
-                        // Calculate the position for the checkbox and text to center-align them
-                        var botAhorizontal = 10;
-                        var botAcheckbox = halfWindowWidth - botAmountLabelWidth / 2 - botAhorizontal;
-                        var botAtext = botAcheckbox + 20;
+                        y += 20;
 
-                        // Disable the checkbox to prevent interaction
-                        GUI.enabled = true;
+                        //Ai Amount
+                        CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
+                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+                        Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
+                        botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
 
-                        // Checkbox to toggle the AI Amount SelectionGrid visibility
-                        showBotAmountField = GUI.Toggle(new UnityEngine.Rect(botAcheckbox, y, 200, 25), showBotAmountField, "");
-
-                        // "AI Amount" text
-                        GUI.Label(new UnityEngine.Rect(botAtext, y, botAmountLabelWidth, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
-
-
-                        // Reset GUI.enabled to enable other elements
-                        GUI.enabled = true;
-
-                        var botAmountFieldWidth = 350;
-                        var botAmountX = halfWindowWidth - botAmountFieldWidth / 2;
-
-                        if (showBotAmountField)
-                        {
-                            y += 20;
-                            Rect botAmountGridRect = new(botAmountX, y, botAmountOptions.Count() * 75, 25);
-
-                            botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, botAmountOptions, 5);
-
-                        }
+                        //Ai Difficulty
+                        CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
+                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 50, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]);
+                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 70, BotDifficultyStringOptions.Count() * 80, 30);
+                        botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
                         break;
-                }
-            }
-
-            EFT.Bots.EBotAmount botAmountInputProc(int id)
-            {
-                switch (id)
-                {
-                    case 0:
-                        return EBotAmount.AsOnline;
-                    case 1:
-                        return EBotAmount.Low;
-                    case 2:
-                        return EBotAmount.Medium;
-                    case 3:
-                        return EBotAmount.High;
-                    case 4:
-                        return EBotAmount.NoBots;
-                    default:
-                        return EBotAmount.AsOnline;
                 }
             }
 
@@ -652,7 +623,13 @@ namespace StayInTarkov.Coop.Components
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
                 FixesHideoutMusclePain();
-                RaidSettings.BotSettings.BotAmount = botAmountInputProc(botAmountInput);
+                RaidSettings.BotSettings.BotAmount = (EBotAmount)botAmountInput;
+                RaidSettings.WavesSettings.BotAmount = (EBotAmount)botAmountInput;
+
+                RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
+
+                RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
+
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
