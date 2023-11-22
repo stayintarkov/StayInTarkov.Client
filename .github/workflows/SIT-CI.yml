@@ -1,3 +1,4 @@
+
 name: SIT CI
 
 on:
@@ -44,6 +45,7 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.0.2
 
+
     # Restore all projects
       - name: dotnet Restore
         run: dotnet restore
@@ -53,17 +55,14 @@ jobs:
         run: |
           mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
           dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
-
       # Remove unnecessary files
       - name: Remove unnecessary files
         run: |
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
-
       # Zip remaining files
       - name: Zip remaining files
         run: |
           Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-
       # Upload artifact with github commit SHA
       - name: Upload artifact
         uses: actions/upload-artifact@v3
