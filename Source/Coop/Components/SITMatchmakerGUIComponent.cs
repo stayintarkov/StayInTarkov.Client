@@ -526,6 +526,11 @@ namespace StayInTarkov.Coop.Components
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
+            GUIStyle labelSmallStyle = new(labelStyle);
+            labelSmallStyle.alignment = TextAnchor.UpperLeft;
+            labelSmallStyle.fontSize = 12;
+
+
             // Define a style for buttons
             GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 30;
@@ -572,7 +577,7 @@ namespace StayInTarkov.Coop.Components
                         showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
+                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
 
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
@@ -589,24 +594,22 @@ namespace StayInTarkov.Coop.Components
                         var botSettingtFieldWidth = 350;
                         var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
-                        y += 20;
-
                         //Ai Amount
                         CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelSmallStyle);
                         Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
                         botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
 
                         //Ai Difficulty
                         CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 50, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]);
-                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 70, BotDifficultyStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 55, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelSmallStyle);
+                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 80, BotDifficultyStringOptions.Count() * 80, 30);
                         botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
                         //Bosses enabled - disabled
                         CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
-                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 110, 200, 25), BotBossesEnabled, "");
-                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 110, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]);
+                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 115, 200, 25), BotBossesEnabled, "");
+                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 115, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelSmallStyle);
 
                         break;
                 }
