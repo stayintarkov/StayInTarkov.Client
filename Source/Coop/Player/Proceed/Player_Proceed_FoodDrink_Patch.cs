@@ -72,6 +72,9 @@ namespace StayInTarkov.Coop.Player.Proceed
                                     IResult.Value.SetOnUsedCallback((_) =>
                                     {
                                         botOwner.WeaponManager.Selector.TakePrevWeapon();
+
+                                        botOwner.EatDrinkData.Using = false;
+                                        botOwner.EatDrinkData.Activate();
                                     });
                                 }
                             };

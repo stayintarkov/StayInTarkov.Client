@@ -39,6 +39,21 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedMedsPacket playerProceedMedsPacket = new(__instance.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, "ProceedMeds");
+
+            if (__instance.IsAI)
+            {
+                BotOwner botOwner = __instance.AIData.BotOwner;
+                if (botOwner != null)
+                {
+                    if (botOwner.Medecine.FirstAid.Using)
+                        playerProceedMedsPacket.AIMedecineType = "FirstAid";
+                    else if (botOwner.Medecine.SurgicalKit.Using)
+                        playerProceedMedsPacket.AIMedecineType = "SurgicalKit";
+                    else if (botOwner.Medecine.Stimulators.Using)
+                        playerProceedMedsPacket.AIMedecineType = "Stimulators";
+                }
+            }
+
             AkiBackendCommunication.Instance.SendDataToPool(playerProceedMedsPacket.Serialize());
         }
 
@@ -72,7 +87,30 @@ namespace StayInTarkov.Coop.Player.Proceed
                                     IResult.Value.SetOnUsedCallback((_) =>
                                     {
                                         botOwner.WeaponManager.Selector.TakePrevWeapon();
-                                        botOwner.AITaskManager.RegisterDelayedTask(botOwner, 1f, new Action(botOwner.Medecine.FirstAid.CheckParts));
+
+                                        if (playerProceedMedsPacket.AIMedecineType == "FirstAid")
+                                        {
+                                            FirstAid firstAid = botOwner.Medecine.FirstAid;
+                                            firstAid.Using = false;
+                                            firstAid.CheckParts();
+                                            firstAid.Refresh();
+                                            ReflectionHelpers.InvokeMethodForObject(firstAid, "FirstAidApplied");
+                                        }
+                                        else if (playerProceedMedsPacket.AIMedecineType == "SurgicalKit")
+                                        {
+                                            SurgicalKit surgicalKit = botOwner.Medecine.SurgicalKit;
+                                            surgicalKit.Using = false;
+                                            botOwner.AITaskManager.RegisterDelayedTask(botOwner, 1f, new Action(surgicalKit.FindDamagedPart));
+                                            surgicalKit.Refresh();
+
+                                            botOwner.Medecine.FirstAid.CheckParts();
+                                        }
+                                        else if (playerProceedMedsPacket.AIMedecineType == "Stimulators")
+                                        {
+                                            Stimulators stimulators = botOwner.Medecine.Stimulators;
+                                            stimulators.Using = false;
+                                            stimulators.Refresh();
+                                        }
                                     });
                                 }
                             };
@@ -99,10 +137,14 @@ namespace StayInTarkov.Coop.Player.Proceed
 
         public int AnimationVariant { get; set; }
 
+        public string AIMedecineType { get; set; }
+
         public PlayerProceedMedsPacket(string profileId, string itemId, string templateId, EBodyPart bodyPart, int animationVariant, bool scheduled, string method) : base(profileId, itemId, templateId, scheduled, method)
         {
             BodyPart = bodyPart;
             AnimationVariant = animationVariant;
+
+            AIMedecineType = "";
         }
     }
 }
