@@ -1,21 +1,17 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.Bots;
-using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
-using StayInTarkov;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
@@ -206,7 +202,7 @@ namespace StayInTarkov.Coop.Components
                 var buttonY = Screen.height * 0.75f - buttonHeight;
 
                 // Define a GUIStyle for Host Game and Play single player
-                GUIStyle gamemodeButtonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle gamemodeButtonStyle = new(GUI.skin.button);
                 gamemodeButtonStyle.fontSize = 24;
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
@@ -240,7 +236,7 @@ namespace StayInTarkov.Coop.Components
                 var backButtonY = Screen.height * 0.95f - 40;
 
                 // Define a GUIStyle for the "Back" button with larger and bold text
-                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle buttonStyle = new(GUI.skin.button);
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -341,7 +337,7 @@ namespace StayInTarkov.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20, 20, 200, 200), ErrorMessage);
 
             if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
@@ -396,12 +392,12 @@ namespace StayInTarkov.Coop.Components
 
 
             // Define the button style
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.padding = new RectOffset(6, 6, 6, 6);
 
             // Define the label style
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 14;
             labelStyle.normal.textColor = Color.white;
@@ -524,14 +520,19 @@ namespace StayInTarkov.Coop.Components
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 18;
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
+            GUIStyle labelSmallStyle = new(labelStyle);
+            labelSmallStyle.alignment = TextAnchor.UpperLeft;
+            labelSmallStyle.fontSize = 12;
+
+
             // Define a style for buttons
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 30;
             buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -576,7 +577,7 @@ namespace StayInTarkov.Coop.Components
                         showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
+                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
 
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
@@ -593,31 +594,29 @@ namespace StayInTarkov.Coop.Components
                         var botSettingtFieldWidth = 350;
                         var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
-                        y += 20;
-
                         //Ai Amount
                         CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelSmallStyle);
                         Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
                         botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
 
                         //Ai Difficulty
                         CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 50, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]);
-                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 70, BotDifficultyStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 55, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelSmallStyle);
+                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 80, BotDifficultyStringOptions.Count() * 80, 30);
                         botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
                         //Bosses enabled - disabled
                         CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
-                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 110, 200, 25), BotBossesEnabled, "");
-                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 110, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]);
+                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 115, 200, 25), BotBossesEnabled, "");
+                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 115, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelSmallStyle);
 
                         break;
                 }
             }
 
             // Style for back and start button
-            GUIStyle smallButtonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle smallButtonStyle = new(GUI.skin.button);
             smallButtonStyle.fontSize = 18;
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 

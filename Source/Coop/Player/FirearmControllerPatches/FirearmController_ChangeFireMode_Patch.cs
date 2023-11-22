@@ -62,7 +62,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
             //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
 
-            FireModePacket fireModePacket = new FireModePacket(____player.ProfileId, fireMode);
+            FireModePacket fireModePacket = new(____player.ProfileId, fireMode);
             AkiBackendCommunication.Instance.SendDataToPool(fireModePacket.Serialize());
 
         }

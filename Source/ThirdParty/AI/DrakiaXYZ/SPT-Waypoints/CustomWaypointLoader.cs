@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,11 +7,11 @@ namespace DrakiaXYZ.Waypoints
     public class CustomWaypointLoader
     {
         // Singleton because I'm lazy
-        private static CustomWaypointLoader instance = new CustomWaypointLoader();
+        private static CustomWaypointLoader instance = new();
         public static CustomWaypointLoader Instance { get { return instance; } }
 
         // The dictionary is [map][zone][patrol]
-        public Dictionary<string, Dictionary<string, Dictionary<string, CustomPatrol>>> mapZoneWaypoints = new Dictionary<string, Dictionary<string, Dictionary<string, CustomPatrol>>>();
+        public Dictionary<string, Dictionary<string, Dictionary<string, CustomPatrol>>> mapZoneWaypoints = new();
 
         public void loadData()
         {

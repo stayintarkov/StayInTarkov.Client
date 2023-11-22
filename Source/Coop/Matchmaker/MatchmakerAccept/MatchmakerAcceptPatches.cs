@@ -115,13 +115,13 @@ namespace StayInTarkov.Coop.Matchmaker
                     {
                         var outJObject = JObject.Parse(outJson);
 
-                        if(outJObject.ContainsKey("passwordRequired"))
+                        if (outJObject.ContainsKey("passwordRequired"))
                         {
                             errorMessage = "passwordRequired";
                             return false;
                         }
 
-                        if(outJObject.ContainsKey("invalidPassword"))
+                        if (outJObject.ContainsKey("invalidPassword"))
                         {
                             errorMessage = "Invalid password";
                             return false;
@@ -192,7 +192,7 @@ namespace StayInTarkov.Coop.Matchmaker
                         return false;
                     }
 
-                    if(outJObject.ContainsKey("alreadyConnected"))
+                    if (outJObject.ContainsKey("alreadyConnected"))
                     {
                         errorMessage = "Your profile is already connected to this server";
                         return false;
@@ -237,8 +237,8 @@ namespace StayInTarkov.Coop.Matchmaker
                 , { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version }
             };
 
-            if( password != null )
-                objectToSend.Add( "password", password );   
+            if (password != null)
+                objectToSend.Add("password", password);
 
             string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 objectToSend));

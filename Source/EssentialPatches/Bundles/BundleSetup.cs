@@ -1,5 +1,4 @@
-﻿using StayInTarkov;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace StayInTarkov.Bundles

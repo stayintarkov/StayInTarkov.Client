@@ -25,7 +25,7 @@
 //        {
 //            _doorLinkListField = AccessTools.Field(typeof(BotCellController), "navMeshDoorLink_0");
 
-//            return typeof(BotControllerClass).GetMethod("Init");
+//            return typeof(BotsController).GetMethod("Init");
 //        }
 
 //        /// <summary>
@@ -57,7 +57,7 @@
 //        /// changed the navmesh
 //        /// </summary>
 //        [PatchPostfix]
-//        private static void PatchPostfix(BotControllerClass __instance)
+//        private static void PatchPostfix(BotsController __instance)
 //        {
 //            NavMeshDoorLink[] doorLinkList = _doorLinkListField.GetValue(__instance.GetCellController()) as NavMeshDoorLink[];
 //            if (doorLinkList != null)

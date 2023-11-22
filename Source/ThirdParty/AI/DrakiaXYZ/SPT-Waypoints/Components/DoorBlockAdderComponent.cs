@@ -11,7 +11,7 @@ namespace DrakiaXYZ.Waypoints.Components
 {
     internal class DoorBlockAdderComponent : MonoBehaviour
     {
-        List<DoorContainer> doorList = new List<DoorContainer>();
+        List<DoorContainer> doorList = new();
         float nextUpdate = 0f;
         protected ManualLogSource Logger = null;
 
@@ -70,7 +70,7 @@ namespace DrakiaXYZ.Waypoints.Components
                     return;
                 }
 
-                GameObject obstacleObject = new GameObject("ObstacleObject");
+                GameObject obstacleObject = new("ObstacleObject");
                 NavMeshObstacle navMeshObstacle = obstacleObject.AddComponent<NavMeshObstacle>();
 
                 // We use a small cube, to avoid cutting into the hallway mesh
@@ -85,7 +85,7 @@ namespace DrakiaXYZ.Waypoints.Components
                 // If the door was locked, we want to keep track of it to remove the blocker when it's unlocked
                 if (door != null && door.DoorState == EDoorState.Locked)
                 {
-                    DoorContainer doorContainer = new DoorContainer();
+                    DoorContainer doorContainer = new();
                     doorContainer.door = door;
                     doorContainer.collider = collider;
                     doorContainer.navMeshObstacle = navMeshObstacle;

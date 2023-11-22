@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using UnityEngine;
 
 namespace StayInTarkov.EssentialPatches
 {
@@ -55,7 +52,7 @@ namespace StayInTarkov.EssentialPatches
             {
                 StayInTarkovHelperConstants.Logger.LogError(ex.ToString());
             }
-                                 
+
             Checked = true;
             LegalGameFound = false;
             StayInTarkovHelperConstants.Logger.LogError(IllegalMessage);
