@@ -46,9 +46,6 @@ jobs:
           echo "Head sha: $HEAD_SHA"
           echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
 
-      - name: Download Artifact
-        run: |
-          curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -L -o firmware.zip "${{ env.ARTIFACT_URL }}
 
       
       - name: Find Comment
