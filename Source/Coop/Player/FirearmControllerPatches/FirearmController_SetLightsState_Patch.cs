@@ -87,7 +87,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
-                    firearmCont.SetLightsState(new LightsStates[1] { new LightsStates() { Id = lsp.Id, IsActive = lsp.IsActive, LightMode = lsp.LightMode } });
+                    firearmCont.SetLightsState(new LightsStates[1] { new() { Id = lsp.Id, IsActive = lsp.IsActive, LightMode = lsp.LightMode } });
                 }
                 catch (Exception e)
                 {

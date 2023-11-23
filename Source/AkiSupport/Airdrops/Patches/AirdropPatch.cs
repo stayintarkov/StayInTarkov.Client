@@ -2,7 +2,6 @@
 using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
-using StayInTarkov;
 using System.Linq;
 using System.Reflection;
 

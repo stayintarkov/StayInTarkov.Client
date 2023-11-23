@@ -63,7 +63,7 @@ namespace StayInTarkov.AkiSupport.Custom
             }
 
             // Add enemy to list
-            _addEnemy.Invoke(__instance, new object[] { player , EBotEnemyCause.checkAddTODO });
+            _addEnemy.Invoke(__instance, new object[] { player, EBotEnemyCause.checkAddTODO });
 
             return false;
         }

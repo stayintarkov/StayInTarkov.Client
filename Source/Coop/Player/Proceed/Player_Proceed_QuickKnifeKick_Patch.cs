@@ -1,7 +1,7 @@
 ﻿using Comfort.Common;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.Web;
-using StayInTarkov.Core.Player;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace StayInTarkov.Coop.Player.Proceed
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetAllMethodsForType(typeof(EFT.Player)).FirstOrDefault(x => x.Name == "Proceed"
+            return ReflectionHelpers.GetAllMethodsForType(InstanceType).FirstOrDefault(x => x.Name == "Proceed"
                    && x.GetParameters().Length == 3
                    && x.GetParameters()[0].Name == "knife"
                    && x.GetParameters()[1].Name == "callback"
@@ -30,10 +30,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            if (CallLocally.Contains(__instance.ProfileId))
-                return true;
-
-            return false;
+            return CallLocally.Contains(__instance.ProfileId);
         }
 
         [PatchPostfix]
@@ -45,45 +42,39 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
             }
 
-            // Stop Client Drone sending a Proceed back to the player
-            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc) && prc.IsClientDrone)
-                return;
-
             if (knife.Item is Knife0 knife0)
             {
-                Dictionary<string, object> args = new();
-                ItemAddressHelpers.ConvertItemAddressToDescriptor(knife0.CurrentAddress, ref args);
-
-                args.Add("m", "ProceedQuickKnifeKick");
-                args.Add("item.id", knife0.Id);
-                args.Add("s", scheduled.ToString());
-                AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, args);
+                PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife0.Id, knife0.TemplateId, scheduled, "ProceedQuickKnifeKick");
+                AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
             }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            if (!dict.ContainsKey("data"))
                 return;
 
-            string itemId = dict["item.id"].ToString();
+            PlayerProceedPacket playerProceedPacket = new(null, null, null, true, null);
+            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
 
-            if (ItemFinder.TryFindItem(itemId, out Item item))
+            if (HasProcessed(GetType(), player, playerProceedPacket))
+                return;
+
+            if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
                 if (item.TryGetItemComponent(out KnifeComponent knifeComponent))
                 {
                     CallLocally.Add(player.ProfileId);
-                    Callback<IHandsController7> callback = null;
-                    player.Proceed(knifeComponent, callback, bool.Parse(dict["s"].ToString()));
+                    player.Proceed(knifeComponent, (Callback<IHandsController7>)null, playerProceedPacket.Scheduled);
                 }
                 else
                 {
-                    Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Item {itemId} is not a KnifeComponent!");
+                    Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Item {playerProceedPacket.ItemId} doesn't has KnifeComponent!");
                 }
             }
             else
             {
-                Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Cannot found item {itemId}!");
+                Logger.LogError($"Player_Proceed_QuickKnifeKick_Patch:Replicated. Cannot found item {playerProceedPacket.ItemId}!");
             }
         }
     }

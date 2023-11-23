@@ -1,6 +1,6 @@
 # Installation guide
 
-## This is simple guide how to get [SIT.Core](https://github.com/paulov-t/SIT.Core) up and running with friends using [Hamachi](https://www.vpn.net/) (or similiar program) and [SIT.Launcher](https://github.com/paulov-t/SIT.Launcher).
+## This is simple guide how to get [SIT.Core](https://github.com/stayintarkov/StayInTarkov.Client) up and running with friends using [Hamachi](https://www.vpn.net/) (or similiar program) and [SIT.Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic).
 
 ### READ THIS BEFORE YOU START!
 You need to purchase and have an active install of [Escape From Tarkov](https://www.escapefromtarkov.com/) for this to work.
@@ -20,11 +20,11 @@ But this time also create folder called "Server"\
 SITCOOP/Server
 2. Download and extract latest [SPT-AKI Stable Release](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) to the Server folder.
 3. Run the Aki.Server.exe, you can close it once it says "Happy playing".
-4. Download [SIT.Aki server mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) and install that as you would install any other mod to AKI Server.\
+4. Download [SIT.Aki server mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) and install that as you would install any other mod to AKI Server.\
 The folder path to the mod should look like this:\
 C:\SITCOOP\Server\user\mods\SIT.Aki-Server-Mod-master\
 To make sure you dont have extra folders the SIT.Aki-Server-Mod-master should have package.json inside it.
-5. Configure http.json and coopconfig.json as described in [Paulov-t's HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/Hosting-English)
+5. Configure http.json and coopconfig.json as described in [Paulov-t's HOSTING.md](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Hosting-English)
 If you are using Hamachi, use Hamachi Ipv4 for both http.json and coopconfig.json.\
 *And still dont use 127.0.0.1 or Localhost!*
 6. Start the Server (As Administator) and go to client install section.

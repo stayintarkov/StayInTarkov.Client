@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using System;
 using UnityEngine;
 using UnityEngine.AI;
 

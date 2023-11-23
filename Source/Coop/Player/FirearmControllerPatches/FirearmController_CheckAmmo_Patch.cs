@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using static StayInTarkov.Coop.Player.FirearmControllerPatches.FirearmController_SetLightsState_Patch;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {

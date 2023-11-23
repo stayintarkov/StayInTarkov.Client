@@ -1,14 +1,8 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
-using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Player
 {
@@ -43,7 +37,7 @@ namespace StayInTarkov.Coop.Player
         {
             //GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogInfo("Replicated");
 
-            UnloadMagazinePacket itemPacket = new(null, null, null);
+            ItemPlayerPacket itemPacket = new(null, null, null, null);
 
             if (dict.ContainsKey("data"))
             {

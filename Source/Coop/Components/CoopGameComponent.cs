@@ -2,7 +2,6 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using EFT.UI;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
@@ -17,10 +16,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Scripting;
 
 using Rect = UnityEngine.Rect;
 
@@ -975,7 +972,7 @@ namespace StayInTarkov.Coop
                 {
                     if (LocalGameInstance != null)
                     {
-                        var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                        var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(this.LocalGameInstance);
                         if (botController != null)
                         {
                             Logger.LogDebug("Adding Client Player to Enemy list");
@@ -1255,7 +1252,7 @@ namespace StayInTarkov.Coop
             var h = 0.2f; // proportional height (0..1)
             var rectEndOfGameMessage = UnityEngine.Rect.zero;
             rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
-            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + (Screen.height/3);
+            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + (Screen.height / 3);
             rectEndOfGameMessage.width = Screen.width * w;
             rectEndOfGameMessage.height = Screen.height * h;
 
@@ -1278,7 +1275,7 @@ namespace StayInTarkov.Coop
                     //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
                     if (GUI.Button(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle))
                     {
-                        
+
                     }
                     break;
                 case EQuitState.YouAreDead:
@@ -1369,7 +1366,7 @@ namespace StayInTarkov.Coop
 
             foreach (var pl in PlayerUsers)
             {
-                if (pl == null) 
+                if (pl == null)
                     continue;
 
                 if (pl.HealthController == null)

@@ -1,11 +1,12 @@
-﻿using EFT.InventoryLogic;
-using StayInTarkov.Coop.Web;
-using StayInTarkov.Core.Player;
+﻿using EFT;
+using EFT.InventoryLogic;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace StayInTarkov.Coop.Player
+namespace StayInTarkov.Coop.Player.Proceed
 {
     internal class Player_TryProceed_Patch : ModuleReplicationPatch
     {
@@ -13,107 +14,70 @@ namespace StayInTarkov.Coop.Player
 
         public override string MethodName => "TryProceed";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
-            var t = typeof(EFT.Player);
-            if (t == null)
-                Logger.LogInfo($"PlayerOnTryProceedPatch:Type is NULL");
-
-            var method = ReflectionHelpers.GetMethodForType(t, MethodName);
-
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:{t.Name}:{method.Name}");
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
-
         [PatchPrefix]
-        public static bool PrePatch(
-           EFT.Player __instance
-            )
+        public static bool PrePatch(EFT.Player __instance)
         {
-            //var result = false;
-            //var player = __instance;
-
-            // This has to happen, otherwise AI freeze on spawn, cos its stupid like that
-            //if (player.IsAI)
-            //    result = true;
-
-            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            //    result = true;
+            // Giving 'false' to AI and player can cause some major issue!
+            // return CallLocally.Contains(__instance.ProfileId) || IsHighPingOrAI(__instance);
 
             return true;
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance
-            , Item item
-            , bool scheduled)
+        public static void PostPatch(EFT.Player __instance, Item item, bool scheduled)
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId))
             {
-                CallLocally.Remove(__instance.Profile.AccountId);
+                CallLocally.Remove(__instance.ProfileId);
                 return;
             }
 
-            // Stop Spawning Client Drone sending a TryProceed back to the player
-            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return;
-            }
-
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new();
-            args.Add("m", "TryProceed");
-            args.Add("t", DateTime.Now.Ticks);
-            args.Add("item.id", item.Id);
-            args.Add("item.tpl", item.TemplateId);
-            args.Add("s", scheduled.ToString());
-            AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, args);
+            PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, item.Id, item.TemplateId, scheduled, "TryProceed");
+            AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            if (!dict.ContainsKey("data"))
                 return;
 
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
+            PlayerProceedPacket playerProceedPacket = new(null, null, null, true, null);
+            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;
 
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
-                return;
-
-            Item item;
-            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
-                ItemFinder.TryFindItemInWorld(dict["item.id"].ToString(), out item);
-
-            if (item != null)
+            if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
-                //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Found Item");
+                CallLocally.Add(player.ProfileId);
 
-                //if (item is Weapon weapon)
-                //{
-                //    player.Proceed(weapon, (IResult) =>
-                //    {
-                //        //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Weapon:Try Proceed Succeeded?:{IResult.Succeed}");
-                //    }, true);
-                //}
-                //else
-                //{
-                CallLocally.Add(player.Profile.AccountId, true);
-
-                player.TryProceed(item, (IResult) =>
+                // Make sure Tagilla and Cultists are using correct callback.
+                if (player.IsAI && item is Knife0)
                 {
-                    //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
-                    if (!IResult.Succeed)
+                    BotOwner botOwner = player.AIData.BotOwner;
+                    if (botOwner != null)
                     {
+                        botOwner.WeaponManager.Selector.ChangeToMelee();
+                        return;
                     }
-                }, bool.Parse(dict["s"].ToString()));
+                }
 
-                //}
+                player.TryProceed(item, null, playerProceedPacket.Scheduled);
+            }
+            else
+            {
+                Logger.LogError($"Player_TryProceed_Patch:Replicated. Cannot found item {playerProceedPacket.ItemId}!");
+
+                // Prevent softlock the player by switching to empty hands.
+                if (player.IsYourPlayer)
+                    player.Proceed(true, null, true);
             }
         }
     }

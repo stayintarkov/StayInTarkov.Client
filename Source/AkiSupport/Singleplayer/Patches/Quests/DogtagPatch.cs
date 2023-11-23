@@ -8,10 +8,10 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Quests
     /// <summary>
     /// Credit SPT-Aki team
     /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.SinglePlayer/Patches/Quests/DogtagPatch.cs
+    /// Modified by: Paulov. Converted to use ReflectionHelpers
     /// </summary>
     public class DogtagPatch : ModulePatch
     {
-        private static BindingFlags _flags;
         private static PropertyInfo _getEquipmentProperty;
 
         static DogtagPatch()
@@ -19,13 +19,12 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Quests
             _ = nameof(Equipment.GetSlot);
             _ = nameof(DamageInfo.Weapon);
 
-            _flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            _getEquipmentProperty = typeof(Player).GetProperty("Equipment", _flags);
+            _getEquipmentProperty = ReflectionHelpers.GetPropertyFromType(typeof(Player), "Equipment");
         }
 
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(Player).GetMethod("OnBeenKilledByAggressor", _flags);
+            return ReflectionHelpers.GetMethodForType(typeof(Player), "OnBeenKilledByAggressor");
         }
 
         /// <summary>

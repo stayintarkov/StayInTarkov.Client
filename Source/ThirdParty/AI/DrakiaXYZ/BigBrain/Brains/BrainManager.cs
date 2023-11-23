@@ -154,7 +154,7 @@ namespace DrakiaXYZ.BigBrain.Brains
                 return null;
             }
 
-            GClass121 activeLogic = CustomLayerWrapper.GetLogicInstance(botOwner);
+            BaseNodeClass activeLogic = CustomLayerWrapper.GetLogicInstance(botOwner);
             if (activeLogic is CustomLogicWrapper customLogicWrapper)
             {
                 return customLogicWrapper.CustomLogic();

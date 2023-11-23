@@ -5,7 +5,6 @@ using EFT;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace StayInTarkov.Coop.LocalGame
 {
@@ -110,7 +109,7 @@ namespace StayInTarkov.Coop.LocalGame
 
         }
 
-        
+
 
     }
 }
