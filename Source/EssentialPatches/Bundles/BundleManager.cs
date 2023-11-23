@@ -102,7 +102,7 @@ namespace StayInTarkov
                     }
                     catch(Exception ex)
                     {
-                        StayInTarkovHelperConstants.Logger.LogInfo($"err : {ex.Message}");
+                        StayInTarkovHelperConstants.Logger.LogError($"{ex.Message}");
                     }
                 }
                 else
