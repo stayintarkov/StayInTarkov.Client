@@ -25,8 +25,9 @@ jobs:
           echo "Previous Job ID: $PREVIOUS_JOB_ID"
           echo "PREVIOUS_JOB_ID=$PREVIOUS_JOB_ID" >> "$GITHUB_ENV"
 
-          ARTIFACT_URL=$(gh api "/repos/$OWNER/$REPO/actions/artifacts" \
-            --jq ".artifacts.[] |
+          ARTIFACT_URL="${{ github.server_url }}/${{ github.repository }}/suites/{{ env.SUITE_ID }}/artifacts/$ {{ env.ARTIFACT_ID }}"
+
+            |
             select(.workflow_run.id==${PREVIOUS_JOB_ID}) |
             select(.expired==false) |
             .archive_download_url")
