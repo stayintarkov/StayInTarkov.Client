@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.Networking;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -18,7 +19,7 @@ namespace StayInTarkov
     {
         public const string CachePath = "user/cache/bundles/";
 
-        public const string CachedJsonPath = "user/cache/bundles.json";
+        public const string CachedJsonPath = "user/cache/bundleInfo.json";
 
         public const string CachedVersionTxtPath = "user/cache/sit.version.txt";
 
@@ -34,6 +35,9 @@ namespace StayInTarkov
 
             if (!Directory.Exists("user/cache"))
                 Directory.CreateDirectory("user/cache");
+
+            if (!Directory.Exists("user/mods"))
+                Directory.CreateDirectory("user/mods");
         }
 
         public static void GetBundles()
@@ -41,6 +45,7 @@ namespace StayInTarkov
             var json = AkiBackendCommunication.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
             StayInTarkovHelperConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
 
+            
             bool bundlesAreSame = File.Exists(CachedJsonPath)
                 && File.ReadAllText(CachedJsonPath) == json
                 && VFS.Exists(CachePath + "bundles.json")
@@ -54,16 +59,17 @@ namespace StayInTarkov
 
                 return;
             }
-
-
+            
             var jArray = JArray.Parse(json);
 
             foreach (var jObj in jArray)
             {
                 var key = jObj["key"].ToString();
+                
                 if (Bundles.ContainsKey(key))
                     continue;
 
+                var modPath = jObj["modPath"].ToString();
                 var path = jObj["path"].ToString();
                 var dependencyKeys = jObj["dependencyKeys"].ToObject<string[]>();
 
@@ -73,13 +79,15 @@ namespace StayInTarkov
                     path = StayInTarkovHelperConstants.GetBackendUrl() + path;
                 }
 
-                var bundle = new BundleInfo(key, path, dependencyKeys);
+                var bundle = new BundleInfo(modPath, key, path, dependencyKeys);
 
                 StayInTarkovHelperConstants.Logger.LogInfo($"Adding Custom Bundle : {path}");
 
                 if (path.Contains("http://") || path.Contains("https://"))
                 {
-                    var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
+                    //var filepath = CachePath + Regex.Split(modPath, "bundle/", RegexOptions.IgnoreCase)[1];
+
+                    var filepath = $"{modPath}bundles/{key}";
                     try
                     {
                         var data = AkiBackendCommunication.Instance.GetData(path, true);
@@ -92,9 +100,9 @@ namespace StayInTarkov
                         StayInTarkovHelperConstants.Logger.LogInfo($"Writing Custom Bundle : {filepath}");
                         bundle.Path = filepath;
                     }
-                    catch
+                    catch(Exception ex)
                     {
-
+                        StayInTarkovHelperConstants.Logger.LogInfo($"err : {ex.Message}");
                     }
                 }
                 else

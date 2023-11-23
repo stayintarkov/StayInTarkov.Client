@@ -6,12 +6,14 @@
     /// </summary>
     public class BundleInfo
     {
+        public string ModPath;
         public string Key { get; }
         public string Path { get; set; }
         public string[] DependencyKeys { get; }
 
-        public BundleInfo(string key, string path, string[] dependencyKeys)
+        public BundleInfo(string modPath, string key, string path, string[] dependencyKeys)
         {
+            ModPath = modPath;
             Key = key;
             Path = path;
             DependencyKeys = dependencyKeys;

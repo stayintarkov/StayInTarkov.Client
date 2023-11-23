@@ -69,10 +69,12 @@ namespace StayInTarkov
             EnableCorePatches();
             EnableSPPatches();
             EnableCoopPatches();
+
             ThirdPartyModPatches.Run(Config, this);
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
         }
 
         private bool shownCheckError = false;
