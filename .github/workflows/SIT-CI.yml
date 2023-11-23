@@ -1,4 +1,3 @@
-
 name: SIT CI
 
 on:
@@ -11,7 +10,7 @@ on:
       - '.github/**'
       - '*.md'
     branches:
-      - "master" # CHANGE BEFORE PR
+      - "master"
 
   workflow_dispatch:
 
