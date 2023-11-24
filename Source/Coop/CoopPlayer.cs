@@ -3,12 +3,11 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.Player;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Player.FirearmControllerPatches;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {
@@ -75,8 +74,8 @@ namespace SIT.Core.Coop
             }
             player.IsYourPlayer = isYourPlayer;
 
-            InventoryController inventoryController = isYourPlayer && !isClientDrone 
-                ? new CoopInventoryController(player, profile, true) 
+            InventoryController inventoryController = isYourPlayer && !isClientDrone
+                ? new CoopInventoryController(player, profile, true)
                 : new CoopInventoryControllerForClientDrone(player, profile, true);
 
             if (questController == null && isYourPlayer)
@@ -84,7 +83,7 @@ namespace SIT.Core.Coop
                 questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
                 questController.Run();
             }
-            
+
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
@@ -94,12 +93,12 @@ namespace SIT.Core.Coop
                 , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
                 , async: false);
-         
+
             player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
             player._handsController.Spawn(1f, delegate
             {
             });
-            player.AIData = new AiDataClass(null, player);
+            player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
@@ -142,7 +141,7 @@ namespace SIT.Core.Coop
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // If we are not using the Client Side Damage, then only run this on the server
-                if(MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)               
+                if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
                     SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
                 else
                     SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
@@ -310,8 +309,8 @@ namespace SIT.Core.Coop
             }
 
             // If using Client Side Damage Model and Pressing the Trigger, send rotation to Server
-            if(coopGC.SITConfig.useClientSideDamageModel
-                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId) 
+            if (coopGC.SITConfig.useClientSideDamageModel
+                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
                 && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
             {
                 // Send to Server

@@ -1,32 +1,12 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.Bots;
-using EFT.Game.Spawning;
 using EFT.InputSystem;
-using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
-using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.AI.PMCLogic.Friendly.Companion;
-using SIT.Core.Configuration;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.FreeCamera;
-using SIT.Tarkov.Core;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -34,31 +14,31 @@ namespace StayInTarkov.Coop
     {
         public new bool InRaid { get { return true; } }
 
-        public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+        public IBackEndSession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
-        BotControllerClass IBotGame.BotsController
+        BotsController IBotGame.BotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
-        private static BotControllerClass botControllerClass;
+        private static BotsController BotsController;
 
-        public BotControllerClass PBotsController
+        public BotsController PBotsController
         {
             get
             {
-                if (botControllerClass == null)
+                if (BotsController == null)
                 {
-                    botControllerClass = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotControllerClass)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
-                return botControllerClass;
+                return BotsController;
             }
         }
 
@@ -67,7 +47,7 @@ namespace StayInTarkov.Coop
             get
             {
                 if (WeatherController.Instance != null)
-                    return new WeatherCurve(new WeatherClass[1] { new WeatherClass() });
+                    return new WeatherCurve(new WeatherClass[1] { new() });
 
                 return null;
             }
@@ -92,11 +72,11 @@ namespace StayInTarkov.Coop
             , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
-            , ISession backEndSession
+            , IBackEndSession backEndSession
             , TimeSpan sessionTime) where T : ASITGame
         {
 
-            var r = 
+            var r =
                smethod_0<T>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
@@ -126,7 +106,7 @@ namespace StayInTarkov.Coop
             return r;
         }
 
-        public Dictionary<string, Player> Bots { get; set; } = new Dictionary<string, Player>();
+        public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
         /// <summary>
         /// Matchmaker countdown
@@ -151,7 +131,7 @@ namespace StayInTarkov.Coop
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
-        private Func<Player, GamePlayerOwner> func_1;
+        private Func<EFT.Player, GamePlayerOwner> func_1;
 
 
         public new void method_6(string backendUrl, string locationId, int variantId)

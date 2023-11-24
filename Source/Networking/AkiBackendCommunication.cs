@@ -2,10 +2,9 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Core.Configuration;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
+using StayInTarkov.Configuration;
+using StayInTarkov.Coop;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;

@@ -1,26 +1,21 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.Bots;
-using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
-namespace SIT.Core.Coop.Components
+namespace StayInTarkov.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
@@ -51,13 +46,17 @@ namespace SIT.Core.Coop.Components
         private bool StopAllTasks = false;
 
         private bool showPasswordField = false;
-        private bool showBotAmountField = true;
 
         private string passwordInput = "";
         private string passwordClientInput = "";
 
         private int botAmountInput = 0;
-        private string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
+        private int botDifficultyInput = 0;
+
+        private string[] BotAmountStringOptions = new string[] { "AsOnline", "None", "Low", "Medium", "High", "Horde" };
+        private string[] BotDifficultyStringOptions = new string[] { "AsOnline", "Easy", "Medium", "Hard", "Impossible", "Random" };
+
+        private bool BotBossesEnabled = true;
 
         private const float verticalSpacing = 10f;
 
@@ -168,8 +167,15 @@ namespace SIT.Core.Coop.Components
         void OnGUI()
         {
             // Define the proportions for the main window and the host game window (same size)
-            var windowWidthFraction = 0.33f;
-            var windowHeightFraction = 0.33f;
+            var windowWidthFraction = 0.4f;
+            var windowHeightFraction = 0.4f;
+
+            //Make the window slightly bigger on smaller screens so our elements fit
+            if(Screen.height <= 1000)
+            {
+                windowWidthFraction = 0.55f;
+                windowHeightFraction = 0.55f;
+            }
 
             // Calculate the position and size of the main window
             var windowWidth = Screen.width * windowWidthFraction;
@@ -177,9 +183,13 @@ namespace SIT.Core.Coop.Components
             var windowX = (Screen.width - windowWidth) / 2;
             var windowY = (Screen.height - windowHeight) / 2;
 
+            //Set the window to be slightly higher on smaller screens to compensate for the window being bigger
+            if (Screen.height <= 1000)
+                windowY = (Screen.height - windowHeight) / 4;
+
             // Create the main window rectangle
             windowRect = new UnityEngine.Rect(windowX, windowY, windowWidth, windowHeight);
-            var serverBrowserRect = new UnityEngine.Rect(windowX, Screen.height * 0.3f, windowWidth, windowHeight);
+            var serverBrowserRect = new UnityEngine.Rect(windowX, windowY, windowWidth, windowHeight);
 
             if (showServerBrowserWindow)
             {
@@ -192,7 +202,7 @@ namespace SIT.Core.Coop.Components
                 var buttonY = Screen.height * 0.75f - buttonHeight;
 
                 // Define a GUIStyle for Host Game and Play single player
-                GUIStyle gamemodeButtonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle gamemodeButtonStyle = new(GUI.skin.button);
                 gamemodeButtonStyle.fontSize = 24;
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
@@ -226,7 +236,7 @@ namespace SIT.Core.Coop.Components
                 var backButtonY = Screen.height * 0.95f - 40;
 
                 // Define a GUIStyle for the "Back" button with larger and bold text
-                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+                GUIStyle buttonStyle = new(GUI.skin.button);
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -327,7 +337,7 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20, 20, 200, 200), ErrorMessage);
 
             if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
@@ -382,12 +392,12 @@ namespace SIT.Core.Coop.Components
 
 
             // Define the button style
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.padding = new RectOffset(6, 6, 6, 6);
 
             // Define the label style
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 14;
             labelStyle.normal.textColor = Color.white;
@@ -510,14 +520,19 @@ namespace SIT.Core.Coop.Components
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
             labelStyle.fontSize = 18;
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
+            GUIStyle labelSmallStyle = new(labelStyle);
+            labelSmallStyle.alignment = TextAnchor.UpperLeft;
+            labelSmallStyle.fontSize = 12;
+
+
             // Define a style for buttons
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 30;
             buttonStyle.fontStyle = FontStyle.Bold;
 
@@ -556,22 +571,13 @@ namespace SIT.Core.Coop.Components
                         break;
 
                     case 2:
-                        // Calculate the width of the "Require Password" text
-                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"])).x;
-
-                        // Calculate the position for the checkbox and text to center-align them
-                        var horizontalSpacing = 10;
-                        var checkboxX = halfWindowWidth - requirePasswordTextWidth / 2 - horizontalSpacing;
-                        var textX = checkboxX + 20;
-
-                        // Disable the checkbox to prevent interaction
-                        //GUI.enabled = false;
+                        CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]), halfWindowWidth);
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(checkboxX, y, 200, 30), showPasswordField, "");
+                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(textX, y, requirePasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
+                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
 
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
@@ -585,64 +591,32 @@ namespace SIT.Core.Coop.Components
                         break;
 
                     case 3:
-                        // Calculate the width of the "AI Amount" text
-                        var botAmountLabelWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x;
+                        var botSettingtFieldWidth = 350;
+                        var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
-                        // Calculate the position for the checkbox and text to center-align them
-                        var botAhorizontal = 10;
-                        var botAcheckbox = halfWindowWidth - botAmountLabelWidth / 2 - botAhorizontal;
-                        var botAtext = botAcheckbox + 20;
+                        //Ai Amount
+                        CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
+                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelSmallStyle);
+                        Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
+                        botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
 
-                        // Disable the checkbox to prevent interaction
-                        GUI.enabled = true;
+                        //Ai Difficulty
+                        CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
+                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 55, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelSmallStyle);
+                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 80, BotDifficultyStringOptions.Count() * 80, 30);
+                        botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
-                        // Checkbox to toggle the AI Amount SelectionGrid visibility
-                        showBotAmountField = GUI.Toggle(new UnityEngine.Rect(botAcheckbox, y, 200, 25), showBotAmountField, "");
-
-                        // "AI Amount" text
-                        GUI.Label(new UnityEngine.Rect(botAtext, y, botAmountLabelWidth, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
-
-
-                        // Reset GUI.enabled to enable other elements
-                        GUI.enabled = true;
-
-                        var botAmountFieldWidth = 350;
-                        var botAmountX = halfWindowWidth - botAmountFieldWidth / 2;
-
-                        if (showBotAmountField)
-                        {
-                            y += 20;
-                            Rect botAmountGridRect = new Rect(botAmountX, y, botAmountOptions.Count() * 75, 25);
-
-                            botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, botAmountOptions, 5);
-
-                        }
+                        //Bosses enabled - disabled
+                        CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
+                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 115, 200, 25), BotBossesEnabled, "");
+                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 115, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelSmallStyle);
 
                         break;
                 }
             }
 
-            EFT.Bots.EBotAmount botAmountInputProc(int id)
-            {
-                switch (id)
-                {
-                    case 0:
-                        return EBotAmount.AsOnline;
-                    case 1:
-                        return EBotAmount.Low;
-                    case 2:
-                        return EBotAmount.Medium;
-                    case 3:
-                        return EBotAmount.High;
-                    case 4:
-                        return EBotAmount.NoBots;
-                    default:
-                        return EBotAmount.AsOnline;
-                }
-            }
-
             // Style for back and start button
-            GUIStyle smallButtonStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle smallButtonStyle = new(GUI.skin.button);
             smallButtonStyle.fontSize = 18;
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 
@@ -657,7 +631,13 @@ namespace SIT.Core.Coop.Components
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
                 FixesHideoutMusclePain();
-                RaidSettings.BotSettings.BotAmount = botAmountInputProc(botAmountInput);
+                RaidSettings.BotSettings.BotAmount = (EBotAmount)botAmountInput;
+                RaidSettings.WavesSettings.BotAmount = (EBotAmount)botAmountInput;
+
+                RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
+
+                RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
+
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();

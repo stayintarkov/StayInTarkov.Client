@@ -1,12 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using StayInTarkov;
+using System;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Threading.Tasks;
-using FilesChecker;
-using HarmonyLib;
-using System;
-using SIT.Tarkov.Core;
 
 namespace Aki.Core.Patches
 {

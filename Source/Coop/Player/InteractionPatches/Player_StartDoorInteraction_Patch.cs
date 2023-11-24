@@ -1,45 +1,52 @@
 ﻿using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player.InteractionPatches
 {
-    internal class Player_ExecuteDoorInteraction_Patch : ModuleReplicationPatch
+    internal class Player_StartDoorInteraction_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(MovementState);
 
-        public override string MethodName => "ExecuteDoorInteraction";
+        public override string MethodName => "StartDoorInteraction";
 
         public static List<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName); // EFT.Player.vmethod_1()
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName); // EFT.Player.vmethod_0()
         }
 
         [PatchPrefix]
-        public static bool PrePatch(MovementState __instance, WorldInteractiveObject interactive, InteractionResult interactionResult, Action callback, EFT.Player user)
+        public static bool PrePatch(MovementState __instance, WorldInteractiveObject interactive, InteractionResult interactionResult, Action callback)
         {
-            if (CallLocally.Contains(user.ProfileId))
+            EFT.Player player = GetPlayerByMovementState(__instance);
+
+            if (player == null)
+                return false;
+
+            if (CallLocally.Contains(player.ProfileId))
                 return true;
 
             return false;
         }
 
         [PatchPostfix]
-        public static void PatchPostfix(MovementState __instance, WorldInteractiveObject interactive, InteractionResult interactionResult, Action callback, EFT.Player user)
+        public static void PatchPostfix(MovementState __instance, WorldInteractiveObject interactive, InteractionResult interactionResult, Action callback)
         {
-            if (CallLocally.Contains(user.ProfileId))
+            EFT.Player player = GetPlayerByMovementState(__instance);
+
+            if (player == null)
+                return;
+
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(user.ProfileId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -47,8 +54,8 @@ namespace SIT.Coop.Core.Player
             {
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "t", DateTime.Now.Ticks.ToString("G") },
-                { "m", "ExecuteDoorInteraction" },
-                { "profileId", user.ProfileId },
+                { "m", "StartDoorInteraction" },
+                { "profileId", player.ProfileId },
                 { "WIOId", interactive.Id },
                 { "interactionType", (int)interactionResult.InteractionType }
             };
@@ -82,7 +89,7 @@ namespace SIT.Coop.Core.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("Player_ExecuteDoorInteraction_Patch:Replicated");
+            Logger.LogInfo("Player_StartDoorInteraction_Patch:Replicated");
 
             if (HasProcessed(GetType(), player, dict))
                 return;
@@ -105,7 +112,7 @@ namespace SIT.Coop.Core.Player
             {
                 string itemId = dict["keyItemId"].ToString();
                 if (!ItemFinder.TryFindItem(itemId, out Item item))
-                    item = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, dict["keyTemplateId"].ToString());
+                    item = Spawners.ItemFactory.CreateItem(itemId, dict["keyTemplateId"].ToString());
 
                 if (item != null)
                 {
@@ -123,17 +130,28 @@ namespace SIT.Coop.Core.Player
                     }
                     else
                     {
-                        Logger.LogError($"Player_ExecuteDoorInteraction_Patch:Replicated. Packet contain KeyInteractionResult but item {itemId} is not a KeyComponent object.");
+                        Logger.LogError($"Player_StartDoorInteraction_Patch:Replicated. Packet contain KeyInteractionResult but item {itemId} is not a KeyComponent object.");
                     }
                 }
                 else
                 {
-                    Logger.LogError($"Player_ExecuteDoorInteraction_Patch:Replicated. Packet contain KeyInteractionResult but item {itemId} is not found.");
+                    Logger.LogError($"Player_StartDoorInteraction_Patch:Replicated. Packet contain KeyInteractionResult but item {itemId} is not found.");
                 }
             }
 
             CallLocally.Add(player.ProfileId);
-            player.CurrentManagedState.ExecuteDoorInteraction(worldInteractiveObject, keyInteractionResult ?? interactionResult, keyInteractionResult == null ? null : () => keyInteractionResult.RaiseEvents(itemController, CommandStatus.Failed), player);
+            player.CurrentManagedState.StartDoorInteraction(worldInteractiveObject, keyInteractionResult ?? interactionResult, keyInteractionResult == null ? null : () => keyInteractionResult.RaiseEvents(itemController, CommandStatus.Failed));
+        }
+
+        public static EFT.Player GetPlayerByMovementState(MovementState movementState)
+        {
+            GameWorld world = Comfort.Common.Singleton<GameWorld>.Instance;
+            if (world != null)
+                foreach (var player in world.AllAlivePlayersList)
+                    if (player.CurrentManagedState == movementState)
+                        return player;
+
+            return null;
         }
     }
 }

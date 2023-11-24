@@ -1,9 +1,8 @@
 ﻿using EFT.UI.Matchmaker;
-using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept
+namespace StayInTarkov.Coop.Matchmaker.MatchmakerAccept
 {
     public class AcceptInvitePatch : ModulePatch
     {

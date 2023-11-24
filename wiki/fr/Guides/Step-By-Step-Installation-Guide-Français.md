@@ -21,10 +21,10 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 # Installation
 
 
-## 1. [SIT Launcher](https://github.com/paulov-t/SIT.Launcher/releases) (en utilisant l'installation automatique)
+## 1. [SIT Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic/releases) (en utilisant l'installation automatique)
 
 
-1. Téléchargez la dernière version du "SIT Launcher" depuis la page [Releases](https://github.com/paulov-t/SIT.Launcher/releases).
+1. Téléchargez la dernière version du "SIT Launcher" depuis la page [Releases](https://github.com/stayintarkov/SIT.Launcher.Classic/releases).
 2. Dézippez le fichier et extrayez le contenu dans `SIT_DIR/launcher`.
 3. Exécutez `SIT.Launcher.exe`.
 4. La première fois que vous lancez le lanceur, il vous demandera d'effectuer une installation :
@@ -47,8 +47,8 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 2. Dézippez le fichier et extrayez le contenu dans `SIT_DIR/server`.
 
 
-## 3. [SIT Server Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)
-1. Téléchargez le fichier zip du mod serveur depuis [GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod) (cherchez-le sous le gros bouton vert : *Code > Download Zip*).
+## 3. [SIT Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
+1. Téléchargez le fichier zip du mod serveur depuis [GitHub](https://github.com/stayintarkov/SIT.Aki-Server-Mod) (cherchez-le sous le gros bouton vert : *Code > Download Zip*).
 2. Dézippez le fichier et extrayez le contenu dans `SIT_DIR/server/user/mods`.
 
 
@@ -145,7 +145,7 @@ Lancez le jeu via le `SIT Launcher`.
 
 
 Consultez le fichier HOSTING.md de votre langue pour savoir comment créer un lobby.
-Les guides HOSTING sont disponibles ici : https://github.com/paulov-t/SIT.Core/tree/master/wiki
+Les guides HOSTING sont disponibles ici : https://github.com/stayintarkov/StayInTarkov.Client/tree/master/wiki
 
 
 ## Notes supplémentaires

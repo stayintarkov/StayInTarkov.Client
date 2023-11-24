@@ -1,10 +1,9 @@
 using EFT;
-using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.AkiSupport.Custom
+namespace StayInTarkov.AkiSupport.Custom
 {
     /// <summary>
     /// Created by: SPT-Aki
@@ -22,7 +21,7 @@ namespace SIT.Core.AkiSupport.Custom
 
         private bool IsTargetType(Type type)
         {
-            if (type.Name == nameof(BotControllerClass) && type.GetMethod(methodName) != null)
+            if (type.Name == nameof(BotsController) && type.GetMethod(methodName) != null)
             {
                 return true;
             }
@@ -45,7 +44,7 @@ namespace SIT.Core.AkiSupport.Custom
         /// This should fix that.
         /// </summary>
         [PatchPrefix]
-        private static bool PatchPrefix(BotControllerClass __instance, IAIDetails aggressor, IAIDetails groupOwner, IAIDetails target)
+        private static bool PatchPrefix(BotsController __instance, IAIDetails aggressor, IAIDetails groupOwner, IAIDetails target)
         {
             BotZone botZone = groupOwner.AIData.BotOwner.BotsGroup.BotZone;
             foreach (var item in __instance.Groups())

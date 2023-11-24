@@ -1,21 +1,14 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.Hideout;
 using EFT.InventoryLogic;
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.WindowsRuntime;
 
-namespace SIT.Core.Coop.ItemControllerPatches
+namespace StayInTarkov.Coop.ItemControllerPatches
 {
     internal class ItemControllerHandler_Move_Patch : ModuleReplicationPatch, IModuleReplicationWorldPatch
     {
@@ -114,7 +107,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
                     return;
                 }
 
-          
+
             }
 
             if (CallLocally.Contains(itemController.ID))

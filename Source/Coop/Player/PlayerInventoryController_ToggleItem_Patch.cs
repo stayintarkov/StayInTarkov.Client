@@ -1,14 +1,12 @@
 ﻿using EFT;
 using EFT.InventoryLogic;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class PlayerInventoryController_ToggleItem_Patch : ModuleReplicationPatch
     {

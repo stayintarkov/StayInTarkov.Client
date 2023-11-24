@@ -11,14 +11,14 @@
 //using System.Reflection;
 //using System.Runtime.InteropServices.WindowsRuntime;
 
-//namespace SIT.Core.Coop.ItemControllerPatches
+//namespace StayInTarkov.Coop.ItemControllerPatches
 //{
 //    internal class ItemControllerHandler_Remove_Patch : ModuleReplicationPatch
 //    {
 //        public static ManualLogSource Log { get {
 
 //                return GetLogger(typeof(ItemControllerHandler_Remove_Patch));
-            
+
 //            } }
 //        public override Type InstanceType => typeof(ItemMovementHandler);
 

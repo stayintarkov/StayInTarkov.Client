@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     public interface IModuleReplicationPatch
     {

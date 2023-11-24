@@ -1,12 +1,11 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using UnityEngine.AI;
+using StayInTarkov.Coop;
 using UnityEngine;
-using Comfort.Common;
-using SIT.Core.Coop;
+using UnityEngine.AI;
 
-namespace SIT.Core.AI.PMCLogic.RushSpawn
+namespace StayInTarkov.AI.PMCLogic.RushSpawn
 {
     /// <summary>
     /// Created by: Paulov

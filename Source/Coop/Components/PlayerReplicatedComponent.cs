@@ -3,13 +3,11 @@ using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop;
-using SIT.Core.Coop.Components;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Core.Coop.Player;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +17,7 @@ using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Core.Player
 {
     /// <summary>
     /// Player Replicated Component is the Player/AI direct communication to the Server
@@ -69,14 +67,6 @@ namespace SIT.Coop.Core.Player
                     if (dogtagSlot == null)
                         return;
 
-                    Item dogtagContainter = null;
-                    foreach (Item item in player.Inventory.GetAllItemByTemplate("55d7217a4bdc2d86028b456d"))
-                        if (item.IsContainer)
-                            dogtagContainter = item; // should be only 1 result.
-
-                    if (dogtagContainter == null)
-                        return;
-
                     string itemId = "";
                     using (SHA256 sha256 = SHA256.Create())
                     {
@@ -89,7 +79,7 @@ namespace SIT.Coop.Core.Player
                         itemId = sb.ToString().Substring(0, 24);
                     }
 
-                    Item dogtag = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+                    Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
 
                     if (dogtag != null)
                     {
@@ -150,7 +140,7 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-          
+
         }
 
         void ProcessPlayerState(Dictionary<string, object> packet)
@@ -423,20 +413,9 @@ namespace SIT.Coop.Core.Player
                 if (_playerMovePatch == null)
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-                _playerMovePatch?.ReplicatedMove(player
-                    , new PlayerMovePacket(player.ProfileId)
-                    {
-                        dX = ReplicatedDirection.Value.x,
-                        dY = ReplicatedDirection.Value.y,
-                        spd = ReplicatedMovementSpeed,
-                        //spr = ShouldSprint,
-                    }
-                  );
+                _playerMovePatch?.ReplicatedMove(player,
+                    new PlayerMovePacket(player.ProfileId, 0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
             }
-
-
-
-
         }
 
         Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];

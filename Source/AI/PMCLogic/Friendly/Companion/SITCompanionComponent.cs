@@ -1,16 +1,12 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using SIT.Core.Coop;
-using System;
-using System.Collections.Generic;
+using StayInTarkov.Coop;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace SIT.Core.AI.PMCLogic.Friendly.Companion
+namespace StayInTarkov.AI.PMCLogic.Friendly.Companion
 {
     /// <summary>
     /// Created by: Paulov
@@ -40,7 +36,7 @@ namespace SIT.Core.AI.PMCLogic.Friendly.Companion
 
         void Update()
         {
-            if (CoopPlayer == null) 
+            if (CoopPlayer == null)
                 return;
 
             if (Logger == null)
@@ -80,7 +76,7 @@ namespace SIT.Core.AI.PMCLogic.Friendly.Companion
                     {
                         if (NavMesh.CalculatePath(CoopPlayer.Position, FollowPosition.Value, NavMesh.AllAreas, navMeshPath) && navMeshPath.status == NavMeshPathStatus.PathComplete)
                         {
-                            
+
                             navMeshAgent.SetDestination(FollowPosition.Value);
                             //Logger.LogDebug($"{CoopPlayer.name} going to {FollowPosition.Value}");
                         }
@@ -90,7 +86,7 @@ namespace SIT.Core.AI.PMCLogic.Friendly.Companion
                     break;
             }
 
-            if(navMeshAgent.nextPosition != Vector3.zero)
+            if (navMeshAgent.nextPosition != Vector3.zero)
             {
                 CoopPlayer.Move((navMeshAgent.nextPosition - CoopPlayer.Position).normalized);
             }

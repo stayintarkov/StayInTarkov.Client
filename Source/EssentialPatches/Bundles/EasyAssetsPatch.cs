@@ -2,7 +2,6 @@
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
@@ -124,9 +123,9 @@ namespace Aki.Custom.Patches
                 await JobScheduler.Yield(EJobPriority.Immediate);
             }
 
-            if(_manifestField != null)
+            if (_manifestField != null)
                 _manifestField.SetValue(instance, manifest);
-            if(_bundlesField != null)
+            if (_bundlesField != null)
                 _bundlesField.SetValue(instance, bundles);
             if (_systemProperty != null)
                 _systemProperty.SetValue(instance, new DependencyGraph(bundles, defaultKey, shouldExclude));

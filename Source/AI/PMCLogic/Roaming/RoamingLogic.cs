@@ -1,11 +1,10 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using System;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace SIT.Core.AI.PMCLogic.Roaming
+namespace StayInTarkov.AI.PMCLogic.Roaming
 {
     /// <summary>
     /// Created by: DrakiaXYZ

@@ -1,6 +1,5 @@
 ﻿using Comfort.Common;
 using EFT;
-using SIT.Tarkov.Core;
 using System.Reflection;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression

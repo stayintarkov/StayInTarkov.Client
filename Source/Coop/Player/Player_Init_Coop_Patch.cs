@@ -1,20 +1,17 @@
 ﻿using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Web;
-using SIT.Core.Configuration;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Configuration;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using StayInTarkov.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace SIT.Coop.Core.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_Init_Coop_Patch : ModulePatch
     {
@@ -64,7 +61,7 @@ namespace SIT.Coop.Core.Player
                 //    GameObject.Destroy(CullingManager.Instance.gameObject);
                 //    CullingManager.Destroy(CullingManager.Instance);
                 //}
-            
+
             }
             else
             {
@@ -78,9 +75,9 @@ namespace SIT.Coop.Core.Player
             //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
             // If a Player
-            if(
+            if (
                 PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed
-                && ( __instance.ProfileId.StartsWith("pmc") || __instance.ProfileId.StartsWith("scav"))
+                && (__instance.ProfileId.StartsWith("pmc") || __instance.ProfileId.StartsWith("scav"))
                 )
                 DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 

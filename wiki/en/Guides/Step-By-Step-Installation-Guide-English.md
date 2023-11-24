@@ -14,9 +14,9 @@ Throughout the guide, we will refer to `SIT_DIR` as the root directory for insta
 
 # Installation
 
-## 1. [SIT Launcher](https://github.com/paulov-t/SIT.Launcher/releases) (using auto install)
+## 1. [SIT Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic/releases) (using auto install)
 
-1. Download the latest release of the `SIT Launcher` from the [Releases](https://github.com/paulov-t/SIT.Launcher/releases) page.
+1. Download the latest release of the `SIT Launcher` from the [Releases](https://github.com/stayintarkov/SIT.Launcher.Classic/releases) page.
 2. Unzip file and extract contents to `SIT_DIR/launcher`.
 3. Run `SIT.Launcher.exe`.
 4. The first time you run the launcher, it will prompt you for an installation:
@@ -33,8 +33,8 @@ Throughout the guide, we will refer to `SIT_DIR` as the root directory for insta
 1. Download the latest release of the `SPT-AKI Server` from the [Releases](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) page.
 2. Unzip file and extract contents to `SIT_DIR/server`.
 
-## 3. [SIT Server Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)
-1. Download the server mod’s zip file from [GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod) (look for it under the big green button: *Code > Download Zip*).
+## 3. [SIT Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
+1. Download the server mod’s zip file from [GitHub](https://github.com/stayintarkov/SIT.Aki-Server-Mod) (look for it under the big green button: *Code > Download Zip*).
 2. Unzip file and extract contents to `SIT_DIR/server/user/mods`.
 
     *The `user/mods` directory is automatically created when the server is run the first time. Run `Aki.Server.exe` to create the folder. Stop and close the server once the directory has been created so we can continue the installation process.*
@@ -110,7 +110,7 @@ Launch the game via the `SIT Launcher`.
 ## 3. Create a Lobby
 
 See the HOSTING.md for your language to learn how to create a lobby.
-HOSTING guides can be found here: https://github.com/paulov-t/SIT.Core/tree/master/wiki
+HOSTING guides can be found here: https://github.com/stayintarkov/StayInTarkov.Client/tree/master/wiki
 
 ## Additional Notes
 1. your friends do not need to set up the server at all. They only need to install SIT using the launcher and connect to your server.

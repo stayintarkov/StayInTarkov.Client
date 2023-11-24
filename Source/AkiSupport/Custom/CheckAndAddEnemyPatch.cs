@@ -1,11 +1,10 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.AkiSupport.Custom
+namespace StayInTarkov.AkiSupport.Custom
 {
     /// <summary>
     /// Created by: SPT-Aki
@@ -64,7 +63,7 @@ namespace SIT.Core.AkiSupport.Custom
             }
 
             // Add enemy to list
-            _addEnemy.Invoke(__instance, new object[] { player , EBotEnemyCause.checkAddTODO });
+            _addEnemy.Invoke(__instance, new object[] { player, EBotEnemyCause.checkAddTODO });
 
             return false;
         }

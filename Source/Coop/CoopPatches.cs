@@ -1,12 +1,11 @@
 ﻿using BepInEx.Logging;
-using SIT.Coop.Core.LocalGame;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Core.Coop.LocalGame;
-using SIT.Core.Coop.Sounds;
-using SIT.Core.Coop.World;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.LocalGame;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Sounds;
+using StayInTarkov.Coop.World;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopPatches
     {
@@ -164,7 +163,7 @@ namespace SIT.Core.Coop
             }
 
 
-            if(CoopGameComponentParent != null) 
+            if (CoopGameComponentParent != null)
                 GameObject.DestroyImmediate(CoopGameComponentParent);
 
             //GCHelpers.DisableGC(true);

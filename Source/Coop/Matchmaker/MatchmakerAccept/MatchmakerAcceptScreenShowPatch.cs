@@ -1,15 +1,13 @@
 ﻿using EFT;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using SIT.Core.Coop.Components;
-using SIT.Core.Core;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.Components;
 using System;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Coop.Core.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public class MatchmakerAcceptScreenShowPatch : ModulePatch
     {
@@ -37,7 +35,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         [PatchPrefix]
         private static void Pre(
-            ref ISession session,
+            ref IBackEndSession session,
             ref RaidSettings raidSettings,
             Profile ___profile_0,
             MatchMakerAcceptScreen __instance,
@@ -89,7 +87,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         [PatchPostfix]
         private static void Post(
-            ref ISession session,
+            ref IBackEndSession session,
             ref RaidSettings raidSettings,
             Profile ___profile_0,
             MatchMakerAcceptScreen __instance,

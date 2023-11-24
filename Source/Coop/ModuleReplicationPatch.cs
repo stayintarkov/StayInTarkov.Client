@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Concurrent;
@@ -8,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     /// <summary>
     /// Created by: Paulov

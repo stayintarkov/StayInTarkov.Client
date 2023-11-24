@@ -1,14 +1,12 @@
 ﻿using EFT.HealthSystem;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.Health
+namespace StayInTarkov.Coop.Player.Health
 {
     internal class RemoveNegativeEffectsPatch : ModuleReplicationPatch
     {

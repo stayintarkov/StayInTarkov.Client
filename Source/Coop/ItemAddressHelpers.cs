@@ -1,8 +1,7 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Tarkov.Core;
 using System.Collections.Generic;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal static class ItemAddressHelpers
     {

@@ -1,6 +1,6 @@
 # Guia de instalação
 
-## Este é um guia simples sobre como instalar o [SIT.Core](https://github.com/paulov-t/SIT.Core) e executá-lo com amigos usando [Hamachi](https://www.vpn.net/) (ou programa similar) e [SIT.Launcher](https://github.com/paulov-t/SIT.Launcher).
+## Este é um guia simples sobre como instalar o [SIT.Core](https://github.com/stayintarkov/StayInTarkov.Client) e executá-lo com amigos usando [Hamachi](https://www.vpn.net/) (ou programa similar) e [SIT.Launcher](https://github.com/stayintarkov/SIT.Launcher.Classic).
 
 ### LEIA ISSO ANTES DE COMEÇAR!
 Você precisa comprar e ter uma instalação ativa do [Escape From Tarkov](https://www.escapefromtarkov.com/) para que isso funcione.
@@ -20,11 +20,11 @@ Mas desta vez, crie também uma pasta chamada "Server"\
 SITCOOP/Server
 2. Baixe e extraia a versão mais recente do [SPT-AKI Stable Release](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) na pasta Server.
 3. Execute o Aki.Server.exe, você pode fechá-lo assim que disser "Happy playing".
-4. Baixe o [SIT.Aki server mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) e instale-o como você instalaria qualquer outro mod no AKI Server.\
+4. Baixe o [SIT.Aki server mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) e instale-o como você instalaria qualquer outro mod no AKI Server.\
 O caminho da pasta do mod deve ser assim:\
 C:\SITCOOP\Server\user\mods\SIT.Aki-Server-Mod-master\
 Para ter certeza de que não há pastas extras, o SIT.Aki-Server-Mod-master deve ter o arquivo package.json dentro dela.
-5. Configure http.json e coopconfig.json conforme descrito em [Hospedagem](https://github.com/paulov-t/SIT.Core/wiki/Hosting-Portuguese) de Paulov-t.
+5. Configure http.json e coopconfig.json conforme descrito em [Hospedagem](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Hosting-Portuguese) de Paulov-t.
 Se você estiver usando o Hamachi, use o IPv4 do Hamachi para ambos http.json e coopconfig.json.\
 *E não use 127.0.0.1 ou Localhost!*
 6. Inicie o servidor (como administrador) e vá para a seção de instalação do cliente.

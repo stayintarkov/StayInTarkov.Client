@@ -1,6 +1,6 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
-using SIT.Tarkov.Core;
+using StayInTarkov;
 using System;
 using System.Collections;
 using System.Reflection;
@@ -51,11 +51,11 @@ namespace DrakiaXYZ.BigBrain.Patches
                 {
                     // If an instance of our action doesn't exist in our dict, add it
                     int action = (int)result.Value.Action;
-                    GClass121 nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as GClass121;
+                    BaseNodeClass nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as BaseNodeClass;
                     if (nodeInstance == null)
                     {
                         Delegate lazyGetter = _lazyGetterField.GetValue(__instance) as Delegate;
-                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as GClass121;
+                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as BaseNodeClass;
 
                         if (nodeInstance != null)
                         {

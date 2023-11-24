@@ -1,11 +1,9 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     public class Player_ApplyDamageInfo_Patch : ModuleReplicationPatch
     {
@@ -175,8 +173,8 @@ namespace SIT.Core.Coop.Player
             //if (player is CoopPlayer coopPlayer)
 
             //{
-                Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
-                ((CoopPlayer)player).ReceiveDamageFromServer(dict);
+            Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
+            ((CoopPlayer)player).ReceiveDamageFromServer(dict);
             //}
         }
     }

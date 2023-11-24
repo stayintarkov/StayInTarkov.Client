@@ -1,32 +1,28 @@
-﻿using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.GrenadeControllerPatches
+namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
     internal class GrenadeController_ExamineWeapon_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.GrenadeController);
+
         public override string MethodName => "GrenadeController_ExamineWeapon";
+
+        public static List<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, "ExamineWeapon");
         }
 
-        public static List<string> CallLocally = new();
-
         [PatchPrefix]
         public static bool PrePatch(object __instance, EFT.Player ____player)
         {
-            if (CallLocally.Contains(____player.ProfileId))
-                return true;
-
-            return false;
+            return CallLocally.Contains(____player.ProfileId);
         }
 
         [PatchPostfix]

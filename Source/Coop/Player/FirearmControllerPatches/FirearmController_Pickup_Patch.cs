@@ -1,12 +1,10 @@
-﻿using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     internal class FirearmController_Pickup_Patch : ModuleReplicationPatch
     {
@@ -68,7 +66,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             FCPickupPicket pickupPicket = new(player.ProfileId, p);
             AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
 
-            
+
 
         }
 

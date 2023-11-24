@@ -3,11 +3,11 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
-using SIT.Core.Configuration;
+using StayInTarkov.Configuration;
 using System;
 using UnityEngine;
 
-namespace SIT.Core.Coop.FreeCamera
+namespace StayInTarkov.Coop.FreeCamera
 {
     /// <summary>
     /// This is HEAVILY based on Terkoiz's work found here. Thanks for your work Terkoiz! 
@@ -62,7 +62,7 @@ namespace SIT.Core.Coop.FreeCamera
         private DateTime _lastTime = DateTime.MinValue;
 
         int DeadTime = 0;
-        
+
 
         public void Update()
         {

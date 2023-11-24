@@ -3,14 +3,11 @@ using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_ApplyShot_Patch : ModuleReplicationPatch
     {
@@ -176,7 +173,7 @@ namespace SIT.Core.Coop.Player
                 else
                 {
                     // Grenade is disposed after explode, so we need to create a template item for DamageInfo, to fixes "Unknown weapon" killing
-                    var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, templateId);
+                    var createdItem = Spawners.ItemFactory.CreateItem(itemId, templateId);
                     if (createdItem != null)
                     {
                         damageInfo.Weapon = createdItem;

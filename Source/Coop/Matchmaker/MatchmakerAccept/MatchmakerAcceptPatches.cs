@@ -2,17 +2,13 @@
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SIT.Core;
-using SIT.Core.Coop.Matchmaker;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Coop.Core.Matchmaker
+namespace StayInTarkov.Coop.Matchmaker
 {
     public enum EMatchmakerType
     {
@@ -119,13 +115,13 @@ namespace SIT.Coop.Core.Matchmaker
                     {
                         var outJObject = JObject.Parse(outJson);
 
-                        if(outJObject.ContainsKey("passwordRequired"))
+                        if (outJObject.ContainsKey("passwordRequired"))
                         {
                             errorMessage = "passwordRequired";
                             return false;
                         }
 
-                        if(outJObject.ContainsKey("invalidPassword"))
+                        if (outJObject.ContainsKey("invalidPassword"))
                         {
                             errorMessage = "Invalid password";
                             return false;
@@ -196,7 +192,7 @@ namespace SIT.Coop.Core.Matchmaker
                         return false;
                     }
 
-                    if(outJObject.ContainsKey("alreadyConnected"))
+                    if (outJObject.ContainsKey("alreadyConnected"))
                     {
                         errorMessage = "Your profile is already connected to this server";
                         return false;
@@ -241,8 +237,8 @@ namespace SIT.Coop.Core.Matchmaker
                 , { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version }
             };
 
-            if( password != null )
-                objectToSend.Add( "password", password );   
+            if (password != null)
+                objectToSend.Add("password", password);
 
             string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 objectToSend));

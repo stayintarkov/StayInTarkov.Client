@@ -1,23 +1,18 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Player;
-using SIT.Core.Coop.World;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.World;
+using StayInTarkov.Core.Player;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Core.Coop.Components
+namespace StayInTarkov.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
@@ -28,7 +23,7 @@ namespace SIT.Core.Coop.Components
         public ManualLogSource Logger { get; private set; }
 
         private List<string> RemovedFromAIPlayers = new();
-        
+
         private CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
 
         private CoopGameComponent CoopGameComponent { get; set; }
@@ -40,7 +35,7 @@ namespace SIT.Core.Coop.Components
             Logger = BepInEx.Logging.Logger.CreateLogSource("ActionPacketHandlerComponent");
             Logger.LogDebug("Awake");
 
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>(); 
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
             ActionPacketsMovement = new();
         }
 
@@ -118,7 +113,7 @@ namespace SIT.Core.Coop.Components
                         continue;
                     }
                 }
-                if(stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
+                if (stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
                 {
                     Logger.LogDebug($"ActionPacketsMovement took {stopwatchActionPacketsMovement.ElapsedMilliseconds}ms to process!");
                 }
@@ -171,7 +166,7 @@ namespace SIT.Core.Coop.Components
             }
 
             bool result = ProcessPlayerPacket(packet);
-            if(!result)
+            if (!result)
                 result = ProcessWorldPacket(ref packet);
 
             return result;
@@ -267,14 +262,14 @@ namespace SIT.Core.Coop.Components
 
                         if (!MatchmakerAcceptPatches.IsClient)
                         {
-                            var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(Singleton<AbstractGame>.Instance);
+                            var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<AbstractGame>.Instance);
                             if (botController != null)
                             {
                                 if (!RemovedFromAIPlayers.Contains(profileId))
                                 {
                                     RemovedFromAIPlayers.Add(profileId);
                                     Logger.LogDebug("Removing Client Player to Enemy list");
-                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
+                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotsController), typeof(BotSpawner)).GetValue(botController);
                                     botSpawner.DeletePlayer(plyr);
                                 }
                             }

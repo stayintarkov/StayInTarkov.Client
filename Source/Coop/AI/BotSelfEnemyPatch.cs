@@ -1,8 +1,7 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
 using System.Reflection;
 
-namespace SIT.Core.Coop.AI
+namespace StayInTarkov.Coop.AI
 {
     /// <summary>
     /// Goal: patch removes the current bot from its own enemy list - occurs when adding bots type to its enemy array in difficulty settings
@@ -17,7 +16,7 @@ namespace SIT.Core.Coop.AI
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(BotOwner __instance, BotGroupClass group)
+        private static bool PatchPrefix(BotOwner __instance, BotsGroup group)
         {
             IAIDetails selfToRemove = null;
 

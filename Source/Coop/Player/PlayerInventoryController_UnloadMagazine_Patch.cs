@@ -1,18 +1,10 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
-using SIT.Core.Coop.ItemControllerPatches;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Core.Core;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+using StayInTarkov.Coop.NetworkPacket;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class PlayerInventoryController_UnloadMagazine_Patch : ModuleReplicationPatch
     {
@@ -45,7 +37,7 @@ namespace SIT.Core.Coop.Player
         {
             //GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogInfo("Replicated");
 
-            UnloadMagazinePacket itemPacket = new(null, null, null);
+            ItemPlayerPacket itemPacket = new(null, null, null, null);
 
             if (dict.ContainsKey("data"))
             {

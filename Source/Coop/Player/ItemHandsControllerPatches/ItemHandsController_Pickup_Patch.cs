@@ -1,10 +1,8 @@
-﻿using SIT.Tarkov.Core;
-using StayInTarkov;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player.ItemHandsControllerPatches
+namespace StayInTarkov.Coop.Player.ItemHandsControllerPatches
 {
     internal class ItemHandsController_Pickup_Patch : ModuleReplicationPatch
     {

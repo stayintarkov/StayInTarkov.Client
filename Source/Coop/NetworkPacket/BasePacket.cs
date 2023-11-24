@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,15 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace SIT.Core.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket
 {
     public abstract class BasePacket : ISITPacket
     {
-        [JsonIgnore]
-        static Random Randomizer { get; } = new Random();
-
         [JsonProperty(PropertyName = "serverId")]
-        public string ServerId { get; set; } = CoopGameComponent.GetServerId();
+        public string ServerId { get; set; }
 
         [JsonIgnore]
         private string _t;
@@ -27,9 +22,6 @@ namespace SIT.Core.Coop.NetworkPacket
         {
             get
             {
-                if (string.IsNullOrEmpty(_t))
-                    _t = DateTime.Now.Ticks.ToString("G");
-
                 return _t;
             }
             set
@@ -38,32 +30,24 @@ namespace SIT.Core.Coop.NetworkPacket
             }
         }
 
-        private double? _token;
-
-        [JsonProperty(PropertyName = "tkn")]
-        public double Token
-        {
-            get { return _token.HasValue ? _token.Value : Randomizer.NextDouble(); }
-            set { _token = value; }
-        }
-
-
         [JsonProperty(PropertyName = "m")]
-        public virtual string Method { get; set; } = null;
+        public virtual string Method { get; set; }
 
         //[JsonProperty(PropertyName = "pong")]
         //public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
 
-        public BasePacket()
+        public BasePacket(string method)
         {
+            Method = method;
             ServerId = CoopGameComponent.GetServerId();
+            TimeSerializedBetter = DateTime.Now.Ticks.ToString("G");
         }
 
         public static PropertyInfo[] GetPropertyInfos(ISITPacket packet)
         {
             var allProps = ReflectionHelpers.GetAllPropertiesForObject(packet);
             var allPropsFiltered = allProps
-              .Where(x => x.Name != "ServerId" && x.Name != "Method" && x.Name != "Randomizer")
+              .Where(x => x.Name != "ServerId" && x.Name != "Method")
               .OrderByDescending(x => x.Name == "ProfileId").ToArray();
             return allPropsFiltered;
         }
@@ -173,7 +157,7 @@ namespace SIT.Core.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
-        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new Dictionary<Type, PropertyInfo[]>();
+        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new();
 
         static SerializerExtensions()
         {
@@ -232,10 +216,10 @@ namespace SIT.Core.Coop.NetworkPacket
                     default:
 
                         // Process an Enum
-                        if(prop.PropertyType.IsEnum)
+                        if (prop.PropertyType.IsEnum)
                             prop.SetValue(obj, Enum.Parse(prop.PropertyType, separatedPacket[index].ToString()));
                         // Unknown Object. What should we do with this?
-                        else 
+                        else
                             StayInTarkovHelperConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
                         break;
                 }

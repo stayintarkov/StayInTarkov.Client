@@ -1,7 +1,5 @@
 using EFT;
 using EFT.UI.SessionEnd;
-using SIT.Core.Coop;
-using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
 

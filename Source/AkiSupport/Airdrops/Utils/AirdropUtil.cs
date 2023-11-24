@@ -2,7 +2,7 @@
 using EFT;
 using EFT.Airdrop;
 using Newtonsoft.Json;
-using SIT.Core.AkiSupport.Airdrops.Models;
+using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace SIT.Core.AkiSupport.Airdrops.Utils
+namespace StayInTarkov.AkiSupport.Airdrops.Utils
 {
     public static class AirdropUtil
     {

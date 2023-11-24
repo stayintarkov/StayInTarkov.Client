@@ -1,10 +1,8 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using StayInTarkov;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Core.Core.FileChecker
+namespace StayInTarkov.FileChecker
 {
     /// <summary>
     /// SIT - RunFilesCheckingPatch
@@ -13,7 +11,7 @@ namespace SIT.Core.Core.FileChecker
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(CommonClientApplication<ISession>), "RunFilesChecking");
+            return ReflectionHelpers.GetMethodForType(typeof(CommonClientApplication<IBackEndSession>), "RunFilesChecking");
         }
 
         [PatchPrefix]

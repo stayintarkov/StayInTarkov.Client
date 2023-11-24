@@ -1,15 +1,11 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetLightsState_Patch;
 
-namespace SIT.Core.Coop.Player.FirearmControllerPatches
+namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
     internal class FirearmController_CheckAmmo_Patch : ModuleReplicationPatch
     {

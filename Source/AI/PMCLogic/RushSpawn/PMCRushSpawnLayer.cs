@@ -1,9 +1,8 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using UnityEngine;
 
-namespace SIT.Core.AI.PMCLogic.RushSpawn
+namespace StayInTarkov.AI.PMCLogic.RushSpawn
 {
     /// <summary>
     /// Created by: Paulov

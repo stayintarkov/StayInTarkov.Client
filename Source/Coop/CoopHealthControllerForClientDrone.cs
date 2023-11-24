@@ -2,7 +2,7 @@
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     internal class CoopHealthControllerForClientDrone : PlayerHealthController
     {
@@ -25,7 +25,7 @@ namespace SIT.Core.Coop
         {
             return base.ApplyItem(item, bodyPart, amount);
         }
-        
+
         protected override void AddEffectToList(AbstractHealthEffect effect)
         {
             base.AddEffectToList(effect);

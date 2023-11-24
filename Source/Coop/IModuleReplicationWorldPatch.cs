@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SIT.Core.Coop
+namespace StayInTarkov.Coop
 {
     public interface IModuleReplicationWorldPatch
     {

@@ -9,14 +9,6 @@
 请正确地设置好端口转发,否则无法连接至你的服务器.
 
 如果你只是一个人玩单机,请勿调整相关设置并关闭External IP Finder.
-
-
-详见:
-- [Discussion#139](https://github.com/paulov-t/SIT.Core/discussions/139)
-- [Discussion#24](https://github.com/paulov-t/SIT.Core/discussions/24)
-- [Issue#115](https://github.com/paulov-t/SIT.Core/issues/115)
-- [Issue#60](https://github.com/paulov-t/SIT.Core/issues/60#issuecomment-1560461446)
-
 ---
 
 ## 我该在哪装mod啊?
@@ -28,11 +20,6 @@
 ### 服务器mod
 
 安装在 `<服务器目录>/user/mods/`
-
-详见:
-- [Discussion#111](https://github.com/paulov-t/SIT.Core/discussions/111)
-- [Discussion#134](https://github.com/paulov-t/SIT.Core/discussions/134)
-
 ---
 
 ## 此步骤为DDNS配置.如果你没有静态公网IP并且想用域名连接至服务器.

@@ -1,6 +1,4 @@
-﻿using SIT.Tarkov.Core;
-using StayInTarkov;
-using StayInTarkov.AkiSupport.Singleplayer.Models.Healing;
+﻿using StayInTarkov.AkiSupport.Singleplayer.Models.Healing;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,119 +1,63 @@
-﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace SIT.Core.Coop.Player.GrenadeControllerPatches
+namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
     internal class GrenadeController_LowThrow_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => null;
+        public override Type InstanceType => typeof(EFT.Player.GrenadeController);
+
         public override string MethodName => "LowThrow";
-
-        public GrenadeController_LowThrow_Patch()
-        {
-        }
-
-        public GrenadeController_LowThrow_Patch(Type type)
-        {
-            OverrideInstanceType = type;
-        }
 
         protected override MethodBase GetTargetMethod()
         {
-            if (OverrideInstanceType == null)
-            {
-                var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName, false, true);
-                return method;
-            }
-            else
-            {
-                var method = ReflectionHelpers.GetMethodForType(OverrideInstanceType, MethodName, false, true);
-                return method;
-            }
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new();
-
-        /// <summary>
-        /// Disable patch from starting with the others automatically
-        /// </summary>
-        public override bool DisablePatch => true;
-
+        public static List<string> CallLocally = new();
 
         [PatchPrefix]
-        public static bool PrePatch(
-            object __instance,
-            EFT.Player ____player
-            )
+        public static bool PrePatch(object __instance, EFT.Player ____player)
         {
-            if (____player == null)
-            {
-                Logger.LogError("Player property is NULL!");
-                return false;
-            }
-
-            var result = false;
-            if (CallLocally.TryGetValue(____player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
-
-            //Logger.LogDebug("GrenadeController_LowThrow_Patch:PrePatch");
-
-            return result;
+            return CallLocally.Contains(____player.ProfileId);
         }
 
         [PatchPostfix]
-        public static void PostPatch(object __instance,
-            EFT.Player ____player
-            )
+        public static void PostPatch(object __instance, EFT.Player ____player)
         {
-            if (____player == null)
+            if (CallLocally.Contains(____player.ProfileId))
             {
-                Logger.LogError("Player property could not be found!");
+                CallLocally.Remove(____player.ProfileId);
                 return;
             }
 
-            if (CallLocally.TryGetValue(____player.Profile.AccountId, out var expecting) && expecting)
-            {
-                CallLocally.Remove(____player.Profile.AccountId);
-                return;
-            }
-
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("rX", ____player.Rotation.x);
-            dictionary.Add("rY", ____player.Rotation.y);
-            dictionary.Add("m", "LowThrow");
-            AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
-
-            //Logger.LogDebug("GrenadeController_LowThrow_Patch:PostPatch");
-
+            AkiBackendCommunication.Instance.SendDataToPool(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "LowThrow").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            if (!dict.ContainsKey("data"))
                 return;
 
-            var playerHandsController = player.HandsController;
-            //Logger.LogDebug("GrenadeController_LowThrow_Patch:Replicated");
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                {
-                    var rX = float.Parse(dict["rX"].ToString());
-                    var rY = float.Parse(dict["rY"].ToString());
-                    Vector2 rot = new(rX, rY);
-                    player.Rotation = rot;
-                }
-            }
+            GrenadeThrowPacket grenadeThrowPacket = new(null, Vector2.zero, null);
+            grenadeThrowPacket = grenadeThrowPacket.DeserializePacketSIT(dict["data"].ToString());
 
-            CallLocally.Add(player.Profile.AccountId, true);
-            ReflectionHelpers.GetMethodForType(player.HandsController.GetType(), MethodName).Invoke(playerHandsController, new object[] { });
+            if (HasProcessed(GetType(), player, grenadeThrowPacket))
+                return;
+
+            if (player.TryGetComponent(out PlayerReplicatedComponent prc) && prc.IsClientDrone)
+                player.Rotation = new Vector2(grenadeThrowPacket.rX, grenadeThrowPacket.rY);
+
+            if (player.HandsController is EFT.Player.GrenadeController grenadeController)
+            {
+                CallLocally.Add(player.ProfileId);
+                grenadeController.LowThrow();
+            }
         }
     }
 }

@@ -1,11 +1,9 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop.Player
+namespace StayInTarkov.Coop.Player
 {
     internal class Player_Say_Patch : ModuleReplicationPatch
     {

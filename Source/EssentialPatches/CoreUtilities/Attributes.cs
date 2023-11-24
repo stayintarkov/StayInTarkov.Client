@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using System;
 
-namespace SIT.Tarkov.Core
+namespace StayInTarkov
 {
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Method)]

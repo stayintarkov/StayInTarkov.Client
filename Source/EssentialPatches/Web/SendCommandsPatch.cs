@@ -1,5 +1,4 @@
-﻿using SIT.Tarkov.Core;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace StayInTarkov.EssentialPatches.Web
 {

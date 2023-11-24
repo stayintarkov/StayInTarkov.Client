@@ -1,8 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT.UI;
 using HarmonyLib;
-using SIT.Core;
-using SIT.Tarkov.Core;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -71,7 +69,7 @@ namespace StayInTarkov.EssentialPatches
                 }
                 if (!string.IsNullOrEmpty(eftPath))
                 {
-                    FileInfo fileInfoEft = new FileInfo(eftPath);
+                    FileInfo fileInfoEft = new(eftPath);
                     if (fileInfoEft.Exists)
                     {
                         FileVersionInfo myFileVersionInfo =

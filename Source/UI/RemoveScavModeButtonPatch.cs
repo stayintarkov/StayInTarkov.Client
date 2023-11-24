@@ -1,6 +1,4 @@
-﻿using EFT.UI;
-using SIT.Tarkov.Core;
-using System.Reflection;
+﻿using System.Reflection;
 using UnityEngine;
 
 
@@ -17,18 +15,20 @@ namespace StayInTarkov.UI
         }
 
         [PatchPostfix]
-        static void PatchPostfix(
-            EFT.UI.Matchmaker.MatchMakerSideSelectionScreen __instance,
-            DefaultUIButton ____savagesBigButton,
-            UIAnimatedToggleSpawner ____savagesButton,
-            DefaultUIButton ____pmcBigButton
-            )
+        static void PatchPostfix()
         {
-            ____savagesBigButton.enabled = false;
-            ____savagesButton.SpawnableToggle.enabled = false;
-            ____savagesButton.gameObject.SetActive(false);
-            //____savagesBigButton.transform.parent.gameObject.SetActive(false);
+            var selecttxt = GameObject.Find("SideSelectionCaption");
+            selecttxt.active = false;
 
+            var savages = GameObject.Find("Savage");
+            savages.active = false;
+
+            var pmcdesc = GameObject.Find("Description");
+            pmcdesc.active = false;
+
+            var pmcs = GameObject.Find("PMCs");
+            var mmSSC = pmcs.transform.parent.gameObject;
+            pmcs.transform.position = new Vector3(mmSSC.transform.position.x / 1.305f, pmcs.transform.position.y * 0.75f, 0);
         }
     }
 }
