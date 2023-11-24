@@ -57,9 +57,9 @@ jobs:
       - name: Get version from DLL
         id: extract-version
         run: |
-          version=$(dotnet --version)
+          version=$(dotnet ./StayInTarkov-${{ matrix.configuration }}/StayInTarkov.dll --version)
           echo "::set-output name=VERSION::$version"
-
+    
       - name: Remove unnecessary files
         run: |
           rm ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.pdb
