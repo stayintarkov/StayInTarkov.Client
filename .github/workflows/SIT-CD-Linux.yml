@@ -40,13 +40,19 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
+          cache: false
 
       - name: Dotnet Restore
         run: dotnet restore
 
       - name: Dotnet Publish
         run: |
-          dotnet publish ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ./publish --no-self-contained
+          dotnet publish ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ./publish
+
+      - name: Generate runtimeconfig.json
+        run: |
+          cd ./publish
+          dotnet exec StayInTarkov.dll --list-runtimes
 
       - name: Get version from DLL
         id: extract-version
@@ -56,7 +62,8 @@ jobs:
 
       - name: Zip remaining files
         run: |
-          zip -r ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ./publish/*
+          cd ./publish
+          zip -r ../${{ env.SolutionName }}-${{ matrix.configuration }}.zip .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
