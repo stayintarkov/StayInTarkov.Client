@@ -27,7 +27,7 @@ jobs:
       matrix:
         configuration: [Release]
 
-    runs-on: ubuntu-latest  # Using Ubuntu instead of Windows
+    runs-on: ubuntu-latest
 
     env:
       SolutionName: StayInTarkov
@@ -44,26 +44,20 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      # Skipping MSBuild setup as it's not required on Linux
-
       - name: Dotnet Restore
         run: dotnet restore
 
       - name: Dotnet Publish
         run: |
-              mkdir -p StayInTarkov-Release
-              dotnet publish Source/StayInTarkov.csproj -c Release -o StayInTarkov-Release -f net6.0
-              version=$(dotnet ./StayInTarkov-Release/StayInTarkov.dll --version)
-              echo "::set-output name=VERSION::$version"
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
-     # - name: Get version from DLL
-       # id: extract-version
-        #run: |
-          #version=$(dotnet ./StayInTarkov-Release/StayInTarkov.dll --version)
-          #echo "::set-output name=VERSION::$version"
+      - name: Get version from DLL
+        id: extract-version
+        run: |
+          version=$(dotnet ./StayInTarkov-${{ matrix.configuration }}/StayInTarkov.dll --version)
+          echo "::set-output name=VERSION::$version"
 
-
-    
       - name: Remove unnecessary files
         run: |
           rm ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.pdb
@@ -75,7 +69,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: StayInTarkov-${{ matrix.configuration }}
+          name: StayInTarkov-${{ matrix.configuration }}-${{ steps.extract-version.outputs.VERSION }}
           path: ${{ env.SolutionName }}-${{ matrix.configuration }}/
           if-no-files-found: error
 
