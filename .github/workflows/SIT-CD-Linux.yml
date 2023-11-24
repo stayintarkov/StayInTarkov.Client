@@ -57,8 +57,9 @@ jobs:
       - name: Get version from DLL
         id: extract-version
         run: |
-          version=$(strings ./StayInTarkov-${{ matrix.configuration }}/StayInTarkov.dll | grep -oP 'AssemblyInformationalVersion\("\K[^\)]+')
+          version=$(strings ./StayInTarkov-${{ matrix.configuration }}/StayInTarkov.dll | grep -oP 'AssemblyInformationalVersion\("\K[^"]+')
           echo "::set-output name=VERSION::$version"
+
     
       - name: Remove unnecessary files
         run: |
