@@ -78,16 +78,16 @@ SIT/
 └── launcher/    # SIT Manager or Classic Launcher
 ```
 
-### Server 
+### __Server__
 Follow the instructions in the SIT SPT-Aki Server Mod repo (linked above) to install and configure the server into the `SIT/server` folder.
 
 Exactly *one* person needs to run the server for Coop. This person will need to port forward, or your group will have to connect via Hamachi or some other VPN solution. If you don't know how to do these things, you might see if someone in the SIT discord is willing to help.
 - In vanilla SPT, you're probably used to running your own local server, and then launching your client which connects to that server under the hood. With SIT, one person will run the modded server and everyone else will connect to that server over the internet.
 
-### Launcher
+### __Launcher__
 Follow the instructions in the SIT Manager repo. Install into the `SIT/launcher` folder.
 
-### Client
+### __Client__
 **Everyone** must install the SIT Client Mod. You can install it using SIT Manager, or manually if desired.
 
 **IF YOU USE SPT ALREADY**: Do **NOT** install the SIT Client mod onto your existing SPT install. The SIT Client Mod is currently not compatible with the SPT-Aki client, so it needs to be installed on it's own copy of Tarkov.
@@ -105,9 +105,9 @@ Follow the instructions in the SIT Manager repo. Install into the `SIT/launcher`
 5. Select the desired SIT version (choose the latest if you don't know what you're doing)
 6. Click `Install`  
 
-#### Manual client-mod install
-Note that these are the same steps the SIT Manager performs. If you don't have any reason to, you should probably just use the SIT manager- it's so much quicker and easier. (Seriously, we're not hiding anything from you here. These steps literally just a plain-english description of [the manager code](https://github.com/stayintarkov/SIT.Manager/blob/master/SIT.Manager/Classes/Utils.cs#L613))
 <details>
+ <summary>Manual client-mod install</summary>
+Note that these are the same steps the SIT Manager performs. If you don't have any reason to, you should probably just use the SIT manager- it's so much quicker and easier. (Seriously, we're not hiding anything from you here. These steps literally just a plain-english description of [the manager code](https://github.com/stayintarkov/SIT.Manager/blob/master/SIT.Manager/Classes/Utils.cs#L613))
 
 1. Copy the contents of your live EFT installation into the currently-empty `SIT/game` folder
   - If you installed tarkov to the default location, it will be under `C:\Battlestate Games\EFT`.
