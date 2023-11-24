@@ -79,18 +79,16 @@ SIT/
 ```
 
 ### Server Install
-Follow the instructions in the SIT SPT-Aki Server Mod repo (linked above) to install and configure the server into the `SIT/server` folder.
-
-Exactly *one* person needs to run the server for Coop. This person will need to port forward, or your group will have to connect via Hamachi or some other VPN solution. If you don't know how to do these things, you might see if someone in the SIT discord is willing to help.
-- In vanilla SPT, you're probably used to running your own local server, and then launching your client which connects to that server under the hood. With SIT, one person will run the modded server and everyone else will connect to that server over the internet.
+- Follow the instructions in the SIT SPT-Aki Server Mod repo (linked above) to install and configure the server into the `SIT/server` folder.
+- Exactly *one* person needs to run the server for Coop. This person will need to port forward, or your group will have to connect via Hamachi or some other VPN solution. If you don't know how to do these things, you might see if someone in the SIT discord is willing to help.
+  - In vanilla SPT, you're probably used to running your own local server, and then launching your client which connects to that server under the hood. With SIT, one person will run the modded server and everyone else will connect to that server over the internet.
 
 ### Launcher Install
-Follow the instructions in the SIT Manager repo. Install into the `SIT/launcher` folder.
+- Follow the instructions in the SIT Manager repo. Install into the `SIT/launcher` folder.
 
 ### Client Install
-**Everyone** must install the SIT Client Mod. You can install it using SIT Manager, or manually if desired.
-
-**IF YOU USE SPT ALREADY**: Do **NOT** install the SIT Client mod onto your existing SPT install. The SIT Client Mod is currently not compatible with the SPT-Aki client, so it needs to be installed on it's own copy of Tarkov.
+- **Everyone** must install the SIT Client Mod. You can install it using SIT Manager, or manually if desired.
+- **IF YOU USE SPT ALREADY**: Do **NOT** install the SIT Client mod onto your existing SPT install. The SIT Client Mod is currently not compatible with the SPT-Aki client, so it needs to be installed on it's own copy of Tarkov.
 
 #### SIT Manager Method
 - Copy the contents of your live EFT installation into the currently-empty `SIT/game` folder
