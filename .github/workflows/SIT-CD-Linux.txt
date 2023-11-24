@@ -12,9 +12,10 @@ on:
       - '.github/*_TEMPLATE/**'
       - '*.md'
   workflow_run:
-    workflows: ["SIT Build Release"]
     types:
       - completed
+    workflows:
+      - 'SIT CI'
   workflow_dispatch:
     paths-ignore:
       - '.github/*'
