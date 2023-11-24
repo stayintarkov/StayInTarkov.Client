@@ -102,5 +102,5 @@ jobs:
       with:
           draft: true
           generate_release_notes: true
-          files: ${{ env.SolutionName }}-${{ matrix.configuration }}-${{ steps.extract-version.outputs.VERSION }}.zip
+          files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
           tag_name: StayInTarkov.Client-${{ steps.extract-version.outputs.VERSION }}
