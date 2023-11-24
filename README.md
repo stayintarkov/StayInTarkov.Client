@@ -65,7 +65,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 
 ### Overview
 SIT is comprised of 2 major pieces and a launcher
-- A [modified SPT-Aki Server](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
+- The [SIT SPT-Aki Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
 - The SIT Client Module (this repo!), installed onto an instance of Tarkov
 - [SIT Manager](https://github.com/stayintarkov/SIT.Manager) or [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
   - You should use the SIT Manager. The classic launcher is only mentioned to clarify for existing classic launcher users.
@@ -79,7 +79,7 @@ SIT/
 ```
 
 ### Server Install
-- Follow the instructions in the SIT SPT-Aki Server Mod repo (linked above) to install and configure the server into the `SIT/server` folder.
+- Follow the instructions in the [SIT SPT-Aki Server Mod repo](https://github.com/stayintarkov/SIT.Aki-Server-Mod) to install and configure the server into the `SIT/server` folder.
 - Exactly *one* person needs to run the server for Coop. This person will need to port forward, or your group will have to connect via Hamachi or some other VPN solution. If you don't know how to do these things, you might see if someone in the SIT discord is willing to help.
   - In vanilla SPT, you're probably used to running your own local server, and then launching your client which connects to that server under the hood. With SIT, one person will run the modded server and everyone else will connect to that server over the internet.
 
@@ -156,7 +156,7 @@ And with any luck, you're done.
   - Anyone can start a raid lobby, just select the location/time/insurance, click Host Raid, configure the exact number of players & desired settings, and start it up. Everyone else will see the lobby pop up after you start, and will join then. (The game won't start till everyone's loaded, just like regular tarkov)
 
 
-## Random FAQs
+## FAQ
 
 ### Can Coop use BSG's Coop code?
 No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
