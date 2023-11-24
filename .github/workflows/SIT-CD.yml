@@ -81,7 +81,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: StayInTarkov-Build-${{ matrix.configuration }}-${{ steps.extract-version.outputs.VERSION }}
+          name: StayInTarkov-Client-${{ matrix.configuration }}-${{ steps.extract-version.outputs.VERSION }}
           path: ${{ env.SolutionName }}-${{ matrix.configuration }}/
           if-no-files-found: error
 
