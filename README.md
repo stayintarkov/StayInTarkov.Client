@@ -105,7 +105,7 @@ SIT/
 
 <details>
  <summary>Manual install method</summary>
-Note that these are the same steps the SIT Manager performs. If you don't have any reason to, you should probably just use the SIT manager- it's so much quicker and easier. (Seriously, we're not hiding anything from you here. These steps literally just a plain-english description of [the manager code](https://github.com/stayintarkov/SIT.Manager/blob/master/SIT.Manager/Classes/Utils.cs#L613))
+Note that these are the same steps the SIT Manager performs. If you don't have any reason to, you should probably just use the SIT manager- it's so much quicker and easier. (Seriously, we're not hiding anything from you here. These steps are literally just a plain-english description of [the manager code](https://github.com/stayintarkov/SIT.Manager/blob/master/SIT.Manager/Classes/Utils.cs#L613))
 
 - Copy the contents of your live EFT installation into the currently-empty `SIT/game` folder
   - If you installed tarkov to the default location, it will be under `C:\Battlestate Games\EFT`.
@@ -148,6 +148,13 @@ Note that these are the same steps the SIT Manager performs. If you don't have a
   - Extract two files `EscapeFromTarkov_Data/Managed/Aki.Common.dll` and `EscapeFromTarkov_Data/Managed/Aki.Reflection.dll` from the release, into `SIT/game/EscapeFromTarkov_Data/Managed/`
 And with any luck, you're done. 
 </details>
+
+### Playing
+- **Server Host Only**: Have the server-host start up the modded server (port forwarded / tunneled via VPN or Hamachi to the rest of your group)
+  - Make sure you configured your IP address(es) per the servermod repo instructions!
+- **Everyone**: Start up the SIT Manager, enter the host's IP & port, and click play!
+  - Anyone can start a raid lobby, just select the location/time/insurance, click Host Raid, configure the exact number of players & desired settings, and start it up. Everyone else will see the lobby pop up after you start, and will join then. (The game won't start till everyone's loaded, just like regular tarkov)
+
 
 ## Random FAQs
 
