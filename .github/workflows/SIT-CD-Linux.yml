@@ -51,14 +51,16 @@ jobs:
 
       - name: Dotnet Publish
         run: |
-          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+              mkdir -p StayInTarkov-Release
+              dotnet publish Source/StayInTarkov.csproj -c Release -o StayInTarkov-Release -f net6.0
+              version=$(dotnet ./StayInTarkov-Release/StayInTarkov.dll --version)
+              echo "::set-output name=VERSION::$version"
 
-      - name: Get version from DLL
-        id: extract-version
-        run: |
-          version=$(dotnet ./StayInTarkov-Release/StayInTarkov.dll --version)
-          echo "::set-output name=VERSION::$version"
+     # - name: Get version from DLL
+       # id: extract-version
+        #run: |
+          #version=$(dotnet ./StayInTarkov-Release/StayInTarkov.dll --version)
+          #echo "::set-output name=VERSION::$version"
 
 
     
