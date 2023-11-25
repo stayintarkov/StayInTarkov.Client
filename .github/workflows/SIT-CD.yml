@@ -1,4 +1,4 @@
-name: SIT Build
+name: SIT Build Release
 
 on:
     push:
@@ -62,9 +62,19 @@ jobs:
         mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
         dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
+    - name: Get version from DLL
+      id: extract-version
+      run: |
+        $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.dll").ProductVersion
+        echo "::set-output name=VERSION::$version"
+
+
     - name: Remove unnecessary files
       run: |
           del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
+
+    #- name: Display Version in Logs
+     # run: echo "The extracted version is ${{ steps.extract-version.outputs.VERSION }}"
 
     - name: Zip remaining files
       run: |
@@ -76,21 +86,21 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: StayInTarkov-Build-${{ matrix.configuration }}
+        name: StayInTarkov-${{ matrix.configuration }}
         path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
         if-no-files-found: error
     
-    - name: Set build date
-      run: |
-        $NOW=& Get-Date -format yyyy-MM-dd-HH-mm
-        echo "NOW=$NOW" >> $env:GITHUB_ENV
+    #- name: Set build date
+     # run: |
+      #  $NOW=& Get-Date -format yyyy-MM-dd-HH-mm
+       # echo "NOW=$NOW" >> $env:GITHUB_ENV
         
-    # Create release from the compressed file if pushed to master
+    # Create release as draft from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: (${{ matrix.configuration }} == 'Release')
+      if: ${{ matrix.configuration == 'Release' }}
       with:
-        draft: true
-        generate_release_notes: true
-        files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-        tag_name: StayInTarkov.Client-${{ env.NOW }}
+          draft: true
+          generate_release_notes: true
+          files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
+          tag_name: StayInTarkov.Client-${{ steps.extract-version.outputs.VERSION }}
