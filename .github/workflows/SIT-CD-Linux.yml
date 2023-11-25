@@ -15,10 +15,7 @@ on:
       - '.github/*_TEMPLATE/**'
       - '*.md'
   workflow_dispatch:
-    paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
+
 
 permissions:
   contents: write
