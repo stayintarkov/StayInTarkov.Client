@@ -68,8 +68,6 @@ namespace StayInTarkov.Coop
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
         {
-            //BepInLogger.LogInfo("ThrowItem");
-            destroyedItems = new List<ItemsCount>();
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
 
