@@ -91,19 +91,21 @@ namespace StayInTarkov
 
         private void ReadInLanguageDictionary()
         {
-
-            Logger.LogDebug(Thread.CurrentThread.CurrentCulture);
+            var userLanguage = Thread.CurrentThread.CurrentCulture.Name.ToLower();
+            userLanguage = Config.Bind("SIT.Localization", "Language", userLanguage).Value;
+            userLanguage = userLanguage.ToLower();
+            Logger.LogDebug(userLanguage);
 
             var languageFiles = new List<string>();
             foreach (var mrs in typeof(StayInTarkovPlugin).Assembly.GetManifestResourceNames().Where(x => x.StartsWith("StayInTarkov.Resources.Language")))
             {
                 languageFiles.Add(mrs);
-                Logger.LogDebug(mrs);
+                Logger.LogDebug($"Loaded Language File: {mrs}");
             }
 
-            Logger.LogDebug(Thread.CurrentThread.CurrentCulture.Name);
-            var firstPartOfLang = Thread.CurrentThread.CurrentCulture.Name.ToLower().Substring(0, 2);
+            var firstPartOfLang = userLanguage.Substring(0, 2);
             Logger.LogDebug(firstPartOfLang);
+
             Stream stream = null;
             StreamReader sr = null;
             string str = null;
@@ -111,12 +113,12 @@ namespace StayInTarkov
             switch (firstPartOfLang)
             {
                 case "zh":
-                    switch (Thread.CurrentThread.CurrentCulture.Name.ToLower())
+                    switch (userLanguage)
                     {
-                        case "zh_TW":
+                        case "zh_tw":
                             stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
                             break;
-                        case "zh_CN":
+                        case "zh_cn":
                         default:
                             stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("SimplifiedChinese.json")));
                             break;
