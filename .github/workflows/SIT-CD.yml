@@ -1,21 +1,7 @@
 name: SIT Build Release
 
 on:
-    push:
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
-    pull_request:
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
     workflow_dispatch:
-        paths-ignore:
-        - '.github/*'
-        - '.github/*_TEMPLATE/**'
-        - '*.md'
 
 
 permissions:
@@ -29,7 +15,7 @@ jobs:
       matrix:
         configuration: [Release]
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
+    runs-on: windows-latest 
 
     env:
       SolutionName: StayInTarkov                              
