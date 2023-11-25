@@ -4,14 +4,17 @@ on:
   push:
     paths-ignore:
       - '.github/*'
+      - '.github/*_TEMPLATE/**'
       - '*.md'
   pull_request:
     paths-ignore:
       - '.github/*'
+      - '.github/*_TEMPLATE/**'
       - '*.md'
   workflow_dispatch:
     paths-ignore:
       - '.github/*'
+      - '.github/*_TEMPLATE/**'
       - '*.md'
 
 permissions:
@@ -24,7 +27,7 @@ jobs:
       matrix:
         configuration: [Release]
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Using Ubuntu instead of Windows
 
     env:
       SolutionName: StayInTarkov
@@ -40,31 +43,32 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
-          cache: false
+
+      # Skipping MSBuild setup as it's not required on Linux
 
       - name: Dotnet Restore
         run: dotnet restore
 
       - name: Dotnet Publish
         run: |
-          dotnet publish ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ./publish
-
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
       - name: Get version from DLL
         id: extract-version
         run: |
-          version=$(dotnet ./publish/StayInTarkov.dll --version)
+          version=$(dotnet --version)
           echo "::set-output name=VERSION::$version"
-
+      - name: Remove unnecessary files
+        run: |
+          rm ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.pdb
       - name: Zip remaining files
         run: |
-          cd ./publish
-          zip -r ../${{ env.SolutionName }}-${{ matrix.configuration }}.zip .
-
+          zip -r ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: StayInTarkov-${{ matrix.configuration }}-${{ steps.extract-version.outputs.VERSION }}
-          path: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
+          name: StayInTarkov-${{ matrix.configuration }}
+          path: ${{ env.SolutionName }}-${{ matrix.configuration }}/
           if-no-files-found: error
 
       - name: Create Release
