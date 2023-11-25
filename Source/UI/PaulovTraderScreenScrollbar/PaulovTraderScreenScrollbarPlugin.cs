@@ -41,26 +41,21 @@ namespace StayInTarkov.UI.PaulovTraderScreenScrollbar
         [PatchPostfix]
         public static void Postfix(TraderScreensGroup __instance)
         {
-            var container = GameObject.Find("Container");
-            var containerRect = container.RectTransform();
-
             var traderCards = GameObject.Find("TraderCards");
-            var traderCardsRect = traderCards.RectTransform();
-            traderCardsRect.position = new Vector3(0, traderCardsRect.position.y, 0);
-
             var scrollRect = traderCards.AddComponent<ScrollRect>();
-            scrollRect.content = traderCardsRect;
-            scrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
             scrollRect.horizontal = true;
             scrollRect.vertical = false;
             scrollRect.scrollSensitivity = 20;
+            var container = GameObject.Find("Container");
+            var containerRect = container.RectTransform();
             scrollRect.viewport = containerRect;
-            scrollRect.movementType = ScrollRect.MovementType.Elastic;
-
-            var contentSizeFitter = container.AddComponent<ContentSizeFitter>();
+            scrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            var contentSizeFitter = traderCards.AddComponent<ContentSizeFitter>();
             contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-
+            scrollRect.content = traderCards.RectTransform();
         }
+
+
     }
 
 
