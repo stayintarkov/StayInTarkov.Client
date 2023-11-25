@@ -20,6 +20,14 @@ namespace StayInTarkov.Coop
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
         }
 
+        public override void AddDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+        }
+
+        public override void SubtractFromDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+        }
+
         public override void Execute(SearchContentOperation operation, Callback callback)
         {
             base.Execute(operation, callback);
