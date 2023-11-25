@@ -58,16 +58,22 @@ Conecte-se usando `http://127.0.0.1:6969` como servidor.
 
 *Você não poderá convidar outras pessoas para se juntarem ao seu jogo usando localhost, mas pode ser útil para depurar problemas de conexão. Use isso para confirmar se o jogo e os mods estão instalados corretamente.*
 
-## Hospedado com encaminhamento de porta
+## Hospedado com Redirecionamento de porta
 
-### Servidor
-Seu endereço IP externo deve ser detectado automaticamente, não sendo necessária nenhuma outra configuração.
-Verifique os logs do servidor em busca de `COOP: Auto-External-IP-Finder` com o seu endereço IP.
+### Configuração
 
-Opcionalmente, defina `logRequests` como `false` em `SIT_DIR/server/Aki_Data/Server/configs/http.json` para evitar registros excessivos.
+Redirecionamento de porta permite você usar seu computador local como servidor como um serviço de face publica. Em resumo, seu roteador tem um IP _externo_ estático (que não muda) que pode ser visto em https://www.whatismyip.com. Esse endereço de IP que o mundo vê como 'você' independente de quantos aparelhos tenha na rede (se você for no whatismyip em qualquer dispositivo na rede, verá que o IP é o mesmo). Para usar seu computador para trafego externo e permitir seus amigos conectar no servidor aberto em seu computador, primeiro vai ter que fazer algumas coisas:
+1. **Achar seu endereço MAC**: ache o endereço MAC da sua maquina, no qual você precisa para identificar seu computador para o passo 3. Você pode achar isso indo no CMD e digitando `ipconfig /all` e procurar pela linha que diz "Endereço Fisico" abaixo do adaptador de rede (Exemplo: Adaptador Ethernet). Ele vai ser algo tipo `00-00-00-00-00-00`.
+2. **Abra as configurações do seu Roteador**: vá na página da web do seu roteador (geralmente acessivel em http://192.168.1.1, mas nem todo roteador é este. Confira no seu roteador ou procure o manual do modelo)
+3. **Atribua um IP estático ao seu computador**: atribua um endereço IP local estático à sua máquina (o dispositivo com seu endereço MAC). Existem muitas opções disponíveis, sendo uma das convenções algo dentro do intervalo de 192.168.0.0 a 192.168.255.255 (certifique-se de que é diferente do IP do seu roteador).
+4. **Configure o redirecionamento de porta**: nas configurações do seu roteador, encontre o Redirecionamento de Porta e encaminhe as portas `6969` e `6970` (que geralmente podem ser escritas como `6969,6970`) para o endereço local estático que você acabou de atribuir ao seu computador. Este passo garantirá que qualquer tráfego que chegue por essas portas seja direcionado para o seu computador (por padrão, essas portas são bloqueadas pelo seu roteador).
+5. **Configure seu firewall**: abra (ou permita) as portas de tráfego TCP de entrada `6969` e `6970` nas configurações do firewall do Windows (ou qualquer firewall que você esteja usando). Este passo garantirá que seu computador aceite tráfego nessas portas.
+6. **Proteja suas portas**: este passo não é obrigatório, mas recomendado por motivos de segurança: inclua os endereços IP de seus amigos (encontrados usando o whatismyip) nas configurações do seu roteador. Dependendo do seu roteador, isso pode precisar ser feito na mesma tela do passo 4 ou em uma tela separada; por exemplo, em roteadores ASUS, você deve definir o `IP de origem` como o endereço do seu amigo na tela de redirecionamento de porta. Você precisará fazer isso para cada amigo com quem deseja jogar. Se um amigo não conseguir se conectar no futuro, você pode ter esquecido de fazer este passo para o IP deles. Este passo garantirá que apenas seus amigos possam se conectar ao seu servidor, e não qualquer pessoa na Internet. Se você não fizer este passo, qualquer pessoa na Internet poderá se conectar ao seu servidor, o que não é recomendado. Nota: você precisará incluir o endereço IP interno do seu próprio computador também, ou você não conseguirá se conectar ao seu próprio servidor!
+7. **Atualize a configuração HTTP**: vá para `SIT_DIR\server\Aki_Data\Server\configs` e abra `http.json` em um editor de texto. Altere o valor `ip` para o IP local estático que você atribuiu à sua máquina. Este passo permitirá que você se conecte ao seu servidor a partir do seu próprio computador.
+8. **Atualize a configuração de co-op**: vá para `SIT_DIR\server\user\mods\SIT.Aki-Server-Mod-master\config` e abra `coopConfig.json` em um editor de texto. Altere o valor `externalIP` para o IP fornecido pelo whatismyip. Este passo permitirá que seus amigos se conectem ao seu servidor.
 
-### Launcher
-Use o IP mostrado no log `COOP: Auto-External-IP-Finder` do servidor, ou use o IP encontrado em https://www.whatismyip.com para se conectar (eles devem ser iguais).
+Agora seu servidor está configurado! Para conectar no seu próprio servidor, abra o SIT Launcher e coloque seu endereço de IP estatico, como `http://{ seu endereço de ip local }:6969`. Seus amigos vai conectar usando o IP dado pelo whatismyip, como `http://{ seu endereço de ip externo }:6969`.
+Opcinal: coloque `logrequests` para `false` em `SIT_DIR/server/Aki_Data/Server/configs/http.json` para previnir spam de log.
 
 ## Hospedado com a VPN Hamachi
 
@@ -104,4 +110,12 @@ Inicie o jogo através do `SIT Launcher`.
 
 ## 3. Crie um lobby
 
-Consulte [Como se juntar ao jogo de outras pessoas](https://github.com/stayintarkov/StayInTarkov.Client/wiki/HOSTING.md#how-to-join-each-others-match) para obter instruções no jogo.
+Veja o HOSTING.md de sua lingua para aprender a criar um lobby.
+Guias de HOSPEDAGEM podem ser encontrados aqui: https://github.com/stayintarkov/StayInTarkov.Client/tree/master/wiki
+
+## Notas Adicionais
+
+1. Seus amigos não precisam configurar o servidor em nenhum momento. Eles só precisam instalar o SIT usando o iniciador e se conectar ao seu servidor.
+2. Recomenda-se que todos os jogadores, tanto você quanto seus amigos, usem a mesma versão do SIT. Isso pode ser feito marcando a opção "Forçar instalação do último SIT" no menu de configurações do iniciador.
+3. Se você deixar o servidor rodando o tempo todo (o que requer desativar o modo de suspensão em sua máquina), seus amigos poderão se conectar a qualquer momento. Eles podem editar seus equipamentos, usar o Flea Market, entrar em seus esconderijos, etc., e até mesmo jogar raids solo sem que você esteja presente. Note que se duas raids estiverem acontecendo ao mesmo tempo, ambas terminarão quando uma delas acabar.
+4. Você pode encontrar opções de configuração adicionais em `SIT_DIR\game\BepInEx\config\SIT.Core.cfg`, onde você pode, por exemplo, desativar o feed de spawn/morte no canto inferior direito da tela durante a raid. Como essas são opções do cliente (ao contrário das opções do servidor), é altamente recomendável que todos os jogadores usem as mesmas opções de configuração.
