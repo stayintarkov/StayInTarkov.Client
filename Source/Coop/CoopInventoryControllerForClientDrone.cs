@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace StayInTarkov.Coop
 {
     internal class CoopInventoryControllerForClientDrone
-        : InventoryController, ICoopInventoryController
+        : EFT.Player.PlayerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
         public CoopInventoryControllerForClientDrone(EFT.Player player, Profile profile, bool examined)
-            : base(profile, examined)
+            : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
         }
