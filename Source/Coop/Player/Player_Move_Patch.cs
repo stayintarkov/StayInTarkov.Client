@@ -95,6 +95,8 @@ namespace StayInTarkov.Coop.Player
                     )
                     return;
 
+                lastMovePacket.Dispose();
+                lastMovePacket = null;
                 PlayerMovePackets[player.ProfileId] = playerMovePacket;
                 AkiBackendCommunication.Instance.SendDataToPool(serialized);
             }
@@ -158,6 +160,43 @@ namespace StayInTarkov.Coop.Player
             }
         }
 
+        public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
+        {
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
+                return;
 
+            if (!playerReplicatedComponent.IsClientDrone)
+                return;
+
+            if (playerMoveStruct.pX != 0 && playerMoveStruct.pY != 0 && playerMoveStruct.pZ != 0)
+            {
+                var ReplicatedPosition = new Vector3(playerMoveStruct.pX, playerMoveStruct.pY, playerMoveStruct.pZ);
+                var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
+                if (replicationDistance >= 3)
+                {
+                    player.Teleport(ReplicatedPosition, true);
+                }
+                else
+                {
+                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
+                }
+            }
+
+            UnityEngine.Vector2 direction = new(playerMoveStruct.dX, playerMoveStruct.dY);
+            float spd = playerMoveStruct.spd;
+
+            playerReplicatedComponent.ReplicatedMovementSpeed = spd;
+            playerReplicatedComponent.ReplicatedDirection = null;
+
+            player.InputDirection = direction;
+            player.MovementContext.MovementDirection = direction;
+
+            player.MovementContext.CharacterMovementSpeed = spd;
+
+            player.CurrentManagedState.Move(direction);
+
+            playerReplicatedComponent.ReplicatedDirection = direction;
+
+        }
     }
 }
