@@ -49,11 +49,6 @@ jobs:
         run: |
           dotnet publish ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ./publish
 
-      - name: Generate runtimeconfig.json
-        run: |
-          cd ./publish
-          dotnet exec StayInTarkov.dll --list-runtimes
-
       - name: Get version from DLL
         id: extract-version
         run: |
