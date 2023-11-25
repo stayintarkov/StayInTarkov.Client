@@ -232,12 +232,12 @@ namespace StayInTarkov.Coop
 
                     counter++;
 
-                    var myPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-                    if ((myPlayer != null && (myPlayer.HealthController.IsAlive && !myPlayer.Velocity.Equals(Vector3.zero))) && maxMoveCounter > 0)
-                    {
-                        maxMoveCounter--;
-                        continue;
-                    }
+                    //var myPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                    //if ((myPlayer != null && (myPlayer.HealthController.IsAlive && !myPlayer.Velocity.Equals(Vector3.zero))) && maxMoveCounter > 0)
+                    //{
+                    //    maxMoveCounter--;
+                    //    continue;
+                    //}
 
                     if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {

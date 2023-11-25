@@ -56,6 +56,9 @@ namespace StayInTarkov.Configuration
                 SITGarbageCollectorIntervalMinutes = StayInTarkovPlugin.Instance.Config.Bind
                 ("Advanced", "SITGarbageCollectorIntervalMinutes", 5, new ConfigDescription("Number of minutes to enable SIT Garbage Collector")).Value;
 
+                Logger.LogInfo($"UseSITGarbageCollector:{UseSITGarbageCollector}");
+                Logger.LogInfo($"SITGarbageCollectorIntervalMinutes:{SITGarbageCollectorIntervalMinutes}");
+
             }
         }
 
