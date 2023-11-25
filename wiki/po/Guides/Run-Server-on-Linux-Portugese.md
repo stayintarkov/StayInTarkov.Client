@@ -1,7 +1,7 @@
 # Usando o Server SPT-Aki no Linux
 
 ### Passo 1: Construir o Servidor
-Siga o Leia-me no [Repositório do Servidor SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server). Geralmente::
+Siga o Leia-me no [Repositório do Servidor SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server). Geralmente:
 ```bash
 git clone https://dev.sp-tarkov.com/SPT-AKI/Server.git
 cd Server/project
