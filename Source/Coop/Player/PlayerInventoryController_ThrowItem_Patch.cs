@@ -80,47 +80,38 @@ namespace StayInTarkov.Coop.Player
         {
             List<ItemsCount> destroyedItems = new();
 
-            if (playerInventoryController.HasDiscardLimits)
+            if (playerInventoryController.HasDiscardLimit(item, out int itemDiscardLimit) && item.StackObjectsCount > itemDiscardLimit)
+                destroyedItems.Add(new ItemsCount(item, item.StackObjectsCount - itemDiscardLimit, itemDiscardLimit));
+
+            if (item.IsContainer && destroyedItems.Count == 0)
             {
-                if (item.LimitedDiscard)
+                Item[] itemsInContainer = item.GetAllItems()?.ToArray();
+                if (itemsInContainer != null)
                 {
-                    int itemDiscardLimit = item.DiscardLimit.Value;
-                    if (item.StackObjectsCount > itemDiscardLimit)
-                        destroyedItems.Add(new ItemsCount(item, item.StackObjectsCount - itemDiscardLimit, itemDiscardLimit));
-                }
+                    Dictionary<string, int> discardItems = new();
 
-                if (item.IsContainer && destroyedItems.Count == 0)
-                {
-                    Item[] itemsInContainer = item.GetAllItems()?.ToArray();
-                    if (itemsInContainer != null)
+                    for (int i = 0; i < itemsInContainer.Count(); i++)
                     {
-                        Dictionary<string, int> discardItems = new();
+                        Item itemInContainer = itemsInContainer[i];
+                        if (itemInContainer == item)
+                            continue;
 
-                        for (int i = 0; i < itemsInContainer.Count(); i++)
+                        if (playerInventoryController.HasDiscardLimit(item, out int itemInContainerDiscardLimit))
                         {
-                            Item itemInContainer = itemsInContainer[i];
-                            if (itemInContainer == item)
-                                continue;
-
-                            if (itemInContainer.LimitedDiscard)
+                            if (!destroyedItems.Any(x => x.Item.TemplateId == itemInContainer.TemplateId))
                             {
-                                int itemInContainerDiscardLimit = itemInContainer.DiscardLimit.Value;
-
-                                if (!destroyedItems.Any(x => x.Item.TemplateId == itemInContainer.TemplateId))
-                                {
-                                    string templateId = itemInContainer.TemplateId;
-                                    if (discardItems.ContainsKey(templateId))
-                                        discardItems[templateId] += itemInContainer.StackObjectsCount;
-                                    else
-                                        discardItems.Add(templateId, itemInContainer.StackObjectsCount);
-
-                                    if (discardItems[templateId] > itemInContainerDiscardLimit)
-                                        destroyedItems.Add(new ItemsCount(itemInContainer, discardItems[templateId] - itemInContainerDiscardLimit, itemInContainer.StackObjectsCount - (discardItems[templateId] - itemInContainerDiscardLimit)));
-                                }
+                                string templateId = itemInContainer.TemplateId;
+                                if (discardItems.ContainsKey(templateId))
+                                    discardItems[templateId] += itemInContainer.StackObjectsCount;
                                 else
-                                {
-                                    destroyedItems.Add(new ItemsCount(itemInContainer, itemInContainer.StackObjectsCount, 0));
-                                }
+                                    discardItems.Add(templateId, itemInContainer.StackObjectsCount);
+
+                                if (discardItems[templateId] > itemInContainerDiscardLimit)
+                                    destroyedItems.Add(new ItemsCount(itemInContainer, discardItems[templateId] - itemInContainerDiscardLimit, itemInContainer.StackObjectsCount - (discardItems[templateId] - itemInContainerDiscardLimit)));
+                            }
+                            else
+                            {
+                                destroyedItems.Add(new ItemsCount(itemInContainer, itemInContainer.StackObjectsCount, 0));
                             }
                         }
                     }

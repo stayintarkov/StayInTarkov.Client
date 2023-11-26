@@ -17,15 +17,10 @@ namespace StayInTarkov.Coop
         public CoopInventoryControllerForClientDrone(EFT.Player player, Profile profile, bool examined)
             : base(player, profile, examined)
         {
-            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
-        }
+            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerForClientDrone));
 
-        public override void AddDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
-        {
-        }
-
-        public override void SubtractFromDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
-        {
+            if (profile.ProfileId.StartsWith("pmc") && !CoopInventoryController.IsDiscardLimitsFine(DiscardLimits))
+                base.ResetDiscardLimits();
         }
 
         public override void Execute(SearchContentOperation operation, Callback callback)
