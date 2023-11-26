@@ -104,11 +104,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             public int ScopeIndexInsideSight { get; set; }
             public int ScopeCalibrationIndex { get; set; }
 
-            public ScopeModePacket(string id, int scopeMode, int scopeIndexInsideSight, int ScopeCalibrationIndex, string profileId) : base(profileId, "SetScopeMode")
+            public ScopeModePacket(string id, int scopeMode, int scopeIndexInsideSight, int scopeCalibrationIndex, string profileId) : base(profileId, "SetScopeMode")
             {
                 Id = id;
                 ScopeMode = scopeMode;
                 ScopeIndexInsideSight = scopeIndexInsideSight;
+                ScopeCalibrationIndex = scopeCalibrationIndex;
             }
         }
     }
