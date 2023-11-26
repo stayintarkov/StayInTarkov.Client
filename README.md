@@ -124,15 +124,15 @@ Note that these are the same steps the SIT Manager performs. If you don't have a
     - `ConsistencyInfo`
     - `Uninstall.exe`
     - `Logs/`
-  - \* No, this is not some magical way to cheat in live tarkov. SPT (and SIT, by extension) don't use the BattleEye executables/files because the SPT-Aki server does not run battleeye- that would be silly.
-    For the love of god, don't delete these files in your live directory. At best you'll brick your install & won't be able to connect to live servers. At worst you'll trigger a BattleEye detection and get your Account/IP/HWID marked for doing something extremely dumb.
+  - \* In case of concern, note that this is not a method that can be used to cheat in live tarkov. SPT (and SIT, by extension) don't use the BattleEye executables/files because the SPT-Aki server does not run battleeye.
+    Please, please be careful, and don't delete these files from your live directory. At best you'll brick your install & won't be able to connect to live servers. At worst you'll trigger a BattleEye detection and get your Account/IP/HWID marked for doing.
 - Downgrade your copied tarkov if necessary
   - If your live tarkov's version isn't the same as the SIT version you chose in step 3, you need to downgrade.
     - Your live tarkov's version is the 5-part number in the bottom right of the BSG launcher.
   - SIT does not maintain the tools to downgrade tarkov. You can find instructions on downgrading tarkov [here](https://hub.sp-tarkov.com/doc/entry/49-a-comprehensive-step-by-step-guide-to-installing-spt-aki-properly/)
     - Follow steps 7, 8, 9. Use any folder for the "DowngradePatchers" folder, and use the `SIT/game` folder for the "SPTARKOV" folder.
 	- If you run into issues here, SIT does not maintain the DowngradePatcher. You can contact the SPT devs about it, but understand that they won't provide support for anything else than the patcher- Do **NOT** ask them for help with other SIT topics, they *will not* help you.
-      - That said, if whatever issue you have is legitimate and not just a simple error, the SIT team has probably already noticed & reported it. The SIT Manager uses the Downgrade Patcher too.
+      - That said, if whatever issue you have is legitimate and not just a simple error, the SIT team has *probably* already noticed & reported it. The SIT Manager uses the Downgrade Patcher too.
 - Install BepInEx v5.4.22
   - Download [the archive](https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip)
   - Extract the contents to `SIT/game`
