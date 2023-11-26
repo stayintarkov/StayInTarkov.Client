@@ -414,7 +414,7 @@ namespace StayInTarkov.Core.Player
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
                 _playerMovePatch?.ReplicatedMove(player,
-                    new PlayerMovePacket(player.ProfileId, 0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
+                    new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
             }
         }
 

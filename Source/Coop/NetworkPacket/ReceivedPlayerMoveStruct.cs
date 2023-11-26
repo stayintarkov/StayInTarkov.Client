@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerMovePacket : BasePlayerPacket, IDisposable
+    internal struct ReceivedPlayerMoveStruct
     {
         public float pX { get; set; }
 
@@ -14,7 +18,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public float dY { get; set; }
         public float spd { get; set; }
 
-        public PlayerMovePacket(string profileId, float px, float py, float pz, float dx, float dy, float speed) : base(profileId, "Move")
+        public ReceivedPlayerMoveStruct(float px, float py, float pz, float dx, float dy, float speed)
         {
             pX = px;
             pY = py;
@@ -24,10 +28,5 @@ namespace StayInTarkov.Coop.NetworkPacket
             spd = speed;
         }
 
-        public void Dispose()
-        {
-            ProfileId = null;
-            //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
-        }
     }
 }

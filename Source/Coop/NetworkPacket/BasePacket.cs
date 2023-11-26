@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace StayInTarkov.Coop.NetworkPacket
@@ -43,57 +45,26 @@ namespace StayInTarkov.Coop.NetworkPacket
             TimeSerializedBetter = DateTime.Now.Ticks.ToString("G");
         }
 
+        public static Dictionary<Type, PropertyInfo[]> TypeProperties = new ();
+
         public static PropertyInfo[] GetPropertyInfos(ISITPacket packet)
         {
-            var allProps = ReflectionHelpers.GetAllPropertiesForObject(packet);
-            var allPropsFiltered = allProps
-              .Where(x => x.Name != "ServerId" && x.Name != "Method")
-              .OrderByDescending(x => x.Name == "ProfileId").ToArray();
-            return allPropsFiltered;
+            return GetPropertyInfos(packet.GetType());
         }
+
         public static PropertyInfo[] GetPropertyInfos(Type t)
         {
-            var allProps = ReflectionHelpers.GetAllPropertiesForType(t);
-            var allPropsFiltered = allProps
-              .Where(x => x.Name != "ServerId" && x.Name != "Method" && x.Name != "Randomizer")
-              .OrderByDescending(x => x.Name == "ProfileId").ToArray();
-            return allPropsFiltered;
+            if (!TypeProperties.ContainsKey(t))
+            {
+                var allProps = ReflectionHelpers.GetAllPropertiesForType(t);
+                var allPropsFiltered = allProps
+                  .Where(x => x.Name != nameof(ServerId) && x.Name != "Method")
+                  .OrderByDescending(x => x.Name == "ProfileId").ToArray();
+                TypeProperties.Add(t, allPropsFiltered);
+            }
+
+            return TypeProperties[t];
         }
-
-        //public virtual string Serialize()
-        //{
-        //    if (string.IsNullOrEmpty(ServerId))
-        //    {
-        //        throw new ArgumentNullException(nameof(ServerId));
-        //    }
-
-        //    if (string.IsNullOrEmpty(Method))
-        //    {
-        //        throw new ArgumentNullException(nameof(Method));
-        //    }
-
-        //    string result = null;
-        //    using (BinaryWriter binaryWriter = new(new MemoryStream()))
-        //    {
-        //        binaryWriter.WriteNonPrefixedString("SIT"); // 3
-        //        binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
-        //        binaryWriter.WriteNonPrefixedString(Method); // Unknown
-        //        binaryWriter.WriteNonPrefixedString("?");
-
-        //        var allPropsFiltered = GetPropertyInfos(this);
-
-        //        for (var i = 0; i < allPropsFiltered.Count(); i++)
-        //        {
-        //            var prop = allPropsFiltered[i];
-        //            binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
-        //            if (i != allPropsFiltered.Count() - 1)
-        //                binaryWriter.WriteNonPrefixedString(",");
-        //        }
-        //        result = Encoding.UTF8.GetString(((MemoryStream)binaryWriter.BaseStream).ToArray());
-        //    }
-
-        //    return result;
-        //}
 
         public virtual byte[] Serialize()
         {
@@ -130,14 +101,9 @@ namespace StayInTarkov.Coop.NetworkPacket
             return result;
         }
 
-        //public virtual byte[] SerializeCompressed()
-        //{
-        //    return Zlib.(Serialize(), ZlibCompression.Normal);
-        //}
-
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            return this;
+            return this.DeserializePacketSIT(Encoding.UTF8.GetString(bytes));
         }
 
         public override string ToString()
@@ -157,7 +123,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
-        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos = new();
+        private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos { get; } = new();
 
         static SerializerExtensions()
         {
