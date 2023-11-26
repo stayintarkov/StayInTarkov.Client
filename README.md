@@ -125,7 +125,7 @@ Note that these are the same steps the SIT Manager performs. If you don't have a
     - `Uninstall.exe`
     - `Logs/`
   - \* In case of concern, note that this is not a method that can be used to cheat in live tarkov. SPT (and SIT, by extension) don't use the BattleEye executables/files because the SPT-Aki server does not run battleeye.
-    Please, please be careful, and don't delete these files from your live directory. At best you'll brick your install & won't be able to connect to live servers. At worst you'll trigger a BattleEye detection and get your Account/IP/HWID marked for doing.
+    Please be careful, and don't delete these files from your live directory. At best you'll brick your install & won't be able to connect to live servers. At worst you'll trigger a BattleEye detection and get your Account/IP/HWID marked for doing.
 - Downgrade your copied tarkov if necessary
   - If your live tarkov's version isn't the same as the SIT version you chose in step 3, you need to downgrade.
     - Your live tarkov's version is the 5-part number in the bottom right of the BSG launcher.
