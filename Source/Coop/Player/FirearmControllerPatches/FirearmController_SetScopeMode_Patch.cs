@@ -1,11 +1,11 @@
-﻿using SIT.Coop.Core.Player;
-using SIT.Core.Coop.NetworkPacket;
-using SIT.Tarkov.Core;
-using StayInTarkov;
+﻿using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
+using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using StayInTarkov.Coop;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
