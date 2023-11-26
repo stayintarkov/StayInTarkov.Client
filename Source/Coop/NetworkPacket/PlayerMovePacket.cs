@@ -26,7 +26,8 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public void Dispose()
         {
-            StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
+            ProfileId = null;
+            //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
         }
     }
 }
