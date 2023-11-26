@@ -19,7 +19,7 @@ namespace StayInTarkov.Health
 
         public OnDeadPatch(BepInEx.Configuration.ConfigFile config)
         {
-            var enableDeathMessage = config.Bind("SIT", "EnableDeathMessage", true);
+            var enableDeathMessage = config.Bind("Coop", "ShowFeed", true);
             if (enableDeathMessage != null)
             {
                 DisplayDeathMessage = enableDeathMessage.Value;
