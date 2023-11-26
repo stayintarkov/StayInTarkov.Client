@@ -46,18 +46,24 @@ namespace StayInTarkov.Configuration
 
             public bool UseSITGarbageCollector { get; set; }
 
-            public int SITGarbageCollectorIntervalMinutes { get; set; }
+            public long SITGCMemoryThreshold { get; internal set; }
+
+            public bool SITGCClearAssets { get; internal set; }
 
             public void GetSettings()
             {
                 UseSITGarbageCollector = StayInTarkovPlugin.Instance.Config.Bind
                 ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
 
-                SITGarbageCollectorIntervalMinutes = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorIntervalMinutes", 5, new ConfigDescription("Number of minutes to enable SIT Garbage Collector")).Value;
+                SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
+                ("Advanced", "SITGarbageCollectorMemoryThreshold", 1024, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
+
+                SITGCClearAssets = StayInTarkovPlugin.Instance.Config.Bind
+                ("Advanced", "SITGarbageCollectorClearAssets", false, new ConfigDescription("Set SIT Garbage Collector to clear assets")).Value;
 
                 Logger.LogInfo($"UseSITGarbageCollector:{UseSITGarbageCollector}");
-                Logger.LogInfo($"SITGarbageCollectorIntervalMinutes:{SITGarbageCollectorIntervalMinutes}");
+                Logger.LogInfo($"SITGCMemoryThreshold:{SITGCMemoryThreshold}");
+                Logger.LogInfo($"SITGCClearAssets:{SITGCClearAssets}");
 
             }
         }

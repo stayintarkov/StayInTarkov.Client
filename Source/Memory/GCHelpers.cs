@@ -36,7 +36,6 @@ namespace StayInTarkov.Memory
             if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
             {
                 Logger.LogDebug($"EnableGC():Enabled GC");
-                //GarbageCollector.CollectIncremental(1000000);
                 GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
             }
         }

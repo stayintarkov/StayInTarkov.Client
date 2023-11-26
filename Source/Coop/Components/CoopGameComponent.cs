@@ -212,6 +212,8 @@ namespace StayInTarkov.Coop
 
         }
 
+        private long? lastMemory { get;set; }
+
         /// <summary>
         /// This clears out the RAM usage very effectively.
         /// </summary>
@@ -223,7 +225,6 @@ namespace StayInTarkov.Coop
                 return;
 
             int counter = 0;
-            int maxMoveCounter = 60;
             await Task.Run(async () =>
             {
                 do
@@ -239,16 +240,39 @@ namespace StayInTarkov.Coop
                     //    continue;
                     //}
 
-                    if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
-                    {
-                        GCHelpers.EnableGC();
-                    }
+                    //if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
+                    //{
+                    //    GCHelpers.EnableGC();
+                    //}
 
-                    if (counter == (61 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
+                    //if (counter == (61 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
+                    //{
+                    //    GCHelpers.DisableGC(true);
+                    //    counter = 0;
+                    //}
+
+                    var memory = GC.GetTotalMemory(false);
+                    if (!lastMemory.HasValue)
+                        lastMemory = memory;
+
+                    long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
+
+                    if (lastMemory.HasValue && memory > lastMemory.Value + (memoryThreshold * 1024 * 1024))
                     {
+                        Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
+                        lastMemory = memory;
+
+                        GCHelpers.EnableGC();
+                        GC.GetTotalMemory(true);
                         GCHelpers.DisableGC(true);
-                        counter = 0;
-                        maxMoveCounter = 60;
+
+                        var freedMemory = GC.GetTotalMemory(false);
+                        Logger.LogDebug($"Freed {(freedMemory > 0 ? (freedMemory / 1024 / 1024) : 0)}mb in memory");
+
+                        if (PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets)
+                        {
+                            GCHelpers.ClearGarbage(true, true);
+                        }
                     }
 
                 } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);
