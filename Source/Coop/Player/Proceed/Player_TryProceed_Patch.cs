@@ -4,6 +4,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Proceed
@@ -54,6 +55,8 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
                 CallLocally.Add(player.ProfileId);
@@ -79,6 +82,9 @@ namespace StayInTarkov.Coop.Player.Proceed
                 if (player.IsYourPlayer)
                     player.Proceed(true, null, true);
             }
+
+            if (stopwatch.ElapsedMilliseconds > 1)
+                StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(Player_TryProceed_Patch)} TryFindItem took {stopwatch.ElapsedMilliseconds}ms to process!");
         }
     }
 }
