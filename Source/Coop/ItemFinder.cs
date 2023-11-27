@@ -16,12 +16,13 @@ namespace StayInTarkov.Coop
 
             if (!string.IsNullOrEmpty(templateId))
             {
-                var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(templateId);
+                //var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(templateId);
+                var allEquipmentItems = player.Profile.Inventory.GetAllEquipmentItems();
 
-                if (!allItemsOfTemplate.Any())
+                if (!allEquipmentItems.Any())
                     return false;
 
-                item = allItemsOfTemplate.FirstOrDefault(x => x.Id == itemId);
+                item = allEquipmentItems.FirstOrDefault(x => x.Id == itemId);
             }
             else
             {
@@ -51,11 +52,8 @@ namespace StayInTarkov.Coop
             else
             {
                 var coopGC = CoopGameComponent.GetCoopGameComponent();
-                var players = coopGC.Players;
-                if (players == null)
-                    return false;
 
-                foreach (var player in players)
+                foreach (var player in coopGC.Players)
                 {
                     if (TryFindItemOnPlayer(player.Value, null, itemId, out item))
                         return true;
