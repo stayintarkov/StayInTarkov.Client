@@ -1,0 +1,69 @@
+# Testing out the Linux Build to compare against Windows
+
+name: SIT CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths-ignore:
+      - '.github/**'
+      - '*.md'
+    branches:
+      - "master"
+
+  workflow_dispatch:
+
+jobs:
+  Build-SIT:
+
+    strategy:
+      matrix:
+        configuration: [Debug]
+
+    runs-on: ubuntu-latest  # Using Ubuntu instead of Windows
+
+    env:
+      SolutionName: StayInTarkov
+      CSProj: Source/StayInTarkov.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      # Restore all projects
+      - name: dotnet Restore
+        run: dotnet restore
+
+      # Build the project
+      - name: dotnet Publish
+        run: |
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+
+      # Remove unnecessary files
+      - name: Remove unnecessary files
+        run: |
+          rm ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.pdb
+
+      # Zip remaining files
+      - name: Zip remaining files
+        run: |
+          zip -r ${{ env.SolutionName }}-${{ matrix.configuration }}.zip ${{ env.SolutionName }}-${{ matrix.configuration }}
+
+      # Upload artifact with GitHub commit SHA
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.SolutionName }}-${{ matrix.configuration }}-${{ github.sha }}
+          path: ${{ env.SolutionName }}-${{ matrix.configuration }}/
+          if-no-files-found: error
