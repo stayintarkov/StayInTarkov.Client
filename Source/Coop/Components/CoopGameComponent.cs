@@ -261,18 +261,25 @@ namespace StayInTarkov.Coop
                     {
                         Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
                         lastMemory = memory;
+                        Stopwatch sw = Stopwatch.StartNew();
 
                         GCHelpers.EnableGC();
-                        GC.GetTotalMemory(true);
-                        GCHelpers.DisableGC(true);
+                        if (PluginConfigSettings.Instance.AdvancedSettings.SITGCAggressiveClean)
+                        {
+                            GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                        }
+                        else
+                        {
+                            GC.GetTotalMemory(true);
+                            GCHelpers.DisableGC(true);
+                        }
 
                         var freedMemory = GC.GetTotalMemory(false);
                         Logger.LogDebug($"Freed {(freedMemory > 0 ? (freedMemory / 1024 / 1024) : 0)}mb in memory");
+                        Logger.LogDebug($"Garbage Collection took {sw.ElapsedMilliseconds}ms");
+                        sw.Stop();
+                        sw = null;
 
-                        if (PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets)
-                        {
-                            GCHelpers.ClearGarbage(true, true);
-                        }
                     }
 
                 } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);

@@ -54,8 +54,13 @@ namespace StayInTarkov.Memory
         public static void ClearGarbage(bool emptyTheSet = false, bool unloadAssets = true)
         {
             Logger.LogDebug($"ClearGarbage()");
-            EnableGC();
-            Collect(force: true);
+
+            if (!emptyTheSet)
+            {
+                EnableGC();
+                Collect(force: true);
+            }
+
             if (Emptying)
                 return;
 
@@ -76,26 +81,27 @@ namespace StayInTarkov.Memory
         public static void RunHeapPreAllocation()
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            int num = Math.Max(0, 128);
-            UnityEngine.Debug.Log(num + " MBs");
-            if (num > 0)
+            int objectArrayLength = 512;
+            int byteArrayLength = 1024;
+
+            object[] array = new object[objectArrayLength];
+            for (int i = 0; i < array.Length; i++)
             {
-                object[] array = new object[1024 * num];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = new byte[1024];
-                }
-                array = null;
-                stopwatch.Stop();
-                Logger.LogDebug($"Heap pre-allocation for {num} mBs took {stopwatch.ElapsedMilliseconds} ms");
+                array[i] = new byte[byteArrayLength];
             }
+            array = null;
+            stopwatch.Stop();
+            Logger.LogDebug($"Heap pre-allocation took {stopwatch.ElapsedMilliseconds} ms");
+            stopwatch = null;
+
+            GC.AddMemoryPressure(objectArrayLength * byteArrayLength);
         }
 
         public static void Collect(bool force = false)
         {
             Logger.LogDebug($"Collect({force})");
 
-            Collect(2, force ? GCCollectionMode.Forced : GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
+            Collect(4, force ? GCCollectionMode.Forced : GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
         }
 
         public static void Collect(int generation, GCCollectionMode gcMode, bool isBlocking, bool compacting, bool force)
