@@ -1,7 +1,8 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> StayInTarkov.Client </h1>
-An Escape From Tarkov BepInEx module designed to be used with the [SIT SPT-Aki Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) with the ultimate goal of "Offline" Coop 
+<h1 style="text-align: center">StayInTarkov.Client</h1>
+
+An Escape From Tarkov BepInEx module designed to be used with the [SIT.Server-Aki-Mod](SIT.Aki-Server-Mod) with the ultimate goal of "Offline" Coop
 </div>
 
 ---
