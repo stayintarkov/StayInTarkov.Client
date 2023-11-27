@@ -1,16 +1,16 @@
-name: SIT CI
+name: SIT CI Windows
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-    paths-ignore:
-      - '.github/**'
-      - '*.md'
-    branches:
-      - "master"
+  #pull_request:
+    #types:
+     #- opened
+     #- synchronize
+     #- reopened
+    #paths-ignore:
+      #- '.github/**'
+      #- '*.md'
+    #branches:
+      #- "master"
 
   workflow_dispatch:
 

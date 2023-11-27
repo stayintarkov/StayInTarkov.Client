@@ -1,6 +1,6 @@
 # Testing out the Linux Build to compare against Windows
 
-name: SIT CI
+name: SIT CI Linux
 
 on:
   pull_request:
