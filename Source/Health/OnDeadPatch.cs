@@ -1,5 +1,6 @@
 ﻿using EFT;
 using Newtonsoft.Json;
+using StayInTarkov.Configuration;
 using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System;
@@ -17,14 +18,9 @@ namespace StayInTarkov.Health
         public static event Action<Player, EDamageType> OnPersonKilled;
         public static bool DisplayDeathMessage = true;
 
-        public OnDeadPatch(BepInEx.Configuration.ConfigFile config)
+        public OnDeadPatch()
         {
-            var enableDeathMessage = config.Bind("SIT", "EnableDeathMessage", true);
-            if (enableDeathMessage != null)
-            {
-                DisplayDeathMessage = enableDeathMessage.Value;
-
-            }
+            DisplayDeathMessage = PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed;
         }
 
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(typeof(Player), "OnDead");
