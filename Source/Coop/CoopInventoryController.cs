@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace StayInTarkov.Coop
 {
     internal class CoopInventoryController
-        : EFT.Player.PlayerInventoryController, ICoopInventoryController
+        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
@@ -21,14 +21,9 @@ namespace StayInTarkov.Coop
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
-        }
 
-        public override void AddDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
-        {
-        }
-
-        public override void SubtractFromDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
-        {
+            if (profile.ProfileId.StartsWith("pmc") && !IsDiscardLimitsFine(DiscardLimits))
+                base.ResetDiscardLimits();
         }
 
         public override void Execute(SearchContentOperation operation, Callback callback)
@@ -68,8 +63,6 @@ namespace StayInTarkov.Coop
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
         {
-            //BepInLogger.LogInfo("ThrowItem");
-            destroyedItems = new List<ItemsCount>();
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
 
@@ -84,8 +77,20 @@ namespace StayInTarkov.Coop
 
             }
         }
-    }
 
+        public static bool IsDiscardLimitsFine(Dictionary<string, int> DiscardLimits)
+        {
+            return DiscardLimits != null
+                && DiscardLimits.Count > 0
+                && DiscardLimits.ContainsKey("5449016a4bdc2d6f028b456f") // Roubles, Value: 20000
+                && DiscardLimits.ContainsKey("5696686a4bdc2da3298b456a") // Dollars, Value: 0
+                && DiscardLimits.ContainsKey("569668774bdc2da2298b4568") // Euros, Value: 0
+                && DiscardLimits.ContainsKey("5448be9a4bdc2dfd2f8b456a") // RGD-5 Grenade, Value: 20
+                && DiscardLimits.ContainsKey("5710c24ad2720bc3458b45a3") // F-1 Grenade, Value: 20
+                && DiscardLimits.ContainsKey(DogtagComponent.BearDogtagsTemplate) // Value: 0
+                && DiscardLimits.ContainsKey(DogtagComponent.UsecDogtagsTemplate); // Value: 0
+        }
+    }
 
     public interface ICoopInventoryController
     {

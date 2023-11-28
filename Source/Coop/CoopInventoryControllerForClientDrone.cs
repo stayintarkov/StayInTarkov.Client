@@ -10,14 +10,17 @@ using System.Threading.Tasks;
 namespace StayInTarkov.Coop
 {
     internal class CoopInventoryControllerForClientDrone
-        : InventoryController, ICoopInventoryController
+        : EFT.Player.PlayerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
         public CoopInventoryControllerForClientDrone(EFT.Player player, Profile profile, bool examined)
-            : base(profile, examined)
+            : base(player, profile, examined)
         {
-            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
+            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerForClientDrone));
+
+            if (profile.ProfileId.StartsWith("pmc") && !CoopInventoryController.IsDiscardLimitsFine(DiscardLimits))
+                base.ResetDiscardLimits();
         }
 
         public override void Execute(SearchContentOperation operation, Callback callback)
@@ -34,7 +37,6 @@ namespace StayInTarkov.Coop
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
         {
-            destroyedItems = new List<ItemsCount>();
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
 

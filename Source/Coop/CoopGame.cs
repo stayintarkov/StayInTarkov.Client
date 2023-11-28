@@ -774,6 +774,10 @@ namespace StayInTarkov.Coop
             StopCoroutine(ClientLoadingPinger());
             //GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
 
+            var magazines = Profile_0.Inventory.AllPlayerItems.OfType<MagazineClass>().ToList();
+            for (int i = 0; i < magazines.Count(); i++)
+                Profile_0.CheckMagazines(magazines[i].Id, 2);
+
             // Add FreeCamController to GameWorld GameObject
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
             yield break;
