@@ -3,5 +3,6 @@ namespace DrakiaXYZ.BigBrain.Brains
 {
     public abstract class CustomBrain
     {
+
     }
 }
