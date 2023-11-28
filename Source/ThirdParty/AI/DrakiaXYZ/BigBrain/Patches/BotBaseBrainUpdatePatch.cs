@@ -1,9 +1,11 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
+using EFT;
 using HarmonyLib;
 using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using AICoreLogicLayerClass = AICoreLayerClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
@@ -18,20 +20,23 @@ namespace DrakiaXYZ.BigBrain.Patches
         private static MethodInfo _activeLayerSetter;
         private static FieldInfo _activeLayerListField;
         private static FieldInfo _onLayerChangedToField;
+        private static FieldInfo _ownerField;
 
         protected override MethodBase GetTargetMethod()
         {
-            Type botLogicBrainType = typeof(BaseBrain);
-            Type botBaseBrainType = botLogicBrainType.BaseType;
+            Type baseBrainType = typeof(BaseBrain);
+            Type aiCoreStrategyType = baseBrainType.BaseType;
 
-            string activeLayerPropertyName = Utils.GetPropertyNameByType(botBaseBrainType, typeof(AICoreLogicLayerClass));
-            _activeLayerGetter = AccessTools.PropertyGetter(botBaseBrainType, activeLayerPropertyName);
-            _activeLayerSetter = AccessTools.PropertySetter(botBaseBrainType, activeLayerPropertyName);
+            _ownerField = AccessTools.Field(baseBrainType, "_owner");
 
-            _activeLayerListField = Utils.GetFieldByType(botBaseBrainType, typeof(List<AICoreLogicLayerClass>));
-            _onLayerChangedToField = Utils.GetFieldByType(botBaseBrainType, typeof(Action<AICoreLogicLayerClass>));
+            string activeLayerPropertyName = Utils.GetPropertyNameByType(aiCoreStrategyType, typeof(AICoreLogicLayerClass));
+            _activeLayerGetter = AccessTools.PropertyGetter(aiCoreStrategyType, activeLayerPropertyName);
+            _activeLayerSetter = AccessTools.PropertySetter(aiCoreStrategyType, activeLayerPropertyName);
 
-            return AccessTools.Method(botBaseBrainType, "Update");
+            _activeLayerListField = Utils.GetFieldByType(aiCoreStrategyType, typeof(List<AICoreLogicLayerClass>));
+            _onLayerChangedToField = Utils.GetFieldByType(aiCoreStrategyType, typeof(Action<AICoreLogicLayerClass>));
+
+            return AccessTools.Method(aiCoreStrategyType, "Update");
         }
 
         [PatchPrefix]
@@ -41,63 +46,61 @@ namespace DrakiaXYZ.BigBrain.Patches
             try
             {
 #endif
-                if (__instance == null)
-                {
-                    __result = null;
-                    return false;
-                }
 
-                // Get values we'll use later
-                List<AICoreLogicLayerClass> activeLayerList = _activeLayerListField.GetValue(__instance) as List<AICoreLogicLayerClass>;
-                AICoreLogicLayerClass activeLayer = _activeLayerGetter.Invoke(__instance, null) as AICoreLogicLayerClass;
+            // Get values we'll use later
+            List<AICoreLogicLayerClass> activeLayerList = _activeLayerListField.GetValue(__instance) as List<AICoreLogicLayerClass>;
+            AICoreLogicLayerClass activeLayer = _activeLayerGetter.Invoke(__instance, null) as AICoreLogicLayerClass;
 
-                if (activeLayerList == null)
-                {
-                    __result = null;
-                    return false;
-                }
-
-                foreach (AICoreLogicLayerClass layer in activeLayerList)
-                {
-                    if (layer.ShallUseNow())
-                    {
-                        if (layer != activeLayer)
-                        {
-                            // Allow telling custom layers they're stopping
-                            if (activeLayer is CustomLayerWrapper customActiveLayer)
-                            {
-                                customActiveLayer.Stop();
-                            }
-
-                            activeLayer = layer;
-                            _activeLayerSetter.Invoke(__instance, new object[] { layer });
-                            Action<AICoreLogicLayerClass> action = _onLayerChangedToField.GetValue(__instance) as Action<AICoreLogicLayerClass>;
-                            if (action != null)
-                            {
-                                action(activeLayer);
-                            }
-
-                            // Allow telling custom layers they're starting
-                            if (activeLayer is CustomLayerWrapper customNewLayer)
-                            {
-                                customNewLayer.Start();
-                            }
-                        }
-
-                        // Call the active layer's Update() method
-                        __result = activeLayer.Update(new AILogicActionResultStruct?(prevResult));
-                        return false;
-                    }
-                }
-
-                // No layers are active, return null
+            if (activeLayerList == null)
+            {
                 __result = null;
                 return false;
+            }
+
+            foreach (AICoreLogicLayerClass layer in activeLayerList)
+            {
+                if (layer.ShallUseNow())
+                {
+                    if (layer != activeLayer)
+                    {
+                        // Allow telling custom layers they're stopping
+                        if (activeLayer is CustomLayerWrapper customActiveLayer)
+                        {
+                            customActiveLayer.Stop();
+                        }
+
+                        activeLayer = layer;
+                        _activeLayerSetter.Invoke(__instance, new object[] { layer });
+                        Action<AICoreLogicLayerClass> action = _onLayerChangedToField.GetValue(__instance) as Action<AICoreLogicLayerClass>;
+                        if (action != null)
+                        {
+                            action(activeLayer);
+                        }
+
+                        // Allow telling custom layers they're starting
+                        if (activeLayer is CustomLayerWrapper customNewLayer)
+                        {
+                            customNewLayer.Start();
+                        }
+                    }
+
+                    // Call the active layer's Update() method
+                    __result = activeLayer.Update(new AILogicActionResultStruct?(prevResult));
+                    return false;
+                }
+            }
+
+            // No layers are active, return null
+            __result = null;
+            return false;
 
 #if DEBUG
             }
             catch (Exception ex)
             {
+                BotOwner owner = _ownerField.GetValue(__instance) as BotOwner;
+                Logger.LogError($"Exception in ShallUseNow for {owner.Profile.Nickname} ({owner.name})");
+
                 Logger.LogError(ex);
                 throw ex;
             }

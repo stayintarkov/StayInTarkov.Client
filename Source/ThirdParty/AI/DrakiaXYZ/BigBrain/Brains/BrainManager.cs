@@ -1,5 +1,6 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using EFT;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -30,10 +31,10 @@ namespace DrakiaXYZ.BigBrain.Brains
 
         private static int _currentLayerId = START_LAYER_ID;
 
-        internal Dictionary<int, LayerInfo> CustomLayers = new();
-        internal Dictionary<Type, int> CustomLogics = new();
-        internal List<Type> CustomLogicList = new();
-        internal List<ExcludeLayerInfo> ExcludeLayers = new();
+        internal Dictionary<int, LayerInfo> CustomLayers = new Dictionary<int, LayerInfo>();
+        internal Dictionary<Type, int> CustomLogics = new Dictionary<Type, int>();
+        internal List<Type> CustomLogicList = new List<Type>();
+        internal List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
 
         private static FieldInfo _strategyField = Utils.GetFieldByType(typeof(AICoreLogicAgentClass), typeof(AICoreStrategyClass<>));
 

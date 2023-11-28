@@ -4,12 +4,13 @@ using System;
 
 namespace DrakiaXYZ.BigBrain
 {
-    [BepInPlugin("xyz.drakia.bigbrain", "DrakiaXYZ-BigBrain", "0.2.0.0")]
+    [BepInPlugin("xyz.drakia.bigbrain", "DrakiaXYZ-BigBrain", "0.3.2.0")]
     internal class BigBrainPlugin : BaseUnityPlugin
     {
         private void Awake()
         {
             Logger.LogInfo("Loading: DrakiaXYZ-BigBrain");
+
             try
             {
                 new BotBaseBrainActivatePatch().Enable();

@@ -4,6 +4,7 @@ using StayInTarkov;
 using System;
 using System.Collections;
 using System.Reflection;
+
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
@@ -34,57 +35,60 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static bool PatchPrefix(object __instance)
         {
-            try
+#if DEBUG
+            try {
+#endif
+
+            // Get values we'll use later
+            BaseBrain strategy = _strategyField.GetValue(__instance) as BaseBrain;
+            var aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as IDictionary;
+
+            // Update the brain, this is instead of method_10 in the original code
+            strategy.ManualUpdate();
+
+            // Call the brain update
+            AILogicActionResultStruct lastResult = (AILogicActionResultStruct)_lastResultField.GetValue(__instance);
+            AILogicActionResultStruct? result = strategy.Update(lastResult);
+            if (result != null)
             {
-
-                // Get values we'll use later
-                BaseBrain strategy = _strategyField.GetValue(__instance) as BaseBrain;
-                var aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as IDictionary;
-
-                // Update the brain, this is instead of method_10 in the original code
-                strategy.ManualUpdate();
-
-                // Call the brain update
-                AILogicActionResultStruct lastResult = (AILogicActionResultStruct)_lastResultField.GetValue(__instance);
-                AILogicActionResultStruct? result = strategy.Update(lastResult);
-                if (result != null)
+                // If an instance of our action doesn't exist in our dict, add it
+                int action = (int)result.Value.Action;
+                BaseNodeClass nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as BaseNodeClass;
+                if (nodeInstance == null)
                 {
-                    // If an instance of our action doesn't exist in our dict, add it
-                    int action = (int)result.Value.Action;
-                    BaseNodeClass nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as BaseNodeClass;
-                    if (nodeInstance == null)
-                    {
-                        Delegate lazyGetter = _lazyGetterField.GetValue(__instance) as Delegate;
-                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as BaseNodeClass;
-
-                        if (nodeInstance != null)
-                        {
-                            aiCoreNodeDict.Add((BotLogicDecision)action, nodeInstance);
-                        }
-                    }
+                    Delegate lazyGetter = _lazyGetterField.GetValue(__instance) as Delegate;
+                    nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as BaseNodeClass;
 
                     if (nodeInstance != null)
                     {
-                        // If we're switching to a new action, call Start() on the new logic
-                        if (lastResult.Action != result.Value.Action && nodeInstance is CustomLogicWrapper customLogic)
-                        {
-                            customLogic.Start();
-                        }
-
-                        nodeInstance.Update();
+                        aiCoreNodeDict.Add((BotLogicDecision)action, nodeInstance);
                     }
-
-                    _lastResultField.SetValue(__instance, result);
                 }
 
-                return false;
+                if (nodeInstance != null)
+                {
+                    // If we're switching to a new action, call Start() on the new logic
+                    if (lastResult.Action != result.Value.Action && nodeInstance is CustomLogicWrapper customLogic)
+                    {
+                        customLogic.Start();
+                    }
 
+                    nodeInstance.Update();
+                }
+
+                _lastResultField.SetValue(__instance, result);
+            }
+
+            return false;
+
+#if DEBUG
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
                 throw ex;
             }
+#endif
         }
     }
 }

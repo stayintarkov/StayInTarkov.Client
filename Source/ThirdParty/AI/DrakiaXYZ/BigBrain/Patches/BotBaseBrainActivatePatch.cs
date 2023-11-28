@@ -4,6 +4,7 @@ using EFT;
 using HarmonyLib;
 using StayInTarkov;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace DrakiaXYZ.BigBrain.Patches
@@ -14,23 +15,25 @@ namespace DrakiaXYZ.BigBrain.Patches
     internal class BotBaseBrainActivatePatch : ModulePatch
     {
         private static FieldInfo _botOwnerField;
-        private static MethodInfo _addLayer;
+        private static MethodInfo _addLayerMethod;
         protected override MethodBase GetTargetMethod()
         {
-            Type botLogicBrainType = typeof(BaseBrain);
-            Type botBaseBrainType = botLogicBrainType.BaseType;
+            Type baseBrainType = typeof(BaseBrain);
+            Type aiCoreStrategyType = baseBrainType.BaseType;
 
-            _botOwnerField = AccessTools.Field(botLogicBrainType, "_owner");
-            _addLayer = AccessTools.Method(botBaseBrainType, "method_0");
+            _botOwnerField = AccessTools.GetDeclaredFields(baseBrainType).Single(x => x.FieldType == typeof(BotOwner));
+            _addLayerMethod = AccessTools.GetDeclaredMethods(aiCoreStrategyType).Single(x =>
+            {
+                var parms = x.GetParameters();
+                return (parms.Length == 3 && parms[0].Name == "index" && parms[1].Name == "layer");
+            });
 
-            return AccessTools.Method(botBaseBrainType, "Activate");
+            return AccessTools.Method(aiCoreStrategyType, "Activate");
         }
 
         [PatchPrefix]
         public static void PatchPrefix(object __instance)
         {
-            //Logger.LogDebug("BotBaseBrainActivatePatch");
-            //Logger.LogDebug(__instance.GetType());
             try
             {
                 BaseBrain botBrain = __instance as BaseBrain;
@@ -40,9 +43,11 @@ namespace DrakiaXYZ.BigBrain.Patches
                 {
                     if (layerInfo.customLayerBrains.Contains(botBrain.ShortName()))
                     {
-                        CustomLayerWrapper customLayerWrapper = new(layerInfo.customLayerType, botOwner, layerInfo.customLayerPriority);
+                        CustomLayerWrapper customLayerWrapper = new CustomLayerWrapper(layerInfo.customLayerType, botOwner, layerInfo.customLayerPriority);
+#if DEBUG
                         Logger.LogDebug($"  Injecting {customLayerWrapper.Name()}({layerInfo.customLayerId}) with priority {layerInfo.customLayerPriority}");
-                        _addLayer.Invoke(botBrain, new object[] { layerInfo.customLayerId, customLayerWrapper, true });
+#endif
+                        _addLayerMethod.Invoke(botBrain, new object[] { layerInfo.customLayerId, customLayerWrapper, true });
                     }
                 }
             }
