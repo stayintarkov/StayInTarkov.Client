@@ -69,6 +69,9 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
+            if (player.IsSprintEnabled)
+                return;
+
             if (CallLocally.Contains(player.ProfileId))
             {
                 CallLocally = CallLocally.Where(x => x != player.ProfileId).ToList();
