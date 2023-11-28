@@ -54,6 +54,12 @@ namespace StayInTarkov
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
+        public static string IllegalMessage { get; }
+            = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
+            ? LanguageDictionary["ILLEGAL_MESSAGE"]
+            : "Illegal game found. Please buy, install and launch the game once.";
+
+
         private void Awake()
         {
             Instance = this;
@@ -85,7 +91,7 @@ namespace StayInTarkov
             if (Singleton<PreloaderUI>.Instantiated && !shownCheckError && !LegalGameCheck.LegalGameFound)
             {
                 shownCheckError = true;
-                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", LegalGameCheck.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", StayInTarkovPlugin.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
             }
         }
 

@@ -3,6 +3,7 @@ using Comfort.Common;
 using EFT;
 using FilesChecker;
 using Newtonsoft.Json;
+using StayInTarkov.Coop;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.UI;
 using System;
@@ -37,6 +38,21 @@ namespace StayInTarkov
         }
 
         public static Type[] FilesCheckerTypes { get; private set; }
+
+        private static Type[] _sitTypes;
+        public static Type[] SITTypes
+        {
+            get
+            {
+                if (_sitTypes == null)
+                {
+                    _sitTypes = typeof(ISITGame).Assembly.GetTypes().OrderBy(t => t.Name).ToArray();
+                }
+
+                return _sitTypes;
+            }
+        }
+
 
         /// <summary>
         /// A Key/Value dictionary of storing & obtaining an array of types by name

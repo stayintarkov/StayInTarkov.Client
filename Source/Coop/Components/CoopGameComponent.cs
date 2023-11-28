@@ -2,20 +2,24 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using EFT.UI;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.EssentialPatches;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -88,9 +92,6 @@ namespace StayInTarkov.Coop
 
         public List<EFT.LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
 
-        /**
-         * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
-         */
         public BlockingCollection<Dictionary<string, object>> ActionPackets => ActionPacketHandler.ActionPackets;
 
         private Dictionary<string, object>[] m_CharactersJson { get; set; }
@@ -148,6 +149,11 @@ namespace StayInTarkov.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
+            LCByterCheck[0] = StayInTarkovHelperConstants
+                .SITTypes
+                .Any(x => x.Name == 
+                Encoding.UTF8.GetString(new byte[] { 0x4c, 0x65, 0x67, 0x61, 0x6c, 0x47, 0x61, 0x6d, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b }))
+                ? (byte)0x1 : (byte)0x0;
         }
 
 
@@ -577,13 +583,16 @@ namespace StayInTarkov.Coop
                 instance.PlayerRTT = ServerPing;
                 instance.ServerFixedUpdateTime = ServerPing;
                 instance.ServerTime = ServerPing;
-                return;
             }
 
-            //MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(0);
-
-            //LateUpdateSpan = DateTime.Now - DateTimeStart;
+            if (Singleton<PreloaderUI>.Instantiated && LCByterCheck[0] == 0 && LCByterCheck[1] == 0)
+            {
+                LCByterCheck[1] = 1;
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", StayInTarkovPlugin.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
+            }
         }
+
+        byte[] LCByterCheck { get; } = new byte[2] { 0, 0 };
 
         #endregion
 
