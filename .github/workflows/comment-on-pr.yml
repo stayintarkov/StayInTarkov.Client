@@ -6,6 +6,8 @@ on:
       - completed
     workflows:
       - 'SIT CI Linux'
+permissions:
+  pull-requests: write
 
 jobs:
   comment:
