@@ -6,6 +6,7 @@ using HarmonyLib;
 using StayInTarkov.Configuration;
 using System;
 using UnityEngine;
+using UnityStandardAssets.ImageEffects;
 
 namespace StayInTarkov.Coop.FreeCamera
 {
@@ -148,6 +149,49 @@ namespace StayInTarkov.Coop.FreeCamera
                     if (eyeBurn != null)
                     {
                         eyeBurn.enabled = false;
+                    }
+
+                    var ccWiggle = fpsCamInstance.EffectsController.GetComponent<CC_Wiggle>();
+                    if (ccWiggle != null)
+                    {
+                        ccWiggle.enabled = false;
+                    }
+
+                    var ccBlur = fpsCamInstance.EffectsController.GetComponent<CC_RadialBlur>();
+                    if (ccBlur != null)
+                    {
+                        ccBlur.enabled = false;
+                    }
+
+                    var mBlur = fpsCamInstance.EffectsController.GetComponent<MotionBlur>();
+                    if (mBlur != null)
+                    {
+                        mBlur.enabled = false;
+                    }
+
+                    var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
+                    if (ccBlends != null)
+                    {
+                        foreach (var b in ccBlends) 
+                        {
+                            b.enabled = false;
+                        }
+                    }
+
+                    var visor = fpsCamInstance.VisorEffect;
+                    if (fastBlur != null)
+                    {
+                        visor.enabled = false;
+                    }
+                    var night = fpsCamInstance.NightVision;
+                    if (night != null)
+                    {
+                        night.enabled = false;
+                    }
+                    var thermal = fpsCamInstance.ThermalVision;
+                    if (thermal != null)
+                    {
+                        thermal.enabled = false;
                     }
                 }
             }
