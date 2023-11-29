@@ -1415,15 +1415,41 @@ namespace StayInTarkov.Coop
                 if (pl.IsYourPlayer && pl.HealthController.IsAlive)
                     continue;
 
-                Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
+                Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + (Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f));
                 Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
                 if (screenPos.z > 0)
                 {
                     rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                    rect.y = Screen.height - (screenPos.y * screenScale);
+                    rect.y = Screen.height - ((screenPos.y + rect.height / 2) * screenScale);
+
+                    GUIStyle labelStyle = middleLabelStyle;
+                    labelStyle.fontSize = 14;
+                    float labelOpacity = 1;
+                    float distanceToCenter = Vector3.Distance(screenPos, new Vector3(Screen.width, Screen.height, 0) / 2);
+                    
+                    if (distanceToCenter < 100)
+                    {
+                        labelOpacity = distanceToCenter / 100;
+                    }
+
+                    if (ownPlayer.HandsController.IsAiming)
+                    {
+                        labelOpacity *= 0.5f;
+                    }
+
+                    if (pl.HealthController.IsAlive)
+                    {
+                        var maxHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Maximum;
+                        var currentHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Current / maxHealth;
+                        labelStyle.normal.textColor = new Color(2.0f * (1 - currentHealth), 2.0f * currentHealth, 0, labelOpacity);
+                    }
+                    else
+                    {
+                        labelStyle.normal.textColor = new Color(255, 0, 0, labelOpacity);
+                    }
 
                     var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
-                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
+                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", labelStyle);
                 }
             }
         }
