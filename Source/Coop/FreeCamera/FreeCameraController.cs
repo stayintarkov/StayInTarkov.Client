@@ -6,6 +6,7 @@ using HarmonyLib;
 using StayInTarkov.Configuration;
 using System;
 using UnityEngine;
+using UnityStandardAssets.ImageEffects;
 
 namespace StayInTarkov.Coop.FreeCamera
 {
@@ -154,6 +155,18 @@ namespace StayInTarkov.Coop.FreeCamera
                     if (ccWiggle != null)
                     {
                         ccWiggle.enabled = false;
+                    }
+
+                    var ccBlur = fpsCamInstance.EffectsController.GetComponent<CC_RadialBlur>();
+                    if (ccBlur != null)
+                    {
+                        ccBlur.enabled = false;
+                    }
+
+                    var mBlur = fpsCamInstance.EffectsController.GetComponent<MotionBlur>();
+                    if (mBlur != null)
+                    {
+                        mBlur.enabled = false;
                     }
 
                     var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
