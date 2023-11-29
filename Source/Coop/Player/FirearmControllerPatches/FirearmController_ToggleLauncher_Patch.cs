@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Networking;
+﻿using StayInTarkov.Coop.Web;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public static HashSet<string> CallLocally
             = new();
 
 
@@ -26,34 +27,38 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             EFT.Player.FirearmController __instance
             , EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
-                return false;
+            //var player = ____player;
+            //if (player == null)
+            //    return false;
 
-            var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            //var result = false;
+            //if (CallLocally.Contains(player.ProfileId))
+            //    result = true;
 
-            return result;
+            //return result;
+
+            return true;
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
             Dictionary<string, object> dictionary = new();
             dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
             dictionary.Add("m", "ToggleLauncher");
-            AkiBackendCommunication.Instance.SendDataToPool(dictionary.ToJson());
+
+            CallLocally.Add(player.ProfileId);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -64,7 +69,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
                 firearmCont.ToggleLauncher();
             }
         }
