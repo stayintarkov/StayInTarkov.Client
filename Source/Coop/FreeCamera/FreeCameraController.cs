@@ -149,6 +149,37 @@ namespace StayInTarkov.Coop.FreeCamera
                     {
                         eyeBurn.enabled = false;
                     }
+
+                    var ccWiggle = fpsCamInstance.EffectsController.GetComponent<CC_Wiggle>();
+                    if (ccWiggle != null)
+                    {
+                        ccWiggle.enabled = false;
+                    }
+
+                    var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
+                    if (ccBlends != null)
+                    {
+                        foreach (var b in ccBlends) 
+                        {
+                            b.enabled = false;
+                        }
+                    }
+
+                    var visor = fpsCamInstance.VisorEffect;
+                    if (fastBlur != null)
+                    {
+                        visor.enabled = false;
+                    }
+                    var night = fpsCamInstance.NightVision;
+                    if (night != null)
+                    {
+                        night.enabled = false;
+                    }
+                    var thermal = fpsCamInstance.ThermalVision;
+                    if (thermal != null)
+                    {
+                        thermal.enabled = false;
+                    }
                 }
             }
 
