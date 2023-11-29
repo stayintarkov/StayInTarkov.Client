@@ -3,18 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
+namespace StayInTarkov.Coop.Player
 {
-    internal class FireArmController_ToggleAim_Patch : ModuleReplicationPatch
+    internal class Player_CreateCompass_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "ToggleAim";
+        public override Type InstanceType => typeof(EFT.Player);
+        public override string MethodName => "CreateCompass";
         public static List<string> CallLocally = new();
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        public static bool PrePatch(EFT.Player __instance)
         {
-            var player = ____player;
+            var player = __instance;
             if (player == null)
             {
                 return false;
@@ -28,9 +28,9 @@ namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
         }
 
         [PatchPostfix]
-        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        public static void Postfix(EFT.Player __instance)
         {
-            var player = ____player;
+            var player = __instance;
             if (player == null)
                 return;
 
@@ -42,7 +42,7 @@ namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
 
             Dictionary<string, object> dictionary = new()
             {
-                { "m", "ToggleAim" }
+                { "m", "CreateCompass" }
             };
 
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
@@ -58,11 +58,8 @@ namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
 
             try
             {
-                if (player.HandsController is EFT.Player.FirearmController firearmCont)
-                {
-                    CallLocally.Add(player.ProfileId);
-                    firearmCont.ToggleAim();
-                }
+                CallLocally.Add(player.ProfileId);
+                player.CreateCompass();
             }
             catch (Exception ex)
             {
