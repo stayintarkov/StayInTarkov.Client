@@ -1,4 +1,5 @@
-﻿using BepInEx.Logging;
+﻿using Aki.Custom.Airdrops;
+using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using EFT.Bots;
@@ -780,6 +781,9 @@ namespace StayInTarkov.Coop
 
             // Add FreeCamController to GameWorld GameObject
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+
+            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
+
             yield break;
         }
 

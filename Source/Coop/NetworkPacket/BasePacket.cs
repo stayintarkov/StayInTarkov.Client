@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -184,9 +185,13 @@ namespace StayInTarkov.Coop.NetworkPacket
                         // Process an Enum
                         if (prop.PropertyType.IsEnum)
                             prop.SetValue(obj, Enum.Parse(prop.PropertyType, separatedPacket[index].ToString()));
-                        // Unknown Object. What should we do with this?
                         else
-                            StayInTarkovHelperConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
+                        {
+                            var jobj = JObject.Parse(separatedPacket[index].ToString());
+                            var instance = jobj.ToObject(prop.PropertyType);
+                            prop.SetValue(obj, instance);
+                            //StayInTarkovHelperConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
+                        }
                         break;
                 }
                 index++;

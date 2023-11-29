@@ -1,10 +1,14 @@
-﻿using BepInEx.Logging;
+﻿using Aki.Custom.Airdrops;
+using Aki.Custom.Airdrops.Models;
+using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
+using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
@@ -243,29 +247,17 @@ namespace StayInTarkov.Networking
                 if (DEBUGPACKETS)
                 {
                     Logger.LogInfo(e.Data);
-
-                    try
-                    {
-                        packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(e.Data);
-                        Logger.LogError(ex);
-                    }
                 }
-                else
+
+                // Use StreamReader & JsonTextReader to improve memory / cpu usage
+                using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
                 {
-                    using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
+                    using (var reader = new JsonTextReader(streamReader))
                     {
-                        using (var reader = new JsonTextReader(streamReader))
-                        {
-                            var serializer = new JsonSerializer();
-                            packet = serializer.Deserialize<Dictionary<string, object>>(reader);
-                        }
+                        var serializer = new JsonSerializer();
+                        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
                     }
                 }
-
 
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     return;
@@ -276,7 +268,7 @@ namespace StayInTarkov.Networking
                 if (packet == null)
                     return;
 
-                //Logger.LogInfo($"Step.1. Packet exists. {packet.ToJson()}");
+                //Logger.LogDebug($"Step.1. Packet exists. {packet.ToJson()}");
 
                 // If this is a pong packet, resolve and create a smooth ping
                 if (packet.ContainsKey("pong"))
@@ -332,7 +324,7 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
-                // TimeAndWeather
+                // Time And Weather
                 if (packet.ContainsKey("TimeAndWeather"))
                 {
                     if (MatchmakerAcceptPatches.IsClient)
@@ -440,6 +432,30 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
+                if (Singleton<SITAirdropsManager>.Instantiated 
+                    && packet.ContainsKey("m") 
+                    && packet["m"].ToString().StartsWith("Airdrop")
+                    )
+                {
+                    if (packet["m"].ToString() == "AirdropPacket")
+                    {
+                        Logger.LogInfo("--- RAW AIRDROP PACKET ---");
+                        Logger.LogInfo(packet.SITToJson());
+
+                        Singleton<SITAirdropsManager>.Instance.AirdropParameters = packet["model"].ToString().SITParseJson<AirdropParametersModel>();
+                    }
+
+                    if (packet["m"].ToString() == "AirdropLootPacket")
+                    {
+                        Logger.LogInfo("--- RAW AIRDROP-LOOT PACKET ---");
+                        Logger.LogInfo(packet.SITToJson());
+
+                        Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer
+                            (packet["result"].ToString().SITParseJson<AirdropLootResultModel>()
+                            , packet["config"].ToString().SITParseJson<AirdropConfigModel>());
+                    }
+                }
+
                 // If this is a SIT serialization packet
                 if (packet.ContainsKey("data") && packet.ContainsKey("m"))
                 {
@@ -458,17 +474,6 @@ namespace StayInTarkov.Networking
                 }
 
                 // -------------------------------------------------------
-                // Check the packet doesn't already exist in Coop Game Component Action Packets
-                //if (
-                //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
-                //    coopGameComponent.ActionPackets.Contains(packet)
-                //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
-                //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
-                //    )
-                //    return;
-
-                //Logger.LogInfo($"Step.2. Packet process. {packet.ToJson()}");
-                // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
                 if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
@@ -480,13 +485,6 @@ namespace StayInTarkov.Networking
                     && packet["m"].ToString() == "ApplyDamageInfo")
                 {
                     coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
-                    //var profileId = packet["profileId"].ToString();
-                    //var playerKVP = coopGameComponent.Players.First(x => x.Key == profileId);
-                    //if (playerKVP.Value == null)
-                    //    return;
-
-                    //var coopPlayer = (CoopPlayer)playerKVP.Value;
-                    //coopPlayer.ReceiveDamageFromServer(packet);
                 }
                 else
                     coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);

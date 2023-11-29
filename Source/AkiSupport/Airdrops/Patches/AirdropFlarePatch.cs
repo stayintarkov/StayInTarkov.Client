@@ -1,6 +1,8 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
+using EFT.InventoryLogic;
+using EFT.PrefabSettings;
 using StayInTarkov;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +12,7 @@ namespace Aki.Custom.Airdrops.Patches
     /// <summary>
     /// Created by: SPT-Aki team
     /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Custom/Airdrops/Patches
+    /// Paulov: Modified to use SITAirdropsManager
     /// </summary>
     public class AirdropFlarePatch : ModulePatch
     {
@@ -17,19 +20,18 @@ namespace Aki.Custom.Airdrops.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(FlareCartridge).GetMethod(nameof(FlareCartridge.Init),
-                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            return ReflectionHelpers.GetMethodForType(typeof(FlareCartridge), nameof(FlareCartridge.Init), false, true);
         }
 
         [PatchPostfix]
-        private static void PatchPostfix(BulletClass flareCartridge)
+        private static void PatchPostfix(FlareCartridgeSettings flareCartridgeSettings, IAIDetails player, BulletClass flareCartridge, Weapon weapon)
         {
             var gameWorld = Singleton<GameWorld>.Instance;
             var points = LocationScene.GetAll<AirdropPoint>().Any();
 
             if (gameWorld != null && points && _usableFlares.Any(x => x == flareCartridge.Template._id))
             {
-                gameWorld.gameObject.AddComponent<AirdropsManager>().isFlareDrop = true;
+                gameWorld.gameObject.AddComponent<SITAirdropsManager>().isFlareDrop = true;
             }
         }
     }
