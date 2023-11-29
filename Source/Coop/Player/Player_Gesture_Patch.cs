@@ -7,7 +7,6 @@ namespace StayInTarkov.Coop.Player
 {
     internal class Player_Gesture_Patch : ModuleReplicationPatch
     {
-        private static Dictionary<string, EGesture> LastGesture = new();
         public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Gesture";
@@ -36,12 +35,6 @@ namespace StayInTarkov.Coop.Player
         {
             var player = __instance;
 
-            if (LastGesture.ContainsKey(player.ProfileId))
-            {
-                if (LastGesture[player.ProfileId] == gesture)
-                    return;
-            }
-
             if (CallLocally.Contains(player.ProfileId))
             {
                 CallLocally.Remove(player.ProfileId);
@@ -52,11 +45,6 @@ namespace StayInTarkov.Coop.Player
             dictionary.Add("g", gesture.ToString());
             dictionary.Add("m", "Gesture");
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
-
-            if (!LastGesture.ContainsKey(player.ProfileId))
-                LastGesture.Add(player.ProfileId, gesture);
-
-            LastGesture[player.ProfileId] = gesture;
         }
 
 
@@ -71,9 +59,9 @@ namespace StayInTarkov.Coop.Player
             try
             {
                 CallLocally.Add(player.ProfileId);
-                if (!player.HandsController.IsInInteractionStrictCheck() && Enum.TryParse<EGesture>(dict["g"].ToString(), out var g))
+                if (Enum.TryParse<EGesture>(dict["g"].ToString(), out var g))
                 {
-                    player.HandsController.ShowGesture(g);
+                    player.vmethod_3(g);
                 }
             }
             catch (Exception e)
