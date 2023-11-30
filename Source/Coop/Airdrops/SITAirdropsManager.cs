@@ -2,8 +2,11 @@
 using Aki.Custom.Airdrops.Utils;
 using BepInEx.Logging;
 using Comfort.Common;
+using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using StayInTarkov;
+using StayInTarkov.AI.PMCLogic.Roaming;
+using StayInTarkov.AI.PMCLogic.RushAirdrop;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.AkiSupport.Airdrops.Utils;
@@ -27,7 +30,7 @@ namespace Aki.Custom.Airdrops
     public class SITAirdropsManager : MonoBehaviour
     {
         private AirdropPlane airdropPlane;
-        private AirdropBox airdropBox;
+        public AirdropBox AirdropBox { get; private set; }
         private ItemFactoryUtil factory;
 
         public bool isFlareDrop;
@@ -54,7 +57,7 @@ namespace Aki.Custom.Airdrops
             }
 
             // If this is not the server, then this manager will have to wait for the packet to initialize stuff.
-            if (!MatchmakerAcceptPatches.IsServer)
+            if (MatchmakerAcceptPatches.IsClient)
                 return;
 
             // The server will generate stuff ready for the packet
@@ -75,7 +78,7 @@ namespace Aki.Custom.Airdrops
                     AirdropParameters.DropHeight,
                     AirdropParameters.Config.PlaneVolume,
                     AirdropParameters.Config.PlaneSpeed);
-                airdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
+                AirdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
             }
             catch
@@ -89,12 +92,12 @@ namespace Aki.Custom.Airdrops
 
             BuildLootContainer(AirdropParameters.Config);
 
+            StartCoroutine(SendParamsToClients());
 
-            StartCoroutine(PeriodicallySendParams());
-
+            BrainManager.AddCustomLayer(typeof(RushAirdropLayer), new List<string>() { "Assault", "PMC", "sptUsec" }, 2);
         }
 
-        public IEnumerator PeriodicallySendParams()
+        public IEnumerator SendParamsToClients()
         {
             if (!MatchmakerAcceptPatches.IsServer)
                 yield break;
@@ -107,14 +110,6 @@ namespace Aki.Custom.Airdrops
             packet.Add("m", "AirdropPacket");
             packet.Add("model", AirdropParameters);
             AkiBackendCommunication.Instance.SendDataToPool(packet.SITToJson());
-
-            //packet = new Dictionary<string, object>();
-            //packet.Add("serverId", CoopGameComponent.GetServerId());
-            //packet.Add("m", "AirdropLootPacket");
-            //packet.Add("config", config);
-            //packet.Add("result", lootData);
-            //AkiBackendCommunication.Instance.SendDataToPool(packet.SITToJson());
-
 
             yield break;
         }
@@ -139,17 +134,17 @@ namespace Aki.Custom.Airdrops
                     AirdropParameters.DropHeight,
                     AirdropParameters.Config.PlaneVolume,
                     AirdropParameters.Config.PlaneSpeed);
-                airdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
+                AirdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
 
-                factory.BuildContainer(airdropBox.container, ClientAirdropConfigModel, ClientAirdropLootResultModel.DropType);
-                factory.AddLoot(airdropBox.container, ClientAirdropLootResultModel);
+                factory.BuildContainer(AirdropBox.Container, ClientAirdropConfigModel, ClientAirdropLootResultModel.DropType);
+                factory.AddLoot(AirdropBox.Container, ClientAirdropLootResultModel);
             }
 
             if (!ClientLootBuilt)
                 return;
 
-            if (airdropPlane == null || airdropBox == null || factory == null)
+            if (airdropPlane == null || AirdropBox == null || factory == null)
                 return;
 
             if (MatchmakerAcceptPatches.IsServer || MatchmakerAcceptPatches.IsSinglePlayer)
@@ -208,8 +203,8 @@ namespace Aki.Custom.Airdrops
             AirdropParameters.BoxSpawned = true;
             var pointPos = AirdropParameters.RandomAirdropPoint;
             var dropPos = new Vector3(pointPos.x, AirdropParameters.DropHeight, pointPos.z);
-            airdropBox.gameObject.SetActive(true);
-            airdropBox.StartCoroutine(airdropBox.DropCrate(dropPos));
+            AirdropBox.gameObject.SetActive(true);
+            AirdropBox.StartCoroutine(AirdropBox.DropCrate(dropPos));
         }
 
         public bool ClientPlaneSpawned { get; private set; }
@@ -238,8 +233,8 @@ namespace Aki.Custom.Airdrops
             if (lootData == null)
                 throw new System.Exception("Airdrops. Tried to BuildLootContainer without any Loot.");
             
-            factory.BuildContainer(airdropBox.container, config, lootData.DropType);
-            factory.AddLoot(airdropBox.container, lootData);
+            factory.BuildContainer(AirdropBox.Container, config, lootData.DropType);
+            factory.AddLoot(AirdropBox.Container, lootData);
             ClientLootBuilt = true;
         }
 
