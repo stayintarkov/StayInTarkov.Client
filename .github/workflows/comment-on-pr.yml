@@ -50,12 +50,13 @@ jobs:
           echo "Head SHA: $HEAD_SHA"
           echo "HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
       - name: Find Comment
-        uses: peter-evans/find-comment@v2
         id: find-comment
+        uses: peter-evans/find-comment@v2
         with:
           issue-number: ${{ env.PR_NUMBER }}
           comment-author: 'github-actions[bot]'
-      - name: Update Comment
+      - name: Create or Update Comment
+        if: steps.find-comment.outputs.comment-id == ''  # Comment not found
         env:
           JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ env.PREVIOUS_JOB_ID }}"
           ARTIFACT_URL: "https://github.com/${{ github.repository }}/suites/${{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
@@ -63,8 +64,6 @@ jobs:
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ env.PR_NUMBER }}
-          comment-id: ${{ steps.find-comment.outputs.comment-id }}
-          edit-mode: replace
           body: |-
             ![badge]
             
