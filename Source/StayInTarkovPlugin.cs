@@ -1,4 +1,5 @@
 ﻿using Aki.Core.Patches;
+using Aki.Custom.Airdrops.Patches;
 using Aki.Custom.Patches;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -9,6 +10,7 @@ using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
 using StayInTarkov.AI.PMCLogic.Roaming;
+using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
@@ -73,12 +75,23 @@ namespace StayInTarkov
             ReadInLanguageDictionary();
 
             EnableCorePatches();
+
             EnableSPPatches();
+
             EnableCoopPatches();
+
+            EnableAirdropPatches();
+
             ThirdPartyModPatches.Run(Config, this);
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void EnableAirdropPatches()
+        {
+            //new AirdropPatch().Enable();
+            new AirdropFlarePatch().Enable();
         }
 
         private bool shownCheckError = false;
