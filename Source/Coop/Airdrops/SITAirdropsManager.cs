@@ -131,6 +131,7 @@ namespace Aki.Custom.Airdrops
             // If we have all the parameters sent from the Server. Lets build the plane, box, container and loot
             if (MatchmakerAcceptPatches.IsClient && !ClientLootBuilt)
             {
+                ClientLootBuilt = true;
                 Logger.LogInfo("Client::Building Plane, Box, Factory and Loot.");
 
                 airdropPlane = await AirdropPlane.Init(
@@ -143,7 +144,6 @@ namespace Aki.Custom.Airdrops
 
                 factory.BuildContainer(airdropBox.container, ClientAirdropConfigModel, ClientAirdropLootResultModel.DropType);
                 factory.AddLoot(airdropBox.container, ClientAirdropLootResultModel);
-                ClientLootBuilt = true;
             }
 
             if (!ClientLootBuilt)
@@ -168,6 +168,8 @@ namespace Aki.Custom.Airdrops
             }
             else
             {
+                AirdropParameters.Timer += 0.02f;
+
                 if (!ClientPlaneSpawned)
                 {
                     ClientPlaneSpawned = true;
@@ -175,19 +177,15 @@ namespace Aki.Custom.Airdrops
                 }
             }
 
-            if (AirdropParameters.DistanceTraveled >= AirdropParameters.DistanceToDrop && !AirdropParameters.BoxSpawned)
+            if (distanceTravelled >= AirdropParameters.DistanceToDrop && !AirdropParameters.BoxSpawned)
             {
                 StartBox();
             }
 
-            if (airdropPlane == null)
-                return;
-
-
-            if (AirdropParameters.DistanceTraveled < AirdropParameters.DistanceToTravel)
+            if (distanceTravelled < AirdropParameters.DistanceToTravel)
             {
-                AirdropParameters.DistanceTraveled += Time.deltaTime * AirdropParameters.Config.PlaneSpeed;
-                var distanceToDrop = AirdropParameters.DistanceToDrop - AirdropParameters.DistanceTraveled;
+                distanceTravelled += Time.deltaTime * AirdropParameters.Config.PlaneSpeed;
+                var distanceToDrop = AirdropParameters.DistanceToDrop - distanceTravelled;
                 airdropPlane.ManualUpdate(distanceToDrop);
             }
             else
@@ -196,6 +194,8 @@ namespace Aki.Custom.Airdrops
                 Destroy(this);
             }
         }
+
+        float distanceTravelled = 0;
 
         private void StartPlane()
         {
