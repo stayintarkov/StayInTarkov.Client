@@ -34,8 +34,6 @@ namespace StayInTarkov.Coop
     /// </summary>
     public class CoopGameComponent : MonoBehaviour, IFrameIndexer
     {
-        public static ObservedPlayerController TestControllerUseMe;
-
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private AkiBackendCommunication RequestingObj { get; set; }
@@ -49,6 +47,8 @@ namespace StayInTarkov.Coop
         /// ProfileId to Player instance
         /// </summary>
         public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
+
+        public ConcurrentDictionary<string, ObservedPlayerController> OtherPlayers { get; } = new();
 
         //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
@@ -471,6 +471,11 @@ namespace StayInTarkov.Coop
         void Update()
         {
             GameCamera = Camera.current;
+
+            foreach (var controller in OtherPlayers.Values)
+            {
+                controller.ManualUpdate();
+            }
 
             if (!Singleton<ISITGame>.Instantiated)
                 return;
@@ -1075,12 +1080,12 @@ namespace StayInTarkov.Coop
                 GroupID = otherPlayer.GroupId,
                 TeamID = otherPlayer.TeamId,
                 IsAI = otherPlayer.IsAI,
-                NickName = "Test",
+                NickName = profile.Nickname,
                 AccountId = profile.AccountId,
-                Voice = "Usec_1",
+                Voice = profile.Info.Voice,
                 ProfileID = profile.Id,
                 Inventory = profile.Inventory,
-                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f},
+                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
                 Customization = profile.Customization,
                 BodyPosition = otherPlayer.Position,
                 ArmorsInfo = [],
@@ -1088,13 +1093,12 @@ namespace StayInTarkov.Coop
                 VoIPState = EFT.Player.EVoipState.NotAvailable
             };
 
-            ObservedPlayerController controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(otherPlayer.PlayerId, spawnMessage);
+            var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(otherPlayer.PlayerId, spawnMessage);
             controller.ManualUpdate();
-
-            TestControllerUseMe = controller;
+            OtherPlayers.TryAdd(profile.ProfileId, controller);
 
             return otherPlayer;
-        }        
+        }
 
         /// <summary>
         /// Attempts to set up the New Player with the current weapon after spawning

@@ -137,35 +137,35 @@ namespace StayInTarkov.Coop.Player
                 }
             }
 
-            if (CoopGameComponent.TestControllerUseMe != null)
-            {
-                ToSnapshot toSnapshot = new()
-                {
-                    State = player.MovementContext.CurrentState.Name,
-                    StateAnimatorIndex = player.CurrentAnimatorStateIndex,
-                    PoseLevel = player.MovementContext.SmoothedPoseLevel,
-                    MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
-                    Tilt = player.MovementContext.SmoothedTilt,
-                    Step = player.MovementContext.Step,
-                    BlindFire = player.MovementContext.BlindFire,
-                    HeadRotation = player.HeadRotation,
-                    MovementDirection = player.MovementContext.MovementDirection,
-                    Velocity = player.MovementContext.Velocity,
-                    BodyPosition = player.Position,
-                    Pose = player.Pose,
-                    BodyRotation = player.Rotation,
-                    AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
-                    FallHeight = player.MovementContext.FallHeight,
-                    FallTime = player.MovementContext.FreefallTime,
-                    IsGrounded = player.MovementContext.IsGrounded,
-                    PhysicalCondition = player.MovementContext.PhysicalCondition,
-                    SprintSpeed = player.MovementContext.SprintSpeed,
-                    JumpHeight = player.MovementContext.JumpHeight,
-                    MaxSpeed = player.MovementContext.MaxSpeed
-                };
+            //if (CoopGameComponent.TestControllerUseMe != null)
+            //{
+            //    ToSnapshot toSnapshot = new()
+            //    {
+            //        State = player.MovementContext.CurrentState.Name,
+            //        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
+            //        PoseLevel = player.MovementContext.SmoothedPoseLevel,
+            //        MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
+            //        Tilt = player.MovementContext.SmoothedTilt,
+            //        Step = player.MovementContext.Step,
+            //        BlindFire = player.MovementContext.BlindFire,
+            //        HeadRotation = player.HeadRotation,
+            //        MovementDirection = player.MovementContext.MovementDirection,
+            //        Velocity = player.MovementContext.Velocity,
+            //        BodyPosition = player.Position,
+            //        Pose = player.Pose,
+            //        BodyRotation = player.Rotation,
+            //        AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
+            //        FallHeight = player.MovementContext.FallHeight,
+            //        FallTime = player.MovementContext.FreefallTime,
+            //        IsGrounded = player.MovementContext.IsGrounded,
+            //        PhysicalCondition = player.MovementContext.PhysicalCondition,
+            //        SprintSpeed = player.MovementContext.SprintSpeed,
+            //        JumpHeight = player.MovementContext.JumpHeight,
+            //        MaxSpeed = player.MovementContext.MaxSpeed
+            //    };
 
-                CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
-            }
+            //    CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
+            //}
         }
 
         public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
@@ -186,35 +186,35 @@ namespace StayInTarkov.Coop.Player
 
             }
 
-            if (CoopGameComponent.TestControllerUseMe != null)
-            {
-                ToSnapshot toSnapshot = new()
-                {
-                    State = player.MovementContext.CurrentState.Name,
-                    StateAnimatorIndex = player.CurrentAnimatorStateIndex,
-                    PoseLevel = player.MovementContext.SmoothedPoseLevel,
-                    MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
-                    Tilt = player.MovementContext.SmoothedTilt,
-                    Step = player.MovementContext.Step,
-                    BlindFire = player.MovementContext.BlindFire,
-                    HeadRotation = player.HeadRotation,
-                    MovementDirection = player.MovementContext.MovementDirection,
-                    Velocity = player.MovementContext.Velocity,
-                    BodyPosition = player.Position,
-                    Pose = player.Pose,
-                    BodyRotation = player.Rotation,
-                    AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
-                    FallHeight = player.MovementContext.FallHeight,
-                    FallTime = player.MovementContext.FreefallTime,
-                    IsGrounded = player.MovementContext.IsGrounded,
-                    PhysicalCondition = player.MovementContext.PhysicalCondition,
-                    SprintSpeed = player.MovementContext.SprintSpeed,
-                    JumpHeight = player.MovementContext.JumpHeight,
-                    MaxSpeed = player.MovementContext.MaxSpeed
-                };
+            //if (CoopGameComponent.TestControllerUseMe != null)
+            //{
+            //    ToSnapshot toSnapshot = new()
+            //    {
+            //        State = player.MovementContext.CurrentState.Name,
+            //        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
+            //        PoseLevel = player.MovementContext.SmoothedPoseLevel,
+            //        MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
+            //        Tilt = player.MovementContext.SmoothedTilt,
+            //        Step = player.MovementContext.Step,
+            //        BlindFire = player.MovementContext.BlindFire,
+            //        HeadRotation = player.HeadRotation,
+            //        MovementDirection = player.MovementContext.MovementDirection,
+            //        Velocity = player.MovementContext.Velocity,
+            //        BodyPosition = player.Position,
+            //        Pose = player.Pose,
+            //        BodyRotation = player.Rotation,
+            //        AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
+            //        FallHeight = player.MovementContext.FallHeight,
+            //        FallTime = player.MovementContext.FreefallTime,
+            //        IsGrounded = player.MovementContext.IsGrounded,
+            //        PhysicalCondition = player.MovementContext.PhysicalCondition,
+            //        SprintSpeed = player.MovementContext.SprintSpeed,
+            //        JumpHeight = player.MovementContext.JumpHeight,
+            //        MaxSpeed = player.MovementContext.MaxSpeed
+            //    };
 
-                CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
-            }
+            //    CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
+            //}
         }
     }
 }
