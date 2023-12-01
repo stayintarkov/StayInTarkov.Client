@@ -2,7 +2,9 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using EFT.NextObservedPlayer;
 using EFT.UI;
+using JetBrains.Annotations;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
@@ -32,6 +34,8 @@ namespace StayInTarkov.Coop
     /// </summary>
     public class CoopGameComponent : MonoBehaviour, IFrameIndexer
     {
+        public static ObservedPlayerController TestControllerUseMe;
+
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private AkiBackendCommunication RequestingObj { get; set; }
@@ -1065,8 +1069,32 @@ namespace StayInTarkov.Coop
 
             SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
 
+            SpawnMessage spawnMessage = new SpawnMessage()
+            {
+                Side = profile.Side,
+                GroupID = otherPlayer.GroupId,
+                TeamID = otherPlayer.TeamId,
+                IsAI = otherPlayer.IsAI,
+                NickName = "Test",
+                AccountId = profile.AccountId,
+                Voice = "Usec_1",
+                ProfileID = profile.Id,
+                Inventory = profile.Inventory,
+                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f},
+                Customization = profile.Customization,
+                BodyPosition = otherPlayer.Position,
+                ArmorsInfo = [],
+                WildSpawnType = WildSpawnType.pmcBot,
+                VoIPState = EFT.Player.EVoipState.NotAvailable
+            };
+
+            ObservedPlayerController controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(otherPlayer.PlayerId, spawnMessage);
+            controller.ManualUpdate();
+
+            TestControllerUseMe = controller;
+
             return otherPlayer;
-        }
+        }        
 
         /// <summary>
         /// Attempts to set up the New Player with the current weapon after spawning

@@ -130,33 +130,41 @@ namespace StayInTarkov.Coop.Player
                     {
                         //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
                         var ReplicatedPosition = new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ);
-                        var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
-                        if (replicationDistance >= 3)
-                        {
-                            player.Teleport(ReplicatedPosition, true);
-                        }
-                        else
-                        {
-                            player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
-                        }
+                        player.Teleport(ReplicatedPosition, true);
+                        player.CurrentManagedState.ChangeSpeed(playerMovePacket.spd);
+                        player.Move(ReplicatedPosition);
                     }
-
-                    UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
-                    float spd = playerMovePacket.spd;
-
-                    playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-                    playerReplicatedComponent.ReplicatedDirection = null;
-
-                    player.InputDirection = direction;
-                    player.MovementContext.MovementDirection = direction;
-
-                    player.MovementContext.CharacterMovementSpeed = spd;
-
-                    player.CurrentManagedState.Move(direction);
-
-                    playerReplicatedComponent.ReplicatedDirection = direction;
-
                 }
+            }
+
+            if (CoopGameComponent.TestControllerUseMe != null)
+            {
+                ToSnapshot toSnapshot = new()
+                {
+                    State = player.MovementContext.CurrentState.Name,
+                    StateAnimatorIndex = player.CurrentAnimatorStateIndex,
+                    PoseLevel = player.MovementContext.SmoothedPoseLevel,
+                    MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
+                    Tilt = player.MovementContext.SmoothedTilt,
+                    Step = player.MovementContext.Step,
+                    BlindFire = player.MovementContext.BlindFire,
+                    HeadRotation = player.HeadRotation,
+                    MovementDirection = player.MovementContext.MovementDirection,
+                    Velocity = player.MovementContext.Velocity,
+                    BodyPosition = player.Position,
+                    Pose = player.Pose,
+                    BodyRotation = player.Rotation,
+                    AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
+                    FallHeight = player.MovementContext.FallHeight,
+                    FallTime = player.MovementContext.FreefallTime,
+                    IsGrounded = player.MovementContext.IsGrounded,
+                    PhysicalCondition = player.MovementContext.PhysicalCondition,
+                    SprintSpeed = player.MovementContext.SprintSpeed,
+                    JumpHeight = player.MovementContext.JumpHeight,
+                    MaxSpeed = player.MovementContext.MaxSpeed
+                };
+
+                CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
             }
         }
 
@@ -170,33 +178,43 @@ namespace StayInTarkov.Coop.Player
 
             if (playerMoveStruct.pX != 0 && playerMoveStruct.pY != 0 && playerMoveStruct.pZ != 0)
             {
+                //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
                 var ReplicatedPosition = new Vector3(playerMoveStruct.pX, playerMoveStruct.pY, playerMoveStruct.pZ);
-                var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
-                if (replicationDistance >= 3)
-                {
-                    player.Teleport(ReplicatedPosition, true);
-                }
-                else
-                {
-                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
-                }
+                player.Teleport(ReplicatedPosition, true);
+                player.CurrentManagedState.ChangeSpeed(playerMoveStruct.spd);
+                player.Move(ReplicatedPosition);
+
             }
 
-            UnityEngine.Vector2 direction = new(playerMoveStruct.dX, playerMoveStruct.dY);
-            float spd = playerMoveStruct.spd;
+            if (CoopGameComponent.TestControllerUseMe != null)
+            {
+                ToSnapshot toSnapshot = new()
+                {
+                    State = player.MovementContext.CurrentState.Name,
+                    StateAnimatorIndex = player.CurrentAnimatorStateIndex,
+                    PoseLevel = player.MovementContext.SmoothedPoseLevel,
+                    MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
+                    Tilt = player.MovementContext.SmoothedTilt,
+                    Step = player.MovementContext.Step,
+                    BlindFire = player.MovementContext.BlindFire,
+                    HeadRotation = player.HeadRotation,
+                    MovementDirection = player.MovementContext.MovementDirection,
+                    Velocity = player.MovementContext.Velocity,
+                    BodyPosition = player.Position,
+                    Pose = player.Pose,
+                    BodyRotation = player.Rotation,
+                    AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
+                    FallHeight = player.MovementContext.FallHeight,
+                    FallTime = player.MovementContext.FreefallTime,
+                    IsGrounded = player.MovementContext.IsGrounded,
+                    PhysicalCondition = player.MovementContext.PhysicalCondition,
+                    SprintSpeed = player.MovementContext.SprintSpeed,
+                    JumpHeight = player.MovementContext.JumpHeight,
+                    MaxSpeed = player.MovementContext.MaxSpeed
+                };
 
-            playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-            playerReplicatedComponent.ReplicatedDirection = null;
-
-            player.InputDirection = direction;
-            player.MovementContext.MovementDirection = direction;
-
-            player.MovementContext.CharacterMovementSpeed = spd;
-
-            player.CurrentManagedState.Move(direction);
-
-            playerReplicatedComponent.ReplicatedDirection = direction;
-
+                CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
+            }
         }
     }
 }
