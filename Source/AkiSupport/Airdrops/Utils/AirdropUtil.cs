@@ -1,4 +1,5 @@
 ﻿using Aki.Custom.Airdrops.Models;
+using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
 using Newtonsoft.Json;
@@ -81,6 +82,15 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
         public static AirdropParametersModel InitAirdropParams(GameWorld gameWorld, bool isFlare)
         {
             var serverConfig = GetConfigFromServer();
+            if (serverConfig == null)
+                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
+
+            if (serverConfig.AirdropChancePercent == null)
+                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
+
+            if (gameWorld.LocationId != null && gameWorld.LocationId.StartsWith("factory"))
+                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
+
             var allAirdropPoints = LocationScene.GetAll<AirdropPoint>().ToList();
             var playerPosition = gameWorld.RegisteredPlayers[0].Position;
             var flareAirdropPoints = new List<AirdropPoint>();

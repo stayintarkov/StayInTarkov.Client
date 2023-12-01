@@ -782,7 +782,8 @@ namespace StayInTarkov.Coop
             // Add FreeCamController to GameWorld GameObject
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
 
-            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
+            if(! Location_0.Name.StartsWith("factory", StringComparison.OrdinalIgnoreCase) )
+                Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
 
             yield break;
         }
