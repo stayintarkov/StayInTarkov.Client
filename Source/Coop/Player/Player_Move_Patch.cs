@@ -100,6 +100,47 @@ namespace StayInTarkov.Coop.Player
                 PlayerMovePackets[player.ProfileId] = playerMovePacket;
                 AkiBackendCommunication.Instance.SendDataToPool(serialized);
             }
+
+            if (CoopGame.TestController != null)
+            {
+                GStruct256 nextModel = new()
+                {
+                    RemoteTime = Time.time,
+                    IsNeedProcessMovement = true,
+                    Movement = new()
+                    {
+                        BodyPosition = new Vector3(x: player.Position.x + 2, y: player.Position.y, z: player.Position.z),
+                        HeadRotation = player.HeadRotation,
+                        MovementDirection = player.MovementContext.MovementDirection,
+                        Velocity = player.Velocity,
+                        Tilt = player.MovementContext.Tilt,
+                        Step = player.MovementContext.Step,
+                        BlindFire = player.MovementContext.BlindFire,
+                        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
+                        State = player.CurrentManagedState.Name,
+                        PhysicalCondition = player.MovementContext.PhysicalCondition,
+                        MovementSpeed = player.MovementContext.CharacterMovementSpeed,
+                        SprintSpeed = player.MovementContext.SprintSpeed,
+                        MaxSpeed = player.MovementContext.MaxSpeed,
+                        Pose = player.Pose,
+                        PoseLevel = player.PoseLevel,
+                        InHandsObjectOverlap = 1f,
+                        IsGrounded = player.MovementContext.IsGrounded,
+                        JumpHeight = player.MovementContext.JumpHeight,
+                        FallHeight = player.MovementContext.FallHeight,
+                        FallTime = player.MovementContext.FreefallTime,
+                        AimRotation = player.Rotation.y,
+                        FootRotation = Quaternion.AngleAxis(player.Rotation.x, Vector3.up)
+                    }
+                };
+
+                CoopGame.TestController.Apply(nextModel); 
+            }
+            else
+            {
+                Logger.LogInfo("LOOKHERE: Null");
+            }
+
         }
 
         private static Dictionary<string, PlayerMovePacket> PlayerMovePackets { get; } = new Dictionary<string, PlayerMovePacket>();
@@ -135,37 +176,7 @@ namespace StayInTarkov.Coop.Player
                         player.Move(ReplicatedPosition);
                     }
                 }
-            }
-
-            //if (CoopGameComponent.TestControllerUseMe != null)
-            //{
-            //    ToSnapshot toSnapshot = new()
-            //    {
-            //        State = player.MovementContext.CurrentState.Name,
-            //        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
-            //        PoseLevel = player.MovementContext.SmoothedPoseLevel,
-            //        MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
-            //        Tilt = player.MovementContext.SmoothedTilt,
-            //        Step = player.MovementContext.Step,
-            //        BlindFire = player.MovementContext.BlindFire,
-            //        HeadRotation = player.HeadRotation,
-            //        MovementDirection = player.MovementContext.MovementDirection,
-            //        Velocity = player.MovementContext.Velocity,
-            //        BodyPosition = player.Position,
-            //        Pose = player.Pose,
-            //        BodyRotation = player.Rotation,
-            //        AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
-            //        FallHeight = player.MovementContext.FallHeight,
-            //        FallTime = player.MovementContext.FreefallTime,
-            //        IsGrounded = player.MovementContext.IsGrounded,
-            //        PhysicalCondition = player.MovementContext.PhysicalCondition,
-            //        SprintSpeed = player.MovementContext.SprintSpeed,
-            //        JumpHeight = player.MovementContext.JumpHeight,
-            //        MaxSpeed = player.MovementContext.MaxSpeed
-            //    };
-
-            //    CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
-            //}
+            }            
         }
 
         public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
@@ -185,36 +196,6 @@ namespace StayInTarkov.Coop.Player
                 player.Move(ReplicatedPosition);
 
             }
-
-            //if (CoopGameComponent.TestControllerUseMe != null)
-            //{
-            //    ToSnapshot toSnapshot = new()
-            //    {
-            //        State = player.MovementContext.CurrentState.Name,
-            //        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
-            //        PoseLevel = player.MovementContext.SmoothedPoseLevel,
-            //        MovementSpeed = player.MovementContext.ClampSpeed(player.MovementContext.SmoothedCharacterMovementSpeed),
-            //        Tilt = player.MovementContext.SmoothedTilt,
-            //        Step = player.MovementContext.Step,
-            //        BlindFire = player.MovementContext.BlindFire,
-            //        HeadRotation = player.HeadRotation,
-            //        MovementDirection = player.MovementContext.MovementDirection,
-            //        Velocity = player.MovementContext.Velocity,
-            //        BodyPosition = player.Position,
-            //        Pose = player.Pose,
-            //        BodyRotation = player.Rotation,
-            //        AimRotation = Mathf.Lerp(player.Rotation.y, player.Rotation.y, 1f),
-            //        FallHeight = player.MovementContext.FallHeight,
-            //        FallTime = player.MovementContext.FreefallTime,
-            //        IsGrounded = player.MovementContext.IsGrounded,
-            //        PhysicalCondition = player.MovementContext.PhysicalCondition,
-            //        SprintSpeed = player.MovementContext.SprintSpeed,
-            //        JumpHeight = player.MovementContext.JumpHeight,
-            //        MaxSpeed = player.MovementContext.MaxSpeed
-            //    };
-
-            //    CoopGameComponent.TestControllerUseMe.Interpolator.Add(toSnapshot);
-            //}
         }
     }
 }

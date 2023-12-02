@@ -6,6 +6,8 @@ using EFT.Bots;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
+using EFT.InventoryLogic;
+using EFT.NextObservedPlayer;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
@@ -494,6 +496,8 @@ namespace StayInTarkov.Coop
 
         internal Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
 
+        public static ObservedPlayerController TestController;
+
         /// <summary>
         /// Creating the EFT.LocalPlayer
         /// </summary>
@@ -542,6 +546,29 @@ namespace StayInTarkov.Coop
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
+
+            SpawnMessage spawnMessage = new SpawnMessage()
+            {
+                Side = profile.Side,
+                GroupID = myPlayer.GroupId,
+                TeamID = myPlayer.TeamId,
+                IsAI = myPlayer.IsAI,
+                NickName = profile.Nickname,
+                AccountId = profile.AccountId,
+                Voice = profile.Info.Voice,
+                ProfileID = profile.Id,
+                Inventory = profile.Inventory,
+                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
+                Customization = profile.Customization,
+                BodyPosition = myPlayer.Position,
+                ArmorsInfo = [],
+                WildSpawnType = WildSpawnType.pmcBot,
+                VoIPState = EFT.Player.EVoipState.NotAvailable
+            };
+
+            var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
+
+            TestController = controller;
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
