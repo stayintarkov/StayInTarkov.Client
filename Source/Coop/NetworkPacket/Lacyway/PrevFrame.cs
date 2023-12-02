@@ -12,6 +12,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
         public EHandsTypePacket HandsTypePacket {  get; set; }
         public MovementInfoPacket MovementInfoPacket { get; set; }
         public HandsChangePacket HandsChangePacket { get; set; }
+        public HelmetLightPacket? HelmetLightPacket { get; set; }
+        public TacticalComboPacket TacticalComboPacket { get; set; }
 
     }
 }
