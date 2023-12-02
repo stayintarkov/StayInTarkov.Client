@@ -28,7 +28,7 @@ using Rect = UnityEngine.Rect;
 namespace StayInTarkov.Coop
 {
     /// <summary>
-    /// Coop Game Component is the User 1-2-1 communication to the Server
+    /// Coop Game Component is the User 1-2-1 communication to the Server. This can be seen as an extension component to CoopGame.
     /// </summary>
     public class CoopGameComponent : MonoBehaviour, IFrameIndexer
     {
@@ -143,15 +143,23 @@ namespace StayInTarkov.Coop
         /// </summary>
         void Awake()
         {
-
             // ----------------------------------------------------
             // Create a BepInEx Logger for CoopGameComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            LCByterCheck[0] = StayInTarkovHelperConstants
+            SITCheck();
+        }
+
+        /// <summary>
+        /// Check the StayInTarkov assembly hasn't been messed with.
+        /// </summary>
+        void SITCheck()
+        {
+            // Check the StayInTarkov assembly hasn't been messed with.
+            SITCheckConfirmed[0] = StayInTarkovHelperConstants
                 .SITTypes
-                .Any(x => x.Name == 
+                .Any(x => x.Name ==
                 Encoding.UTF8.GetString(new byte[] { 0x4c, 0x65, 0x67, 0x61, 0x6c, 0x47, 0x61, 0x6d, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b }))
                 ? (byte)0x1 : (byte)0x0;
         }
@@ -161,28 +169,22 @@ namespace StayInTarkov.Coop
         /// <summary>
         /// Unity Component Start Method
         /// </summary>
-        void Start()
+        async void Start()
         {
             Logger.LogDebug("CoopGameComponent:Start");
-            //GameCamera = Camera.current;
-            //GCHelpers.ClearGarbage(unloadAssets: false);
-            //ActionPacketHandler = this.GetOrAddComponent<ActionPacketHandlerComponent>();
-            //ActionPacketHandler = CoopPatches.CoopGameComponentParent.AddComponent<ActionPacketHandlerComponent>();
 
-
-            // ----------------------------------------------------
-            // Always clear "Players" when creating a new CoopGameComponent
-            //Players = new ConcurrentDictionary<string, EFT.Player>();
-
+            // Get Reference to own Player
             OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
+            // Add own Player to Players list
             Players.TryAdd(OwnPlayer.ProfileId, OwnPlayer);
 
-            //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
+            // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
-            RequestingObj.PostJsonAsync<SITConfig>("/SIT/Config", "{}").ContinueWith(x =>
-            {
 
+            // Request SIT Config
+            await RequestingObj.PostJsonAsync<SITConfig>("/SIT/Config", "{}").ContinueWith(x =>
+            {
                 if (x.IsCanceled || x.IsFaulted)
                 {
                     SITConfig = new SITConfig();
@@ -200,25 +202,33 @@ namespace StayInTarkov.Coop
             // Run an immediate call to get characters in the server
             _ = ReadFromServerCharacters();
 
+            // Get a Result of Characters within an interval loop
+            _ = Task.Run(() => ReadFromServerCharactersLoop());
 
-            Task.Run(() => ReadFromServerCharactersLoop());
+            // Process the Characters retrieved from the previous loop
             StartCoroutine(ProcessServerCharacters());
-            //Task.Run(() => ReadFromServerLastActions());
-            //Task.Run(() => ProcessFromServerLastActions());
+
+            // Run any methods you wish every second
             StartCoroutine(EverySecondCoroutine());
 
-            Task.Run(() => PeriodicEnableDisableGC());
+            // Start the SIT Garbage Collector
+            _ = Task.Run(() => PeriodicEnableDisableGC());
 
+            // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
-            //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
+            // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
 
+            // Send My Player to Aki, so that other clients know about me
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
         }
 
-        private long? lastMemory { get;set; }
+        /// <summary>
+        /// Last stored memory allocation from the SIT Garbage Collector
+        /// </summary>
+        private long? _SITGCLastMemory;
 
         /// <summary>
         /// This clears out the RAM usage very effectively.
@@ -239,34 +249,16 @@ namespace StayInTarkov.Coop
 
                     counter++;
 
-                    //var myPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-                    //if ((myPlayer != null && (myPlayer.HealthController.IsAlive && !myPlayer.Velocity.Equals(Vector3.zero))) && maxMoveCounter > 0)
-                    //{
-                    //    maxMoveCounter--;
-                    //    continue;
-                    //}
-
-                    //if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
-                    //{
-                    //    GCHelpers.EnableGC();
-                    //}
-
-                    //if (counter == (61 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
-                    //{
-                    //    GCHelpers.DisableGC(true);
-                    //    counter = 0;
-                    //}
-
                     var memory = GC.GetTotalMemory(false);
-                    if (!lastMemory.HasValue)
-                        lastMemory = memory;
+                    if (!_SITGCLastMemory.HasValue)
+                        _SITGCLastMemory = memory;
 
                     long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
 
-                    if (lastMemory.HasValue && memory > lastMemory.Value + (memoryThreshold * 1024 * 1024))
+                    if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + (memoryThreshold * 1024 * 1024))
                     {
                         Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
-                        lastMemory = memory;
+                        _SITGCLastMemory = memory;
                         Stopwatch sw = Stopwatch.StartNew();
 
                         GCHelpers.EnableGC();
@@ -292,6 +284,10 @@ namespace StayInTarkov.Coop
             });
         }
 
+        /// <summary>
+        /// This is a simple coroutine to allow methods to run every second.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator EverySecondCoroutine()
         {
             var waitSeconds = new WaitForSeconds(1.0f);
@@ -328,7 +324,6 @@ namespace StayInTarkov.Coop
                 {
                     coopGame.ExtractingPlayers.Remove(player);
                     coopGame.ExtractedPlayers.Add(player);
-                    //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
                 }
 
                 var world = Singleton<GameWorld>.Instance;
@@ -356,8 +351,6 @@ namespace StayInTarkov.Coop
                             player.SwitchRenderer(false);
                         }
                     }
-                    //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
-                    //GameObject.Destroy(player);
                 }
             }
         }
@@ -395,7 +388,9 @@ namespace StayInTarkov.Coop
         bool PerformanceCheck_ActionPackets { get; set; } = false;
         public bool RequestQuitGame { get; set; }
 
-
+        /// <summary>
+        /// The state your character or game is in to Quit.
+        /// </summary>
         public enum EQuitState
         {
             NONE = -1,
@@ -464,13 +459,11 @@ namespace StayInTarkov.Coop
             return quitState;
         }
 
-        void Update()
+        /// <summary>
+        /// This handles the ways of exiting the active game session
+        /// </summary>
+        void ProcessQuitting()
         {
-            GameCamera = Camera.current;
-
-            if (!Singleton<ISITGame>.Instantiated)
-                return;
-
             var quitState = GetQuitState();
 
             if (
@@ -481,38 +474,62 @@ namespace StayInTarkov.Coop
                 )
             {
                 RequestQuitGame = true;
-                Singleton<ISITGame>.Instance.Stop(
-                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                    , Singleton<ISITGame>.Instance.MyExitStatus
-                    , Singleton<ISITGame>.Instance.MyExitLocation
-                    , 0);
+
+                // If you are the server / host
+                if (MatchmakerAcceptPatches.IsServer)
+                {
+                    // A host needs to wait for the team to extract or die!
+                    if ((quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead))
+                    {
+                        Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , Singleton<ISITGame>.Instance.MyExitLocation
+                            , 0);
+                    }
+                    else
+                    {
+                        NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
+                    }
+                }
+                else
+                {
+                    Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , Singleton<ISITGame>.Instance.MyExitLocation
+                            , 0);
+                }
                 return;
             }
+        }
 
-            if (!MatchmakerAcceptPatches.IsClient)
-            {
-
-            }
-
+        /// <summary>
+        /// This handles the possibility the server has stopped / disconnected and exits your player out of the game
+        /// </summary>
+        void ProcessServerHasStopped()
+        {
             if (ServerHasStopped && !ServerHasStoppedActioned)
             {
                 ServerHasStoppedActioned = true;
                 try
                 {
-                    // Allow server to configure whether to send hanging clients to "Run Through" or "Survived" status.
-                    // Set RunThroughOnServerStop to false for "Survived" (new) behavior.
-                    var exitStatus = PluginConfigSettings.Instance.CoopSettings.RunThroughOnServerStop ? ExitStatus.Runner : ExitStatus.Survived;
-                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, exitStatus, "", 0);
+                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation, 0);
                 }
                 catch { }
                 return;
             }
+        }
 
-            //var DateTimeStart = DateTime.Now;
+        void Update()
+        {
+            GameCamera = Camera.current;
 
-            //if (!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
-            //    HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
+            if (!Singleton<ISITGame>.Instantiated)
+                return;
 
+            ProcessQuitting();
+            ProcessServerHasStopped();
 
             if (ActionPackets == null)
                 return;
@@ -529,8 +546,6 @@ namespace StayInTarkov.Coop
             List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
             {
-                //Logger.LogDebug("Creating PRC");
-
                 foreach (var player in Players.Values)
                 {
                     if (player == null)
@@ -547,7 +562,6 @@ namespace StayInTarkov.Coop
 
                     if (!player.isActiveAndEnabled)
                         continue;
-
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
@@ -585,14 +599,14 @@ namespace StayInTarkov.Coop
                 instance.ServerTime = ServerPing;
             }
 
-            if (Singleton<PreloaderUI>.Instantiated && LCByterCheck[0] == 0 && LCByterCheck[1] == 0)
+            if (Singleton<PreloaderUI>.Instantiated && SITCheckConfirmed[0] == 0 && SITCheckConfirmed[1] == 0)
             {
-                LCByterCheck[1] = 1;
+                SITCheckConfirmed[1] = 1;
                 Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", StayInTarkovPlugin.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
             }
         }
 
-        byte[] LCByterCheck { get; } = new byte[2] { 0, 0 };
+        byte[] SITCheckConfirmed { get; } = new byte[2] { 0, 0 };
 
         #endregion
 
