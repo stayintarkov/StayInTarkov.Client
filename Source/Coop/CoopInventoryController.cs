@@ -26,11 +26,11 @@ namespace StayInTarkov.Coop
                 base.ResetDiscardLimits();
         }
 
-        //public override void Execute(SearchContentOperation operation, Callback callback)
-        //{
-        //    //BepInLogger.LogInfo($"CoopInventoryController: {operation}");
-        //    base.Execute(operation, callback);
-        //}
+        public override void Execute(SearchContentOperation operation, Callback callback)
+        {
+            //BepInLogger.LogInfo($"CoopInventoryController: {operation}");
+            base.Execute(operation, callback);
+        }
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
