@@ -1,5 +1,7 @@
 ﻿
 
+using System;
+
 namespace StayInTarkov.Coop.NetworkPacket.Lacyway
 {
     public struct HelmetLightPacket

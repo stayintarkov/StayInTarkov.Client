@@ -21,7 +21,7 @@ namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {
-        private NetworkPacket.Lacyway.PrevFrame prevFrame = new();
+        private NetworkPacket.Lacyway.PrevFrame prevFrame;
         ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
@@ -335,23 +335,22 @@ namespace StayInTarkov.Coop
 
         public override void Move(Vector2 direction)
         {
-            base.Move(direction);
+            base.Move(direction);            
 
             var prc = GetComponent<PlayerReplicatedComponent>();
             if (prc.IsClientDrone)
-                return;
-
-
+                return;            
         }
 
         public override void SendHeadlightsPacket(bool isSilent)
         {
-            LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray<LightsStates>();
+            LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
             prevFrame.HelmetLightPacket = new()
             {
                 IsSilent = isSilent,
                 LightsStates = lightStates
             };
+            Logger.LogInfo("CoopPlayer::SendHeadlightsPacket");
         }
 
         public override void SendWeaponLightPacket()
@@ -387,36 +386,46 @@ namespace StayInTarkov.Coop
         {
             base.LateUpdate();
 
-            NetworkPacket.Lacyway.MovementInfoPacket mIP = new()
+            prevFrame = new()
             {
-                EPlayerState = CurrentManagedState.Name,
-                Position = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
-                AnimatorStateIndex = CurrentAnimatorStateIndex,
-                PoseLevel = MovementContext.SmoothedPoseLevel,
-                CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
-                Tilt = MovementContext.SmoothedTilt,
-                Step = MovementContext.Step,
-                BlindFire = MovementContext.BlindFire,
-                HeadRotation = HeadRotation,
-                Stamina = Physical.SerializationStruct,
-                DiscreteDirection = (int)MovementContext.DiscreteDirection,
-                Direction = MovementContext.MovementDirection,
-                IsGrounded = MovementContext.IsGrounded,
-                AimRotation = Rotation.y,
-                FallHeight = MovementContext.FallHeight,
-                FallTime = MovementContext.FreefallTime,
-                FootRotation = Rotation.x,
-                JumpHeight = MovementContext.JumpHeight,
-                MaxSpeed = MovementContext.MaxSpeed,
-                MovementDirection = MovementContext.MovementDirection,
-                PhysicalCondition = MovementContext.PhysicalCondition,
-                Pose = Pose,
-                SprintSpeed = MovementContext.SprintSpeed,
-                State = CurrentManagedState.Name,
-                Velocity = Velocity
+                MovementInfoPacket = new()
+                {
+                    EPlayerState = CurrentManagedState.Name,
+                    Position = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
+                    AnimatorStateIndex = CurrentAnimatorStateIndex,
+                    PoseLevel = MovementContext.SmoothedPoseLevel,
+                    CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
+                    Tilt = MovementContext.SmoothedTilt,
+                    Step = MovementContext.Step,
+                    BlindFire = MovementContext.BlindFire,
+                    HeadRotation = HeadRotation,
+                    Stamina = Physical.SerializationStruct,
+                    DiscreteDirection = (int)MovementContext.DiscreteDirection,
+                    Direction = MovementContext.MovementDirection,
+                    IsGrounded = MovementContext.IsGrounded,
+                    AimRotation = Rotation.y,
+                    FallHeight = MovementContext.FallHeight,
+                    FallTime = MovementContext.FreefallTime,
+                    FootRotation = Rotation.x,
+                    JumpHeight = MovementContext.JumpHeight,
+                    MaxSpeed = MovementContext.MaxSpeed,
+                    MovementDirection = MovementContext.MovementDirection,
+                    PhysicalCondition = MovementContext.PhysicalCondition,
+                    Pose = Pose,
+                    SprintSpeed = MovementContext.SprintSpeed,
+                    State = CurrentManagedState.Name,
+                    Velocity = Velocity
+                }
             };
 
-            prevFrame.MovementInfoPacket = mIP;
+            LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
+            prevFrame.HelmetLightPacket = new HelmetLightPacket?(new HelmetLightPacket
+            {
+                IsSilent = true,
+                LightsStates = lightStates
+            });
+
+            prevFrame.ReadPreviousFrame();
 
             if (CoopGame.TestController != null)
             {
@@ -445,11 +454,15 @@ namespace StayInTarkov.Coop
                         Step = prevFrame.MovementInfoPacket.Step,
                         Tilt = prevFrame.MovementInfoPacket.Tilt,
                         Velocity = prevFrame.MovementInfoPacket.Velocity
-                    }
+                    },
+                    Commands = [.. prevFrame.Commands],
+                    CommandsCount = prevFrame.Commands.Count
+                    
                 };
 
                 CoopGame.TestController.Apply(nextModel);
                 CoopGame.TestController.ManualUpdate();
+                prevFrame = default;
             }
             else
             {
