@@ -15,20 +15,19 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override string MethodName => "SetScopeMode";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static HashSet<string> CallLocally = new();
 
 
         [PatchPrefix]
         public static bool PrePatch(
             EFT.Player.FirearmController __instance, EFT.Player ____player, ScopeStates[] scopeStates)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
             var player = ____player;
             if (player == null)
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
                 result = true;
 
             return result;
@@ -38,17 +37,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public static void Postfix(
            EFT.Player.FirearmController __instance, EFT.Player ____player, ScopeStates[] scopeStates)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
             var player = ____player;
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
                 CallLocally.Remove(player.ProfileId);
                 return;
             }
-
 
             foreach (var scope in scopeStates)
             {
@@ -60,7 +57,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
             ScopeModePacket smp = new(null, 0, 0, 0, null);
 
             if (dict.ContainsKey("data"))
@@ -74,16 +70,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 return;
 
-            if (CallLocally.ContainsKey(player.ProfileId))
-                return;
-
-            CallLocally.Add(player.ProfileId, true);
+            if (CallLocally.Contains(player.ProfileId))
+                return;            
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
-                    firearmCont.SetScopeMode(new ScopeStates[1] { new ScopeStates() { Id = smp.Id, ScopeMode = smp.ScopeMode, ScopeIndexInsideSight = smp.ScopeIndexInsideSight, ScopeCalibrationIndex = smp.ScopeCalibrationIndex } });
+                    CallLocally.Add(player.ProfileId);
+                    firearmCont.SetScopeMode([new ScopeStates() { Id = smp.Id, ScopeMode = smp.ScopeMode, ScopeIndexInsideSight = smp.ScopeIndexInsideSight, ScopeCalibrationIndex = smp.ScopeCalibrationIndex }]);
                 }
                 catch (Exception e)
                 {
