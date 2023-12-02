@@ -23,10 +23,10 @@ namespace StayInTarkov.Coop
                 base.ResetDiscardLimits();
         }
 
-        public override void Execute(SearchContentOperation operation, Callback callback)
-        {
-            base.Execute(operation, callback);
-        }
+        //public override void Execute(SearchContentOperation operation, Callback callback)
+        //{
+        //    base.Execute(operation, callback);
+        //}
 
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
