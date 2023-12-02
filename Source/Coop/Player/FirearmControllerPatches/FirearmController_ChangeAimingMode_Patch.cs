@@ -1,12 +1,10 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov;
+using StayInTarkov.Coop;
+using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
-using StayInTarkov.Networking;
-using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using StayInTarkov.Coop;
-using StayInTarkov.Coop.Web;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -55,7 +53,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "i", __instance.Item.AimIndex.Value.ToString() },
                 { "m", "ChangeAimingMode" }
             };
-            
+
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
         }
@@ -86,7 +84,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     {
                         Logger.LogInfo(e);
                     }
-                } 
+                }
             }
         }
 
