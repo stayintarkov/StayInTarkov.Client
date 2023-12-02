@@ -1,127 +1,131 @@
 
 <div align=center style="text-align: center">
-<h1 style="text-align: center"> StayInTarkov.Client </h1>
-逃离塔科夫的BepInEx MOD，为了配合SPT-Aki在逃离塔科夫离线模式下进行合作游戏。
+<h1 style="text-align: center">StayInTarkov.Client</h1>
+
+此 BepInEx 模组适用于逃离塔科夫，与 [SIT.Aki-Server-Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) 一同使用，以在"离线模式"内进行联机
 </div>
 
 ---
 
 <div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)]((https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
-[English](README.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [简体中文](README_CN.md)
+[English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
 </div>
 
 ---
-## 关于这个项目
 
-SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生了。
+## Stay In Tarkov 的当前状态
 
-该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在线版本中提供PVE合作模式**或**我收到了DMCA TAKEDOWN(DMCA删除请求)该项目会立刻关停。
+* Stay In Tarkov 正在由"SIT项目组"有序开发中
+* 如您希望对本项目做出贡献，欢迎发起"合并请求"，待项目组确认贡献有效后，您的合并请求将会被批准并加入项目中
+
+--- 
+
+## 关于
+
+Stay In Tarkov 项目的诞生是因为 Battlestate Games' (BSG) 迟迟不愿推出只有 PvE 的逃离塔科夫.
+本项目的目标非常单纯，即创造一个 PvE 的逃离塔科夫.
+如果 BSG 推出了"只有 PvE 的逃离塔科夫"，或本项目收到了《数字千年版权法》的侵权通知，本项目将立即终止.
 
 ## 免责声明
 
-* 你必须购买一份游戏才能使用这个项目，你可以在这里购买游戏[https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
-* 该项目不是为了在游戏中作弊开发的 (正相反，因为正版多人环境中泛滥的作弊者催生了该项目)
-* 这个项目也不是为了让人获取盗版/非法的副本存在的 (而且也会阻止非正规途径获取的游戏启动)
-* 该项目仅供学习，我利用这个项目学习Unity与TCP/UDP/WebSocket开发，而且我在BattleState Games那边学到了许多\o/
-* 我也与BSG或其他 (在贴吧/QQ/Bilibili等) 声称自己在进行的项目毫无关系，请不要去SPTarkov的Reddit板块与Discord服务器讨论SIT
-* 该项目与SPTarkov无关，但使用了由他们开发的出色的服务端程序
-* 2023年7月30日后，我将不再进行用户支持，这个项目转变为“现状”交付，这意味着 **你能用就用，用不了就算了**
+* 您必须拥有一份正版的逃离塔科夫才可使用本项目，您可前往他们的官网进行购买. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com)
+* 本项目绝对不是为了方便作弊者 (本项目的诞生反而是因为作弊者破坏了正版的游戏体验)
+* 本项目绝对不是为了允许用户持有盗版的逃离塔科夫 (并且会阻止盗版用户使用本项目!)
+* 本项目仅供学习交流使用. 我通过本项目学习如何善用 Unity 引擎及 TCP / UDP / WebSocket 基础知识，并且从 BattleState Games 那里学到了很多东西 \o/.
+* 我不隶属于 BSG 或其他声称正在进行开发的项目，请勿在 SPTarkov 的 Reddit 子板块或他们的 Discord 群组谈起本项目.
+* 本项目不隶属于 SPTarkov (或称 SPT-Aki, 即"逃离塔科夫离线版")，但是会使用他们所制作的服务端.
+* 本项目不隶属于任何第三方"逃离塔科夫离线版"项目.
+* 本项目"按原样"进行提供. 无法做出"绝对能用"的保证.
 
-## 支持我
+## 支持
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* 请看清楚，在ko-fi上给我打钱就只是请我喝杯咖啡，没别的！**我不会提供任何支持与帮助** 
-* 请不要期待通过给我打钱的方式获得任何帮助或者解决方案 **我不会提供任何支持与帮助** 
-* 这只是一个兴趣爱好的项目，不要太认真 **我不会提供任何支持与帮助**
-* 我不会对社区撒谎，我知道目前这只是个半成品项目，但我会尽我所能的去修复完善它 **我不会提供任何支持与帮助**
-* 2023年7月30日后，Issues(问题反馈) & Discussions(讨论区) 将被关闭
-* __欢迎各位的PR，感谢提出Pull Requests的贡献者们__
-* * SIT Discord(https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
+* 你可以使用上面的 Ko-Fi 链接为 Paulov 购买一杯咖啡.
+* 欢迎发起合并请求改进这个项目！感谢所有贡献者的付出！
+* 请勿抱有"有偿求助"的心态寻求帮助.
+* 这只是一个娱乐性质的项目，请不要太当真.
+* Paulov: 我知道这个项目还是个半成品，但我还是会尽我所能完善它. 贡献者们: "我们可以合作共进!"
+* [SIT Discord 群](https://discord.gg/f4CN4n3nP2) 现已开放. 我们的社区群体会在这里互相帮助.
 
-## SPT-AKI 需求
-* Stay in Tarkov 需要 [最新的SPT-AKI服务器](https://dev.sp-tarkov.com/SPT-AKI/Server) 来运行. 你可以通过这个链接来了解什么是 SPT-Aki [here](https://www.sp-tarkov.com/).
-* 不要把SPT-AKI客户端模块与SIT同时安装! 只需要安装服务端模块即可!
 
-## [中文Wiki](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E4%BB%8B%E7%BB%8D(Intro)-Home)
-  - ### [部署教程](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
+## SPT-Aki 说明
+* Stay In Tarkov 需要配合 [最新的 Aki 服务端](https://dev.sp-tarkov.com/SPT-AKI/Server) 以进行联机. 您可以前往 [他们的官网](https://www.sp-tarkov.com/) 来了解 SPT-Aki 的更多信息.
+* __**注意:**__ **请勿**将 SIT 客户端模组安装到 *SPT-Aki 的客户端* —— 它应被安装到一个纯净的逃离塔科夫. 有关更多信息，请参阅本自述文件的 [安装教程->客户端](#%E5%AE%A2%E6%88%B7%E7%AB%AF) 部分.
+
+## [中文维基](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E4%BB%8B%E7%BB%8D(Intro)-Home)
+**维基均由不同的贡献者创造. 所有说明也都保存在维基目录中.**
+  - ### [部署教程](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B-Guides)
   - ### [疑难解答](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
 
-## 合作相关
 
-### 合作模式目前的进度
-**请注意**
-* 合作模式目前处在极早期开发中. 
-* 大部分的功能是可用的, 游戏在某种程度上是可以玩的。
-* 但是“可以玩”与“完美运行”是完全不同的概念，玩家间的数据不同步，各种问题与bug是预期范围内的。
-* 我测试了所有地图，目前效果最好的两张图是`工厂`与`实验室` 。
-* 服务器与主机与客户端的网络状态/硬件配置，以及主机上的AI数量会剧烈影响游戏性能
-* 更多有关运行服务器与游戏合作注意事项在 [如何开打](https://github.com/stayintarkov/StayInTarkov.Client/wiki/%E5%BC%80%E5%A7%8B%E4%B8%80%E5%9C%BA%E6%B8%B8%E6%88%8F-HOSTING)这里
+## 安装教程
 
-### 预先准备
-你必须将 [SPT-Aki mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) 安装到你的SPT-AKi服务器上来让mod工作。
+### 概述
+SIT 由2个主要部分和启动器组成:
+- [SIT 适用于 SPT-Aki 的服务端模组](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
+- SIT 客户端模组 (本项目)，需要安装在游戏本体内
+- 启动器: [SIT Manager](https://github.com/stayintarkov/SIT.Manager) 或 [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
+  - 如无必要，您应使用 SIT Manager. SIT Launcher Classic 的保留是为了向下兼容 (例如，如果你无法运行SIT Manager)，及证明"大家以前用的是这个启动器".
 
-如果你不需要使用Coop功能，则你必须要在BepInEx配置文件中禁用掉
+建议使用以下结构命名文件夹，这将方便你区分它们的不同部分.
+```
+SIT/
+├── server/      # SPT-Aki 服务端
+├── game/        # 逃离塔科夫本体
+└── launcher/    # 启动器 "SIT Manager" 或 "SIT Classic Launcher"
+```
+
+### 服务端
+- 请参考 SIT.Aki-Server-Mod 的 [自述文件](https://github.com/stayintarkov/SIT.Aki-Server-Mod#readme) 了解如何安装服务端模组.
+- 只有服主需要运行服务端，服主需要进行端口转发，或者使用 Hamachi, Radmin 等软件搭建虚拟局域网进行联机. 如果您感到困惑，请加入我们的 Discord 获取更多帮助.
+  - 您可能已经习惯了玩 SPT-Aki 时连接自己开的服务端，但这会导致问题. 只有一个人需要开着服务端，而其他人则连接到此服务端进行联机.
+
+### 启动器
+- 请参考 [SIT.Manager 的自述文件](https://github.com/stayintarkov/SIT.Manager#readme) 或 [SIT.Launcher.Classic 的自述文件](https://github.com/stayintarkov/SIT.Launcher.Classic#readme) 了解如何安装启动器.
+
+### 客户端
+- **所有人**都必须安装 SIT 客户端模组. 您可以使用启动器进行快速安装，或前往 [发行版页面](https://github.com/stayintarkov/StayInTarkov.Client/releases/latest) 手动下载安装.
+- **如果你已有 SPT-Aki 的客户端:** **请勿**将 SIT 安装在 Aki 的客户端内. SIT 客户端模组与 SPT-Aki 不兼容，你需要使用一份纯净的逃离塔科夫.
+
+### 实际游玩
+- **服主**: 搭建好可以正常运行的 SPT-Aki 服务端，并已完成端口转发或连接上虚拟局域网
+  - 确保已按照 SIT 服务端模组的自述文件修改了 IP 地址!
+- **玩家**: 打开启动器，输入服主服务端上显示的 IP 地址及端口并连接.
+  - 任何人均可以成为"房主"，只需选择好地图，点击"主持战局"，即可创建新战局，其他人可以直接点击加入.
 
 
-### 合作mod可以使用BSG官方的代码吗?
-不行。因为BSG的离线训练模式与在线的PvPvE共享相同的服务器代码，而且BSG官方明显是不会开放任何代码的，所以我们用不了。
+## 疑难解答 (FAQ)
 
-### 代码相关解释
-- 项目使用多种BepInEx Harmony补丁对Unity组件修改来实现功能
-- 那些需要不断在客户端与服务器之间同步的数据 (移动，视角变换等等) 使用组件来传输数据 (AI的代码在每一帧都执行一遍Update/LateUpdate命令和函数，从而导致大量的网络数据传输)
-- 那些可以被轻松 "复现" 的功能与方法则使用 ModuleReplicationPatch 抽象类处理 以实现双向调用。
-- 服务器所有的通信都通过JSON TCP Http 与 Web Socket 调用由SPT-Aki开发的 ["Web Server"](https://dev.sp-tarkov.com/SPT-AKI/Server) 来处理，使用[SIT.Aki-Server-Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) 来处理后端相关工作
-- 当一个合作游戏开始时（除了藏身处），CoopGameComponent会附加到GameWorld对象上，并轮询数据传递给PlayerReplicatedComponent
+### SIT 用的是正版的"练习组队模式"的代码吗?
+不是. 出于显而易见的原因，BSG 的服务器代码在客户端中是找不到的. 因此，BSG 的"练习组队模式"是直接使用了他们的服务器. 我们触碰不到代码，因此无法使用.
 
-
-
-## SPT-Aki
-
-### 有哪些Aki模块是可以一起工作的?
-下列的Aki模块是支持与SIT一起工作的.
+### SIT 兼容哪些 SPT-Aki 的模块?
+以下 Aki 模块已兼容.
 - aki-core
 - Aki.Common
 - Aki.Reflection
-- 对于SPT-AKI客户端mod来说，取决于如何编写的patch，如果直接针对GCLASSXXX或PUBLIC/PRIVATE，那大概行不通
 
-### 为什么你不直接使用Aki模块的DLL?
-SPT-Aki 的DLL是针对他们自己的反混淆方式编写的，而我的反混淆方式与Aki的模块目前不太兼容，所以我目前移植了很多来自SPT-Aki模块的功能，但我的目标是依赖于SPT-Aki，这样我好专注于SIT本身
+### SPT-Aki 的那些客户端模组是否可以直接使用?
+这取决于模组的具体编写方式. 如果它们是直接使用代码中的 "GClass***" 或 "public" / "private" 那大概率是无法使用的.
 
+### 为什么不直接使用 SPT-Aki 的模块?
+Aki 的模块是专门为自身设计的，其并不能很好兼容 Paulov 自行使用的技术.
+因此，Aki 的许多特性均被移植到了本项目中. 最终目标是依靠 Aki，并使其可以专注于实现 SIT 的专有功能.
 
-## 如何编译这个项目? 
-[编译文档](COMPILE.md)
+## 如何编译 SIT ?
+请参阅 [编译手册](COMPILE.md)
 
-# 如何安装BepInEx
-[https://docs.bepinex.dev/articles/user_guide/installation/index.html](https://docs.bepinex.dev/articles/user_guide/installation/index.html)
+## 致谢名单
+- SPT-Aki 项目组 (每一个所使用的 Aki 代码均保留了 Aki 的注释信息，非常感谢每位开发者的支持)
+- SPT-Aki 模组社群
+- DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) 与 [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) 模组已内置进本项目)
+- SIT 项目组与所有贡献者
 
-## 安装到塔科夫副本上
-BepInEx 5 必须安装好并生成了配置文件 （详见如何安装BepInEx）
-将编译好的.dll放置在 BepInEx plugins目录
+## 许可
 
-## Test in Tarkov
-- 打开你已经安装好BepInEx的塔科夫文件夹，打开BepInEx文件夹
-- 打开config目录
-- 打开BepInEx.cfg文件
-- 将 [Logging.Console] 选项设置为 True
-- 保存修改后的配置文件
-- 通过启动器启动塔科夫或者使用bat启动塔科夫，如下所示 (记得替换为你自己的token)
-```
-start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -config={"BackendUrl":"http://127.0.0.1:6969","Version":"live"}
-```
-- 如果BepInEx正确安装，应该会打开一个控制台窗口并显示插件已经启动了
-
-
-## 感谢列表
-- SPT-Aki team
-- MTGA team
-- SPT-Aki Modding Community
-- Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
-- kmyuhkyuk (GamePanulHUD - Unused)
-
-## 关于授权
-
-- 95% 的单人游戏与核心功能由SPT-Aki团队完成。 在他们的源码中可能涉及到相关的许可证
-- 我所做的工作没有谁许可，就图一乐，你想做什么我不管
+- DrakiaXYZ 的项目均为 MIT 许可证
+- 几乎所有的单人游戏与其核心代码为 SPT-Aki 编写. 本项目使用与其相同的开源许可: NCSA 开源许可证
+- 我所编写的代码没有许可. 本项目仅仅是为了"寻乐子"，我不在乎你拿代码去干什么.

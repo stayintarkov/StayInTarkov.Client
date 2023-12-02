@@ -2,7 +2,7 @@
 <div align=center style="text-align: center">
 <h1 style="text-align: center">StayInTarkov.Client</h1>
 
-An Escape From Tarkov BepInEx module designed to be used with the [SIT.Server-Aki-Mod](SIT.Aki-Server-Mod) with the ultimate goal of "Offline" Coop
+An Escape From Tarkov BepInEx module designed to be used with the [SIT.Aki-Server-Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) with the ultimate goal of "Offline" Coop
 </div>
 
 ---
@@ -53,7 +53,6 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 
 ## SPT-AKI Requirement
 * Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to facilitate coop connections. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
-* You should install the SIT SPT-Aki Server Mod according to the instructions in it's [README.MD](https://github.com/stayintarkov/SIT.Aki-Server-Mod/blob/master/README.md)
 * __**NOTE:**__ The SIT Client Mod should **NOT** be installed onto the SPT-Aki *Client*- it should be installed onto it's own copy of Tarkov. See the Installation>Client section of this readme for further info.
 
 ## [Wiki](https://github.com/stayintarkov/StayInTarkov.Client/blob/master/wiki/Home.md)
@@ -167,7 +166,9 @@ The following Aki Modules are supported.
 - aki-core
 - Aki.Common
 - Aki.Reflection
-- Do SPT-AKI Client mods work? This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
+
+### Do SPT-AKI Client mods work?
+This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
 
 ### Why don't you use Aki Module DLLs?
 SPT-Aki DLLs are written specifically for their own Deobfuscation technique and Paulov's own technique is not working well with Aki Modules at this moment in time.
