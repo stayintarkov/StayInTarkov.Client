@@ -100,47 +100,6 @@ namespace StayInTarkov.Coop.Player
                 PlayerMovePackets[player.ProfileId] = playerMovePacket;
                 AkiBackendCommunication.Instance.SendDataToPool(serialized);
             }
-
-            if (CoopGame.TestController != null)
-            {
-                GStruct256 nextModel = new()
-                {
-                    RemoteTime = Time.time,
-                    IsNeedProcessMovement = true,
-                    Movement = new()
-                    {
-                        BodyPosition = new Vector3(x: player.Position.x + 2, y: player.Position.y, z: player.Position.z),
-                        HeadRotation = player.HeadRotation,
-                        MovementDirection = player.MovementContext.MovementDirection,
-                        Velocity = player.Velocity,
-                        Tilt = player.MovementContext.Tilt,
-                        Step = player.MovementContext.Step,
-                        BlindFire = player.MovementContext.BlindFire,
-                        StateAnimatorIndex = player.CurrentAnimatorStateIndex,
-                        State = player.CurrentManagedState.Name,
-                        PhysicalCondition = player.MovementContext.PhysicalCondition,
-                        MovementSpeed = player.MovementContext.CharacterMovementSpeed,
-                        SprintSpeed = player.MovementContext.SprintSpeed,
-                        MaxSpeed = player.MovementContext.MaxSpeed,
-                        Pose = player.Pose,
-                        PoseLevel = player.PoseLevel,
-                        InHandsObjectOverlap = 1f,
-                        IsGrounded = player.MovementContext.IsGrounded,
-                        JumpHeight = player.MovementContext.JumpHeight,
-                        FallHeight = player.MovementContext.FallHeight,
-                        FallTime = player.MovementContext.FreefallTime,
-                        AimRotation = player.Rotation.y,
-                        FootRotation = Quaternion.AngleAxis(player.Rotation.x, Vector3.up)
-                    }
-                };
-
-                CoopGame.TestController.Apply(nextModel); 
-            }
-            else
-            {
-                Logger.LogInfo("LOOKHERE: Null");
-            }
-
         }
 
         private static Dictionary<string, PlayerMovePacket> PlayerMovePackets { get; } = new Dictionary<string, PlayerMovePacket>();

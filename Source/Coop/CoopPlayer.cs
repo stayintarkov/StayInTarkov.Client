@@ -19,6 +19,7 @@ namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {
+        private NetworkPacket.Lacyway.PrevFrame prevFrame;
         ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
@@ -339,6 +340,80 @@ namespace StayInTarkov.Coop
                 return;
 
 
+        }
+
+        public override void LateUpdate()
+        {
+            base.LateUpdate();
+
+            NetworkPacket.Lacyway.MovementInfoPacket mIP = new()
+            {
+                EPlayerState = MovementContext.CurrentState.Name,
+                Position = Position,
+                AnimatorStateIndex = CurrentAnimatorStateIndex,
+                PoseLevel = MovementContext.SmoothedPoseLevel,
+                CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
+                Tilt = MovementContext.SmoothedTilt,
+                Step = MovementContext.Step,
+                BlindFire = MovementContext.BlindFire,
+                InteractWithDoorPacket = new NetworkPacket.Lacyway.PacketItemInteraction(),
+                LootInteractionPacket = new NetworkPacket.Lacyway.LootInteractionPacket(),
+                StationaryWeaponPacket = new NetworkPacket.Lacyway.StationaryWeaponPacket(),
+                PlantItemPacket = new NetworkPacket.Lacyway.PlantItemPacket(),
+                SoftSurface = MovementContext.SoftSurface,
+                HeadRotation = HeadRotation,
+                Stamina = Physical.SerializationStruct,
+                DiscreteDirection = (int)MovementContext.DiscreteDirection,
+                IsGrounded = MovementContext.IsGrounded,
+                SurfaceNormal = MovementContext.SurfaceNormal,
+                PlayerSurfaceUpAlignNormal = MovementContext.PlayerSurfaceUpAlignNormal
+            };
+
+            prevFrame = new()
+            {
+                MovementInfoPacket = mIP
+            };
+
+            if (CoopGame.TestController != null)
+            {
+                GStruct256 nextModel = new()
+                {
+                    RemoteTime = Time.time,
+                    IsNeedProcessMovement = true,
+                    Movement = new()
+                    {
+                        BodyPosition = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
+                        HeadRotation = HeadRotation,
+                        MovementDirection = new Vector2(MovementContext.MovementDirection.x * -1, MovementContext.MovementDirection.y * -1),
+                        Velocity = Velocity,
+                        Tilt = MovementContext.Tilt,
+                        Step = MovementContext.Step,
+                        BlindFire = MovementContext.BlindFire,
+                        StateAnimatorIndex = CurrentAnimatorStateIndex,
+                        State = CurrentManagedState.Name,
+                        PhysicalCondition = MovementContext.PhysicalCondition,
+                        MovementSpeed = MovementContext.CharacterMovementSpeed,
+                        SprintSpeed = MovementContext.SprintSpeed,
+                        MaxSpeed = MovementContext.MaxSpeed,
+                        Pose = Pose,
+                        PoseLevel = PoseLevel,
+                        InHandsObjectOverlap = 1f,
+                        IsGrounded = MovementContext.IsGrounded,
+                        JumpHeight = MovementContext.JumpHeight,
+                        FallHeight = MovementContext.FallHeight,
+                        FallTime = MovementContext.FreefallTime,
+                        AimRotation = Rotation.y,
+                        FootRotation = Quaternion.AngleAxis(Rotation.x, Vector3.up)
+                    }
+                };
+
+                CoopGame.TestController.Apply(nextModel);
+                CoopGame.TestController.ManualUpdate();
+            }
+            else
+            {
+                Logger.LogInfo("LOOKHERE: Null");
+            }
         }
 
 
