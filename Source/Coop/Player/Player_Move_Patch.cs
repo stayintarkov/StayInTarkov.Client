@@ -174,6 +174,7 @@ namespace StayInTarkov.Coop.Player
                 var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
                 if (replicationDistance >= 3)
                 {
+                    Logger.LogDebug($"{player.Profile.Nickname} replication distance {replicationDistance} is further than 3, Teleporting");
                     player.Teleport(ReplicatedPosition, true);
                 }
                 else
@@ -185,18 +186,13 @@ namespace StayInTarkov.Coop.Player
             UnityEngine.Vector2 direction = new(playerMoveStruct.dX, playerMoveStruct.dY);
             float spd = playerMoveStruct.spd;
 
-            playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-            playerReplicatedComponent.ReplicatedDirection = null;
-
             player.InputDirection = direction;
             player.MovementContext.MovementDirection = direction;
 
+            playerReplicatedComponent.ReplicatedMovementSpeed = spd;
             player.MovementContext.CharacterMovementSpeed = spd;
 
-            player.CurrentManagedState.Move(direction);
-
-            playerReplicatedComponent.ReplicatedDirection = direction;
-
+            //player.CurrentManagedState.Move(direction);
         }
     }
 }

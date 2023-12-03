@@ -165,7 +165,7 @@ namespace StayInTarkov.Core.Player
                 if (packet.ContainsKey("spd"))
                 {
                     ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
-                    player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
+                    //player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
                 }
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
@@ -222,7 +222,7 @@ namespace StayInTarkov.Core.Player
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
                 {
                     // Force Rotation
-                    player.Rotation = ReplicatedRotation.Value;
+                    //player.Rotation = ReplicatedRotation.Value;
                     var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
                     playerMovePatch?.Replicated(player, packet);
                 }
@@ -270,41 +270,12 @@ namespace StayInTarkov.Core.Player
         }
 
         public bool ShouldSprint { get; set; }
-        private bool isSprinting;
 
         public bool IsSprinting
         {
-            get { return isSprinting || player.IsSprintEnabled; }
-            set { isSprinting = value; }
+            get { return player.IsSprintEnabled; }
         }
 
-
-        private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
-        {
-            ShouldSprint = bool.Parse(packet["spr"].ToString());
-
-            //    // If we are requesting to sprint but we are alreadying sprinting, don't do anything
-            //    //if (ShouldSprint && IsSprinting)
-            //    //    return;
-
-            //    if (ShouldSprint)
-            //    {
-            //        // normalize the movement direction. sprint requires 0 on the Y.
-            //        player.MovementContext.MovementDirection = new Vector2(1, 0);
-            //        player.MovementContext.PlayerAnimatorEnableSprint(true);
-            //        //player.Physical.Sprint(true);
-            //        //player.Physical.StaminaCapacity = 100;
-            //        //player.Physical.StaminaRestoreRate = 100;
-            //        IsSprinting = true;
-            //    }
-            //    else
-            //    {
-            //        //player.Physical.Sprint(false);
-            //        IsSprinting = false;
-            //        player.MovementContext.PlayerAnimatorEnableSprint(false);
-
-            //}
-        }
 
         private void ProcessPlayerStateProne(Dictionary<string, object> packet)
         {
@@ -337,10 +308,7 @@ namespace StayInTarkov.Core.Player
         {
             Update_ClientDrone();
 
-            if (IsClientDrone && ShouldSprint)
-            {
-                player.Physical.Sprint(ShouldSprint);
-            }
+            
 
             if (IsClientDrone)
                 return;
@@ -358,54 +326,32 @@ namespace StayInTarkov.Core.Player
             }
         }
 
+        void LateUpdate()
+        {
+            if (!IsClientDrone)
+                return;
+
+            // This must exist in Update AND LateUpdate to function correctly.
+            player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+
+            if (ShouldSprint)
+            {
+                player.Rotation = ReplicatedRotation.Value;
+                player.MovementContext.Rotation = ReplicatedRotation.Value;
+            }
+
+        }
+
         private void Update_ClientDrone()
         {
             if (!IsClientDrone)
                 return;
 
-            //if (!CoopGameComponent.TryGetCoopGameComponent(out _))
-            //    return;
-
-            // Replicate Position.
-            // If a short distance -> Smooth Lerp to the Desired Position
-            // If the other side of a wall -> Teleport to the correct side (TODO)
-            // If far away -> Teleport
-            //if (ReplicatedPosition.HasValue)
-            //{
-            //    var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
-            //    var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-            //    if (replicationDistance >= 3)
-            //    {
-            //        player.Teleport(ReplicatedPosition.Value, true);
-            //    }
-            //    else
-            //    {
-            //        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
-            //    }
-            //}
-
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue)
+            if (ReplicatedRotation.HasValue && !IsSprinting && !ShouldSprint)
             {
-                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
-            }
-
-            // This will continue movements set be Player_Move_Patch
-            //if (ReplicatedDirection.HasValue)
-            //{
-            //    player.CurrentManagedState.Move(ReplicatedDirection.Value);
-            //    player.InputDirection = ReplicatedDirection.Value;
-            //}
-            //else
-            //{
-            //    player.InputDirection = Vector2.zero;
-            //}
-
-            if (!ShouldSprint)
-            {
-                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
-                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 3);
             }
 
             if (ReplicatedDirection.HasValue)
@@ -415,6 +361,18 @@ namespace StayInTarkov.Core.Player
 
                 _playerMovePatch?.ReplicatedMove(player,
                     new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
+            }
+
+            if (!ShouldSprint)
+            {
+                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
+                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+            }
+            else
+            {
+                // This must exist in Update AND LateUpdate to function correctly.
+                player.Rotation = ReplicatedRotation.Value;
+                player.MovementContext.PlayerAnimator.EnableSprint(true);
             }
         }
 
