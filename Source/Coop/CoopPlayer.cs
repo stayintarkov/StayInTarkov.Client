@@ -86,7 +86,7 @@ namespace StayInTarkov.Coop
 
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
-                , new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
+                , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
                 , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
                 , questController
                 , filter
@@ -101,6 +101,7 @@ namespace StayInTarkov.Coop
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
+            player._animators[0].speed = isYourPlayer ? 0.9f : 0.6f;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             // If this is a Client Drone add Player Replicated Component
