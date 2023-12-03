@@ -357,8 +357,8 @@ namespace StayInTarkov.Coop.Components
                         Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
                         gameTimer.ChangeSessionTime(timeRemain);
 
-                        // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that also may cause client game crashes!
-                        //coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
+                        // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
+                        coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
                     }
                 }
             }
@@ -395,7 +395,7 @@ namespace StayInTarkov.Coop.Components
 
                         Vector2 windDirection = new(float.Parse(packet["WindDirection.x"].ToString()), float.Parse(packet["WindDirection.y"].ToString()));
 
-                        // working dog sh*t
+                        // working dog sh*t, if you are the programmer, DON'T EVER DO THIS! - dounai2333
                         static bool BothPositive(float f1, float f2) => f1 > 0 && f2 > 0;
                         static bool BothNegative(float f1, float f2) => f1 < 0 && f2 < 0;
                         static bool VectorIsSameQuadrant(Vector2 v1, Vector2 v2, out int flag)
