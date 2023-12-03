@@ -303,33 +303,33 @@ namespace StayInTarkov.Coop
 
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGC))
-            {
-                base.Rotate(deltaRotation, ignoreClamp);
-                return;
-            }
-
-            // If using Client Side Damage Model and Pressing the Trigger, send rotation to Server
-            if (coopGC.SITConfig.useClientSideDamageModel
-                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
+            if (
+                (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
                 && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
+                || IsSprintEnabled
+                )
             {
-                // Send to Server
-
+                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
+                rotationPacket.Add("m", "PlayerRotate");
+                rotationPacket.Add("x", this.Rotation.x);
+                rotationPacket.Add("y", this.Rotation.y);
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
         }
 
-        //public override void LateUpdate()
-        //{
-        //    //base.LateUpdate();
-        //}
+        public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
+        {
+            var prc = this.GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
 
-        //public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
-        //{
-        //    //base.ComplexLateUpdate(queue, deltaTime);
-        //}
+            this.Rotation = rotation;
+            prc.ReplicatedRotation = rotation; 
+
+        }
+
 
         public override void Move(Vector2 direction)
         {

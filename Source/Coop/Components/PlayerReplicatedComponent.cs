@@ -165,7 +165,7 @@ namespace StayInTarkov.Core.Player
                 if (packet.ContainsKey("spd"))
                 {
                     ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
-                    player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
+                    //player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
                 }
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
@@ -222,7 +222,7 @@ namespace StayInTarkov.Core.Player
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
                 {
                     // Force Rotation
-                    player.Rotation = ReplicatedRotation.Value;
+                    //player.Rotation = ReplicatedRotation.Value;
                     var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
                     playerMovePatch?.Replicated(player, packet);
                 }
@@ -270,12 +270,10 @@ namespace StayInTarkov.Core.Player
         }
 
         public bool ShouldSprint { get; set; }
-        private bool isSprinting;
 
         public bool IsSprinting
         {
-            get { return isSprinting || player.IsSprintEnabled; }
-            set { isSprinting = value; }
+            get { return player.IsSprintEnabled; }
         }
 
 
@@ -333,9 +331,15 @@ namespace StayInTarkov.Core.Player
             if (!IsClientDrone)
                 return;
 
-
-
+            // This must exist in Update AND LateUpdate to function correctly.
             player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+
+            if (ShouldSprint)
+            {
+                player.Rotation = ReplicatedRotation.Value;
+                player.MovementContext.Rotation = ReplicatedRotation.Value;
+            }
+
         }
 
         private void Update_ClientDrone()
@@ -345,9 +349,9 @@ namespace StayInTarkov.Core.Player
 
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue)
+            if (ReplicatedRotation.HasValue && !IsSprinting && !ShouldSprint)
             {
-                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 3);
+                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 3);
             }
 
             if (ReplicatedDirection.HasValue)
@@ -366,6 +370,8 @@ namespace StayInTarkov.Core.Player
             }
             else
             {
+                // This must exist in Update AND LateUpdate to function correctly.
+                player.Rotation = ReplicatedRotation.Value;
                 player.MovementContext.PlayerAnimator.EnableSprint(true);
             }
         }
