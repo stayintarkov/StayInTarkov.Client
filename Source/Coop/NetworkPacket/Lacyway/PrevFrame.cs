@@ -22,23 +22,29 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
         public EHandsTypePacket HandsTypePacket { get; set; }
         public MovementInfoPacket MovementInfoPacket { get; set; }
         public HandsChangePacket HandsChangePacket { get; set; }
-        public HelmetLightPacket? HelmetLightPacket { get; set; }
+        public HelmetLightPacket HelmetLightPacket { get; set; }
         public TacticalComboPacket TacticalComboPacket { get; set; }
-        public List<ICommand> Commands { get; set; } = [];
+        public List<ICommand> Commands { get; set; } = new List<ICommand>();
 
-        public void ReadPreviousFrame()
+        public void ReadFrame()
         {
-            if (HelmetLightPacket.HasValue)
+            if (HelmetLightPacket.LightsStates != null)
             {
                 Commands.Add(new Command()
                 {
-                    SetSilently = HelmetLightPacket.Value.IsSilent,
-                    ID = HelmetLightPacket.Value.LightsStates[0].Id,
-                    LightMode = HelmetLightPacket.Value.LightsStates[0].LightMode,
-                    State = HelmetLightPacket.Value.LightsStates[0].IsActive
+                    SetSilently = HelmetLightPacket.IsSilent,
+                    ID = HelmetLightPacket.LightsStates[0].Id,
+                    LightMode = HelmetLightPacket.LightsStates[0].LightMode,
+                    State = HelmetLightPacket.LightsStates[0].IsActive
                 });
+                Logger.LogInfo("Added HLP!");
                 HelmetLightPacket = default;
             }
+        }
+
+        public void ClearFrame()
+        {
+            Commands.Clear();
         }
     }
 }

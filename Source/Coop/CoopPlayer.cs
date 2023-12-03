@@ -1,8 +1,10 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using HarmonyLib.Tools;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Lacyway;
 using StayInTarkov.Coop.Player;
@@ -21,7 +23,7 @@ namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {
-        private NetworkPacket.Lacyway.PrevFrame prevFrame;
+        private NetworkPacket.Lacyway.PrevFrame prevFrame = new();
         ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
@@ -345,87 +347,71 @@ namespace StayInTarkov.Coop
         public override void SendHeadlightsPacket(bool isSilent)
         {
             LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
-            prevFrame.HelmetLightPacket = new()
+            if (lightStates.Length > 0)
             {
-                IsSilent = isSilent,
-                LightsStates = lightStates
-            };
-            Logger.LogInfo("CoopPlayer::SendHeadlightsPacket");
+                var myLogSource = new ManualLogSource("MyLogSource"); // The source name is shown in BepInEx log
+
+                // Register the source
+                BepInEx.Logging.Logger.Sources.Add(myLogSource);
+
+                myLogSource.LogInfo("ADDING LIGHTSTATE"); // Will print [Info: MyLogSource] Test
+
+                // Remove the source to free resources
+                BepInEx.Logging.Logger.Sources.Remove(myLogSource);
+                prevFrame.HelmetLightPacket = new()
+                {
+                    IsSilent = isSilent,
+                    LightsStates = lightStates
+                };
+            }
+            
+            
         }
 
-        public override void SendWeaponLightPacket()
+        public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
-            ClientFirearmController clientFirearmController;
-            if ((clientFirearmController = (HandsController as ClientFirearmController)) != null)
+            base.OnPhraseTold(@event, clip, bank, speaker);
+            prevFrame.Commands.Add(new PhraseCommandMessage()
             {
-                LightsStates[] array = clientFirearmController.Item.AllSlots.Select(new Func<Slot, Item>(ClientPlayer.Class1383.class1383_0.method_1)).GetComponents<LightComponent>().Select(new Func<LightComponent, LightsStates>(ClientPlayer.Class1383.class1383_0.method_2)).ToArray<LightsStates>();
-                if (array.Length == 0)
-                {
-                    return;
-                }
-                TacticalComboPacket toggleTacticalCombo = new()
-                {
-                    ToggleTacticalCombo = true,
-                    TacticalComboStatuses = new ScopePacket[array.Length]
-                };
-                for (int i = 0; i < array.Length; i++)
-                {
-                    LightsStates lightsStates = array[i];
-                    toggleTacticalCombo.TacticalComboStatuses[i] = new ScopePacket
-                    {
-                        Id = lightsStates.Id,
-                        IsActive = lightsStates.IsActive,
-                        SelectedMode = lightsStates.LightMode
-                    };
-                }
-                prevFrame.TacticalComboPacket = toggleTacticalCombo;
-            }
+                PhraseCommand = @event,
+                PhraseId = clip.NetId
+            });
         }
 
         public override void LateUpdate()
         {
             base.LateUpdate();
 
-            prevFrame = new()
+            prevFrame.MovementInfoPacket = new()
             {
-                MovementInfoPacket = new()
-                {
-                    EPlayerState = CurrentManagedState.Name,
-                    Position = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
-                    AnimatorStateIndex = CurrentAnimatorStateIndex,
-                    PoseLevel = MovementContext.SmoothedPoseLevel,
-                    CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
-                    Tilt = MovementContext.SmoothedTilt,
-                    Step = MovementContext.Step,
-                    BlindFire = MovementContext.BlindFire,
-                    HeadRotation = HeadRotation,
-                    Stamina = Physical.SerializationStruct,
-                    DiscreteDirection = (int)MovementContext.DiscreteDirection,
-                    Direction = MovementContext.MovementDirection,
-                    IsGrounded = MovementContext.IsGrounded,
-                    AimRotation = Rotation.y,
-                    FallHeight = MovementContext.FallHeight,
-                    FallTime = MovementContext.FreefallTime,
-                    FootRotation = Rotation.x,
-                    JumpHeight = MovementContext.JumpHeight,
-                    MaxSpeed = MovementContext.MaxSpeed,
-                    MovementDirection = MovementContext.MovementDirection,
-                    PhysicalCondition = MovementContext.PhysicalCondition,
-                    Pose = Pose,
-                    SprintSpeed = MovementContext.SprintSpeed,
-                    State = CurrentManagedState.Name,
-                    Velocity = Velocity
-                }
+                EPlayerState = CurrentManagedState.Name,
+                Position = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
+                AnimatorStateIndex = CurrentAnimatorStateIndex,
+                PoseLevel = MovementContext.SmoothedPoseLevel,
+                CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
+                Tilt = MovementContext.SmoothedTilt,
+                Step = MovementContext.Step,
+                BlindFire = MovementContext.BlindFire,
+                HeadRotation = HeadRotation,
+                Stamina = Physical.SerializationStruct,
+                DiscreteDirection = (int)MovementContext.DiscreteDirection,
+                Direction = MovementContext.MovementDirection,
+                IsGrounded = MovementContext.IsGrounded,
+                AimRotation = Rotation.y,
+                FallHeight = MovementContext.FallHeight,
+                FallTime = MovementContext.FreefallTime,
+                FootRotation = Rotation.x,
+                JumpHeight = MovementContext.JumpHeight,
+                MaxSpeed = MovementContext.MaxSpeed,
+                MovementDirection = MovementContext.MovementDirection,
+                PhysicalCondition = MovementContext.PhysicalCondition,
+                Pose = Pose,
+                SprintSpeed = MovementContext.SprintSpeed,
+                State = CurrentManagedState.Name,
+                Velocity = Velocity
             };
 
-            LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
-            prevFrame.HelmetLightPacket = new HelmetLightPacket?(new HelmetLightPacket
-            {
-                IsSilent = true,
-                LightsStates = lightStates
-            });
-
-            prevFrame.ReadPreviousFrame();
+            prevFrame.ReadFrame();
 
             if (CoopGame.TestController != null)
             {
@@ -455,14 +441,26 @@ namespace StayInTarkov.Coop
                         Tilt = prevFrame.MovementInfoPacket.Tilt,
                         Velocity = prevFrame.MovementInfoPacket.Velocity
                     },
-                    Commands = [.. prevFrame.Commands],
+                    Commands = prevFrame.Commands.ToArray(),
                     CommandsCount = prevFrame.Commands.Count
                     
                 };
 
+
+                var myLogSource = new ManualLogSource("MyLogSource"); // The source name is shown in BepInEx log
+
+                // Register the source
+                BepInEx.Logging.Logger.Sources.Add(myLogSource);
+
+                myLogSource.LogInfo(nextModel.Commands.Count() + " " + nextModel.CommandsCount);
+
+                // Remove the source to free resources
+                BepInEx.Logging.Logger.Sources.Remove(myLogSource);
+
                 CoopGame.TestController.Apply(nextModel);
                 CoopGame.TestController.ManualUpdate();
-                prevFrame = default;
+
+                prevFrame.ClearFrame();
             }
             else
             {
@@ -470,34 +468,8 @@ namespace StayInTarkov.Coop
             }
         }
 
-    //    Movement = new ()
-    //                {
-    //                    BodyPosition = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
-    //                    HeadRotation = HeadRotation,
-    //                    MovementDirection = new Vector2(MovementContext.MovementDirection.x* -1, MovementContext.MovementDirection.y* -1),
-    //                    Velocity = Velocity,
-    //                    Tilt = MovementContext.Tilt,
-    //                    Step = MovementContext.Step,
-    //                    BlindFire = MovementContext.BlindFire,
-    //                    StateAnimatorIndex = CurrentAnimatorStateIndex,
-    //                    State = CurrentManagedState.Name,
-    //                    PhysicalCondition = MovementContext.PhysicalCondition,
-    //                    MovementSpeed = MovementContext.CharacterMovementSpeed,
-    //                    SprintSpeed = MovementContext.SprintSpeed,
-    //                    MaxSpeed = MovementContext.MaxSpeed,
-    //                    Pose = Pose,
-    //                    PoseLevel = PoseLevel,
-    //                    InHandsObjectOverlap = 1f,
-    //                    IsGrounded = MovementContext.IsGrounded,
-    //                    JumpHeight = MovementContext.JumpHeight,
-    //                    FallHeight = MovementContext.FallHeight,
-    //                    FallTime = MovementContext.FreefallTime,
-    //                    AimRotation = Rotation.y,
-    //                    FootRotation = Quaternion.AngleAxis(Rotation.x, Vector3.up)
-    //}
 
-
-    public override void OnDestroy()
+        public override void OnDestroy()
         {
             BepInLogger.LogDebug("OnDestroy()");
             base.OnDestroy();

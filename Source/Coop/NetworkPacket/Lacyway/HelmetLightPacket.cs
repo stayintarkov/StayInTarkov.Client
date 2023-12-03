@@ -9,4 +9,5 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
         public bool IsSilent {  get; set; }
         public LightsStates[] LightsStates { get; set; }
     }
+
 }
