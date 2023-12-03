@@ -186,7 +186,7 @@ namespace StayInTarkov.Coop.Player
             float spd = playerMoveStruct.spd;
 
             playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-            playerReplicatedComponent.ReplicatedDirection = null;
+            //playerReplicatedComponent.ReplicatedDirection = null;
 
             player.InputDirection = direction;
             player.MovementContext.MovementDirection = direction;
@@ -195,7 +195,7 @@ namespace StayInTarkov.Coop.Player
 
             player.CurrentManagedState.Move(direction);
 
-            playerReplicatedComponent.ReplicatedDirection = direction;
+            //playerReplicatedComponent.ReplicatedDirection = direction;
 
         }
     }
