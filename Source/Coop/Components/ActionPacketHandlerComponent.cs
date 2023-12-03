@@ -1,6 +1,9 @@
-﻿using BepInEx.Logging;
+﻿using Aki.Custom.Airdrops;
+using Aki.Custom.Airdrops.Models;
+using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.World;
 using StayInTarkov.Core.Player;
@@ -199,6 +202,14 @@ namespace StayInTarkov.Coop.Components
 
             switch (method)
             {
+                case "AirdropPacket":
+                    ReplicateAirdrop(packet);
+                    result = true;
+                    break;
+                case "AirdropLootPacket":
+                    ReplicateAirdropLoot(packet);
+                    result = true;
+                    break;
                 case "RaidTimer":
                     ReplicateRaidTimer(packet);
                     result = true;
@@ -328,6 +339,30 @@ namespace StayInTarkov.Coop.Components
                 // Wait for a short period before checking again.
                 await Task.Delay(1000);
             }
+        }
+
+        void ReplicateAirdrop(Dictionary<string, object> packet)
+        {
+            if (!Singleton<SITAirdropsManager>.Instantiated)
+                return;
+
+            Logger.LogInfo("--- RAW AIRDROP PACKET ---");
+            Logger.LogInfo(packet.SITToJson());
+
+            Singleton<SITAirdropsManager>.Instance.AirdropParameters = packet["model"].ToString().SITParseJson<AirdropParametersModel>();
+        }
+
+        void ReplicateAirdropLoot(Dictionary<string, object> packet)
+        {
+            if (!Singleton<SITAirdropsManager>.Instantiated)
+                return;
+
+            Logger.LogInfo("--- RAW AIRDROP-LOOT PACKET ---");
+            Logger.LogInfo(packet.SITToJson());
+
+            Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(
+                packet["result"].ToString().SITParseJson<AirdropLootResultModel>(),
+                packet["config"].ToString().SITParseJson<AirdropConfigModel>());
         }
 
         void ReplicateRaidTimer(Dictionary<string, object> packet)

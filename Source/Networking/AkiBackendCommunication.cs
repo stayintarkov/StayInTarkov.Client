@@ -1,10 +1,7 @@
-﻿using Aki.Custom.Airdrops;
-using Aki.Custom.Airdrops.Models;
-using BepInEx.Logging;
+﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
@@ -297,30 +294,6 @@ namespace StayInTarkov.Networking
 
                     coopGameComponent.ServerHasStopped = true;
                     return;
-                }
-
-                if (Singleton<SITAirdropsManager>.Instantiated 
-                    && packet.ContainsKey("m") 
-                    && packet["m"].ToString().StartsWith("Airdrop")
-                    )
-                {
-                    if (packet["m"].ToString() == "AirdropPacket")
-                    {
-                        Logger.LogInfo("--- RAW AIRDROP PACKET ---");
-                        Logger.LogInfo(packet.SITToJson());
-
-                        Singleton<SITAirdropsManager>.Instance.AirdropParameters = packet["model"].ToString().SITParseJson<AirdropParametersModel>();
-                    }
-
-                    if (packet["m"].ToString() == "AirdropLootPacket")
-                    {
-                        Logger.LogInfo("--- RAW AIRDROP-LOOT PACKET ---");
-                        Logger.LogInfo(packet.SITToJson());
-
-                        Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer
-                            (packet["result"].ToString().SITParseJson<AirdropLootResultModel>()
-                            , packet["config"].ToString().SITParseJson<AirdropConfigModel>());
-                    }
                 }
 
                 // If this is a SIT serialization packet
