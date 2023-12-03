@@ -15,15 +15,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static EFT.Player;
 
 namespace StayInTarkov.Coop
 {
     internal class CoopPlayer : LocalPlayer
     {
-        private NetworkPacket.Lacyway.PrevFrame prevFrame = new();
+        public static NetworkPacket.Lacyway.PrevFrame prevFrame = new();
         ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
@@ -152,6 +154,8 @@ namespace StayInTarkov.Coop
                     SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
             }
         }
+
+        
 
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
@@ -344,6 +348,7 @@ namespace StayInTarkov.Coop
                 return;            
         }
 
+
         public override void SendHeadlightsPacket(bool isSilent)
         {
             LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
@@ -364,18 +369,49 @@ namespace StayInTarkov.Coop
                     LightsStates = lightStates
                 };
             }
-            
-            
         }
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
-            prevFrame.Commands.Add(new PhraseCommandMessage()
+            AddCommand(new PhraseCommandMessage()
             {
                 PhraseCommand = @event,
                 PhraseId = clip.NetId
+            });            
+        }
+
+        public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
+        {
+            base.Proceed(weapon, callback, scheduled);
+
+            bool fastHide = false;
+            EFT.Player.FirearmController firearmController;
+            if ((firearmController = _handsController as FirearmController) != null)
+            {
+                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
+            }
+
+            var asd3 = Singleton<ItemFactory>.Instance.ItemToComponentialItem(weapon);
+
+            AddCommand(new HandsController2()
+            {
+                FastHide = fastHide,
+                Armed = true,
+                HandControllerType = EHandsControllerType.Firearm,
+                Item = asd3
             });
+            //AddCommand(new ChangeEquipCommandMessaged()
+            //{
+            //    IsInInventory = true,
+            //    ItemsForEquip = asd3,
+            //    OperationType = ChangeEquipCommandMessaged.EOperationType.Equip,
+            //});
+        }
+
+        public void AddCommand(ICommand command)
+        {
+            prevFrame.Commands.Add(command);
         }
 
         public override void LateUpdate()
@@ -452,7 +488,10 @@ namespace StayInTarkov.Coop
                 // Register the source
                 BepInEx.Logging.Logger.Sources.Add(myLogSource);
 
-                myLogSource.LogInfo(nextModel.Commands.Count() + " " + nextModel.CommandsCount);
+                if (nextModel.Commands.Count() > 0)
+                {
+                    myLogSource.LogInfo(nextModel.Commands.Count() + " " + nextModel.CommandsCount); 
+                }
 
                 // Remove the source to free resources
                 BepInEx.Logging.Logger.Sources.Remove(myLogSource);
