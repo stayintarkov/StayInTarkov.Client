@@ -281,7 +281,8 @@ namespace StayInTarkov.Coop
                     Dictionary<string, object> raidTimerDict = new()
                     {
                         { "serverId", coopGameComponent.ServerId },
-                        { "RaidTimer", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
+                        { "m", "RaidTimer" },
+                        { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
                     };
                     AkiBackendCommunication.Instance.SendDataToPool(raidTimerDict.ToJson());
                 }
@@ -299,9 +300,11 @@ namespace StayInTarkov.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                Dictionary<string, object> timeAndWeatherDict = new();
-                timeAndWeatherDict.Add("TimeAndWeather", true);
-                timeAndWeatherDict.Add("serverId", coopGameComponent.ServerId);
+                Dictionary<string, object> timeAndWeatherDict = new()
+                {
+                    { "serverId", coopGameComponent.ServerId },
+                    { "m", "TimeAndWeather" }
+                };
 
                 if (GameDateTime != null)
                     timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);
@@ -325,8 +328,9 @@ namespace StayInTarkov.Coop
                         timeAndWeatherDict.Add("TopWindDirection.y", weatherCurve.TopWind.y);
                     }
 
-                    Logger.LogDebug(timeAndWeatherDict.ToJson());
-                    AkiBackendCommunication.Instance.SendDataToPool(timeAndWeatherDict.ToJson());
+                    string packet = timeAndWeatherDict.ToJson();
+                    Logger.LogDebug(packet);
+                    AkiBackendCommunication.Instance.SendDataToPool(packet);
                 }
             }
         }
