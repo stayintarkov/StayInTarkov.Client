@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -757,7 +758,7 @@ namespace StayInTarkov.Networking
         }
 
         /// <summary>
-        /// TODO: Replace this with a HTTPClient Post command. 
+        /// Send request to the server and get Stream of data back by post
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="method"></param>
@@ -768,78 +769,85 @@ namespace StayInTarkov.Networking
         /// <returns></returns>
         MemoryStream SendAndReceivePostOld(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.ServerCertificateValidationCallback = delegate { return true; };
-
-            foreach (var item in GetHeaders())
+            using (HttpClientHandler handler = new HttpClientHandler())
             {
-                request.Headers.Add(item.Key, item.Value);
-            }
-
-            if (!debug && method == "POST")
-            {
-                request.Headers.Add("Accept-Encoding", "deflate");
-            }
-
-            request.Method = method;
-            request.Timeout = timeout;
-
-            if (!string.IsNullOrEmpty(data))
-            {
-                if (debug && method == "POST")
+                using(HttpClient httpClient = new HttpClient(handler))
                 {
-                    compress = false;
-                    request.Headers.Add("debug", "1");
-                }
-
-                // set request body
-                var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                //byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
-                byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
-                data = null;
-                request.ContentType = "application/json";
-                request.ContentLength = bytes.Length;
-                if (compress)
-                    request.Headers.Add("content-encoding", "deflate");
-
-                try
-                {
-                    using (Stream stream = request.GetRequestStream())
+                    handler.UseCookies = true;
+                    handler.CookieContainer = new CookieContainer();
+                    httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
+                    Uri baseAddress = new Uri(RemoteEndPoint);
+                    foreach (var item in GetHeaders())
                     {
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-                }
-                catch (Exception e)
-                {
-                    StayInTarkovHelperConstants.Logger.LogError(e);
-                }
-                finally
-                {
-                    bytes = null;
-                    inputDataBytes = null;
-                }
-            }
+                        if (item.Key == "Cookie")
+                        {
+                            string[] pairs = item.Value.Split(';');
+                            var keyValuePairs = pairs
+                                .Select(p => p.Split(new[] { '=' }, 2))
+                                .Where(kvp => kvp.Length == 2)
+                                .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
+                            foreach (var kvp in keyValuePairs)
+                            {
+                                handler.CookieContainer.Add(baseAddress, new Cookie(kvp.Key, kvp.Value));
+                            }
+                        }
+                        else
+                        {
+                            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
+                        }
 
-            // get response stream
-            var ms = new MemoryStream();
-            try
-            {
-                using (var response = request.GetResponse())
-                {
-                    using (var responseStream = response.GetResponseStream())
+                    }
+                    if (!debug && method == "POST")
+                    {
+                        httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+                    }
+
+                    HttpContent byteContent = null;
+                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
+                    {
+                        if (debug)
+                        {
+                            compress = false;
+                            httpClient.DefaultRequestHeaders.Add("debug", "1");
+                        }
+                        var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                        byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
+                        byteContent = new ByteArrayContent(bytes);
+                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                        if (compress)
+                        {
+                            byteContent.Headers.ContentEncoding.Add("deflate");
+                        }
+                    }
+
+                    HttpResponseMessage response;
+                    if (byteContent != null)
+                    {
+                        response = httpClient.PostAsync(uri, byteContent).Result;
+                    }
+                    else
+                    {
+                        response = method.Equals("POST", StringComparison.OrdinalIgnoreCase)
+                            ? httpClient.PostAsync(uri, null).Result
+                            : httpClient.GetAsync(uri).Result;
+                    }
+
+                    var ms = new MemoryStream();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Stream responseStream = response.Content.ReadAsStreamAsync().Result;
                         responseStream.CopyTo(ms);
+                        responseStream.Dispose();
+                    }
+                    else
+                    {
+                        StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
+                    }
+
+                    return ms;
                 }
+
             }
-            catch (Exception e)
-            {
-                StayInTarkovHelperConstants.Logger.LogError(e);
-            }
-            finally
-            {
-                request = null;
-                uri = null;
-            }
-            return ms;
         }
 
         public byte[] GetData(string url, bool hasHost = false)
