@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
@@ -14,6 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using static ChartAndGraph.ChartItemEvents;
+using static UnityEngine.RemoteConfigSettingsHelper;
 
 namespace StayInTarkov.Coop
 {
@@ -340,6 +343,88 @@ namespace StayInTarkov.Coop
                 return;
 
 
+        }
+
+
+        public override void Say(EPhraseTrigger @event, bool demand = false, float delay = 0, ETagStatus mask = 0, int probability = 100, bool aggressive = false)
+        {
+            var tagBank = GetTagBank(@event);
+            if (tagBank == null) return;
+
+            var index = UnityEngine.Random.Range(0, tagBank.Clips.Length - 1);
+
+            TaggedClip taggedClip = GetTaggedClip(tagBank, index);
+            if (taggedClip == null)
+                return;
+
+            Dictionary<string, object> packet = new();
+            packet.Add("event", @event.ToString());
+            packet.Add("index", index);
+            packet.Add("m", "Say");
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+
+            AudioSource.PlayClipAtPoint(taggedClip.Clip, Position);
+        }
+
+        public void ReceiveSay(EPhraseTrigger trigger, int index)
+        {
+            BepInLogger.LogError($"{nameof(ReceiveSay)}({trigger},{index})");
+
+            var prc = this.GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            var tagBank = GetTagBank(trigger);
+            if (tagBank == null) 
+                return;
+
+            TaggedClip taggedClip = GetTaggedClip(tagBank, index);
+            if (taggedClip == null)
+            {
+                BepInLogger.LogError($"{nameof(ReceiveSay)}: taggedClip is null");
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(taggedClip.Clip, Position);
+        }
+
+        private TagBank GetTagBank(EPhraseTrigger trigger)
+        {
+            Voice asset = Singleton<IAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
+            if (asset == null)
+            {
+                BepInLogger.LogError($"{nameof(Say)}: Asset is null");
+                return null;
+            }
+            TagBank tagBank = null;
+            TagBank[] banks = asset.Banks;
+            BepInLogger.LogError($"{nameof(Say)}: {banks.Length} banks available");
+            if (trigger == EPhraseTrigger.MumblePhrase)
+            {
+                trigger = EPhraseTrigger.OnMutter;
+            }
+
+            foreach (TagBank tb in banks)
+            {
+                //BepInLogger.LogDebug($"{nameof(Say)}: {tb.Trigger}");
+                if (tb.Trigger == trigger)
+                {
+                    tagBank = tb;
+                    break;
+                }
+            }
+            if (tagBank == null)
+            {
+                BepInLogger.LogError($"{nameof(Say)}: tagBank is null");
+                return null;
+            }
+            return tagBank;
+        }
+
+        private TaggedClip GetTaggedClip(TagBank tagBank, int index)
+        {
+            TaggedClip taggedClip = tagBank.Clips[index];
+            return taggedClip;
         }
 
 
