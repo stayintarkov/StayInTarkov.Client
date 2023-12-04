@@ -24,6 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\publish-wiki.yml = .github\workflows\publish-wiki.yml
+		.github\workflows\SIT-CD.yml = .github\workflows\SIT-CD.yml
+		.github\workflows\SIT-CI-Linux.yml = .github\workflows\SIT-CI-Linux.yml
+		.github\workflows\SIT-CI.yml = .github\workflows\SIT-CI.yml
 		.github\workflows\stay-in-tarkov-client.yml = .github\workflows\stay-in-tarkov-client.yml
 	EndProjectSection
 EndProject
