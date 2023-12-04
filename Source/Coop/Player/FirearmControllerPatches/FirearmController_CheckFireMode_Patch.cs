@@ -1,30 +1,28 @@
-﻿using StayInTarkov.Coop.Web;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmController_Loot_Patch : ModuleReplicationPatch
+    internal class FirearmController_CheckFireMode_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "Loot";
+        public override string MethodName => "CheckFireMode";
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName, findFirst: true);
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance, ref bool p, EFT.Player ____player)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             var coopPlayer = ____player as CoopPlayer;
             if (coopPlayer != null)
             {
-                coopPlayer.AddCommand(new GClass2115()
+                coopPlayer.AddCommand(new GClass2142()
                 {
-                    Pickup = p
+                    CheckFireMode = true
                 });
             }
             else

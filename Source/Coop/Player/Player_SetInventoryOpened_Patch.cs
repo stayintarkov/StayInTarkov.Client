@@ -12,66 +12,30 @@ namespace StayInTarkov.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-
-            return method;
-        }
-
-        public static HashSet<string> CallLocally
-            = new();
-
-        [PatchPrefix]
-        public static bool PrePatch(ref EFT.Player __instance)
-        {
-            var result = false;
-            if (CallLocally.Contains(__instance.ProfileId))
-                result = true;
-
-            return result;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         [PatchPostfix]
-        public static void PostPatch(
-           ref EFT.Player __instance,
-            ref bool opened
-            )
+        public static void PostPatch(ref EFT.Player __instance, ref bool opened)
         {
-            var player = __instance;
-
-            if (CallLocally.Contains(__instance.ProfileId))
+            var coopPlayer = __instance as CoopPlayer;
+            if (coopPlayer != null)
             {
-                CallLocally.Remove(player.ProfileId);
-                return;
+                coopPlayer.AddCommand(new GClass2145()
+                {
+                    InventoryOpen = opened
+                });
             }
-
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("o", opened.ToString());
-            dictionary.Add("m", "SetInventoryOpened");
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
-            //dictionary.Clear();
-            //dictionary = null;
+            else
+            {
+                Logger.LogError("No CoopPlayer found!");
+            }
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
-                return;
-
-            if (CallLocally.Contains(player.ProfileId))
-                return;
-
-            try
-            {
-                CallLocally.Add(player.ProfileId);
-                var opened = Convert.ToBoolean(dict["o"].ToString());
-                player.SetInventoryOpened(opened);
-            }
-            catch (Exception e)
-            {
-                Logger.LogInfo(e);
-            }
+            return;
         }
     }
 }

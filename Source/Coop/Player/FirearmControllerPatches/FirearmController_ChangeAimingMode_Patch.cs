@@ -1,30 +1,24 @@
-﻿using StayInTarkov.Coop.Web;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmController_Loot_Patch : ModuleReplicationPatch
+    internal class FirearmController_ChangeAimingMode_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "Loot";
-
-        protected override MethodBase GetTargetMethod()
-        {
-            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName, findFirst: true);
-        }
+        public override string MethodName => "ChangeAimingMode";
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance, ref bool p, EFT.Player ____player)
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             var coopPlayer = ____player as CoopPlayer;
             if (coopPlayer != null)
             {
-                coopPlayer.AddCommand(new GClass2115()
+                coopPlayer.AddCommand(new GClass2134()
                 {
-                    Pickup = p
+                    IsAiming = __instance.IsAiming,
+                    AimingIndex = (__instance.IsAiming ? __instance.Item.AimIndex.Value : -1)
                 });
             }
             else
@@ -36,6 +30,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             return;
+        }
+
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
     }
 }

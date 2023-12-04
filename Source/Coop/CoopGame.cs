@@ -9,6 +9,7 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.NextObservedPlayer;
 using EFT.UI;
+using EFT.UI.DragAndDrop;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;

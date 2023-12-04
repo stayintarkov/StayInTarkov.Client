@@ -15,81 +15,55 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override string MethodName => "SetScopeMode";
 
-        public static Dictionary<string, bool> CallLocally = new();
-
-
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance, EFT.Player ____player, ScopeStates[] scopeStates)
-        {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-                result = true;
-
-            return result;
-        }
-
         [PatchPostfix]
-        public static void Postfix(
-           EFT.Player.FirearmController __instance, EFT.Player ____player, ScopeStates[] scopeStates)
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player, ScopeStates[] scopeStates)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
-            var player = ____player;
-            if (player == null)
-                return;
+            var coopPlayer = ____player as CoopPlayer;
 
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            if (coopPlayer != null)
             {
-                CallLocally.Remove(player.ProfileId);
-                return;
+                if (!__instance.CurrentOperation.CanChangeScopeStates(scopeStates))
+                {
+                    return;
+                }
+                ChangeSightsMode changeSightsMode = new()
+                {
+                    ChangeSightMode = true,
+                    SightModeStatuses = new GStruct176[scopeStates.Length]
+                };
+                for (int i = 0; i < scopeStates.Length; i++)
+                {
+                    ScopeStates scopeStates2 = scopeStates[i];
+                    changeSightsMode.SightModeStatuses[i] = new GStruct176
+                    {
+                        Id = scopeStates2.Id,
+                        SelectedMode = scopeStates2.ScopeMode,
+                        ScopeIndexInsideSight = scopeStates2.ScopeIndexInsideSight,
+                        ScopeCalibrationIndex = scopeStates2.ScopeCalibrationIndex
+                    };
+                }
+
+                foreach (GStruct176 gStruct176 in changeSightsMode.SightModeStatuses)
+                {
+                    coopPlayer.AddCommand(new GClass2116()
+                    {
+                        ID = gStruct176.Id,
+                        ScopeMode = gStruct176.SelectedMode,
+                        ScopeIndexInsideSight = gStruct176.ScopeIndexInsideSight,
+                        ScopeCalibrationIndex = gStruct176.ScopeCalibrationIndex,
+                        SetSilently = false
+                    });
+                }
             }
-
-
-            foreach (var scope in scopeStates)
+            else
             {
-                ScopeModePacket scopeModePacket = new(scope.Id, scope.ScopeMode, scope.ScopeIndexInsideSight, scope.ScopeCalibrationIndex, player.ProfileId);
-                AkiBackendCommunication.Instance.SendDataToPool(scopeModePacket.Serialize());
+                Logger.LogError("No CoopPlayer found!");
             }
-
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
-            ScopeModePacket smp = new(null, 0, 0, 0, null);
-
-            if (dict.ContainsKey("data"))
-            {
-                smp = smp.DeserializePacketSIT(dict["data"].ToString());
-            }
-
-            if (HasProcessed(GetType(), player, smp))
-                return;
-
-            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                return;
-
-            if (CallLocally.ContainsKey(player.ProfileId))
-                return;
-
-            CallLocally.Add(player.ProfileId, true);
-
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
-            {
-                try
-                {
-                    firearmCont.SetScopeMode(new ScopeStates[1] { new ScopeStates() { Id = smp.Id, ScopeMode = smp.ScopeMode, ScopeIndexInsideSight = smp.ScopeIndexInsideSight, ScopeCalibrationIndex = smp.ScopeCalibrationIndex } });
-                }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e);
-                }
-            }
+            return;
         }
 
         protected override MethodBase GetTargetMethod()

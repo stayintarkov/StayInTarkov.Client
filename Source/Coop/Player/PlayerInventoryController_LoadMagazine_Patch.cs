@@ -63,7 +63,7 @@ namespace StayInTarkov.Coop.Player
             , BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions
             , Profile ___profile_0)
         {
-            //Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PostPatch");
+            Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PostPatch");
 
             if (CallLocally.Contains(___profile_0.ProfileId))
             {

@@ -1,4 +1,5 @@
 ﻿using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Lacyway;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -13,87 +14,51 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public override string MethodName => "SetLightsState";
 
-        public static Dictionary<string, bool> CallLocally = new();
-
-
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-           , EFT.Player ____player
-           , LightsStates[] lightsStates, bool force
-            )
-        {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-                result = true;
-
-            return result;
-        }
-
         [PatchPostfix]
-        public static void Postfix(
-           EFT.Player.FirearmController __instance
-           , EFT.Player ____player
-           , LightsStates[] lightsStates, bool force
-           )
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player, LightsStates[] lightsStates, bool force)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
-            var player = ____player;
-            if (player == null)
-                return;
-
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            var coopPlayer = ____player as CoopPlayer;
+            if (coopPlayer != null)
             {
-                CallLocally.Remove(player.ProfileId);
-                return;
+                if (force || __instance.CurrentOperation.CanChangeLightState(lightsStates))
+                {
+                    ToggleTacticalCombo toggleTacticalCombo = new ToggleTacticalCombo
+                    {
+                        ToggleTacticalCombo = true,
+                        TacticalComboStatuses = new GStruct173[lightsStates.Length]
+                    };
+                    for (int i = 0; i < lightsStates.Length; i++)
+                    {
+                        LightsStates lightsStates2 = lightsStates[i];
+                        toggleTacticalCombo.TacticalComboStatuses[i] = new GStruct173
+                        {
+                            Id = lightsStates2.Id,
+                            IsActive = lightsStates2.IsActive,
+                            SelectedMode = lightsStates2.LightMode
+                        };
+                    }
+
+                    foreach (GStruct173 gStruct173 in toggleTacticalCombo.TacticalComboStatuses)
+                    {
+                        coopPlayer.AddCommand(new Command()
+                        {
+                            ID = gStruct173.Id,
+                            State = gStruct173.IsActive,
+                            LightMode = gStruct173.SelectedMode,
+                            SetSilently = false
+                        });
+                    }
+                }
             }
-
-
-            foreach (var light in lightsStates)
+            else
             {
-                LightStatePacket lightStatePacket = new(light.Id, light.IsActive, light.LightMode, player.ProfileId);
-                AkiBackendCommunication.Instance.SendDataToPool(lightStatePacket.Serialize());
+                Logger.LogError("No CoopPlayer found!");
             }
-
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
-            LightStatePacket lsp = new(null, false, 0, null);
-
-            if (dict.ContainsKey("data"))
-            {
-                lsp = lsp.DeserializePacketSIT(dict["data"].ToString());
-            }
-
-            if (HasProcessed(GetType(), player, lsp))
-                return;
-
-            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                return;
-
-            if (CallLocally.ContainsKey(player.ProfileId))
-                return;
-
-            CallLocally.Add(player.ProfileId, true);
-
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
-            {
-                try
-                {
-                    firearmCont.SetLightsState(new LightsStates[1] { new() { Id = lsp.Id, IsActive = lsp.IsActive, LightMode = lsp.LightMode } });
-                }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e);
-                }
-            }
+            return;
         }
 
         protected override MethodBase GetTargetMethod()

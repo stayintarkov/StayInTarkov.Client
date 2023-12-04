@@ -16,47 +16,26 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
             return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
-        public static List<string> CallLocally = new();
-
-        [PatchPrefix]
-        public static bool PrePatch(object __instance, EFT.Player ____player)
-        {
-            if (CallLocally.Contains(____player.ProfileId))
-                return true;
-
-            return false;
-        }
-
         [PatchPostfix]
-        public static void PostPatch(object __instance, EFT.Player ____player)
+        public static void PostPatch(EFT.Player.KnifeController __instance, EFT.Player ____player)
         {
-            if (CallLocally.Contains(____player.ProfileId))
+            var coopPlayer = ____player as CoopPlayer;
+            if (coopPlayer != null)
             {
-                CallLocally.Remove(____player.ProfileId);
-                return;
+                coopPlayer.AddCommand(new GClass2151()
+                {
+                    Fire = true
+                });
             }
-
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(____player.ProfileId, "MakeKnifeKick").Serialize());
+            else
+            {
+                Logger.LogError("No CoopPlayer found!");
+            }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("KnifeController_MakeKnifeKick_Patch:Replicated");
-
-            if (!dict.ContainsKey("data"))
-                return;
-
-            BasePlayerPacket makeKnifeKickPacket = new();
-            makeKnifeKickPacket = makeKnifeKickPacket.DeserializePacketSIT(dict["data"].ToString());
-
-            if (HasProcessed(GetType(), player, makeKnifeKickPacket))
-                return;
-
-            if (player.HandsController is EFT.Player.KnifeController knifeController)
-            {
-                CallLocally.Add(player.ProfileId);
-                knifeController.MakeKnifeKick();
-            }
+            return;
         }
     }
 }

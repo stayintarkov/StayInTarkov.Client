@@ -223,8 +223,8 @@ namespace StayInTarkov.Core.Player
                 {
                     // Force Rotation
                     player.Rotation = ReplicatedRotation.Value;
-                    var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
-                    playerMovePatch?.Replicated(player, packet);
+                    //var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
+                    //playerMovePatch?.Replicated(player, packet);
                 }
 
                 if (packet.ContainsKey("alive"))
@@ -408,17 +408,17 @@ namespace StayInTarkov.Core.Player
                 player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
             }
 
-            if (ReplicatedDirection.HasValue)
-            {
-                if (_playerMovePatch == null)
-                    _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
+            //if (ReplicatedDirection.HasValue)
+            //{
+            //    if (_playerMovePatch == null)
+            //        _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-                _playerMovePatch?.ReplicatedMove(player,
-                    new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
-            }
+            //    _playerMovePatch?.ReplicatedMove(player,
+            //        new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
+            //}
         }
 
-        Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
+        //Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
         private DateTime LastDirectionSent { get; set; } = DateTime.Now;

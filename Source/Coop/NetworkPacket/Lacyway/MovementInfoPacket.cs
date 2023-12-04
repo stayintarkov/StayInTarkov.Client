@@ -33,13 +33,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
         public float FallHeight { get; set; }
         public float FallTime { get; set; }
         public float FootRotation { get; set; }
-        public float JumpHeight { get; internal set; }
-        public float MaxSpeed { get; internal set; }
-        public Vector2 MovementDirection { get; internal set; }
-        public EPhysicalCondition PhysicalCondition { get; internal set; }
-        public EPlayerPose Pose { get; internal set; }
-        public float SprintSpeed { get; internal set; }
-        public EPlayerState State { get; internal set; }
-        public Vector3 Velocity { get; internal set; }
+        public float JumpHeight { get; set; }
+        public float MaxSpeed { get; set; }
+        public Vector2 MovementDirection { get; set; }
+        public EPhysicalCondition PhysicalCondition { get; set; }
+        public EPlayerPose Pose { get; set; }
+        public float SprintSpeed { get; set; }
+        public EPlayerState State { get; set; }
+        public Vector3 Velocity { get; set; }
+        public float WeaponOverlap { get; set; }
     }
 }

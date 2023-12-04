@@ -12,91 +12,32 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ChangeFireMode";
-        //public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-            return method;
-        }
-
-        public static Dictionary<string, bool> CallLocally
-            = new();
-
-
-        [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
-        {
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-                result = true;
-
-            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
-
-            return result;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         [PatchPostfix]
-        public static void PostPatch(
-            EFT.Player.FirearmController __instance
-            , Weapon.EFireMode fireMode
-            , EFT.Player ____player)
+        public static void PostPatch(EFT.Player.FirearmController __instance, Weapon.EFireMode fireMode, EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
-                return;
-
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            var coopPlayer = ____player as CoopPlayer;
+            if (coopPlayer != null)
             {
-                CallLocally.Remove(player.ProfileId);
-                return;
+                coopPlayer.AddCommand(new GClass2137()
+                {
+                    FireMode = fireMode
+                });
             }
-
-            //Dictionary<string, object> dictionary = new();
-            //dictionary.Add("f", fireMode.ToString());
-            //dictionary.Add("m", "ChangeFireMode");
-            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
-            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
-
-            FireModePacket fireModePacket = new(____player.ProfileId, fireMode);
-            AkiBackendCommunication.Instance.SendDataToPool(fireModePacket.Serialize());
-
+            else
+            {
+                Logger.LogError("No CoopPlayer found!");
+            }
         }
-
-        //private static List<long> ProcessedCalls = new List<long>();
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-
-            FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
-
-            if (dict.ContainsKey("data"))
-                fmp = fmp.DeserializePacketSIT(dict["data"].ToString());
-
-            if (HasProcessed(GetType(), player, fmp))
-                return;
-
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
-            {
-                try
-                {
-                    CallLocally.Add(player.ProfileId, true);
-                    //if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
-                    var firemode = (Weapon.EFireMode)fmp.FireMode;
-                    {
-                        //Logger.LogInfo("Replicated: Calling Change FireMode");
-                        firearmCont.ChangeFireMode(firemode);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e);
-                }
-            }
+            return;
         }
 
         public class FireModePacket : BasePlayerPacket
