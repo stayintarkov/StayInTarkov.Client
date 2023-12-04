@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
@@ -58,7 +59,27 @@ namespace StayInTarkov.Coop.Player
                     if (ItemFinder.TryFindItem(itemPacket.ItemId, out Item item))
                     {
                         CallLocally.Add(player.ProfileId);
-                        playerInventoryController.ThrowItem(item, GetDestroyedItemsFromItem(playerInventoryController, item));
+
+                        Callback callback = null;
+                        if (player.IsYourPlayer)
+                        {
+                            if (player.HandsController.Item.Id == itemPacket.ItemId)
+                            {
+                                if (item is Weapon weapon && weapon.IsOneOff && weapon.Repairable.Durability == 0)
+                                {
+                                    callback = (IResult) =>
+                                    {
+                                        Slot knifeSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Scabbard);
+                                        if (knifeSlot.ContainedItem != null)
+                                            player.TryProceed(knifeSlot.ContainedItem, null);
+                                        else
+                                            player.Proceed(true, null, true);
+                                    };
+                                }
+                            }
+                        }
+
+                        playerInventoryController.ThrowItem(item, GetDestroyedItemsFromItem(playerInventoryController, item), callback);
                     }
                     else
                     {

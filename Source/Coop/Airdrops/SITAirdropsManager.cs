@@ -56,6 +56,13 @@ namespace Aki.Custom.Airdrops
                 Destroy(this);
             }
 
+            string location = gameWorld.MainPlayer.Location;
+            if (location.StartsWith("factory") || location == "laboratory")
+            {
+                Destroy(this);
+                return;
+            }
+
             // If this is not the server, then this manager will have to wait for the packet to initialize stuff.
             if (MatchmakerAcceptPatches.IsClient)
                 return;

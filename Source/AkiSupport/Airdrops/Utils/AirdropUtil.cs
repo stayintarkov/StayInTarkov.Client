@@ -88,9 +88,6 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
             if (serverConfig.AirdropChancePercent == null)
                 return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
 
-            if (gameWorld.LocationId != null && gameWorld.LocationId.StartsWith("factory"))
-                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
-
             var allAirdropPoints = LocationScene.GetAll<AirdropPoint>().ToList();
             var playerPosition = gameWorld.RegisteredPlayers[0].Position;
             var flareAirdropPoints = new List<AirdropPoint>();
