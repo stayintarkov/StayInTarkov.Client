@@ -345,13 +345,37 @@ namespace StayInTarkov.Coop
 
         }
 
+        private int SayPreviousIndex = -1;
+        private EPhraseTrigger SayPreviousTrigger = EPhraseTrigger.PhraseNone;
+        private DateTime SayLastTime = DateTime.Now;
 
         public override void Say(EPhraseTrigger @event, bool demand = false, float delay = 0, ETagStatus mask = 0, int probability = 100, bool aggressive = false)
         {
-            var tagBank = GetTagBank(@event);
-            if (tagBank == null) return;
+            if (SayLastTime > DateTime.Now.AddSeconds(-2))
+                return;
 
-            var index = UnityEngine.Random.Range(0, tagBank.Clips.Length - 1);
+            SayLastTime = DateTime.Now;
+
+            if (UnityEngine.Random.Range(0, 100) > probability)
+                return;
+
+            var tagBank = GetTagBank(@event);
+            if (tagBank == null) 
+                return;
+
+            if (SayPreviousTrigger != @event)
+                SayPreviousIndex = -1;
+
+            var index = -1;
+            var attempts = 3;
+            do
+            {
+                index = UnityEngine.Random.Range(0, tagBank.Clips.Length - 1);
+            }
+            while ((index == -1 || SayPreviousIndex == index) && tagBank.Clips.Length > 1 && attempts-- > 0);
+
+            if (index == -1)
+                return;
 
             TaggedClip taggedClip = GetTaggedClip(tagBank, index);
             if (taggedClip == null)
@@ -363,12 +387,14 @@ namespace StayInTarkov.Coop
             packet.Add("m", "Say");
             AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
 
+            SayPreviousIndex = index;
+            SayPreviousTrigger = @event;
             AudioSource.PlayClipAtPoint(taggedClip.Clip, Position);
         }
 
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
-            BepInLogger.LogError($"{nameof(ReceiveSay)}({trigger},{index})");
+            BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
 
             var prc = this.GetComponent<PlayerReplicatedComponent>();
             if (prc == null || !prc.IsClientDrone)
@@ -398,7 +424,7 @@ namespace StayInTarkov.Coop
             }
             TagBank tagBank = null;
             TagBank[] banks = asset.Banks;
-            BepInLogger.LogError($"{nameof(Say)}: {banks.Length} banks available");
+            //BepInLogger.LogDebug($"{nameof(Say)}: {banks.Length} banks available");
             if (trigger == EPhraseTrigger.MumblePhrase)
             {
                 trigger = EPhraseTrigger.OnMutter;
