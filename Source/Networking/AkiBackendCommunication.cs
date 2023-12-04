@@ -775,7 +775,7 @@ namespace StayInTarkov.Networking
                     handler.UseCookies = true;
                     handler.CookieContainer = new CookieContainer();
                     httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-                    Uri baseAddress = new Uri($"http://{uri.Host}");
+                    Uri baseAddress = new Uri(RemoteEndPoint);
                     foreach (var item in GetHeaders())
                     {
                         if (item.Key == "Cookie")
