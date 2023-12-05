@@ -328,20 +328,16 @@ namespace StayInTarkov.Coop
             LightsStates[] lightStates = _helmetLightControllers.Select(new Func<TacticalComboVisualController, LightsStates>(ClientPlayer.Class1383.class1383_0.method_0)).ToArray();
             if (lightStates.Length > 0)
             {
-                var myLogSource = new ManualLogSource("MyLogSource"); // The source name is shown in BepInEx log
-
-                // Register the source
-                BepInEx.Logging.Logger.Sources.Add(myLogSource);
-
-                myLogSource.LogInfo("ADDING LIGHTSTATE"); // Will print [Info: MyLogSource] Test
-
-                // Remove the source to free resources
-                BepInEx.Logging.Logger.Sources.Remove(myLogSource);
-                prevFrame.HelmetLightPacket = new()
+                foreach (var light in lightStates)
                 {
-                    IsSilent = isSilent,
-                    LightsStates = lightStates
-                };
+                    AddCommand(new Command()
+                    {
+                        SetSilently = false,
+                        ID = light.Id,
+                        LightMode = light.LightMode,
+                        State = light.IsActive
+                    });
+                }
             }
         }
 
@@ -371,7 +367,7 @@ namespace StayInTarkov.Coop
             base.Proceed(weapon, callback, scheduled);
 
             bool fastHide = false;
-            EFT.Player.FirearmController firearmController;
+            FirearmController firearmController;
             if ((firearmController = _handsController as FirearmController) != null)
             {
                 fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
@@ -568,8 +564,6 @@ namespace StayInTarkov.Coop
                 WeaponOverlap = ProceduralWeaponAnimation.TurnAway.OverlapValue
             };
 
-            prevFrame.ReadFrame();
-
             AddCommand(new PhysicalParametersCommandMessage()
             {
                 BreathIsAudible = Physical.BreathIsAudible,
@@ -626,23 +620,6 @@ namespace StayInTarkov.Coop
                 };
 
                 AkiBackendCommunicationCoop.PostLocalPlayerData(this, dictionary);
-                //Singleton<GameWorld>.Instance.allObservedPlayersByID.First().Value.ObservedPlayerController.Apply(nextModel);
-
-                var myLogSource = new ManualLogSource("MyLogSource"); // The source name is shown in BepInEx log
-
-                // Register the source
-                BepInEx.Logging.Logger.Sources.Add(myLogSource);
-
-                if (nextModel.Commands.Count() > 0)
-                {
-                    myLogSource.LogInfo(nextModel.Commands.Count() + " " + nextModel.CommandsCount); 
-                }
-
-                // Remove the source to free resources
-                BepInEx.Logging.Logger.Sources.Remove(myLogSource);
-
-                //CoopGame.TestController.ManualUpdate();
-                //CoopGame.TestController.Apply(nextModel);
 
                 prevFrame.ClearFrame();
             }
