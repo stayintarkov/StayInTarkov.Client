@@ -4,7 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-// GClass2179
+/*
+ * 
+ * GClass2179 - List of all Commands to be sent
+ * Made by Lacyway for the Stay In Tarkov Project
+ * Please give proper credit if you are using this code
+ * 
+ * */
 
 namespace StayInTarkov.Coop.NetworkPacket.Lacyway
 {

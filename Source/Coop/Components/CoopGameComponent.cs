@@ -962,6 +962,7 @@ namespace StayInTarkov.Coop
                 };
 
                 var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
+                controller.StateContext.PlayerAnimator.SetIsThirdPerson(false);
 
                 var prc = controller.PlayerView.GetOrAddComponent<PlayerReplicatedComponent>();
 
@@ -1214,11 +1215,11 @@ namespace StayInTarkov.Coop
             //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
             //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
             //
-            if (prc.ReplicatedDirection.HasValue)
-            {
-                dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
-                dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
-            }
+            //if (prc.ReplicatedDirection.HasValue)
+            //{
+            //    dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
+            //    dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
+            //}
 
             // ---------- 
             /*

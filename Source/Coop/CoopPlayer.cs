@@ -303,14 +303,14 @@ namespace StayInTarkov.Coop
             base.OnItemAddedOrRemoved(item, location, added);
         }
 
-        public override void Move(Vector2 direction)
-        {
-            base.Move(direction);
+        //public override void Move(Vector2 direction)
+        //{
+        //    base.Move(direction);
 
-            //var prc = GetComponent<PlayerReplicatedComponent>();
-            //if (prc.IsClientDrone)
-            //    return;
-        }
+        //    //var prc = GetComponent<PlayerReplicatedComponent>();
+        //    //if (prc.IsClientDrone)
+        //    //    return;
+        //}
 
 
         public override void SendHeadlightsPacket(bool isSilent)

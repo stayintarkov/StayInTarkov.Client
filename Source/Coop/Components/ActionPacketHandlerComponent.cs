@@ -194,11 +194,11 @@ namespace StayInTarkov.Coop.Components
                         result = true;
                     }
 
-            if (method == "LootableContainer_Interact")
-            {
-                LootableContainer_Interact_Patch.Replicated(packet);
-                result = true;
-            }
+            //if (method == "LootableContainer_Interact")
+            //{
+            //    LootableContainer_Interact_Patch.Replicated(packet);
+            //    result = true;
+            //}
 
             return result;
         }

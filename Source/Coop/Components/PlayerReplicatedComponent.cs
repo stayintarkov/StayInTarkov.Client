@@ -33,9 +33,9 @@ namespace StayInTarkov.Core.Player
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
-        private float PoseLevelDesired { get; set; } = 1;
-        public float ReplicatedMovementSpeed { get; set; }
-        private float PoseLevelSmoothed { get; set; } = 1;
+        //private float PoseLevelDesired { get; set; } = 1;
+        //public float ReplicatedMovementSpeed { get; set; }
+        //private float PoseLevelSmoothed { get; set; } = 1;
 
         private HashSet<IPlayerPacketHandlerComponent> PacketHandlerComponents { get; } = new();
 
@@ -126,7 +126,7 @@ namespace StayInTarkov.Core.Player
 
             var method = packet["m"].ToString();            
 
-            ProcessPlayerState(packet);
+            //ProcessPlayerState(packet);
 
             if (method == "test")
             {
@@ -172,36 +172,36 @@ namespace StayInTarkov.Core.Player
 
             {
                 // Pose
-                float poseLevel = float.Parse(packet["pose"].ToString());
-                PoseLevelDesired = poseLevel;
+                //float poseLevel = float.Parse(packet["pose"].ToString());
+                //PoseLevelDesired = poseLevel;
 
                 // Speed
-                if (packet.ContainsKey("spd"))
-                {
-                    ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
-                    player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
-                }
+                //if (packet.ContainsKey("spd"))
+                //{
+                //    ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
+                //    player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
+                //}
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
-                ProcessPlayerStateProne(packet);
+                //ProcessPlayerStateProne(packet);
 
                 // Rotation
-                if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))
-                {
-                    Vector2 packetRotation = new(
-                float.Parse(packet["rX"].ToString())
-                , float.Parse(packet["rY"].ToString())
-                );
-                    //player.Rotation = packetRotation;
-                    ReplicatedRotation = packetRotation;
-                }
+                //if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))
+                //{
+                //    Vector2 packetRotation = new(
+                //float.Parse(packet["rX"].ToString())
+                //, float.Parse(packet["rY"].ToString())
+                //);
+                //    //player.Rotation = packetRotation;
+                //    ReplicatedRotation = packetRotation;
+                //}
 
-                if (packet.ContainsKey("spr"))
-                {
-                    // Sprint
-                    ShouldSprint = bool.Parse(packet["spr"].ToString());
-                    //ProcessPlayerStateSprint(packet);
-                }
+                //if (packet.ContainsKey("spr"))
+                //{
+                //    // Sprint
+                //    ShouldSprint = bool.Parse(packet["spr"].ToString());
+                //    //ProcessPlayerStateSprint(packet);
+                //}
 
                 // Position
                 Vector3 packetPosition = new(
@@ -210,7 +210,7 @@ namespace StayInTarkov.Core.Player
                     , float.Parse(packet["pZ"].ToString())
                     );
 
-                ReplicatedPosition = packetPosition;
+                //plicatedPosition = packetPosition;
 
                 // Move / Direction
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY"))
@@ -219,24 +219,24 @@ namespace StayInTarkov.Core.Player
                     float.Parse(packet["dX"].ToString())
                     , float.Parse(packet["dY"].ToString())
                     );
-                    ReplicatedDirection = packetDirection;
+                    //plicatedDirection = packetDirection;
                 }
                 else
                 {
-                    ReplicatedDirection = null;
+                    //plicatedDirection = null;
                 }
 
-                if (packet.ContainsKey("tilt"))
-                {
-                    var tilt = float.Parse(packet["tilt"].ToString());
-                    player.MovementContext.SetTilt(tilt);
-                }
+                //if (packet.ContainsKey("tilt"))
+                //{
+                //    var tilt = float.Parse(packet["tilt"].ToString());
+                //    player.MovementContext.SetTilt(tilt);
+                //}
 
 
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
                 {
                     // Force Rotation
-                    player.Rotation = ReplicatedRotation.Value;
+                    //ayer.Rotation = ReplicatedRotation.Value;
                     //var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
                     //playerMovePatch?.Replicated(player, packet);
                 }
@@ -286,66 +286,66 @@ namespace StayInTarkov.Core.Player
         public bool ShouldSprint { get; set; }
         private bool isSprinting;
 
-        public bool IsSprinting
-        {
-            get { return isSprinting || player.IsSprintEnabled; }
-            set { isSprinting = value; }
-        }
+        //public bool IsSprinting
+        //{
+        //    get { return isSprinting || player.IsSprintEnabled; }
+        //    set { isSprinting = value; }
+        //}
 
 
-        private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
-        {
-            ShouldSprint = bool.Parse(packet["spr"].ToString());
+        //private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
+        //{
+        //    ShouldSprint = bool.Parse(packet["spr"].ToString());
 
-            //    // If we are requesting to sprint but we are alreadying sprinting, don't do anything
-            //    //if (ShouldSprint && IsSprinting)
-            //    //    return;
+        //    //    // If we are requesting to sprint but we are alreadying sprinting, don't do anything
+        //    //    //if (ShouldSprint && IsSprinting)
+        //    //    //    return;
 
-            //    if (ShouldSprint)
-            //    {
-            //        // normalize the movement direction. sprint requires 0 on the Y.
-            //        player.MovementContext.MovementDirection = new Vector2(1, 0);
-            //        player.MovementContext.PlayerAnimatorEnableSprint(true);
-            //        //player.Physical.Sprint(true);
-            //        //player.Physical.StaminaCapacity = 100;
-            //        //player.Physical.StaminaRestoreRate = 100;
-            //        IsSprinting = true;
-            //    }
-            //    else
-            //    {
-            //        //player.Physical.Sprint(false);
-            //        IsSprinting = false;
-            //        player.MovementContext.PlayerAnimatorEnableSprint(false);
+        //    //    if (ShouldSprint)
+        //    //    {
+        //    //        // normalize the movement direction. sprint requires 0 on the Y.
+        //    //        player.MovementContext.MovementDirection = new Vector2(1, 0);
+        //    //        player.MovementContext.PlayerAnimatorEnableSprint(true);
+        //    //        //player.Physical.Sprint(true);
+        //    //        //player.Physical.StaminaCapacity = 100;
+        //    //        //player.Physical.StaminaRestoreRate = 100;
+        //    //        IsSprinting = true;
+        //    //    }
+        //    //    else
+        //    //    {
+        //    //        //player.Physical.Sprint(false);
+        //    //        IsSprinting = false;
+        //    //        player.MovementContext.PlayerAnimatorEnableSprint(false);
 
-            //}
-        }
+        //    //}
+        //}
 
-        private void ProcessPlayerStateProne(Dictionary<string, object> packet)
-        {
-            bool prone = bool.Parse(packet["prn"].ToString());
-            if (!player.IsInPronePose)
-            {
-                if (prone)
-                {
-                    player.CurrentManagedState.Prone();
-                }
-            }
-            else
-            {
-                if (!prone)
-                {
-                    player.ToggleProne();
-                    player.MovementContext.UpdatePoseAfterProne();
-                }
-            }
-        }
+        //private void ProcessPlayerStateProne(Dictionary<string, object> packet)
+        //{
+        //    bool prone = bool.Parse(packet["prn"].ToString());
+        //    if (!player.IsInPronePose)
+        //    {
+        //        if (prone)
+        //        {
+        //            player.CurrentManagedState.Prone();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (!prone)
+        //        {
+        //            player.ToggleProne();
+        //            player.MovementContext.UpdatePoseAfterProne();
+        //        }
+        //    }
+        //}
 
-        private void ShouldTeleport(Vector3 desiredPosition)
-        {
-            var direction = (player.Position - desiredPosition).normalized;
-            Ray ray = new(player.Position, direction);
-            LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
-        }
+        //private void ShouldTeleport(Vector3 desiredPosition)
+        //{
+        //    var direction = (player.Position - desiredPosition).normalized;
+        //    Ray ray = new(player.Position, direction);
+        //    LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
+        //}
 
         void Update()
         {
@@ -405,10 +405,10 @@ namespace StayInTarkov.Core.Player
 
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue)
-            {
-                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
-            }
+            //if (ReplicatedRotation.HasValue)
+            //{
+            //    player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
+            //}
 
             // This will continue movements set be Player_Move_Patch
             //if (ReplicatedDirection.HasValue)
@@ -421,11 +421,11 @@ namespace StayInTarkov.Core.Player
             //    player.InputDirection = Vector2.zero;
             //}
 
-            if (!ShouldSprint)
-            {
-                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
-                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
-            }
+            //if (!ShouldSprint)
+            //{
+            //    PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
+            //    player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+            //}
 
             //if (ReplicatedDirection.HasValue)
             //{
@@ -439,22 +439,22 @@ namespace StayInTarkov.Core.Player
 
         //Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-        private Vector2 LastDirection { get; set; } = Vector2.zero;
-        private DateTime LastDirectionSent { get; set; } = DateTime.Now;
-        private Vector2 LastRotation { get; set; } = Vector2.zero;
-        private DateTime LastRotationSent { get; set; } = DateTime.Now;
-        private Vector3 LastPosition { get; set; } = Vector3.zero;
-        private DateTime LastPositionSent { get; set; } = DateTime.Now;
-        public Vector2? ReplicatedDirection { get; internal set; }
-        public Vector2? ReplicatedRotation { get; internal set; }
-        public bool? ReplicatedRotationClamp { get; internal set; }
-        public Vector3? ReplicatedPosition { get; internal set; }
-        public DateTime LastPoseSent { get; private set; }
-        public float LastPose { get; private set; }
-        public DateTime LastSpeedSent { get; private set; }
-        public float LastSpeed { get; private set; }
-        public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
-        public bool TriggerPressed { get; internal set; }
+        //private Vector2 LastDirection { get; set; } = Vector2.zero;
+        //private DateTime LastDirectionSent { get; set; } = DateTime.Now;
+        //private Vector2 LastRotation { get; set; } = Vector2.zero;
+        //private DateTime LastRotationSent { get; set; } = DateTime.Now;
+        //private Vector3 LastPosition { get; set; } = Vector3.zero;
+        //private DateTime LastPositionSent { get; set; } = DateTime.Now;
+        //public Vector2? ReplicatedDirection { get; internal set; }
+        //public Vector2? ReplicatedRotation { get; internal set; }
+        //public bool? ReplicatedRotationClamp { get; internal set; }
+        //public Vector3? ReplicatedPosition { get; internal set; }
+        //public DateTime LastPoseSent { get; private set; }
+        //public float LastPose { get; private set; }
+        //public DateTime LastSpeedSent { get; private set; }
+        //public float LastSpeed { get; private set; }
+        //public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
+        //public bool TriggerPressed { get; internal set; }
         public ManualLogSource Logger { get; private set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
