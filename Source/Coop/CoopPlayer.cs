@@ -12,12 +12,15 @@ using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static EFT.Player;
@@ -430,6 +433,16 @@ namespace StayInTarkov.Coop
         public override void Proceed(Meds0 meds, EBodyPart bodyPart, Callback<IHandsController5> callback, int animationVariant, bool scheduled = true)
         {
             base.Proceed(meds, bodyPart, callback, animationVariant, scheduled);
+
+            var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(meds);
+
+            AddCommand(new HandsController2()
+            {
+                HandControllerType = EHandsControllerType.Meds,
+                Item = Components                
+            });
+
+
         }
 
         public override void Proceed(KnifeComponent knife, Callback<IHandsController7> callback, bool scheduled = true)
@@ -492,7 +505,7 @@ namespace StayInTarkov.Coop
 
             AddCommand(new HandsController2()
             {
-                HandControllerType = EHandsControllerType.UsableItem,
+                HandControllerType = EHandsControllerType.Meds,
                 Item = Components
             });
         }
@@ -568,14 +581,14 @@ namespace StayInTarkov.Coop
                 PhysicalCondition = MovementContext.PhysicalCondition,
                 Pose = Pose,
                 SprintSpeed = MovementContext.SprintSpeed,
-                State = CurrentManagedState.Name,
+                State = MovementContext.CurrentState.Name,
                 Velocity = Velocity,
                 WeaponOverlap = ProceduralWeaponAnimation.TurnAway.OverlapValue
             };
 
             prevFrame.ReadFrame();
 
-            if (CoopGame.TestController != null)
+            if (this != null)
             {
                 GStruct256 nextModel = new()
                 {
@@ -606,9 +619,21 @@ namespace StayInTarkov.Coop
                     },
                     Commands = prevFrame.Commands.ToArray(),
                     CommandsCount = prevFrame.Commands.Count,
-                    
+                    RemoteTime = Time.time
                 };
 
+                
+
+                var test = NetworkPacket.Lacyway.PrevFrame.Serialize(prevFrame.Commands, prevFrame.MovementInfoPacket);
+
+                Dictionary<string, object> dictionary = new()
+                {
+                    { "model", test.ToJson() },
+                    { "m", "test" }
+                };
+
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, dictionary);
+                //Singleton<GameWorld>.Instance.allObservedPlayersByID.First().Value.ObservedPlayerController.Apply(nextModel);
 
                 var myLogSource = new ManualLogSource("MyLogSource"); // The source name is shown in BepInEx log
 
@@ -623,8 +648,8 @@ namespace StayInTarkov.Coop
                 // Remove the source to free resources
                 BepInEx.Logging.Logger.Sources.Remove(myLogSource);
 
-                CoopGame.TestController.ManualUpdate();
-                CoopGame.TestController.Apply(nextModel);
+                //CoopGame.TestController.ManualUpdate();
+                //CoopGame.TestController.Apply(nextModel);
 
                 prevFrame.ClearFrame();
             }

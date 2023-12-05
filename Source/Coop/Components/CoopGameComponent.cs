@@ -942,14 +942,36 @@ namespace StayInTarkov.Coop
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
+                //LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
+
+                SpawnMessage spawnMessage = new()
+                {
+                    Side = profile.Side,
+                    IsAI = false,
+                    NickName = profile.Nickname,
+                    AccountId = profile.AccountId,
+                    Voice = profile.Info.Voice,
+                    ProfileID = profile.Id,
+                    Inventory = profile.Inventory,
+                    HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
+                    Customization = profile.Customization,
+                    BodyPosition = position,
+                    ArmorsInfo = [],
+                    WildSpawnType = WildSpawnType.pmcBot,
+                    VoIPState = EFT.Player.EVoipState.NotAvailable
+                };
+
+                var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
+
+                //Singleton<GameWorld>.Instance.allObservedPlayersByID.Add(profile.ProfileId, controller.PlayerView);
+
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
                 //CreateLocalPlayerAsync(profile, position, playerId);
 
                 if (isDead)
                 {
                     // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: CreatePhysicalOtherPlayerOrBot::Killing localPlayer with ID {playerId}");
-                    otherPlayer.ActiveHealthController.Kill(EDamageType.Undefined);
+                    //otherPlayer.ActiveHealthController.Kill(EDamageType.Undefined);
                 }
             }
             catch (Exception ex)

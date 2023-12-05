@@ -1,11 +1,13 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Lacyway;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using System;
@@ -36,6 +38,8 @@ namespace StayInTarkov.Core.Player
         private float PoseLevelSmoothed { get; set; } = 1;
 
         private HashSet<IPlayerPacketHandlerComponent> PacketHandlerComponents { get; } = new();
+
+        private RemoteBrain Brain { get; set; } = new();
 
         void Awake()
         {
@@ -120,9 +124,20 @@ namespace StayInTarkov.Core.Player
             if (!packet.ContainsKey("m"))
                 return;
 
-            var method = packet["m"].ToString();
+            var method = packet["m"].ToString();            
 
             ProcessPlayerState(packet);
+
+            if (method == "test")
+            {
+                var testasd = packet["model"].ToString().SITParseJson<byte[]>();
+                GStruct256 nextModel = Coop.NetworkPacket.Lacyway.PrevFrame.Deserialize(testasd);
+                EFT.UI.ConsoleScreen.Log(nextModel.Movement.MovementSpeed.ToString());
+                foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
+                {
+                    player.Value.ObservedPlayerController.Apply(nextModel);
+                }
+            }
 
             // Iterate through the PacketHandlerComponents
             foreach (var packetHandlerComponent in PacketHandlerComponents)
@@ -355,6 +370,11 @@ namespace StayInTarkov.Core.Player
                     packet.Add("m", "Kill");
                     AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
                 }
+            }
+
+            foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
+            {
+                player.Value.ObservedPlayerController.ManualUpdate();
             }
         }
 

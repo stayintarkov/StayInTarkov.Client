@@ -548,28 +548,30 @@ namespace StayInTarkov.Coop
             profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
 
-            SpawnMessage spawnMessage = new SpawnMessage()
-            {
-                Side = profile.Side,
-                GroupID = myPlayer.GroupId,
-                TeamID = myPlayer.TeamId,
-                IsAI = myPlayer.IsAI,
-                NickName = profile.Nickname,
-                AccountId = profile.AccountId,
-                Voice = profile.Info.Voice,
-                ProfileID = profile.Id,
-                Inventory = profile.Inventory,
-                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
-                Customization = profile.Customization,
-                BodyPosition = myPlayer.Position,
-                ArmorsInfo = [],
-                WildSpawnType = WildSpawnType.pmcBot,
-                VoIPState = EFT.Player.EVoipState.NotAvailable
-            };
+            //var profile2 = profile.Clone();
 
-            var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
+            //SpawnMessage spawnMessage = new SpawnMessage()
+            //{
+            //    Side = profile2.Side,
+            //    GroupID = myPlayer.GroupId,
+            //    TeamID = myPlayer.TeamId,
+            //    IsAI = myPlayer.IsAI,
+            //    NickName = profile2.Nickname,
+            //    AccountId = profile2.AccountId,
+            //    Voice = profile2.Info.Voice,
+            //    ProfileID = profile2.Id,
+            //    Inventory = profile2.Inventory,
+            //    HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
+            //    Customization = profile2.Customization,
+            //    BodyPosition = myPlayer.Position,
+            //    ArmorsInfo = [],
+            //    WildSpawnType = WildSpawnType.pmcBot,
+            //    VoIPState = EFT.Player.EVoipState.NotAvailable
+            //};
 
-            TestController = controller;
+            //var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
+
+            //TestController = controller;
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired

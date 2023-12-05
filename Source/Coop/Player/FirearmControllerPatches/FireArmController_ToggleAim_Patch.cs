@@ -1,27 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmController_InitiateShot_Patch : ModuleReplicationPatch
+    internal class FirearmController_ToggleAim_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "InitiateShot";
+        public override string MethodName => "ToggleAim";
 
         [PatchPostfix]
-        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player, int chamberIndex, Vector3 shotPosition, Vector3 shotDirection)
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             var coopPlayer = ____player as CoopPlayer;
             if (coopPlayer != null)
             {
-                coopPlayer.AddCommand(new GClass2123()
+                coopPlayer.AddCommand(new GClass2134()
                 {
-                    AmmoTemplate = __instance.Weapon.CurrentAmmoTemplate._id,
-                    ChamberIndex = chamberIndex,
-                    ShotDirection = shotDirection,
-                    ShotPosition = shotPosition
+                    IsAiming = __instance.IsAiming,
+                    AimingIndex = (__instance.IsAiming ? __instance.Weapon.AimIndex.Value : 0)
                 });
             }
             else

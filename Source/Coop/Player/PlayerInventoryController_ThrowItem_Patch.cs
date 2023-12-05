@@ -1,11 +1,11 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace StayInTarkov.Coop.Player
 {
@@ -15,110 +15,39 @@ namespace StayInTarkov.Coop.Player
 
         public override string MethodName => "ThrowItem";
 
-        public static List<string> CallLocally = new();
-
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(InstanceType, "ThrowItem", false, true);
 
-        [PatchPrefix]
-        public static bool PrePatch(EFT.Player.PlayerInventoryController __instance, Item item, Profile ___profile_0)
-        {
-            return CallLocally.Contains(___profile_0.ProfileId);
-        }
-
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.PlayerInventoryController __instance, Item item, Profile ___profile_0)
+        public static void PostPatch(Item item, EFT.Player ___player_0)
         {
-            if (CallLocally.Contains(___profile_0.ProfileId))
-            {
-                CallLocally.Remove(___profile_0.ProfileId);
-                return;
-            }
+            var coopPlayer = ___player_0 as CoopPlayer;
+            var observedPlayer = Singleton<GameWorld>.Instance.GetObservedPlayerByProfileID(coopPlayer.ProfileId);
 
-            ItemPlayerPacket itemPacket = new(___profile_0.ProfileId, item.Id, item.TemplateId, "ThrowItem");
-            AkiBackendCommunication.Instance.SendDataToPool(itemPacket.Serialize());
+            if (observedPlayer != null)
+            {
+                Vector3 position = observedPlayer.PlayerColliderPointOnCenterAxis(0.65f) + observedPlayer.Velocity * Time.deltaTime;
+                Quaternion rotation = observedPlayer.PlayerBones.WeaponRoot.rotation * Quaternion.Euler(90f, 0f, 0f);
+                Vector3 angularVelocity = new(Random.Range(-3f, 3f), Random.Range(-3f, 3f), 2f * Mathf.Sign(Random.Range(-1, 2)));
+                var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(item);
+
+                coopPlayer.AddCommand(new GClass2130()
+                {
+                    AngularVelocity = angularVelocity,
+                    Position = position,
+                    Rotation = rotation,
+                    Velocity = angularVelocity,
+                    Item = Components
+                });
+            }
+            else
+            {
+                Logger.LogError("PlayerInventoryController::ThrowItem CoopPlayer was null!");
+            }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo($"PlayerInventoryController_ThrowItem_Patch.Replicated");
-
-            if (!dict.ContainsKey("data"))
-                return;
-
-            ItemPlayerPacket itemPacket = new(null, null, null, null);
-            itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
-
-            if (HasProcessed(GetType(), player, itemPacket))
-                return;
-
-            if (ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
-            {
-                if (itemController is EFT.Player.PlayerInventoryController playerInventoryController)
-                {
-                    if (ItemFinder.TryFindItem(itemPacket.ItemId, out Item item))
-                    {
-                        CallLocally.Add(player.ProfileId);
-                        playerInventoryController.ThrowItem(item, GetDestroyedItemsFromItem(playerInventoryController, item));
-                    }
-                    else
-                    {
-                        Logger.LogError($"PlayerInventoryController_ThrowItem_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.ItemId}");
-                    }
-                }
-                else
-                {
-                    Logger.LogError("PlayerInventoryController_ThrowItem_Patch.Replicated. ItemController doesn't have derived class PlayerInventoryController!");
-                }
-            }
-            else
-            {
-                Logger.LogError("PlayerInventoryController_ThrowItem_Patch.Replicated. Unable to find Item Controller");
-            }
-        }
-
-        public static List<ItemsCount> GetDestroyedItemsFromItem(EFT.Player.PlayerInventoryController playerInventoryController, Item item)
-        {
-            List<ItemsCount> destroyedItems = new();
-
-            if (playerInventoryController.HasDiscardLimit(item, out int itemDiscardLimit) && item.StackObjectsCount > itemDiscardLimit)
-                destroyedItems.Add(new ItemsCount(item, item.StackObjectsCount - itemDiscardLimit, itemDiscardLimit));
-
-            if (item.IsContainer && destroyedItems.Count == 0)
-            {
-                Item[] itemsInContainer = item.GetAllItems()?.ToArray();
-                if (itemsInContainer != null)
-                {
-                    Dictionary<string, int> discardItems = new();
-
-                    for (int i = 0; i < itemsInContainer.Count(); i++)
-                    {
-                        Item itemInContainer = itemsInContainer[i];
-                        if (itemInContainer == item)
-                            continue;
-
-                        if (playerInventoryController.HasDiscardLimit(item, out int itemInContainerDiscardLimit))
-                        {
-                            if (!destroyedItems.Any(x => x.Item.TemplateId == itemInContainer.TemplateId))
-                            {
-                                string templateId = itemInContainer.TemplateId;
-                                if (discardItems.ContainsKey(templateId))
-                                    discardItems[templateId] += itemInContainer.StackObjectsCount;
-                                else
-                                    discardItems.Add(templateId, itemInContainer.StackObjectsCount);
-
-                                if (discardItems[templateId] > itemInContainerDiscardLimit)
-                                    destroyedItems.Add(new ItemsCount(itemInContainer, discardItems[templateId] - itemInContainerDiscardLimit, itemInContainer.StackObjectsCount - (discardItems[templateId] - itemInContainerDiscardLimit)));
-                            }
-                            else
-                            {
-                                destroyedItems.Add(new ItemsCount(itemInContainer, itemInContainer.StackObjectsCount, 0));
-                            }
-                        }
-                    }
-                }
-            }
-
-            return destroyedItems;
+            return;
         }
     }
 }
