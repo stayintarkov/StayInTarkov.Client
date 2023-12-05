@@ -963,6 +963,10 @@ namespace StayInTarkov.Coop
 
                 var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
 
+                var prc = controller.PlayerView.GetOrAddComponent<PlayerReplicatedComponent>();
+
+                OtherPlayers.TryAdd(profile.ProfileId, controller);
+
                 //Singleton<GameWorld>.Instance.allObservedPlayersByID.Add(profile.ProfileId, controller.PlayerView);
 
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.

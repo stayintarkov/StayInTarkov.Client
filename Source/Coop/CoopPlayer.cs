@@ -86,8 +86,8 @@ namespace StayInTarkov.Coop
             player.IsYourPlayer = isYourPlayer;
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone
-                ? new CoopInventoryController(player, profile, true)
-                : new CoopInventoryControllerForClientDrone(player, profile, true);
+                ? new InventoryController(profile, true)
+                : new InventoryController(profile, true);
 
             if (questController == null && isYourPlayer)
             {
@@ -313,43 +313,13 @@ namespace StayInTarkov.Coop
             base.OnItemAddedOrRemoved(item, location, added);
         }
 
-        public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
-        {
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGC))
-            {
-                base.Rotate(deltaRotation, ignoreClamp);
-                return;
-            }
-
-            // If using Client Side Damage Model and Pressing the Trigger, send rotation to Server
-            if (coopGC.SITConfig.useClientSideDamageModel
-                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-            {
-                // Send to Server
-
-            }
-
-            base.Rotate(deltaRotation, ignoreClamp);
-        }
-
-        //public override void LateUpdate()
-        //{
-        //    //base.LateUpdate();
-        //}
-
-        //public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
-        //{
-        //    //base.ComplexLateUpdate(queue, deltaTime);
-        //}
-
         public override void Move(Vector2 direction)
         {
-            base.Move(direction);            
+            base.Move(direction);
 
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc.IsClientDrone)
-                return;            
+            //var prc = GetComponent<PlayerReplicatedComponent>();
+            //if (prc.IsClientDrone)
+            //    return;
         }
 
 
@@ -391,7 +361,8 @@ namespace StayInTarkov.Coop
 
             AddCommand(new HandsController2()
             {
-                HandControllerType = EHandsControllerType.Empty
+                HandControllerType = EHandsControllerType.Empty,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -413,7 +384,8 @@ namespace StayInTarkov.Coop
                 FastHide = fastHide,
                 Armed = true,
                 HandControllerType = EHandsControllerType.Firearm,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -426,7 +398,9 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.Grenade,
-                Item = Components
+                Item = Components,
+                FastHide = true,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -439,7 +413,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.Meds,
-                Item = Components                
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
 
 
@@ -454,7 +429,9 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.Knife,
-                Item = Components
+                Item = Components,
+                FastHide = true,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -467,7 +444,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.Knife,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -480,7 +458,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.UsableItem,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -493,7 +472,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.QuickUseItem,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -506,7 +486,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.Meds,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -519,7 +500,8 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 HandControllerType = EHandsControllerType.QuickGrenade,
-                Item = Components
+                Item = Components,
+                DrawAnimationSpeedMultiplier = 1
             });
         }
 
@@ -560,7 +542,7 @@ namespace StayInTarkov.Coop
 
             prevFrame.MovementInfoPacket = new()
             {
-                Position = new Vector3(x: Position.x + 2, y: Position.y, z: Position.z),
+                Position = new Vector3(x: Position.x, y: Position.y, z: Position.z),
                 AnimatorStateIndex = CurrentAnimatorStateIndex,
                 PoseLevel = MovementContext.SmoothedPoseLevel,
                 CharacterMovementSpeed = MovementContext.ClampSpeed(MovementContext.SmoothedCharacterMovementSpeed),
@@ -587,6 +569,17 @@ namespace StayInTarkov.Coop
             };
 
             prevFrame.ReadFrame();
+
+            AddCommand(new PhysicalParametersCommandMessage()
+            {
+                BreathIsAudible = Physical.BreathIsAudible,
+                IsHeavyBreathing = Physical.Exhausted,
+                MinStepSound = Physical.MinStepSound,
+                Overweight = Physical.Overweight,
+                SoundRadius = Physical.SoundRadius,
+                TransitionSpeed = Physical.TransitionSpeed,
+                WalkOverweight = Physical.WalkOverweight
+            });
 
             if (this != null)
             {
@@ -662,7 +655,7 @@ namespace StayInTarkov.Coop
 
         public override void OnDestroy()
         {
-            BepInLogger.LogDebug("OnDestroy()");
+            //BepInLogger.LogDebug("OnDestroy()");
             base.OnDestroy();
         }
 

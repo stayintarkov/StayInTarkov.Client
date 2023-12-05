@@ -187,8 +187,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
             nextModel.Commands = commands.ToArray();
             nextModel.CommandsCount = commands.Count();
 
-            EFT.UI.ConsoleScreen.Log(nextModel.Movement.State + " " +  nextModel.Movement.AimRotation + " " + nextModel.Movement.FootRotation + " CommandsCount: " + nextModel.CommandsCount);
-
             return nextModel;
         }
     }

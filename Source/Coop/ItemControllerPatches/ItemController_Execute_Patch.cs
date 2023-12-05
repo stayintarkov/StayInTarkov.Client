@@ -8,19 +8,16 @@ namespace StayInTarkov.Coop.ItemControllerPatches
 {
     internal class ItemController_Execute_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(InventoryController);
+        public override Type InstanceType => typeof(EFT.Player.PlayerInventoryController);
         public override string MethodName => "Execute";
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
         [PatchPostfix]
         public static void PostPatch(ItemController __instance, AbstractInternalOperation operation)
         {
-            var player = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
-            var observedPlayer = Singleton<GameWorld>.Instance.GetObservedPlayerByProfileID(player.ProfileId);
+            var coopPlayer = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
 
-            Logger.LogInfo("ExecutePatch: " + player + " " + observedPlayer);
-
-            if (player != null)
+            if (coopPlayer != null)
             {
                 var op = GClass1570.FromInventoryOperation(operation, true);
                 var type = op.GetType();
@@ -35,10 +32,14 @@ namespace StayInTarkov.Coop.ItemControllerPatches
 
                 Logger.LogInfo(op.OperationId);
 
-                player.AddCommand(new GClass2110()
+                coopPlayer.AddCommand(new GClass2110()
                 {
                     Operation = op
                 });
+            }
+            else
+            {
+                Logger.LogError("ItemController_Execute_Patch::PostPatch CoopPlayer was null!");
             }
         }
 

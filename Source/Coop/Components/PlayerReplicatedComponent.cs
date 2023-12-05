@@ -132,7 +132,6 @@ namespace StayInTarkov.Core.Player
             {
                 var testasd = packet["model"].ToString().SITParseJson<byte[]>();
                 GStruct256 nextModel = Coop.NetworkPacket.Lacyway.PrevFrame.Deserialize(testasd);
-                EFT.UI.ConsoleScreen.Log(nextModel.Movement.MovementSpeed.ToString());
                 foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
                 {
                     player.Value.ObservedPlayerController.Apply(nextModel);
@@ -350,27 +349,27 @@ namespace StayInTarkov.Core.Player
 
         void Update()
         {
-            Update_ClientDrone();
+            //Update_ClientDrone();
 
-            if (IsClientDrone && ShouldSprint)
-            {
-                player.Physical.Sprint(ShouldSprint);
-            }
+            //if (IsClientDrone && ShouldSprint)
+            //{
+            //    player.Physical.Sprint(ShouldSprint);
+            //}
 
-            if (IsClientDrone)
-                return;
+            //if (IsClientDrone)
+            //    return;
 
-            if (player.ActiveHealthController.IsAlive)
-            {
-                var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
-                if (bodyPartHealth.AtMinimum)
-                {
-                    var packet = new Dictionary<string, object>();
-                    packet.Add("dmt", EDamageType.Undefined.ToString());
-                    packet.Add("m", "Kill");
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
-                }
-            }
+            //if (player.ActiveHealthController.IsAlive)
+            //{
+            //    var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
+            //    if (bodyPartHealth.AtMinimum)
+            //    {
+            //        var packet = new Dictionary<string, object>();
+            //        packet.Add("dmt", EDamageType.Undefined.ToString());
+            //        packet.Add("m", "Kill");
+            //        AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
+            //    }
+            //}
 
             foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
             {
