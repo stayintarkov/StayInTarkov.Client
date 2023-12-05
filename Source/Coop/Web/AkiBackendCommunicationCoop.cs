@@ -6,23 +6,6 @@ namespace StayInTarkov.Coop.Web
 {
     public class AkiBackendCommunicationCoop : AkiBackendCommunication
     {
-        static Random Randomizer { get; }
-
-        /// <summary>
-        /// Static Constructor is run when the Assembly is loaded
-        /// </summary>
-        static AkiBackendCommunicationCoop()
-        {
-            Randomizer = new Random();
-        }
-
-        /// <summary>
-        /// Constructor of this instance
-        /// </summary>
-        AkiBackendCommunicationCoop() : base(null)
-        {
-        }
-
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data
@@ -51,10 +34,6 @@ namespace StayInTarkov.Coop.Web
             if (!data.ContainsKey("t"))
             {
                 data.Add("t", DateTime.Now.Ticks.ToString("G"));
-            }
-            if (!data.ContainsKey("tkn"))
-            {
-                data.Add("tkn", Randomizer.NextDouble());
             }
             if (!data.ContainsKey("serverId"))
             {
