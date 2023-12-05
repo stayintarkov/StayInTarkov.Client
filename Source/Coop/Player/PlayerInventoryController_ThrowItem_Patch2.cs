@@ -9,9 +9,9 @@ using Random = UnityEngine.Random;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class PlayerInventoryController_ThrowItem_Patch2 : ModuleReplicationPatch
+    internal class PlayerInventoryController_ThrowItem_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(InventoryController);
+        public override Type InstanceType => typeof(EFT.Player.PlayerInventoryController);
 
         public override string MethodName => "ThrowItem";
 

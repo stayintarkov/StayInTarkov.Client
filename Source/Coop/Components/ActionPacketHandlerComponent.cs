@@ -121,35 +121,35 @@ namespace StayInTarkov.Coop.Components
             }
 
 
-            if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
-            {
-                Stopwatch stopwatchActionPacketsDamage = Stopwatch.StartNew();
-                while (ActionPacketsDamage.TryTake(out var packet))
-                {
-                    if (!packet.ContainsKey("profileId"))
-                        continue;
+            //if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
+            //{
+            //    Stopwatch stopwatchActionPacketsDamage = Stopwatch.StartNew();
+            //    while (ActionPacketsDamage.TryTake(out var packet))
+            //    {
+            //        if (!packet.ContainsKey("profileId"))
+            //            continue;
 
-                    var profileId = packet["profileId"].ToString();
+            //        var profileId = packet["profileId"].ToString();
 
-                    // The person is missing. Lets add this back until they exist
-                    if (!CoopGameComponent.Players.ContainsKey(profileId))
-                    {
-                        //ActionPacketsDamage.Add(packet);
-                        continue;
-                    }
+            //        // The person is missing. Lets add this back until they exist
+            //        if (!CoopGameComponent.Players.ContainsKey(profileId))
+            //        {
+            //            //ActionPacketsDamage.Add(packet);
+            //            continue;
+            //        }
 
-                    var playerKVP = CoopGameComponent.Players[profileId];
-                    if (playerKVP == null)
-                        continue;
+            //        var playerKVP = CoopGameComponent.Players[profileId];
+            //        if (playerKVP == null)
+            //            continue;
 
-                    var coopPlayer = (CoopPlayer)playerKVP;
-                    coopPlayer.ReceiveDamageFromServer(packet);
-                }
-                if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
-                {
-                    Logger.LogDebug($"ActionPacketsDamage took {stopwatchActionPacketsDamage.ElapsedMilliseconds}ms to process!");
-                }
-            }
+            //        var coopPlayer = (CoopPlayer)playerKVP;
+            //        coopPlayer.ReceiveDamageFromServer(packet);
+            //    }
+            //    if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
+            //    {
+            //        Logger.LogDebug($"ActionPacketsDamage took {stopwatchActionPacketsDamage.ElapsedMilliseconds}ms to process!");
+            //    }
+            //}
 
 
             return;

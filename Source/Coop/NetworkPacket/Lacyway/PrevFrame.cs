@@ -1,19 +1,7 @@
 ﻿using BepInEx.Logging;
-using EFT.Animations;
 using EFT;
-using EFT.InventoryLogic;
-using EFT.NetworkPackets;
-using HarmonyLib.Tools;
-using Sirenix.Serialization;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Physical;
-using UnityEngine.Tilemaps;
-using UnityEngine.UIElements;
 using UnityEngine;
 
 // GClass2179
@@ -144,7 +132,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
             // SprintSpeed
             nextModel.Movement.SprintSpeed = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             // MaxSpeed
-            nextModel.Movement.MaxSpeed = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);            
+            nextModel.Movement.MaxSpeed = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             // InHandsObjectOverlap
             nextModel.Movement.InHandsObjectOverlap = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             // IsGrounded
@@ -167,7 +155,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
 
             var commands = GClass2179.CreateInstance();
             commands.Deserialize(reader);
-            
+
             nextModel.Commands = commands.ToArray();
             nextModel.CommandsCount = commands.Count();
 

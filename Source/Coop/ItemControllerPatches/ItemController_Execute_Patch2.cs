@@ -6,9 +6,9 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.ItemControllerPatches
 {
-    internal class ItemController_Execute_Patch2 : ModuleReplicationPatch
+    internal class ItemController_Execute_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(InventoryController);
+        public override Type InstanceType => typeof(EFT.Player.PlayerInventoryController);
         public override string MethodName => "Execute";
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
@@ -39,7 +39,7 @@ namespace StayInTarkov.Coop.ItemControllerPatches
             }
             else
             {
-                Logger.LogError("ItemController_Execute_Patch2::PostPatch CoopPlayer was null!");
+                Logger.LogError("ItemController_Execute_Patch::PostPatch CoopPlayer was null!");
             }
         }
 

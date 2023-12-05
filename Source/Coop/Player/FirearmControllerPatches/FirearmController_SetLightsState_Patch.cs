@@ -1,7 +1,4 @@
 ﻿using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop.NetworkPacket.Lacyway;
-using StayInTarkov.Core.Player;
-using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

@@ -173,9 +173,10 @@ namespace StayInTarkov.Coop.Player
             //if (player is CoopPlayer coopPlayer)
 
             //{
-            Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
-            ((CoopPlayer)player).ReceiveDamageFromServer(dict);
+            //Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
+            //((CoopPlayer)player).ReceiveDamageFromServer(dict);
             //}
+            return;
         }
     }
 }

@@ -4,26 +4,16 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using HarmonyLib.Tools;
-using RootMotion.FinalIK;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket.Lacyway;
 using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
-using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static EFT.Player;
 
 namespace StayInTarkov.Coop
 {
@@ -86,7 +76,7 @@ namespace StayInTarkov.Coop
             player.IsYourPlayer = isYourPlayer;
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone
-                ? new InventoryController(profile, true)
+                ? new PlayerInventoryController(player, profile, true)
                 : new InventoryController(profile, true);
 
             if (questController == null && isYourPlayer)
@@ -133,136 +123,136 @@ namespace StayInTarkov.Coop
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
 
-        public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
-        {
-            // Quick check?
-            if (PreviousDamageInfos.Any(x =>
-                x.Damage == damageInfo.Damage
-                && x.SourceId == damageInfo.SourceId
-                && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
-                && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
-                ))
-                return;
+        //public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        //{
+        //    // Quick check?
+        //    if (PreviousDamageInfos.Any(x =>
+        //        x.Damage == damageInfo.Damage
+        //        && x.SourceId == damageInfo.SourceId
+        //        && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
+        //        && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
+        //        ))
+        //        return;
 
-            PreviousDamageInfos.Add(damageInfo);
+        //    PreviousDamageInfos.Add(damageInfo);
 
-            //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
-            //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+        //    //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
+        //    //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
 
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-            {
-                // If we are not using the Client Side Damage, then only run this on the server
-                if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
-                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
-                else
-                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
-            }
-        }
+        //    if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+        //    {
+        //        // If we are not using the Client Side Damage, then only run this on the server
+        //        if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
+        //            SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+        //        else
+        //            SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+        //    }
+        //}
 
-        
 
-        private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
-        {
-            Dictionary<string, object> packet = new();
-            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
-            damageInfo.HitCollider = null;
-            damageInfo.HittedBallisticCollider = null;
-            Dictionary<string, string> playerDict = new();
-            if (damageInfo.Player != null)
-            {
-                playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
-            }
 
-            damageInfo.Player = null;
-            Dictionary<string, string> weaponDict = new();
+        //private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        //{
+        //    Dictionary<string, object> packet = new();
+        //    var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
+        //    damageInfo.HitCollider = null;
+        //    damageInfo.HittedBallisticCollider = null;
+        //    Dictionary<string, string> playerDict = new();
+        //    if (damageInfo.Player != null)
+        //    {
+        //        playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+        //        playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+        //    }
 
-            if (damageInfo.Weapon != null)
-            {
-                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                packet.Add("d.w.id", damageInfo.Weapon.Id);
-            }
-            damageInfo.Weapon = null;
+        //    damageInfo.Player = null;
+        //    Dictionary<string, string> weaponDict = new();
 
-            packet.Add("d", damageInfo.SITToJson());
-            packet.Add("d.p", playerDict);
-            packet.Add("d.w", weaponDict);
-            packet.Add("bpt", bodyPartType.ToString());
-            packet.Add("bpct", bodyPartColliderType.ToString());
-            packet.Add("ab", absorbed.ToString());
-            packet.Add("hs", headSegment.ToString());
-            packet.Add("m", "ApplyDamageInfo");
+        //    if (damageInfo.Weapon != null)
+        //    {
+        //        packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+        //        packet.Add("d.w.id", damageInfo.Weapon.Id);
+        //    }
+        //    damageInfo.Weapon = null;
 
-            // -----------------------------------------------------------
-            // An attempt to stop the same packet being sent multiple times
-            if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
-                return;
+        //    packet.Add("d", damageInfo.SITToJson());
+        //    packet.Add("d.p", playerDict);
+        //    packet.Add("d.w", weaponDict);
+        //    packet.Add("bpt", bodyPartType.ToString());
+        //    packet.Add("bpct", bodyPartColliderType.ToString());
+        //    packet.Add("ab", absorbed.ToString());
+        //    packet.Add("hs", headSegment.ToString());
+        //    packet.Add("m", "ApplyDamageInfo");
 
-            PreviousSentDamageInfoPackets.Add(packet.ToJson());
-            // -----------------------------------------------------------
+        //    // -----------------------------------------------------------
+        //    // An attempt to stop the same packet being sent multiple times
+        //    if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
+        //        return;
 
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
-        }
+        //    PreviousSentDamageInfoPackets.Add(packet.ToJson());
+        //    // -----------------------------------------------------------
 
-        public void ReceiveDamageFromServer(Dictionary<string, object> dict)
-        {
-            StartCoroutine(ReceiveDamageFromServerCR(dict));
-        }
+        //    AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
+        //}
 
-        public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
-        {
-            if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
-                yield break;
+        //public void ReceiveDamageFromServer(Dictionary<string, object> dict)
+        //{
+        //    StartCoroutine(ReceiveDamageFromServerCR(dict));
+        //}
 
-            PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
+        //public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
+        //{
+        //    if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
+        //        yield break;
 
-            //BepInLogger.LogDebug("ReceiveDamageFromServer");
-            //BepInLogger.LogDebug(dict.ToJson());
+        //    PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
 
-            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
-            var absorbed = float.Parse(dict["ab"].ToString());
+        //    //BepInLogger.LogDebug("ReceiveDamageFromServer");
+        //    //BepInLogger.LogDebug(dict.ToJson());
 
-            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
-            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
+        //    Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+        //    Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
+        //    var absorbed = float.Parse(dict["ab"].ToString());
 
-            if (damageInfo.DamageType == EDamageType.Bullet && IsYourPlayer)
-            {
-                float handsShake = 0.05f;
-                float cameraShake = 0.4f;
-                float absorbedDamage = absorbed + damageInfo.Damage;
+        //    var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+        //    damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
 
-                switch (bodyPartType)
-                {
-                    case EBodyPart.Head:
-                        handsShake = 0.1f;
-                        cameraShake = 1.3f;
-                        break;
-                    case EBodyPart.LeftArm:
-                    case EBodyPart.RightArm:
-                        handsShake = 0.15f;
-                        cameraShake = 0.5f;
-                        break;
-                    case EBodyPart.LeftLeg:
-                    case EBodyPart.RightLeg:
-                        cameraShake = 0.3f;
-                        break;
-                }
+        //    if (damageInfo.DamageType == EDamageType.Bullet && IsYourPlayer)
+        //    {
+        //        float handsShake = 0.05f;
+        //        float cameraShake = 0.4f;
+        //        float absorbedDamage = absorbed + damageInfo.Damage;
 
-                ProceduralWeaponAnimation.ForceReact.AddForce(Mathf.Sqrt(absorbedDamage) / 10, handsShake, cameraShake);
-                if (FPSCamera.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
-                {
-                    fastBlur.enabled = true;
-                    fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : (bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3));
-                }
-            }
+        //        switch (bodyPartType)
+        //        {
+        //            case EBodyPart.Head:
+        //                handsShake = 0.1f;
+        //                cameraShake = 1.3f;
+        //                break;
+        //            case EBodyPart.LeftArm:
+        //            case EBodyPart.RightArm:
+        //                handsShake = 0.15f;
+        //                cameraShake = 0.5f;
+        //                break;
+        //            case EBodyPart.LeftLeg:
+        //            case EBodyPart.RightLeg:
+        //                cameraShake = 0.3f;
+        //                break;
+        //        }
 
-            base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
-            //base.ShotReactions(damageInfo, bodyPartType);
+        //        ProceduralWeaponAnimation.ForceReact.AddForce(Mathf.Sqrt(absorbedDamage) / 10, handsShake, cameraShake);
+        //        if (FPSCamera.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
+        //        {
+        //            fastBlur.enabled = true;
+        //            fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : (bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3));
+        //        }
+        //    }
 
-            yield break;
+        //    base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+        //    //base.ShotReactions(damageInfo, bodyPartType);
 
-        }
+        //    yield break;
+
+        //}
 
         public override void OnSkillLevelChanged(AbstractSkill skill)
         {
@@ -348,7 +338,7 @@ namespace StayInTarkov.Coop
             {
                 PhraseCommand = @event,
                 PhraseId = clip.NetId
-            });            
+            });
         }
 
         public override void Proceed(bool withNetwork, Callback<IHandsController0> callback, bool scheduled = true)
@@ -378,7 +368,7 @@ namespace StayInTarkov.Coop
             AddCommand(new HandsController2()
             {
                 FastHide = fastHide,
-                Armed = true,
+                Armed = weapon.Armed,
                 HandControllerType = EHandsControllerType.Firearm,
                 Item = Components,
                 DrawAnimationSpeedMultiplier = 1
@@ -608,8 +598,6 @@ namespace StayInTarkov.Coop
                     CommandsCount = prevFrame.Commands.Count,
                     RemoteTime = Time.time
                 };
-
-                
 
                 var test = NetworkPacket.Lacyway.PrevFrame.Serialize(prevFrame.Commands, prevFrame.MovementInfoPacket);
 
