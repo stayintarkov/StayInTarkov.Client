@@ -1,6 +1,4 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Core.Player;
-using StayInTarkov.Networking;
+﻿using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -13,106 +11,48 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public override string MethodName => "SetLightsState";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
+        public static List<string> CallLocally = new();
 
         [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-           , EFT.Player ____player
-           , LightsStates[] lightsStates, bool force
-            )
+        public static bool PrePatch(object __instance, LightsStates[] lightsStates, bool force, EFT.Player ____player)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-                result = true;
-
-            return result;
+            return CallLocally.Contains(____player.ProfileId);
         }
 
         [PatchPostfix]
-        public static void Postfix(
-           EFT.Player.FirearmController __instance
-           , EFT.Player ____player
-           , LightsStates[] lightsStates, bool force
-           )
+        public static void Postfix(object __instance, LightsStates[] lightsStates, bool force, EFT.Player ____player)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
-            var player = ____player;
-            if (player == null)
-                return;
-
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
+            if (CallLocally.Contains(____player.ProfileId))
             {
-                CallLocally.Remove(player.ProfileId);
+                CallLocally.Remove(____player.ProfileId);
                 return;
             }
 
-
-            foreach (var light in lightsStates)
+            Dictionary<string, object> dict = new()
             {
-                LightStatePacket lightStatePacket = new(light.Id, light.IsActive, light.LightMode, player.ProfileId);
-                AkiBackendCommunication.Instance.SendDataToPool(lightStatePacket.Serialize());
-            }
-
+                { "m", "SetLightsState" },
+                { "lightsStates", lightsStates.ToJson() },
+                { "force", force.ToString() }
+            };
+            AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dict);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
-            LightStatePacket lsp = new(null, false, 0, null);
-
-            if (dict.ContainsKey("data"))
-            {
-                lsp = lsp.DeserializePacketSIT(dict["data"].ToString());
-            }
-
-            if (HasProcessed(GetType(), player, lsp))
+            if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                return;
-
-            if (CallLocally.ContainsKey(player.ProfileId))
-                return;
-
-            CallLocally.Add(player.ProfileId, true);
-
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            if (player.HandsController is EFT.Player.FirearmController firearmController)
             {
-                try
-                {
-                    firearmCont.SetLightsState([new() { Id = lsp.Id, IsActive = lsp.IsActive, LightMode = lsp.LightMode }]);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e);
-                }
-            }
-        }
+                LightsStates[] lightsStates = dict["lightsStates"].ToString().SITParseJson<LightsStates[]>();
+                bool force = bool.Parse(dict["force"].ToString());
 
-        protected override MethodBase GetTargetMethod()
-        {
-            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-        }
+                CallLocally.Add(player.ProfileId);
+                firearmController.SetLightsState(lightsStates, force);
 
-        public class LightStatePacket : BasePlayerPacket
-        {
-            public string Id { get; set; }
-            public bool IsActive { get; set; }
-            public int LightMode { get; set; }
-
-            public LightStatePacket(string id, bool isActive, int lightMode, string profileId)
-                : base(profileId, "SetLightsState")
-            {
-                Id = id;
-                IsActive = isActive;
-                LightMode = lightMode;
+                lightsStates = null;
             }
         }
     }
