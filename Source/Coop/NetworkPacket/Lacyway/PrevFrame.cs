@@ -7,6 +7,7 @@ using UnityEngine;
 /*
  * 
  * GClass2179 - List of all Commands to be sent
+ * GStruct316 - All network packets for HealthController
  * Made by Lacyway for the Stay In Tarkov Project
  * Please give proper credit if you are using this code
  * 
@@ -31,7 +32,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
             Commands.Clear();
         }
 
-        public static byte[] Serialize(List<ICommand> commands, MovementInfoPacket movementInfoPacket)
+        public static byte[] Serialize(MovementInfoPacket movementInfoPacket, List<ICommand> commands)
         {
             // AimRotation and FootRotation
 
@@ -103,7 +104,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
 
             GClass1035 reader = new(package);
 
-            GStruct256 nextModel = new();
+            GStruct256 nextModel = new();            
 
             // Position
             nextModel.Movement.BodyPosition = reader.ReadVector3();
@@ -158,6 +159,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Lacyway
             nextModel.Movement.AimRotation = rotation.y;
             // FootRotation
             nextModel.Movement.FootRotation = Quaternion.AngleAxis(rotation.x, Vector3.up);
+
+            nextModel.RemoteTime = Time.deltaTime;
+            nextModel.IsNeedProcessMovement = true;
+
+            EFT.UI.ConsoleScreen.Log(nextModel.Movement.State.ToString());
 
             var commands = GClass2179.CreateInstance();
             commands.Deserialize(reader);

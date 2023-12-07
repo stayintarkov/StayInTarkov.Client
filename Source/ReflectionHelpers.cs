@@ -2,6 +2,7 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using EFT.NextObservedPlayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,6 +64,14 @@ namespace StayInTarkov
         }
 
         public static Item GetDogtagItem(Player __instance)
+        {
+            var equipment = ReflectionHelpers.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
+            var dogtagSlot = ReflectionHelpers.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });
+            var dogtagItem = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(dogtagSlot, "ContainedItem", false) as Item;
+            return dogtagItem;
+        }
+
+        public static Item GetDogtagItemView(Inventory __instance)
         {
             var equipment = ReflectionHelpers.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
             var dogtagSlot = ReflectionHelpers.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });

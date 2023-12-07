@@ -4,6 +4,7 @@ using Comfort.Common;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
+using EFT.NextObservedPlayer;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.NetworkPacket;
@@ -30,6 +31,7 @@ namespace StayInTarkov.Core.Player
         //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
         internal Dictionary<string, object> LastMovementPacket { get; set; }
         internal EFT.LocalPlayer player { get; set; }
+        internal ObservedPlayerView playerView { get; set; }
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
@@ -56,46 +58,103 @@ namespace StayInTarkov.Core.Player
 
             if (player == null)
             {
-                player = this.GetComponentInParent<EFT.LocalPlayer>();
-                StayInTarkovHelperConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
+                if (GetComponentInParent<LocalPlayer>() != null)
+                {
+                    player = GetComponentInParent<LocalPlayer>();
+                    StayInTarkovHelperConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}"); 
+                }
             }
 
-            if (player.ProfileId.StartsWith("pmc"))
+            Logger.LogInfo("PRC Start: GetComponent");
+            if (playerView == null)
             {
-                if (ReflectionHelpers.GetDogtagItem(player) == null)
+                if (GetComponentInParent<ObservedPlayerView>() != null)
                 {
-                    if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
-                        return;
+                    playerView = GetComponentInParent<ObservedPlayerView>();
+                    StayInTarkovHelperConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set PlayerView to {playerView}"); 
+                }
+            }
 
-                    Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
-                    if (dogtagSlot == null)
-                        return;
-
-                    string itemId = "";
-                    using (SHA256 sha256 = SHA256.Create())
+            Logger.LogInfo("PRC Start: DogTag");
+            if (playerView != null)
+            {
+                if (playerView.ProfileId.StartsWith("pmc"))
+                {
+                    if (ReflectionHelpers.GetDogtagItemView(playerView.ObservedPlayerController.InventoryController.Inventory) == null)
                     {
-                        StringBuilder sb = new();
-
-                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
-                        for (int i = 0; i < hashes.Length; i++)
-                            sb.Append(hashes[i].ToString("x2"));
-
-                        itemId = sb.ToString().Substring(0, 24);
-                    }
-
-                    Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
-
-                    if (dogtag != null)
-                    {
-                        if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
+                        if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
                             return;
 
-                        dogtagComponent.GroupId = player.Profile.Info.GroupId;
-                        dogtagSlot.AddWithoutRestrictions(dogtag);
+                        Slot dogtagSlot = playerView.ObservedPlayerController.InventoryController.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
+                        if (dogtagSlot == null)
+                            return;
+
+                        string itemId = "";
+                        using (SHA256 sha256 = SHA256.Create())
+                        {
+                            StringBuilder sb = new();
+
+                            byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + playerView.ProfileId + coopGameComponent.Timestamp));
+                            for (int i = 0; i < hashes.Length; i++)
+                                sb.Append(hashes[i].ToString("x2"));
+
+                            itemId = sb.ToString().Substring(0, 24);
+                        }
+
+                        Item dogtag = Spawners.ItemFactory.CreateItem(itemId, playerView.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+
+                        if (dogtag != null)
+                        {
+                            if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
+                                return;
+
+                            dogtagComponent.GroupId = playerView.Profile.Info.GroupId;
+                            dogtagSlot.AddWithoutRestrictions(dogtag);
+                        }
+                    }
+                } 
+            }
+
+            if (player != null)
+            {
+                if (player.ProfileId.StartsWith("pmc"))
+                {
+                    if (ReflectionHelpers.GetDogtagItem(player) == null)
+                    {
+                        if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+                            return;
+
+                        Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
+                        if (dogtagSlot == null)
+                            return;
+
+                        string itemId = "";
+                        using (SHA256 sha256 = SHA256.Create())
+                        {
+                            StringBuilder sb = new();
+
+                            byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
+                            for (int i = 0; i < hashes.Length; i++)
+                                sb.Append(hashes[i].ToString("x2"));
+
+                            itemId = sb.ToString().Substring(0, 24);
+                        }
+
+                        Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+
+                        if (dogtag != null)
+                        {
+                            if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
+                                return;
+
+                            dogtagComponent.GroupId = player.Profile.Info.GroupId;
+                            dogtagSlot.AddWithoutRestrictions(dogtag);
+                        }
                     }
                 }
             }
 
+            Logger.LogInfo("PRC Start: PacketHandlers");
             //GCHelpers.EnableGC();
 
             // TODO: Add PacketHandlerComponents here. Possibly via Reflection?
@@ -131,11 +190,16 @@ namespace StayInTarkov.Core.Player
             if (method == "test")
             {
                 var testasd = packet["model"].ToString().SITParseJson<byte[]>();
-                GStruct256 nextModel = Coop.NetworkPacket.Lacyway.PrevFrame.Deserialize(testasd);
-                foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
-                {
-                    player.Value.ObservedPlayerController.Apply(nextModel);
-                }
+                GStruct256 nextMove = Coop.NetworkPacket.Lacyway.PrevFrame.Deserialize(testasd);
+
+                //Singleton<GameWorld>.Instance.allObservedPlayersByID.Where(x => x.Key == kvp.ElementAt(0).Key).First().Value.ObservedPlayerController.Apply(kvp.ElementAt(0).Value);
+
+                playerView.ObservedPlayerController.Apply(nextMove);
+
+                //foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
+                //{
+                //    player.Value.ObservedPlayerController.Apply(nextModel);
+                //}
             }
 
             // Iterate through the PacketHandlerComponents
@@ -373,7 +437,7 @@ namespace StayInTarkov.Core.Player
 
             foreach (var player in Singleton<GameWorld>.Instance.allObservedPlayersByID)
             {
-                player.Value.ObservedPlayerController.ManualUpdate();
+                //player.Value.ObservedPlayerController.ManualUpdate();
             }
         }
 

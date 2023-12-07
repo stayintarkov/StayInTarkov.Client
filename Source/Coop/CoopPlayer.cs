@@ -4,6 +4,7 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using RootMotion.FinalIK;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
@@ -295,7 +296,29 @@ namespace StayInTarkov.Coop
 
         public override Corpse CreateCorpse()
         {
+            float force = EFTHardSettings.Instance.HIT_FORCE *= (0.3f + 0.7f * Mathf.InverseLerp(50f, 20f, LastDamageInfo.PenetrationPower));
+
+            AddCommand(new DeathCommand()
+            {
+                CorpseImpulse = new()
+                {
+                    BodyPartColliderType = LastDamageInfo.BodyPartColliderType,
+                    Direction = LastDamageInfo.Direction,
+                    Force = force,
+                    Point = LastDamageInfo.HitPoint,
+                    OverallVelocity = LastDamageInfo.Direction
+                },
+                Inventory = Inventory,
+                LastDamagedBodyPart = LastDamagedBodyPart,
+                LastDamageType = LastDamageInfo.DamageType
+            });
+
             return base.CreateCorpse();
+        }
+
+        public override void OnBeenKilledByAggressor(IAIDetails aggressor, DamageInfo damageInfo, EBodyPart bodyPart, EDamageType lethalDamageType)
+        {
+            base.OnBeenKilledByAggressor(aggressor, damageInfo, bodyPart, lethalDamageType);
         }
 
         public override void OnItemAddedOrRemoved(Item item, ItemAddress location, bool added)
@@ -500,21 +523,35 @@ namespace StayInTarkov.Coop
             });
         }
 
+        public override void Interact(IItemOwner loot, Callback callback)
+        {
+            base.Interact(loot, callback);
 
+
+        }
+
+        //public override void vmethod_0(WorldInteractiveObject interactiveObject, InteractionResult interactionResult, Action callback)
+        //{
+        //    base.vmethod_0(interactiveObject, interactionResult, callback);
+
+        //    AddCommand(new DoorInteractionMessage()
+        //    {
+        //        InteractionDoor = interactiveObject.Id,
+        //        InteractionDoorKey = (interactionResult is KeyInteractionResult) ? ((KeyInteractionResult)interactionResult).Key.Item.Id : string.Empty,
+        //        InteractionDoorResult = false
+        //    });
+        //}
 
         //public override void vmethod_1(WorldInteractiveObject door, InteractionResult interactionResult)
         //{
         //    base.vmethod_1(door, interactionResult);
 
-        //    if (door != null)
+        //    AddCommand(new DoorInteractionMessage()
         //    {
-        //        AddCommand(new DoorInteractionMessage()
-        //        {
-        //            InteractionDoor = door.Id,
-        //            InteractionDoorResult = true,
-        //            InteractionDoorKey = (interactionResult is KeyInteractionResult result) ? result.Key.Item.Id : string.Empty
-        //        }); 
-        //    }
+        //        InteractionDoor = door.Id,
+        //        InteractionDoorKey = (interactionResult is KeyInteractionResult) ? ((KeyInteractionResult)interactionResult).Key.Item.Id : string.Empty,
+        //        InteractionDoorResult = true
+        //    });
         //}
 
         public void AddCommand(ICommand command)
@@ -554,6 +591,7 @@ namespace StayInTarkov.Coop
                 WeaponOverlap = ProceduralWeaponAnimation.TurnAway.OverlapValue
             };
 
+            // This needs to be sent during an event instead...
             AddCommand(new PhysicalParametersCommandMessage()
             {
                 BreathIsAudible = Physical.BreathIsAudible,
@@ -594,12 +632,12 @@ namespace StayInTarkov.Coop
                         Velocity = prevFrame.MovementInfoPacket.Velocity,
                         InHandsObjectOverlap = prevFrame.MovementInfoPacket.WeaponOverlap
                     },
-                    Commands = prevFrame.Commands.ToArray(),
+                    Commands = [.. prevFrame.Commands],
                     CommandsCount = prevFrame.Commands.Count,
-                    RemoteTime = Time.time
+                    RemoteTime = Time.deltaTime
                 };
 
-                var test = NetworkPacket.Lacyway.PrevFrame.Serialize(prevFrame.Commands, prevFrame.MovementInfoPacket);
+                var test = NetworkPacket.Lacyway.PrevFrame.Serialize(prevFrame.MovementInfoPacket, prevFrame.Commands);
 
                 Dictionary<string, object> dictionary = new()
                 {

@@ -8,7 +8,7 @@ namespace StayInTarkov.Coop.ItemControllerPatches
 {
     internal class ItemController_Execute_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(EFT.Player.PlayerInventoryController);
+        public override Type InstanceType => typeof(ItemController);
         public override string MethodName => "Execute";
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
@@ -16,21 +16,13 @@ namespace StayInTarkov.Coop.ItemControllerPatches
         public static void PostPatch(ItemController __instance, AbstractInternalOperation operation)
         {
             var coopPlayer = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
+            Logger.LogInfo("ItemController_Execute_Patch");
 
             if (coopPlayer != null)
             {
                 var op = GClass1570.FromInventoryOperation(operation, true);
-                var type = op.GetType();
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                var names = Array.ConvertAll(fields, field => field.Name);
-                var values = Array.ConvertAll(fields, field => field.GetValue(op));
 
-                foreach ( var name in names )
-                {
-                    Logger.LogInfo("Name: " + names[names.IndexOf(name)] + " Value: " + values[names.IndexOf(name)]);
-                }
-
-                Logger.LogInfo(op.OperationId);
+                Logger.LogInfo("ItemController_Execute_Patch ToString: " + op.ToString());
 
                 coopPlayer.AddCommand(new GClass2110()
                 {

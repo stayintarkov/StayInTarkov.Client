@@ -127,8 +127,4 @@
     </Reference>
   </ItemGroup>
   
-  <ItemGroup>
-    <Folder Include="Coop\GameWorld\" />
-  </ItemGroup>
-  
 </Project>

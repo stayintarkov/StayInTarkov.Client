@@ -558,7 +558,7 @@ namespace StayInTarkov.Coop
                         continue;
 
 
-                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+                    //CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
 
@@ -944,6 +944,8 @@ namespace StayInTarkov.Coop
                 // Create Local Player drone
                 //LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
 
+                HandsController2 handsController2 = CreateObservedHands(profile);
+
                 SpawnMessage spawnMessage = new()
                 {
                     Side = profile.Side,
@@ -953,7 +955,7 @@ namespace StayInTarkov.Coop
                     Voice = profile.Info.Voice,
                     ProfileID = profile.Id,
                     Inventory = profile.Inventory,
-                    HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
+                    HandsController = handsController2,
                     Customization = profile.Customization,
                     BodyPosition = position,
                     ArmorsInfo = [],
@@ -962,13 +964,10 @@ namespace StayInTarkov.Coop
                 };
 
                 var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
-                controller.StateContext.PlayerAnimator.SetIsThirdPerson(false);
 
                 var prc = controller.PlayerView.GetOrAddComponent<PlayerReplicatedComponent>();
 
                 OtherPlayers.TryAdd(profile.ProfileId, controller);
-
-                //Singleton<GameWorld>.Instance.allObservedPlayersByID.Add(profile.ProfileId, controller.PlayerView);
 
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
                 //CreateLocalPlayerAsync(profile, position, playerId);
@@ -1099,30 +1098,50 @@ namespace StayInTarkov.Coop
 
             Logger.LogDebug($"CreateLocalPlayer::{profile.Info.Nickname}::Spawned.");
 
-            SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
+            //SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
+
+            HandsController2 handsController2 = CreateObservedHands(profile);
 
             SpawnMessage spawnMessage = new SpawnMessage()
             {
                 Side = profile.Side,
                 GroupID = otherPlayer.GroupId,
                 TeamID = otherPlayer.TeamId,
-                IsAI = otherPlayer.IsAI,
+                IsAI = useAiControl,
                 NickName = profile.Nickname,
                 AccountId = profile.AccountId,
                 Voice = profile.Info.Voice,
                 ProfileID = profile.Id,
                 Inventory = profile.Inventory,
-                HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
+                HandsController = handsController2,
                 Customization = profile.Customization,
-                BodyPosition = otherPlayer.Position,
+                BodyPosition = position,
                 ArmorsInfo = [],
                 WildSpawnType = WildSpawnType.pmcBot,
                 VoIPState = EFT.Player.EVoipState.NotAvailable
             };
 
             var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(otherPlayer.PlayerId, spawnMessage);
-            controller.ManualUpdate();
+
+            var prc2 = controller.PlayerView.GetOrAddComponent<PlayerReplicatedComponent>();
+
             OtherPlayers.TryAdd(profile.ProfileId, controller);
+
+            //if (!MatchmakerAcceptPatches.IsClient)
+            //{
+            //    if (otherPlayer.ProfileId.StartsWith("pmc"))
+            //    {
+            //        if (LocalGameInstance != null)
+            //        {
+            //            var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(this.LocalGameInstance);
+            //            if (botController != null)
+            //            {
+            //                Logger.LogDebug("Adding Client Player to Enemy list");
+            //                botController.AddActivePLayer(controller);
+            //            }
+            //        }
+            //    }
+            //}
 
             return otherPlayer;
         }
@@ -1180,89 +1199,160 @@ namespace StayInTarkov.Coop
             });
         }
 
-        private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        public HandsController2 CreateObservedHands(Profile profile)
         {
-            Dictionary<string, object> dictPlayerState = new();
+            HandsController2 handsController2 = new() { HandControllerType = EHandsControllerType.Empty, DrawAnimationSpeedMultiplier = 2f };
 
-            // --- The important Ids
-            dictPlayerState.Add("profileId", player.ProfileId);
-            dictPlayerState.Add("serverId", GetServerId());
-
-            // --- Positional 
-            dictPlayerState.Add("pX", player.Position.x);
-            dictPlayerState.Add("pY", player.Position.y);
-            dictPlayerState.Add("pZ", player.Position.z);
-            dictPlayerState.Add("rX", player.Rotation.x);
-            dictPlayerState.Add("rY", player.Rotation.y);
-
-            // --- Positional 
-            dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            dictPlayerState.Add("spr", player.Physical.Sprinting);
-            //if (player.MovementContext.IsSprintEnabled)
-            //{
-            //    prc.ReplicatedDirection = new Vector2(1, 0);
-            //}
-            //dictPlayerState.Add("tp", prc.TriggerPressed);
-            dictPlayerState.Add("alive", player.HealthController.IsAlive);
-            dictPlayerState.Add("tilt", player.MovementContext.Tilt);
-            dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-
-            dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
-            // ---------- 
-            //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
-            //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
-            //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
-            //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
-            //
-            //if (prc.ReplicatedDirection.HasValue)
-            //{
-            //    dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
-            //    dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
-            //}
-
-            // ---------- 
-            /*
-            if (player.PlayerHealthController != null)
+            var equipment = profile.Inventory.Equipment;
+            if (equipment == null)
             {
-                foreach (var b in Enum.GetValues(typeof(EBodyPart)))
-                {
-                    var effects = player.PlayerHealthController
-                        .GetAllActiveEffects((EBodyPart)b).Where(x => !x.ToString().Contains("Exist"))
-                        .Select(x => x.ToString());
-
-                    if (!effects.Any())
-                        continue;
-
-                    var k = "hE." + b.ToString();
-                    //Logger.LogInfo(k);
-                    //Logger.LogInfo(effects.ToJson());
-                    dictPlayerState.Add(k, effects.ToJson());
-                }
-
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer: {profile.ProfileId} has no Equipment!");
             }
-            */
-            // ---------- 
-            if (player.HealthController.IsAlive)
+            Item handItem = null;
+
+            if (equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem != null)
             {
-                foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+                handItem = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
+                var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(handItem);
+                handsController2 = new HandsController2()
                 {
-                    if (bodyPart == EBodyPart.Common)
-                        continue;
-
-                    var health = player.HealthController.GetBodyPartHealth(bodyPart);
-                    dictPlayerState.Add($"hp.{bodyPart}", health.Current);
-                    dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
-                }
-
-                dictPlayerState.Add("en", player.HealthController.Energy.Current);
-                dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
+                    HandControllerType = EHandsControllerType.Firearm,
+                    Armed = false,
+                    DrawAnimationSpeedMultiplier = 1f,
+                    Item = Components
+                };
             }
-            // ----------
-            dictPlayerState.Add("m", "PlayerState");
 
-            playerStates.Add(dictPlayerState);
+            if (handItem == null && equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem != null)
+            {
+                handItem = equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem;
+                var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(handItem);
+                handsController2 = new HandsController2()
+                {
+                    HandControllerType = EHandsControllerType.Firearm,
+                    Armed = false,
+                    DrawAnimationSpeedMultiplier = 1f,
+                    Item = Components
+                };
+            }
+
+            if (handItem == null && equipment.GetSlot(EquipmentSlot.Holster).ContainedItem != null)
+            {
+                handItem = equipment.GetSlot(EquipmentSlot.Holster).ContainedItem;
+                var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(handItem);
+                handsController2 = new HandsController2()
+                {
+                    HandControllerType = EHandsControllerType.Firearm,
+                    Armed = false,
+                    DrawAnimationSpeedMultiplier = 1f,
+                    Item = Components
+                };
+            }
+
+
+            if (handItem == null && equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem != null)
+            {
+                handItem = equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
+                var Components = Singleton<ItemFactory>.Instance.ItemToComponentialItem(handItem);
+                handsController2 = new HandsController2()
+                {
+                    HandControllerType = EHandsControllerType.Knife,
+                    DrawAnimationSpeedMultiplier = 1f,
+                    Item = Components
+                };
+            }
+
+            if (handItem == null)
+            {
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {profile.ProfileId}");
+            }
+
+            return handsController2;
         }
+
+        //private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        //{
+        //    Dictionary<string, object> dictPlayerState = new();
+
+        //    // --- The important Ids
+        //    dictPlayerState.Add("profileId", player.ProfileId);
+        //    dictPlayerState.Add("serverId", GetServerId());
+
+        //    // --- Positional 
+        //    dictPlayerState.Add("pX", player.Position.x);
+        //    dictPlayerState.Add("pY", player.Position.y);
+        //    dictPlayerState.Add("pZ", player.Position.z);
+        //    dictPlayerState.Add("rX", player.Rotation.x);
+        //    dictPlayerState.Add("rY", player.Rotation.y);
+
+        //    // --- Positional 
+        //    dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
+        //    //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+        //    dictPlayerState.Add("spr", player.Physical.Sprinting);
+        //    //if (player.MovementContext.IsSprintEnabled)
+        //    //{
+        //    //    prc.ReplicatedDirection = new Vector2(1, 0);
+        //    //}
+        //    //dictPlayerState.Add("tp", prc.TriggerPressed);
+        //    dictPlayerState.Add("alive", player.HealthController.IsAlive);
+        //    dictPlayerState.Add("tilt", player.MovementContext.Tilt);
+        //    dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
+
+        //    dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
+        //    // ---------- 
+        //    //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
+        //    //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
+        //    //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
+        //    //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
+        //    //
+        //    //if (prc.ReplicatedDirection.HasValue)
+        //    //{
+        //    //    dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
+        //    //    dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
+        //    //}
+
+        //    // ---------- 
+        //    /*
+        //    if (player.PlayerHealthController != null)
+        //    {
+        //        foreach (var b in Enum.GetValues(typeof(EBodyPart)))
+        //        {
+        //            var effects = player.PlayerHealthController
+        //                .GetAllActiveEffects((EBodyPart)b).Where(x => !x.ToString().Contains("Exist"))
+        //                .Select(x => x.ToString());
+
+        //            if (!effects.Any())
+        //                continue;
+
+        //            var k = "hE." + b.ToString();
+        //            //Logger.LogInfo(k);
+        //            //Logger.LogInfo(effects.ToJson());
+        //            dictPlayerState.Add(k, effects.ToJson());
+        //        }
+
+        //    }
+        //    */
+        //    // ---------- 
+        //    if (player.HealthController.IsAlive)
+        //    {
+        //        foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+        //        {
+        //            if (bodyPart == EBodyPart.Common)
+        //                continue;
+
+        //            var health = player.HealthController.GetBodyPartHealth(bodyPart);
+        //            dictPlayerState.Add($"hp.{bodyPart}", health.Current);
+        //            dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
+        //        }
+
+        //        dictPlayerState.Add("en", player.HealthController.Energy.Current);
+        //        dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
+        //    }
+        //    // ----------
+        //    dictPlayerState.Add("m", "PlayerState");
+
+        //    playerStates.Add(dictPlayerState);
+        //}
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
         public ulong LocalIndex { get; set; }

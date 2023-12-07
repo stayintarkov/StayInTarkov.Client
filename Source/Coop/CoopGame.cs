@@ -497,8 +497,6 @@ namespace StayInTarkov.Coop
 
         internal Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
 
-        public static ObservedPlayerController TestController;
-
         /// <summary>
         /// Creating the EFT.LocalPlayer
         /// </summary>
@@ -547,31 +545,6 @@ namespace StayInTarkov.Coop
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
-
-            //var profile2 = profile.Clone();
-
-            //SpawnMessage spawnMessage = new SpawnMessage()
-            //{
-            //    Side = profile2.Side,
-            //    GroupID = myPlayer.GroupId,
-            //    TeamID = myPlayer.TeamId,
-            //    IsAI = myPlayer.IsAI,
-            //    NickName = profile2.Nickname,
-            //    AccountId = profile2.AccountId,
-            //    Voice = profile2.Info.Voice,
-            //    ProfileID = profile2.Id,
-            //    Inventory = profile2.Inventory,
-            //    HandsController = new() { HandControllerType = EHandsControllerType.Empty, FastHide = false, Armed = false, MalfunctionState = Weapon.EMalfunctionState.None, DrawAnimationSpeedMultiplier = 1f },
-            //    Customization = profile2.Customization,
-            //    BodyPosition = myPlayer.Position,
-            //    ArmorsInfo = [],
-            //    WildSpawnType = WildSpawnType.pmcBot,
-            //    VoIPState = EFT.Player.EVoipState.NotAvailable
-            //};
-
-            //var controller = ObservedPlayerController.CreateInstance<ObservedPlayerController, ObservedPlayerView>(playerId, spawnMessage);
-
-            //TestController = controller;
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
