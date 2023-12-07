@@ -30,7 +30,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance, Meds0 meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
+        public static void PostPatch(EFT.Player __instance, Meds meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -70,11 +70,11 @@ namespace StayInTarkov.Coop.Player.Proceed
 
             if (ItemFinder.TryFindItem(playerProceedMedsPacket.ItemId, out Item item))
             {
-                if (item is Meds0 meds)
+                if (item is Meds meds)
                 {
                     CallLocally.Add(player.ProfileId);
 
-                    Callback<IHandsController5> callback = null;
+                    Callback<IMedsController> callback = null;
                     if (player.IsAI)
                     {
                         BotOwner botOwner = player.AIData.BotOwner;

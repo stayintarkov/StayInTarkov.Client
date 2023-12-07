@@ -59,7 +59,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 {
                     CallLocally.Add(player.ProfileId);
 
-                    Callback<IHandsController5> callback = null;
+                    Callback<IMedsController> callback = null;
                     if (player.IsAI)
                     {
                         BotOwner botOwner = player.AIData.BotOwner;

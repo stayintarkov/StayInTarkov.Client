@@ -1,4 +1,5 @@
 ﻿using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
@@ -24,7 +25,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                    && x.GetParameters()[0].Name == "knife"
                    && x.GetParameters()[1].Name == "callback"
                    && x.GetParameters()[2].Name == "scheduled"
-                   && x.GetParameters()[1].ParameterType == typeof(Callback<IHandsController7>));
+                   && x.GetParameters()[1].ParameterType == typeof(Callback<IQuickKnifeKickController>));
         }
 
         [PatchPrefix]
@@ -42,9 +43,9 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
             }
 
-            if (knife.Item is Knife0 knife0)
+            //if (knife.Item is Knife knife0)
             {
-                PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife0.Id, knife0.TemplateId, scheduled, "ProceedQuickKnifeKick");
+                PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife.Item.Id, knife.Item.TemplateId, scheduled, "ProceedQuickKnifeKick");
                 AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
             }
         }
@@ -65,7 +66,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 if (item.TryGetItemComponent(out KnifeComponent knifeComponent))
                 {
                     CallLocally.Add(player.ProfileId);
-                    player.Proceed(knifeComponent, (Callback<IHandsController7>)null, playerProceedPacket.Scheduled);
+                    player.Proceed(knifeComponent, (Callback<IKnifeController>)null, playerProceedPacket.Scheduled);
                 }
                 else
                 {

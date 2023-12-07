@@ -28,7 +28,7 @@ namespace StayInTarkov.Coop
                 );
         }
 
-        static IBackEndSession CurrentSession { get; set; }
+        static ISession CurrentSession { get; set; }
 
         [PatchPrefix]
         public static bool Prefix(TarkovApplication __instance)
@@ -38,7 +38,7 @@ namespace StayInTarkov.Coop
             if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return true;
 
-            IBackEndSession session = __instance.GetClientBackEndSession();
+            ISession session = __instance.GetClientBackEndSession();
             if (session == null)
             {
                 Logger.LogError("Session is NULL. Continuing as Singleplayer.");
@@ -95,7 +95,7 @@ namespace StayInTarkov.Coop
 
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix: Attempt to get Session");
 
-            IBackEndSession session = CurrentSession;
+            ISession session = CurrentSession;
             //IBackEndSession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<IBackEndSession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
 
             Profile profile = session.Profile;

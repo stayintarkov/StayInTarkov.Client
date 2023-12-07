@@ -30,7 +30,7 @@ namespace StayInTarkov.Coop
     /// <summary>
     /// Coop Game Component is the User 1-2-1 communication to the Server. This can be seen as an extension component to CoopGame.
     /// </summary>
-    public class CoopGameComponent : MonoBehaviour, IFrameIndexer
+    public class CoopGameComponent : MonoBehaviour
     {
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }

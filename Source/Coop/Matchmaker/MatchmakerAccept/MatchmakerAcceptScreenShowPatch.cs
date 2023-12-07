@@ -35,7 +35,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         [PatchPrefix]
         private static void Pre(
-            ref IBackEndSession session,
+            ref ISession session,
             ref RaidSettings raidSettings,
             Profile ___profile_0,
             MatchMakerAcceptScreen __instance,
@@ -87,7 +87,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         [PatchPostfix]
         private static void Post(
-            ref IBackEndSession session,
+            ref ISession session,
             ref RaidSettings raidSettings,
             Profile ___profile_0,
             MatchMakerAcceptScreen __instance,

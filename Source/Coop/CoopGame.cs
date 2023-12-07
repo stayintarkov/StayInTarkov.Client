@@ -48,7 +48,7 @@ namespace StayInTarkov.Coop
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
-        public IBackEndSession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+        public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
         BotsController IBotGame.BotsController
         {
@@ -107,7 +107,7 @@ namespace StayInTarkov.Coop
             , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
-            , IBackEndSession backEndSession
+            , ISession backEndSession
             , TimeSpan sessionTime)
         {
             BotsController = null;
@@ -134,7 +134,7 @@ namespace StayInTarkov.Coop
                 (null, new object[] {
                     coopGame.gameObject
                     , location.waves
-                    , new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
+                    , new Action<BotSpawnWave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
                     , location });
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
@@ -839,7 +839,7 @@ namespace StayInTarkov.Coop
             SpawnPoints spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, base.Location_0.SpawnPointParams);
             int spawnSafeDistance = ((Location_0.SpawnSafeDistanceMeters > 0) ? Location_0.SpawnSafeDistanceMeters : 100);
             SpawnSystemSettings settings = new(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
-            SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
+            SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => UnityEngine.Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
 
             base.GameTimer.Start();
             //base.vmethod_5();

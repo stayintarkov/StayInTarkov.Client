@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
+using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Coop.Player.Health
 {

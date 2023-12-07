@@ -416,7 +416,7 @@ namespace StayInTarkov.Coop
 
         private TagBank GetTagBank(EPhraseTrigger trigger)
         {
-            Voice asset = Singleton<IAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
+            Voice asset = Singleton<IEasyAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
             if (asset == null)
             {
                 BepInLogger.LogError($"{nameof(Say)}: Asset is null");

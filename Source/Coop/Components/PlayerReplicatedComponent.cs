@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
+using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Core.Player
 {
