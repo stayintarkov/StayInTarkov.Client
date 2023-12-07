@@ -300,7 +300,6 @@ namespace StayInTarkov.Coop
                 yield return waitSeconds;
 
                 var playersToExtract = new List<string>();
-                // TODO: Store the exfil point in the ExtractingPlayers dict, need it for timer
                 foreach (var exfilPlayer in coopGame.ExtractingPlayers)
                 {
                     var exfilTime = new TimeSpan(0, 0, (int)exfilPlayer.Value.Item1);
@@ -329,15 +328,19 @@ namespace StayInTarkov.Coop
                 var world = Singleton<GameWorld>.Instance;
 
                 // Hide extracted Players
-                foreach (var playerId in coopGame.ExtractedPlayers)
+                foreach (var profileId in coopGame.ExtractedPlayers)
                 {
-                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == playerId) as EFT.Player;
+                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == profileId) as EFT.Player;
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(player
-                        , new Dictionary<string, object>() { { "Extracted", true } }
-                        , true);
+                    if (!ExtractedProfilesSent.Contains(profileId))
+                    {
+                        ExtractedProfilesSent.Add(profileId);
+                        AkiBackendCommunicationCoop.PostLocalPlayerData(player
+                            , new Dictionary<string, object>() { { "m", "Extraction" }, { "Extracted", true } }
+                            );
+                    }
 
                     if (player.ActiveHealthController != null)
                     {
@@ -349,11 +352,17 @@ namespace StayInTarkov.Coop
                             player.ActiveHealthController.PauseAllEffects();
 
                             player.SwitchRenderer(false);
+
+                            // TODO: Currently. Destroying your own Player just breaks the game and it appears to be "frozen". Need to learn a new way to do a FreeCam!
+                            if(Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
+                                GameObject.Destroy(player);
                         }
                     }
                 }
             }
         }
+
+        private HashSet<string> ExtractedProfilesSent = new();  
 
         void OnDestroy()
         {
@@ -425,36 +434,35 @@ namespace StayInTarkov.Coop
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
 
-            if (PlayerUsers.Count() > 1)
-            {
-                if (PlayerUsers.Count() == numberOfPlayersDead)
-                {
-                    quitState = EQuitState.YourTeamIsDead;
-                }
-                else if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
-                {
-                    quitState = EQuitState.YouAreDead;
-                }
-            }
-            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
+            // Simple check to see if you are dead
+            if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
             {
                 quitState = EQuitState.YouAreDead;
             }
 
-            if (
-                numberOfPlayersAlive > 0
-                &&
-                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
-                )
+            // You are playing with a team
+            if (PlayerUsers.Count() > 1)
             {
-                quitState = EQuitState.YourTeamHasExtracted;
+                // All Player's in the Raid are dead
+                if (PlayerUsers.Count() == numberOfPlayersDead)
+                {
+                    quitState = EQuitState.YourTeamIsDead;
+                }
             }
-            else if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
+
+            // -------------------------
+            // Extractions
+            if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
             {
                 if (MatchmakerAcceptPatches.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
                 else if (MatchmakerAcceptPatches.IsServer)
                     quitState = EQuitState.YouHaveExtractedOnlyAsHost;
+            }
+
+            if (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
+            {
+                quitState = EQuitState.YourTeamHasExtracted;
             }
             return quitState;
         }
@@ -479,17 +487,17 @@ namespace StayInTarkov.Coop
                 if (MatchmakerAcceptPatches.IsServer)
                 {
                     // A host needs to wait for the team to extract or die!
-                    if ((quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead))
+                    if((PlayerUsers.Count() > 1) && (quitState == EQuitState.YouAreDead || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
+                    {
+                        NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
+                    }
+                    else
                     {
                         Singleton<ISITGame>.Instance.Stop(
                             Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                             , Singleton<ISITGame>.Instance.MyExitStatus
                             , Singleton<ISITGame>.Instance.MyExitLocation
                             , 0);
-                    }
-                    else
-                    {
-                        NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
                     }
                 }
                 else

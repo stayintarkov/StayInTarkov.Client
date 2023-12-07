@@ -872,6 +872,9 @@ namespace StayInTarkov.Coop
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {
+            if (player.IsAI)
+                return;
+
             Logger.LogDebug("ExfiltrationPoint_OnCancelExtraction");
             Logger.LogDebug(point.Status);
 
@@ -883,6 +886,9 @@ namespace StayInTarkov.Coop
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
         {
+            if (player.IsAI)
+                return;
+
             Logger.LogDebug("ExfiltrationPoint_OnStartExtraction");
             Logger.LogDebug(point.Settings.Name);
             Logger.LogDebug(point.Status);
