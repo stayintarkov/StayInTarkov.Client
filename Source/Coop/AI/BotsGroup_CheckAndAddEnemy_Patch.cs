@@ -16,7 +16,7 @@ namespace StayInTarkov.Coop.AI
         [PatchPrefix]
         public static bool PrePatch(BotsGroup __instance, IAIDetails player, bool ignoreAI = false)
         {
-            if (player.AIData != null)
+            if (player.AIData == null)
                 return false;
             
             return true;
