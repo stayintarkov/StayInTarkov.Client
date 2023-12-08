@@ -353,20 +353,21 @@ namespace StayInTarkov.Coop
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
 
-            Dictionary<string, object> packet = new()
+            if (IsYourPlayer)
             {
-                { "event", @event.ToString() },
-                { "index", clip.NetId },
-                { "m", "Say" }
-            };
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+                Dictionary<string, object> packet = new()
+                {
+                    { "event", @event.ToString() },
+                    { "index", clip.NetId },
+                    { "m", "Say" }
+                };
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet); 
+            }
         }
         
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
-            if (IsYourPlayer)
-                return;
 
             var prc = GetComponent<PlayerReplicatedComponent>();
             if (prc == null || !prc.IsClientDrone)
