@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using static ChartAndGraph.ChartItemEvents;
@@ -348,114 +349,31 @@ namespace StayInTarkov.Coop
 
         }
 
-        private int SayPreviousIndex = -1;
-        private EPhraseTrigger SayPreviousTrigger = EPhraseTrigger.PhraseNone;
-        private DateTime SayLastTime = DateTime.Now;
-
-        public override void Say(EPhraseTrigger @event, bool demand = false, float delay = 0, ETagStatus mask = 0, int probability = 100, bool aggressive = false)
+        public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
-            if (SayLastTime > DateTime.Now.AddSeconds(-2))
-                return;
+            base.OnPhraseTold(@event, clip, bank, speaker);
 
-            SayLastTime = DateTime.Now;
-
-            if (UnityEngine.Random.Range(0, 100) > probability)
-                return;
-
-            var tagBank = GetTagBank(@event);
-            if (tagBank == null) 
-                return;
-
-            if (SayPreviousTrigger != @event)
-                SayPreviousIndex = -1;
-
-            var index = -1;
-            var attempts = 3;
-            do
+            Dictionary<string, object> packet = new()
             {
-                index = UnityEngine.Random.Range(0, tagBank.Clips.Length - 1);
-            }
-            while ((index == -1 || SayPreviousIndex == index) && tagBank.Clips.Length > 1 && attempts-- > 0);
-
-            if (index == -1)
-                return;
-
-            TaggedClip taggedClip = GetTaggedClip(tagBank, index);
-            if (taggedClip == null)
-                return;
-
-            Dictionary<string, object> packet = new();
-            packet.Add("event", @event.ToString());
-            packet.Add("index", index);
-            packet.Add("m", "Say");
+                { "event", @event.ToString() },
+                { "index", clip.NetId },
+                { "m", "Say" }
+            };
             AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
-
-            SayPreviousIndex = index;
-            SayPreviousTrigger = @event;
-            AudioSource.PlayClipAtPoint(taggedClip.Clip, Position);
         }
-
+        
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
+            if (IsYourPlayer)
+                return;
 
-            var prc = this.GetComponent<PlayerReplicatedComponent>();
+            var prc = GetComponent<PlayerReplicatedComponent>();
             if (prc == null || !prc.IsClientDrone)
                 return;
 
-            var tagBank = GetTagBank(trigger);
-            if (tagBank == null) 
-                return;
-
-            TaggedClip taggedClip = GetTaggedClip(tagBank, index);
-            if (taggedClip == null)
-            {
-                BepInLogger.LogError($"{nameof(ReceiveSay)}: taggedClip is null");
-                return;
-            }
-
-            AudioSource.PlayClipAtPoint(taggedClip.Clip, Position);
+            Speaker.PlayDirect(trigger, index);
         }
-
-        private TagBank GetTagBank(EPhraseTrigger trigger)
-        {
-            Voice asset = Singleton<IEasyAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
-            if (asset == null)
-            {
-                BepInLogger.LogError($"{nameof(Say)}: Asset is null");
-                return null;
-            }
-            TagBank tagBank = null;
-            TagBank[] banks = asset.Banks;
-            //BepInLogger.LogDebug($"{nameof(Say)}: {banks.Length} banks available");
-            if (trigger == EPhraseTrigger.MumblePhrase)
-            {
-                trigger = EPhraseTrigger.OnMutter;
-            }
-
-            foreach (TagBank tb in banks)
-            {
-                //BepInLogger.LogDebug($"{nameof(Say)}: {tb.Trigger}");
-                if (tb.Trigger == trigger)
-                {
-                    tagBank = tb;
-                    break;
-                }
-            }
-            if (tagBank == null)
-            {
-                BepInLogger.LogError($"{nameof(Say)}: tagBank is null");
-                return null;
-            }
-            return tagBank;
-        }
-
-        private TaggedClip GetTaggedClip(TagBank tagBank, int index)
-        {
-            TaggedClip taggedClip = tagBank.Clips[index];
-            return taggedClip;
-        }
-
 
         public override void OnDestroy()
         {

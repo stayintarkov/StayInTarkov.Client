@@ -13,8 +13,7 @@ namespace StayInTarkov.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         //[PatchPrefix]
@@ -38,24 +37,24 @@ namespace StayInTarkov.Coop.Player
             , bool aggressive
             )
         {
-            //var player = __instance;
+        //    //var player = __instance;
 
-            //if (CallLocally.Contains(player.ProfileId))
-            //{
-            //    CallLocally.Remove(player.ProfileId);
-            //    return;
-            //}
+            //    //if (CallLocally.Contains(player.ProfileId))
+            //    //{
+            //    //    CallLocally.Remove(player.ProfileId);
+            //    //    return;
+            //    //}
 
-            //Dictionary<string, object> dictionary = new();
-            //dictionary.Add("t", DateTime.Now.Ticks);
-            //dictionary.Add("event", @event);
-            //dictionary.Add("demand", demand.ToString());
-            //dictionary.Add("delay", delay.ToString());
-            //dictionary.Add("mask", mask);
-            //dictionary.Add("probability", probability.ToString());
-            //dictionary.Add("aggressive", aggressive.ToString());
-            //dictionary.Add("m", "Say");
-            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            //    //Dictionary<string, object> dictionary = new();
+            //    //dictionary.Add("t", DateTime.Now.Ticks);
+            //    //dictionary.Add("event", @event);
+            //    //dictionary.Add("demand", demand.ToString());
+            //    //dictionary.Add("delay", delay.ToString());
+            //    //dictionary.Add("mask", mask);
+            //    //dictionary.Add("probability", probability.ToString());
+            //    //dictionary.Add("aggressive", aggressive.ToString());
+            //    //dictionary.Add("m", "Say");
+            //    //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
 
@@ -63,10 +62,15 @@ namespace StayInTarkov.Coop.Player
         {
             //Logger.LogInfo($"{nameof(Player_Say_Patch)}:{nameof(Replicated)}");
             if (HasProcessed(GetType(), player, dict))
-                return;
+                return;            
 
-            //if (CallLocally.Contains(player.ProfileId))
-            //    return;
+            if (CallLocally.Contains(player.ProfileId))
+            {
+                CallLocally.Remove(player.ProfileId);
+                return;
+            }
+
+            CallLocally.Add(player.ProfileId);
 
             //try
             //{
