@@ -16,9 +16,11 @@
   "AI_DIFFICULTY": "AI Difficulty",
   "AI_BOSSES_ENABLED": "Enable Bosses",
   "ILLEGAL_MESSAGE": "Illegale Spielekopie erkannt! Bitte kaufe dir Escape from Tarkov und starte es mindestens ein mal.",
-  "RAID_PLAYER_EXTRACTED": "Du bist entkommen! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
-  "RAID_PLAYER_EXTRACTED_HOST": "Du bist entkommen! Bitte warte bis alle Spieler entkommen sind oder verlasse die Lobby mit F8.",
-  "RAID_PLAYER_DEAD": "Du bist tot! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_TEAM_DEAD": "Dein Team ist tot! Verlasse die Lobby mit F8.",
+  "RAID_PLAYER_DEAD_SOLO": "Du bist tot! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_DEAD_HOST": "Du bist tot! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_DEAD_CLIENT": "Du bist tot! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
   "RAID_TEAM_EXTRACTED": "Dein Team ist entkommen! Verlasse die Lobby mit F8.",
-  "RAID_TEAM_DEAD": "Dein Team ist tot! Verlasse die Lobby mit F8."
+  "RAID_PLAYER_EXTRACTED_HOST": "Du bist entkommen! Bitte warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_EXTRACTED_CLIENT": "Du bist entkommen! Bitte warte bis alle Spieler entkommen sind oder verlasse die Lobby mit F8."
 }

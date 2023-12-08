@@ -15,8 +15,10 @@
   "AI_AMOUNT": "Nombre d'IA'",
   "ILLEGAL_MESSAGE": "Jeu illégal trouvé. Veuillez acheter, installer le jeu et le lancer au moins une fois.",
   "RAID_TEAM_DEAD": "Votre équipe est morte ! Quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_DEAD_SOLO": "Vous êtes mort ! Veuillez attendre la fin du jeu ou quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_DEAD_HOST": "Vous êtes mort ! Veuillez attendre la fin du jeu ou quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_DEAD_CLIENT": "Vous êtes mort ! Veuillez attendre la fin du jeu ou quittez maintenant en utilisant la touche F8.",
   "RAID_TEAM_EXTRACTED": "Votre équipe s'est extraite ! Quittez maintenant en utilisant la touche F8.",
-  "RAID_PLAYER_DEAD": "Vous êtes mort ! Veuillez attendre la fin du jeu ou quittez maintenant en utilisant la touche F8.",
-  "RAID_PLAYER_EXTRACTED": "Vous vous êtes extrait ! Attendez la fin du jeu ou quittez maintenant en utilisant la touche F8.",
-  "RAID_PLAYER_EXTRACTED_HOST": "Vous vous êtes extrait ! Veuillez attendre que tous les joueurs soient sortis/morts ou quittez maintenant en utilisant la touche F8."
+  "RAID_PLAYER_EXTRACTED_HOST": "Vous vous êtes extrait ! Attendez la fin du jeu ou quittez maintenant en utilisant la touche F8.",
+  "RAID_PLAYER_EXTRACTED_CLIENT": "Vous vous êtes extrait ! Veuillez attendre que tous les joueurs soient sortis/morts ou quittez maintenant en utilisant la touche F8."
 }
