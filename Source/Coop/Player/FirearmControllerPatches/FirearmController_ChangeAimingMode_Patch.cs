@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmController_ChangeAimingMode_Patch : ModuleReplicationPatch
+    public class FirearmController_ChangeAimingMode_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
 

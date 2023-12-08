@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.ItemHandsControllerPatches
 {
-    internal class ItemHandsController_CompassStateHandler_Patch : ModuleReplicationPatch
+    public class ItemHandsController_CompassStateHandler_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.ItemHandsController);
         public override string MethodName => "CompassStateHandler";

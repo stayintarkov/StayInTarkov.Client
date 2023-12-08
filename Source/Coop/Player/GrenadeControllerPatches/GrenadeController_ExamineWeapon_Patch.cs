@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
-    internal class GrenadeController_ExamineWeapon_Patch : ModuleReplicationPatch
+    public class GrenadeController_ExamineWeapon_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.GrenadeController);
 

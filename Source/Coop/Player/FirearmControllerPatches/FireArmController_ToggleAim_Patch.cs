@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
 {
-    internal class FireArmController_ToggleAim_Patch : ModuleReplicationPatch
+    public class FireArmController_ToggleAim_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ToggleAim";

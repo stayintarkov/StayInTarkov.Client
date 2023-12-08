@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class Player_ApplyShot_Patch : ModuleReplicationPatch
+    public class Player_ApplyShot_Patch : ModuleReplicationPatch
     {
         public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);

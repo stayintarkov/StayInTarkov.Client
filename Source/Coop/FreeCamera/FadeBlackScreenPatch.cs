@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace StayInTarkov.Coop.FreeCamera
 {
-    internal class FadeBlackScreenPatch : ModulePatch
+    public class FadeBlackScreenPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
@@ -20,7 +20,7 @@ namespace StayInTarkov.Coop.FreeCamera
         }
     }
 
-    internal class StartBlackScreenShowPatch : ModulePatch
+    public class StartBlackScreenShowPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
@@ -43,7 +43,7 @@ namespace StayInTarkov.Coop.FreeCamera
         }
     }
 
-    internal class SetBlackImageAlphaPatch : ModulePatch
+    public class SetBlackImageAlphaPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

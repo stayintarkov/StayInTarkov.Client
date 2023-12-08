@@ -7,7 +7,7 @@ namespace StayInTarkov.FileChecker
     /// <summary>
     /// SIT - RunFilesCheckingPatch
     /// </summary>
-    internal class RunFilesCheckingPatch : ModulePatch
+    public class RunFilesCheckingPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

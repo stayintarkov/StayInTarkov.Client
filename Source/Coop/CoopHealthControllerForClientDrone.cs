@@ -4,7 +4,7 @@ using EFT.InventoryLogic;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopHealthControllerForClientDrone : PlayerHealthController
+    public class CoopHealthControllerForClientDrone : PlayerHealthController
     {
         public CoopHealthControllerForClientDrone(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryController inventoryController, SkillManager skillManager, bool aiHealth)
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)

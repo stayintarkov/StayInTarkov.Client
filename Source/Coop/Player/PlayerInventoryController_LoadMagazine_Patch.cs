@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class PlayerInventoryController_LoadMagazine_Patch : ModuleReplicationPatch
+    public class PlayerInventoryController_LoadMagazine_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => ReflectionHelpers.SearchForType("EFT.Player+PlayerInventoryController", false);
 

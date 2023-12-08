@@ -11,7 +11,7 @@ using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Internal
 {
-    internal class CustomLayerWrapper : BaseLogicLayerSimpleClass
+    public class CustomLayerWrapper : BaseLogicLayerSimpleClass
     {
         private static FieldInfo _logicInstanceDictField = null;
 
@@ -109,7 +109,7 @@ namespace DrakiaXYZ.BigBrain.Internal
             }
         }
 
-        static internal BaseNodeClass GetLogicInstance(BotOwner botOwner)
+        static public BaseNodeClass GetLogicInstance(BotOwner botOwner)
         {
             // Sanity check
             if (botOwner == null || botOwner.Brain?.Agent == null)
@@ -128,7 +128,7 @@ namespace DrakiaXYZ.BigBrain.Internal
             return aiCoreNodeDict[logicDecision] as BaseNodeClass;
         }
 
-        internal CustomLayer CustomLayer()
+        public CustomLayer CustomLayer()
         {
             return customLayer;
         }

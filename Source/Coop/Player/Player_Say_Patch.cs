@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class Player_Say_Patch : ModuleReplicationPatch
+    public class Player_Say_Patch : ModuleReplicationPatch
     {
         public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);

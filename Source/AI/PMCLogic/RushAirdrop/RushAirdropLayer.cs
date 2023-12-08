@@ -11,7 +11,7 @@ namespace StayInTarkov.AI.PMCLogic.RushAirdrop
     /// Created by: DrakiaXYZ
     /// Link: https://github.com/DrakiaXYZ/SPT-Waypoints/blob/master/BrainLogic/RoamingLayer.cs
     /// </summary>
-    internal class RushAirdropLayer : CustomLayer
+    public class RushAirdropLayer : CustomLayer
     {
         protected ManualLogSource Logger;
         protected float nextRoamCheckTime = 0f;

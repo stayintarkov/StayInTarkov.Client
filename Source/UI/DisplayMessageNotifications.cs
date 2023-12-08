@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace StayInTarkov.UI
 {
-    internal static class DisplayMessageNotifications
+    public static class DisplayMessageNotifications
     {
         public static Type MessageNotificationType { get; set; }
 

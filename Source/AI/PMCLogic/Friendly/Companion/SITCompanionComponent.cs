@@ -12,7 +12,7 @@ namespace StayInTarkov.AI.PMCLogic.Friendly.Companion
     /// Created by: Paulov
     /// Description: TODO: Work in Progress: This is an idea to try and use our own logic for behavior
     /// </summary>
-    internal class SITCompanionComponent : MonoBehaviour
+    public class SITCompanionComponent : MonoBehaviour
     {
         public CoopPlayer CoopPlayer { get; set; }
 

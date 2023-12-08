@@ -7,7 +7,7 @@ namespace StayInTarkov.Health
     /// Created by: Paulov
     /// Description: Detect changes in "Health" and pass those changes to the HealthListener
     /// </summary>
-    internal class ChangeHealthPatch : ModulePatch
+    public class ChangeHealthPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

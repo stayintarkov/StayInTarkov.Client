@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class Player_SwitchHeadLights_Patch : ModuleReplicationPatch
+    public class Player_SwitchHeadLights_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.LocalPlayer);
 

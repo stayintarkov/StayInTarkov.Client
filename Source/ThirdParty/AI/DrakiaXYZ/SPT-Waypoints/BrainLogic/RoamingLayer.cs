@@ -7,7 +7,7 @@
 //{
 //// Note: We only include this in debug builds for now, because we're not shipping BigBrain
 //#if DEBUG
-//    internal class RoamingLayer : CustomLayer
+//    public class RoamingLayer : CustomLayer
 //    {
 //        protected ManualLogSource Logger;
 //        protected float nextRoamCheckTime = 0f;

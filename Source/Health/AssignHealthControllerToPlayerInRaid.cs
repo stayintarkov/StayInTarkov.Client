@@ -9,7 +9,7 @@ namespace StayInTarkov.Health
     /// Created by: Paulov
     /// Description: Assigns a HealthListener Instance to the Player in the Raid
     /// </summary>
-    internal class AssignHealthControllerToPlayerInRaid : ModulePatch
+    public class AssignHealthControllerToPlayerInRaid : ModulePatch
     {
         public static event Action<LocalPlayer> OnPlayerInit;
 

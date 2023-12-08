@@ -12,7 +12,7 @@ namespace StayInTarkov.UI.PaulovTraderScreenScrollbar
     /// </summary>
     [BepInPlugin("com.paulov.ui.PaulovTraderScreenScrollbar", "PaulovTraderScreenScrollbar", "1.0.0.0")]
     [BepInDependency("com.sit.core")]
-    internal class PaulovTraderScreenScrollbarPlugin : BaseUnityPlugin
+    public class PaulovTraderScreenScrollbarPlugin : BaseUnityPlugin
     {
         private void Awake()
         {

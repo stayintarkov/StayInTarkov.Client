@@ -1,7 +1,5 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
 using EFT;
-using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Matchmaker;
@@ -13,15 +11,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChartAndGraph.ChartItemEvents;
-using static UnityEngine.RemoteConfigSettingsHelper;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopPlayer : LocalPlayer
+    public class CoopPlayer : LocalPlayer
     {
         ManualLogSource BepInLogger { get; set; }
 
@@ -313,10 +308,12 @@ namespace StayInTarkov.Coop
                 || IsSprintEnabled
                 )
             {
-                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-                rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", this.Rotation.x);
-                rotationPacket.Add("y", this.Rotation.y);
+                Dictionary<string, object> rotationPacket = new Dictionary<string, object>
+                {
+                    { "m", "PlayerRotate" },
+                    { "x", this.Rotation.x },
+                    { "y", this.Rotation.y }
+                };
                 AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
             }
 

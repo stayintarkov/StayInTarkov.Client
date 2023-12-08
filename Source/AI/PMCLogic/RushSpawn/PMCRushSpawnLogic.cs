@@ -10,7 +10,7 @@ namespace StayInTarkov.AI.PMCLogic.RushSpawn
     /// <summary>
     /// Created by: Paulov
     /// </summary>
-    internal class PMCRushSpawnLogic : CustomLogic
+    public class PMCRushSpawnLogic : CustomLogic
     {
         protected ManualLogSource Logger;
         Vector3? targetPos = null;

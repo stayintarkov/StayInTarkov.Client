@@ -12,7 +12,7 @@ namespace DrakiaXYZ.BigBrain.Patches
     /**
      * Patch the base brain activate method so we can inject our custom brain layers
      **/
-    internal class BotBaseBrainActivatePatch : ModulePatch
+    public class BotBaseBrainActivatePatch : ModulePatch
     {
         private static FieldInfo _botOwnerField;
         private static MethodInfo _addLayerMethod;

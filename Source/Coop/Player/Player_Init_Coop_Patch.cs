@@ -13,7 +13,7 @@ using UnityEngine.Assertions;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class Player_Init_Coop_Patch : ModulePatch
+    public class Player_Init_Coop_Patch : ModulePatch
     {
         private static ConfigFile _config;
         public Player_Init_Coop_Patch(ConfigFile config)

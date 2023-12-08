@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace DrakiaXYZ.BigBrain
 {
-    internal class Utils
+    public class Utils
     {
         public static FieldInfo GetFieldByType(Type classType, Type fieldType)
         {

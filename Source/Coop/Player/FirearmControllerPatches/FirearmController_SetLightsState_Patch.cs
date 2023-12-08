@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmController_SetLightsState_Patch : ModuleReplicationPatch
+    public class FirearmController_SetLightsState_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
 

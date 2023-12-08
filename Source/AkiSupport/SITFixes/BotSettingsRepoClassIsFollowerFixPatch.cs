@@ -8,7 +8,7 @@ namespace StayInTarkov.AkiSupport.SITFixes
     /// Created by: Paulov
     /// Description: Fixes an error on RAID start for the IsFollower method.
     /// </summary>
-    internal class BotSettingsRepoClassIsFollowerFixPatch : ModulePatch
+    public class BotSettingsRepoClassIsFollowerFixPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.InteractionPatches
 {
-    internal class Player_StartDoorInteraction_Patch : ModuleReplicationPatch
+    public class Player_StartDoorInteraction_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(MovementState);
 

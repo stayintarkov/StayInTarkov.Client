@@ -346,7 +346,7 @@ namespace StayInTarkov
                 property.SetValue(o, v);
         }
 
-        internal static Type SearchForType(string v, bool debug = false)
+        public static Type SearchForType(string v, bool debug = false)
         {
             var typesFound = EftTypes.Where(x => x.FullName.Contains(v)).ToList();
             foreach (var type in typesFound)
@@ -365,7 +365,7 @@ namespace StayInTarkov
             }
         }
 
-        internal static void GetTypeAndMethodWhereMethodExists(string methodName, out Type type, out MethodInfo methodInfo)
+        public static void GetTypeAndMethodWhereMethodExists(string methodName, out Type type, out MethodInfo methodInfo)
         {
             type = EftTypes.FirstOrDefault(x => GetAllMethodsForType(x).Any(y => y.Name.Equals(methodName, StringComparison.InvariantCulture)));
             methodInfo = GetAllMethodsForType(type).First(y => y.Name.Equals(methodName, StringComparison.InvariantCulture));

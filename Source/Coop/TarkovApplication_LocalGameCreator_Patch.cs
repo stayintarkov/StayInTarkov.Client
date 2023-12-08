@@ -15,7 +15,7 @@ namespace StayInTarkov.Coop
     /// Created by: Paulov
     /// Paulov: Overwrite and use our own CoopGame instance instead
     /// </summary>
-    internal class TarkovApplication_LocalGameCreator_Patch : ModulePatch
+    public class TarkovApplication_LocalGameCreator_Patch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

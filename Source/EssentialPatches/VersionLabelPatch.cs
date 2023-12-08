@@ -41,7 +41,7 @@ namespace StayInTarkov.EssentialPatches
         }
 
         [PatchPostfix]
-        internal static void PatchPostfix(
+        public static void PatchPostfix(
             string major, string minor, string backend, string taxonomy
             , object __result)
         {

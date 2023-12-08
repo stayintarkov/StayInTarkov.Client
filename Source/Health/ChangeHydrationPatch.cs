@@ -7,7 +7,7 @@ namespace StayInTarkov.Health
     /// Created by: Paulov
     /// Description: Detect changes in "Hydration" and pass those changes to the HealthListener
     /// </summary>
-    internal class ChangeHydrationPatch : ModulePatch
+    public class ChangeHydrationPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

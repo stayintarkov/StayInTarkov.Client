@@ -22,7 +22,7 @@ namespace Aki.Core.Patches
             __result.timeout = 15000;
         }
 
-        internal class FakeCertificateHandler : UnityEngine.Networking.CertificateHandler
+        public class FakeCertificateHandler : UnityEngine.Networking.CertificateHandler
         {
             public override bool ValidateCertificate(byte[] certificateData)
             {

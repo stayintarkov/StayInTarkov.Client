@@ -14,7 +14,7 @@ namespace DrakiaXYZ.BigBrain.Patches
      * Patch the layer add method (method_0) of AICoreStrategyClass, so we can disable layers, and insert custom layers
      * as higher priority than default layers
      **/
-    internal class BotBaseBrainAddLayerPatch : ModulePatch
+    public class BotBaseBrainAddLayerPatch : ModulePatch
     {
         private static FieldInfo _layerDictionary;
         private static MethodInfo _activateLayerMethod;

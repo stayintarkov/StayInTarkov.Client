@@ -13,7 +13,7 @@ namespace DrakiaXYZ.BigBrain.Patches
     /**
      * Patch the layer activate method (method_4) of AICoreStrategyClass, so we can prioritize custom layers above default layers
      **/
-    internal class BotBaseBrainActivateLayerPatch : ModulePatch
+    public class BotBaseBrainActivateLayerPatch : ModulePatch
     {
         private static FieldInfo _activeLayerListField;
 

@@ -4,7 +4,7 @@ using System;
 
 namespace DrakiaXYZ.BigBrain.Internal
 {
-    internal class CustomLogicWrapper : BaseNodeClass
+    public class CustomLogicWrapper : BaseNodeClass
     {
         private CustomLogic customLogic;
 
@@ -28,7 +28,7 @@ namespace DrakiaXYZ.BigBrain.Internal
             customLogic.Stop();
         }
 
-        internal CustomLogic CustomLogic()
+        public CustomLogic CustomLogic()
         {
             return customLogic;
         }

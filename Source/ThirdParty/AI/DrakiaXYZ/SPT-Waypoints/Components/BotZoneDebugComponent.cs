@@ -9,7 +9,7 @@
 
 //namespace DrakiaXYZ.Waypoints.Components
 //{
-//    internal class BotZoneDebugComponent : MonoBehaviour, IDisposable
+//    public class BotZoneDebugComponent : MonoBehaviour, IDisposable
 //    {
 //        private static List<UnityEngine.Object> gameObjects = new List<UnityEngine.Object>();
 

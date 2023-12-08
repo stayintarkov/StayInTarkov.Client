@@ -3,7 +3,7 @@
 namespace StayInTarkov.Coop.Components
 {
 
-    internal class CalculateXAxis
+    public class CalculateXAxis
     {
         /// <summary>
         /// X-Axis for a checkbox

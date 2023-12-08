@@ -11,7 +11,7 @@ namespace StayInTarkov.Coop.Player
 
     /// <summary>
     /// </summary>
-    internal class Player_Move_Patch : ModuleReplicationPatch
+    public class Player_Move_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Move";

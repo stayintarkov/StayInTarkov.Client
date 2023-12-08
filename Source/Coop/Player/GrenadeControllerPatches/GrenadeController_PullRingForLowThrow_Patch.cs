@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
 {
-    internal class GrenadeController_PullRingForLowThrow_Patch : ModuleReplicationPatch
+    public class GrenadeController_PullRingForLowThrow_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.GrenadeController);
 

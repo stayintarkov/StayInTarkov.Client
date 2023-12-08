@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    internal struct ReceivedPlayerMoveStruct
+    public struct ReceivedPlayerMoveStruct
     {
         public float pX { get; set; }
 

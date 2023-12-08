@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Health
 {
-    internal class RemoveNegativeEffectsPatch : ModuleReplicationPatch
+    public class RemoveNegativeEffectsPatch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(PlayerHealthController);
 

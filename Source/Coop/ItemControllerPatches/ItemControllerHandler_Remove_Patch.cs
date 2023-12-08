@@ -13,7 +13,7 @@
 
 //namespace StayInTarkov.Coop.ItemControllerPatches
 //{
-//    internal class ItemControllerHandler_Remove_Patch : ModuleReplicationPatch
+//    public class ItemControllerHandler_Remove_Patch : ModuleReplicationPatch
 //    {
 //        public static ManualLogSource Log { get {
 

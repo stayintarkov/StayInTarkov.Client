@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace StayInTarkov.UI
 {
-    internal class OfflineDisplayProgressPatch : ModulePatch
+    public class OfflineDisplayProgressPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

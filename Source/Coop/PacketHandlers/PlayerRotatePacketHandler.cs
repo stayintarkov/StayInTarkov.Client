@@ -9,7 +9,7 @@ namespace StayInTarkov.Coop.PacketHandlers
     /// Created by Paulov
     /// Description: Here is an example of how to use IPlayerPacketHandlerComponent. You contract the interface and then use ProcessPacket to do the work.
     /// </summary>
-    internal class PlayerRotatePacketHandler : IPlayerPacketHandlerComponent
+    public class PlayerRotatePacketHandler : IPlayerPacketHandlerComponent
     {
         private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;

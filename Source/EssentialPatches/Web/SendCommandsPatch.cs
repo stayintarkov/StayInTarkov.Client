@@ -6,7 +6,7 @@ namespace StayInTarkov.EssentialPatches.Web
     /// Created by: Paulov
     /// Description: This patch removes the wait to push changes from Inventory
     /// </summary>
-    internal class SendCommandsPatch : ModulePatch
+    public class SendCommandsPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

@@ -17,7 +17,7 @@ using FontStyle = UnityEngine.FontStyle;
 
 namespace StayInTarkov.Coop.Components
 {
-    internal class SITMatchmakerGUIComponent : MonoBehaviour
+    public class SITMatchmakerGUIComponent : MonoBehaviour
     {
         private UnityEngine.Rect windowRect = new(20, 20, 120, 50);
         private UnityEngine.Rect windowInnerRect { get; set; } = new(20, 20, 120, 50);

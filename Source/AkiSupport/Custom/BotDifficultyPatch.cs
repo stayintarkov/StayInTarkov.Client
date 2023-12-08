@@ -13,7 +13,7 @@ namespace StayInTarkov.AkiSupport.Custom
     {
         protected override MethodBase GetTargetMethod()
         {
-            var methodName = "LoadDifficultyStringInternal";
+            var methodName = "LoadDifficultyStringpublic";
             var flags = BindingFlags.Public | BindingFlags.Static;
 
             return StayInTarkovHelperConstants.EftTypes.Single(x => x.GetMethod(methodName, flags) != null)

@@ -8,7 +8,7 @@ namespace StayInTarkov.AI
     /// This is a replacement for a GClass that does this process.
     /// Used by RoamingLogic from DrakiaXYZ
     /// </summary>
-    internal class AIProcessLookAtPoints
+    public class AIProcessLookAtPoints
     {
         private int int_0;
 

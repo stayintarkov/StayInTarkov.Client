@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Proceed
 {
-    internal class Player_Proceed_Meds_Patch : ModuleReplicationPatch
+    public class Player_Proceed_Meds_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
 

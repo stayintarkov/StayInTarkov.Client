@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    internal class AbstractHandsControllerDropPatch : ModulePatch
+    public class AbstractHandsControllerDropPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

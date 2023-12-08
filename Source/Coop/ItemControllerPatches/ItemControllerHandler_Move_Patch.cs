@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.ItemControllerPatches
 {
-    internal class ItemControllerHandler_Move_Patch : ModuleReplicationPatch, IModuleReplicationWorldPatch
+    public class ItemControllerHandler_Move_Patch : ModuleReplicationPatch, IModuleReplicationWorldPatch
     {
         public override Type InstanceType => typeof(ItemMovementHandler);
 

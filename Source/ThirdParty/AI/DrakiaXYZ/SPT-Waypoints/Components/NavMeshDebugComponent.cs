@@ -11,7 +11,7 @@ using UnityEngine.AI;
 
 namespace DrakiaXYZ.Waypoints.Components
 {
-    internal class NavMeshDebugComponent : MonoBehaviour, IDisposable
+    public class NavMeshDebugComponent : MonoBehaviour, IDisposable
     {
         private NavMeshTriangulation meshData;
         private static List<UnityEngine.Object> gameObjects = new();

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace DrakiaXYZ.Waypoints.Helpers
 {
-    internal class Settings
+    public class Settings
     {
         private const string GeneralSectionTitle = "General";
         private const string DebugSectionTitle = "Debug";

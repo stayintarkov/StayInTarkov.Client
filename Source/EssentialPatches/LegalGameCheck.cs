@@ -47,19 +47,19 @@ namespace StayInTarkov.EssentialPatches
             return false;
         }
 
-        internal static bool LC1A(string gfp)
+        public static bool LC1A(string gfp)
         {
             var fiGFP = new FileInfo(gfp);
             return (fiGFP.Exists && fiGFP.Length >= 647 * 1000);
         }
 
-        internal static bool LC2B(string gfp)
+        public static bool LC2B(string gfp)
         {
             var fiBE = new FileInfo(gfp.Replace(".exe", "_BE.exe"));
             return (fiBE.Exists && fiBE.Length >= 1024000);
         }
 
-        internal static bool LC3C(string gfp)
+        public static bool LC3C(string gfp)
         {
             var diBattlEye = new DirectoryInfo(gfp.Replace("EscapeFromTarkov.exe", "BattlEye"));
             return (diBattlEye.Exists);

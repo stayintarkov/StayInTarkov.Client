@@ -10,7 +10,7 @@ using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractE
 
 namespace StayInTarkov.Coop.Player.Health
 {
-    internal class RestoreBodyPartPatch : ModuleReplicationPatch
+    public class RestoreBodyPartPatch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(PlayerHealthController);
 

@@ -13,7 +13,7 @@ namespace DrakiaXYZ.BigBrain.Patches
     /**
      * Patch the bot agent update method so we can trigger a Start() method on custom logic actions
      **/
-    internal class BotAgentUpdatePatch : ModulePatch
+    public class BotAgentUpdatePatch : ModulePatch
     {
         private static FieldInfo _strategyField;
         private static FieldInfo _lastResultField;

@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopPatches
+    public class CoopPatches
     {
         public static ManualLogSource Logger { get; private set; }
 

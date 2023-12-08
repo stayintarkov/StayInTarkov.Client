@@ -244,7 +244,7 @@ namespace StayInTarkov
                 new BattlEyePatchFirstPassUpdate().Enable();
                 // Web Requests
                 new SslCertificatePatch().Enable();
-                new Aki.Core.Patches.UnityWebRequestPatch().Enable();
+                new UnityWebRequestPatch().Enable();
                 new SendCommandsPatch().Enable();
 
                 //https to http | wss to ws

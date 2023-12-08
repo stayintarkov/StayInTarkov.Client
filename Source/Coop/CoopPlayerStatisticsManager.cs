@@ -2,7 +2,7 @@
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopPlayerStatisticsManager : AStatisticsManagerForPlayer, IStatisticsManager
+    public class CoopPlayerStatisticsManager : AStatisticsManagerForPlayer, IStatisticsManager
     {
         public static Profile Profile { get; set; }
 

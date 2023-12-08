@@ -9,7 +9,7 @@ namespace StayInTarkov.AI.PMCLogic.Roaming
     /// Created by: DrakiaXYZ
     /// Link: https://github.com/DrakiaXYZ/SPT-Waypoints/blob/master/BrainLogic/RoamingLayer.cs
     /// </summary>
-    internal class RoamingLayer : CustomLayer
+    public class RoamingLayer : CustomLayer
     {
         protected ManualLogSource Logger;
         protected float nextRoamCheckTime = 0f;

@@ -7,7 +7,7 @@ namespace StayInTarkov.AI.PMCLogic.RushSpawn
     /// <summary>
     /// Created by: Paulov
     /// </summary>
-    internal class PMCRushSpawnLayer : CustomLayer
+    public class PMCRushSpawnLayer : CustomLayer
     {
         protected ManualLogSource Logger;
         protected bool isActive = false;

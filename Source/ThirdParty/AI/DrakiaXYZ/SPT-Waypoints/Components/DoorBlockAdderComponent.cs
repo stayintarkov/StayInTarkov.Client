@@ -9,7 +9,7 @@ using UnityEngine.AI;
 
 namespace DrakiaXYZ.Waypoints.Components
 {
-    internal class DoorBlockAdderComponent : MonoBehaviour
+    public class DoorBlockAdderComponent : MonoBehaviour
     {
         List<DoorContainer> doorList = new();
         float nextUpdate = 0f;
@@ -147,7 +147,7 @@ namespace DrakiaXYZ.Waypoints.Components
         }
     }
 
-    internal struct DoorContainer
+    public struct DoorContainer
     {
         public WorldInteractiveObject door;
         public Collider collider;

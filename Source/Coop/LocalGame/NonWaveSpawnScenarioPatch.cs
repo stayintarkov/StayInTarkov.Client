@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.LocalGame
 {
-    internal class NonWaveSpawnScenarioPatch : ModulePatch
+    public class NonWaveSpawnScenarioPatch : ModulePatch
     {
         private static ConfigFile _config;
 

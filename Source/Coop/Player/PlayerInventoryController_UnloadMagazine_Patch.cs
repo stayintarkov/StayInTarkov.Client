@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player
 {
-    internal class PlayerInventoryController_UnloadMagazine_Patch : ModuleReplicationPatch
+    public class PlayerInventoryController_UnloadMagazine_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => ReflectionHelpers.SearchForType("EFT.Player+PlayerInventoryController", false);
 

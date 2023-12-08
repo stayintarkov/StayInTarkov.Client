@@ -9,7 +9,7 @@ namespace StayInTarkov.UI
     /// <summary>
     /// Paulov. Adding Damage attribute to UI Template
     /// </summary>
-    internal class Ammo_CachedReadOnlyAttributes_Patch : ModulePatch
+    public class Ammo_CachedReadOnlyAttributes_Patch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

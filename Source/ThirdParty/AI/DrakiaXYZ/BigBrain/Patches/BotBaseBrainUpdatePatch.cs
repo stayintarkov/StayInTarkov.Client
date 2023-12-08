@@ -14,7 +14,7 @@ namespace DrakiaXYZ.BigBrain.Patches
     /**
      * Patch the base brain Update method so we can trigger Stop/Start methods on custom layers
      **/
-    internal class BotBaseBrainUpdatePatch : ModulePatch
+    public class BotBaseBrainUpdatePatch : ModulePatch
     {
         private static MethodInfo _activeLayerGetter;
         private static MethodInfo _activeLayerSetter;

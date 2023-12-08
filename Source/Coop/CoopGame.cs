@@ -91,7 +91,7 @@ namespace StayInTarkov.Coop
 
 
         // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
-        internal static CoopGame Create(
+        public static CoopGame Create(
             InputTree inputTree
             , Profile profile
             , GameDateTime backendDateTime
@@ -496,7 +496,7 @@ namespace StayInTarkov.Coop
             //}
         }
 
-        internal Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
+        public Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
 
         /// <summary>
         /// Creating the EFT.LocalPlayer

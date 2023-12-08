@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace DrakiaXYZ.Waypoints.Patches
 {
-    internal class DoorBlockerPatch : ModulePatch
+    public class DoorBlockerPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

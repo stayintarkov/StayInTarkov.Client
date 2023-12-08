@@ -10,7 +10,7 @@ namespace StayInTarkov.Coop
     /// Created by: Paulov
     /// Paulov: Uses stubs for all of Statistics Manager
     /// </summary>
-    internal class NullStatisticsManager : IStatisticsManager
+    public class NullStatisticsManager : IStatisticsManager
     {
         private EFT.Player player;
 

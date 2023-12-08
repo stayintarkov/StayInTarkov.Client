@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.World
 {
-    internal class LootableContainer_Interact_Patch : ModulePatch
+    public class LootableContainer_Interact_Patch : ModulePatch
     {
         public static Type InstanceType => typeof(LootableContainer);
 

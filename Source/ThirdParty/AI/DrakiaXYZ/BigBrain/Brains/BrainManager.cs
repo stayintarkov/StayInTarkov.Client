@@ -1,4 +1,5 @@
-﻿using DrakiaXYZ.BigBrain.Internal;
+﻿using DrakiaXYZ.BigBrain;
+using DrakiaXYZ.BigBrain.Internal;
 using EFT;
 using HarmonyLib;
 using System;
@@ -16,7 +17,7 @@ namespace DrakiaXYZ.BigBrain.Brains
         public const int START_LOGIC_ID = 9000;
 
         private static BrainManager _instance;
-        internal static BrainManager Instance
+        public static BrainManager Instance
         {
             get
             {
@@ -31,17 +32,17 @@ namespace DrakiaXYZ.BigBrain.Brains
 
         private static int _currentLayerId = START_LAYER_ID;
 
-        internal Dictionary<int, LayerInfo> CustomLayers = new Dictionary<int, LayerInfo>();
-        internal Dictionary<Type, int> CustomLogics = new Dictionary<Type, int>();
-        internal List<Type> CustomLogicList = new List<Type>();
-        internal List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
+        public Dictionary<int, LayerInfo> CustomLayers = new Dictionary<int, LayerInfo>();
+        public Dictionary<Type, int> CustomLogics = new Dictionary<Type, int>();
+        public List<Type> CustomLogicList = new List<Type>();
+        public List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
 
         private static FieldInfo _strategyField = Utils.GetFieldByType(typeof(AICoreLogicAgentClass), typeof(AICoreStrategyClass<>));
 
         // Hide the constructor so we can have this as a guaranteed singleton
         private BrainManager() { }
 
-        internal class LayerInfo
+        public class LayerInfo
         {
             public Type customLayerType;
             public List<string> customLayerBrains;
@@ -57,7 +58,7 @@ namespace DrakiaXYZ.BigBrain.Brains
             }
         }
 
-        internal class ExcludeLayerInfo
+        public class ExcludeLayerInfo
         {
             public List<string> excludeLayerBrains;
             public string excludeLayerName;

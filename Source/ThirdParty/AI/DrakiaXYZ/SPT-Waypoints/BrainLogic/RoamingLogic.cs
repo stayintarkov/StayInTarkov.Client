@@ -9,7 +9,7 @@
 //{
 //// Note: We only include this in debug builds for now, because we're not shipping BigBrain
 //#if DEBUG
-//    internal class RoamingLogic : CustomLogic
+//    public class RoamingLogic : CustomLogic
 //    {
 //        protected ManualLogSource Logger;
 //        Vector3? targetPos = null;

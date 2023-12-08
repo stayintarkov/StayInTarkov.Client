@@ -22,12 +22,12 @@ namespace StayInTarkov.Core.Player
     /// <summary>
     /// Player Replicated Component is the Player/AI direct communication to the Server
     /// </summary>
-    internal class PlayerReplicatedComponent : MonoBehaviour
+    public class PlayerReplicatedComponent : MonoBehaviour
     {
-        internal const int PacketTimeoutInSeconds = 1;
-        //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
-        internal Dictionary<string, object> LastMovementPacket { get; set; }
-        internal EFT.LocalPlayer player { get; set; }
+        public const int PacketTimeoutInSeconds = 1;
+        //public ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
+        public Dictionary<string, object> LastMovementPacket { get; set; }
+        public EFT.LocalPlayer player { get; set; }
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
@@ -394,7 +394,7 @@ namespace StayInTarkov.Core.Player
         public float LastSpeed { get; private set; }
         public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
         public bool TriggerPressed { get; internal set; }
-        public ManualLogSource Logger { get; private set; }
+        public ManualLogSource Logger { get; internal set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {

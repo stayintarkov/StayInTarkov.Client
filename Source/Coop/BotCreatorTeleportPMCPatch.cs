@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop
 {
-    internal class BotCreatorTeleportPMCPatch : ModulePatch
+    public class BotCreatorTeleportPMCPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

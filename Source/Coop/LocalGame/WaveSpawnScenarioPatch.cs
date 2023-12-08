@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.LocalGame
 {
-    internal class WaveSpawnScenarioPatch : ModulePatch
+    public class WaveSpawnScenarioPatch : ModulePatch
     {
         private static ConfigFile _config;
 

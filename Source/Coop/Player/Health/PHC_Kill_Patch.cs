@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Health
 {
-    internal class PHC_Kill_Patch : ModuleReplicationPatch
+    public class PHC_Kill_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(ActiveHealthController);
 

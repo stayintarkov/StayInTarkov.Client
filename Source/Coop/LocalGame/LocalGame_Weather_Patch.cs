@@ -28,7 +28,7 @@ namespace StayInTarkov.Coop.LocalGame
 
             ///
             /// /*
-            /// internal static GameDateTime smethod_0(DateTime realDateTime, ref string gameDate, ref string gameTime, ref float timeFactor, bool debug = false)
+            /// public static GameDateTime smethod_0(DateTime realDateTime, ref string gameDate, ref string gameTime, ref float timeFactor, bool debug = false)
             /// */
             ///
             ///

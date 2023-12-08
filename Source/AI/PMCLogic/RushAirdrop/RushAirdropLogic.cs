@@ -11,7 +11,7 @@ namespace StayInTarkov.AI.PMCLogic.RushAirdrop
     /// <summary>
     /// Created by: Paulov
     /// </summary>
-    internal class RushAirdropLogic : CustomLogic
+    public class RushAirdropLogic : CustomLogic
     {
         protected ManualLogSource Logger;
         Vector3? targetPos = null;

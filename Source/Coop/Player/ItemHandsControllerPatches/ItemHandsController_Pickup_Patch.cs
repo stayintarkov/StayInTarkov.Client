@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.ItemHandsControllerPatches
 {
-    internal class ItemHandsController_Pickup_Patch : ModuleReplicationPatch
+    public class ItemHandsController_Pickup_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.ItemHandsController);
         public override string MethodName => "Pickup";

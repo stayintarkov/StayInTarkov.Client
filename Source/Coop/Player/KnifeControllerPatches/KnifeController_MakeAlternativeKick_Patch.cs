@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.KnifeControllerPatches
 {
-    internal class KnifeController_MakeAlternativeKick_Patch : ModuleReplicationPatch
+    public class KnifeController_MakeAlternativeKick_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.KnifeController);
         public override string MethodName => "MakeAlternativeKick";

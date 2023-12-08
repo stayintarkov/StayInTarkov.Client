@@ -10,7 +10,7 @@ namespace StayInTarkov.AI.PMCLogic.Roaming
     /// Created by: DrakiaXYZ
     /// Link: https://github.com/DrakiaXYZ/SPT-Waypoints/tree/master/BrainLogic
     /// </summary>
-    internal class RoamingLogic : CustomLogic
+    public class RoamingLogic : CustomLogic
     {
         protected ManualLogSource Logger;
         Vector3? targetPos = null;

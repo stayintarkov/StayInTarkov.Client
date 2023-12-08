@@ -11,9 +11,9 @@ namespace StayInTarkov
     /// Created by Paulov
     /// Help Json Convert back and forth between extra data types
     /// </summary>
-    internal class PaulovJsonConverters
+    public class PaulovJsonConverters
     {
-        internal class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
+        public class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
         {
             public override DateTimeOffset ReadJson(JsonReader reader, Type objectType, DateTimeOffset existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
@@ -28,7 +28,7 @@ namespace StayInTarkov
             }
         }
 
-        internal class SimpleCharacterControllerJsonConverter : JsonConverter<SimpleCharacterController>
+        public class SimpleCharacterControllerJsonConverter : JsonConverter<SimpleCharacterController>
         {
             public override bool CanRead => false;
             public override bool CanWrite => false;
@@ -44,7 +44,7 @@ namespace StayInTarkov
             }
         }
 
-        internal class CollisionFlagsJsonConverter : JsonConverter<CollisionFlags>
+        public class CollisionFlagsJsonConverter : JsonConverter<CollisionFlags>
         {
             public override bool CanRead => true;
             public override bool CanWrite => true;

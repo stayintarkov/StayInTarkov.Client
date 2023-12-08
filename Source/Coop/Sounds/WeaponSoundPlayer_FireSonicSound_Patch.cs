@@ -2,7 +2,7 @@
 
 namespace StayInTarkov.Coop.Sounds
 {
-    internal class WeaponSoundPlayer_FireSonicSound_Patch : ModulePatch
+    public class WeaponSoundPlayer_FireSonicSound_Patch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
