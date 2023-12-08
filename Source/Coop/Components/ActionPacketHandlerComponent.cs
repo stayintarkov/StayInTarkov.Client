@@ -250,62 +250,19 @@ namespace StayInTarkov.Coop.Components
                 return false;
             }
 
-            //var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
-
-            // ---------------------------------------------------
-            // Causes instance reference errors?
-            //var plyr = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(profileId);// Players[profileId];
-
-            // ---------------------------------------------------
-            //
             if (!Players.ContainsKey(profileId))
                 return false;
 
             var plyr = Players[profileId];
-            bool processed = false;
+            if(plyr == null)
+                return false;
 
-            //foreach (var plyr in profilePlayers)
-            {
-                //if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                var prc = plyr.GetComponent<PlayerReplicatedComponent>();
-                {
-                    prc.ProcessPacket(packet);
-                    processed = true;
-                }
-                //else
-                //{
-                //    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
-                //}
-
-                if (packet.ContainsKey("Extracted"))
-                {
-                    if (CoopGame != null)
-                    {
-                        //Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
-                        if (!CoopGame.ExtractedPlayers.Contains(packet["profileId"].ToString()))
-                            CoopGame.ExtractedPlayers.Add(packet["profileId"].ToString());
-
-                        if (!MatchmakerAcceptPatches.IsClient)
-                        {
-                            var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<AbstractGame>.Instance);
-                            if (botController != null)
-                            {
-                                if (!RemovedFromAIPlayers.Contains(profileId))
-                                {
-                                    RemovedFromAIPlayers.Add(profileId);
-                                    Logger.LogDebug("Removing Client Player to Enemy list");
-                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotsController), typeof(BotSpawner)).GetValue(botController);
-                                    botSpawner.DeletePlayer(plyr);
-                                }
-                            }
-                        }
-                    }
-
-                    processed = true;
-                }
-            }
-
-            return processed;
+            var prc = plyr.GetComponent<PlayerReplicatedComponent>();
+            if (prc == null)
+                return false;
+                
+            prc.ProcessPacket(packet);
+            return true;
         }
 
         async Task WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)

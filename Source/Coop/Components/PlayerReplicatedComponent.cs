@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
+using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Core.Player
 {
@@ -321,7 +321,7 @@ namespace StayInTarkov.Core.Player
                     var packet = new Dictionary<string, object>();
                     packet.Add("dmt", EDamageType.Undefined.ToString());
                     packet.Add("m", "Kill");
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
                 }
             }
         }

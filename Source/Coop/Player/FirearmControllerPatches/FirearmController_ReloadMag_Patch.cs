@@ -74,7 +74,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 { "ga", gridAddressDict },
                 { "m", "ReloadMag" }
             };
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary, true);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
             //GetLogger().LogDebug("FirearmController_ReloadMag_Patch:PostPatch");
 
             // ---------------------------------------------------------------------------------------------------------------------

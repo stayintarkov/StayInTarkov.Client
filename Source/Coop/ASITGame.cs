@@ -14,7 +14,7 @@ namespace StayInTarkov.Coop
     {
         public new bool InRaid { get { return true; } }
 
-        public IBackEndSession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+        public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
         BotsController IBotGame.BotsController
         {
@@ -72,7 +72,7 @@ namespace StayInTarkov.Coop
             , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
-            , IBackEndSession backEndSession
+            , ISession backEndSession
             , TimeSpan sessionTime) where T : ASITGame
         {
 
@@ -93,7 +93,7 @@ namespace StayInTarkov.Coop
                 (null, new object[] {
                     r.gameObject
                     , location.waves
-                    , new Action<Wave>((wave) => r.PBotsController.ActivateBotsByWave(wave))
+                    , new Action<BotSpawnWave>((wave) => r.PBotsController.ActivateBotsByWave(wave))
                     , location });
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke

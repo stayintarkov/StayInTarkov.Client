@@ -286,6 +286,17 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
+                // Receiving a Player Extracted packet. Process into ExtractedPlayers List
+                if (packet.ContainsKey("Extracted"))
+                {
+                    if (Singleton<ISITGame>.Instantiated && !Singleton<ISITGame>.Instance.ExtractedPlayers.Contains(packet["profileId"].ToString()))
+                    {
+                        Logger.LogInfo(e.Data);
+                        Singleton<ISITGame>.Instance.ExtractedPlayers.Add(packet["profileId"].ToString());
+                    }
+                    return;
+                }
+
                 // If this is an endSession packet, end the session for the clients
                 if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
                 {

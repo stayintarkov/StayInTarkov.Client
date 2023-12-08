@@ -5,6 +5,7 @@ using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.Proceed
@@ -62,7 +63,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 CallLocally.Add(player.ProfileId);
 
                 // Make sure Tagilla and Cultists are using correct callback.
-                if (player.IsAI && item is Knife0)
+                if (player.IsAI && item.Attributes.Any(x => x.Name == "knifeDurab"))
                 {
                     BotOwner botOwner = player.AIData.BotOwner;
                     if (botOwner != null)

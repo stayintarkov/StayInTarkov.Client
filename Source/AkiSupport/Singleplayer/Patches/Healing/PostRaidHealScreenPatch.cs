@@ -7,8 +7,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Healing
     {
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(ProfileChangeHandler);
-            return ReflectionHelpers.GetMethodForType(desiredType, "smethod_0");
+            return ReflectionHelpers.GetMethodForType(typeof(Operation42), "smethod_0");
         }
 
         [PatchPrefix]

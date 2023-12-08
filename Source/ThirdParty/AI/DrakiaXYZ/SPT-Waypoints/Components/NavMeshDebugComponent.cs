@@ -47,7 +47,7 @@ namespace DrakiaXYZ.Waypoints.Components
             Vector3[] adjustedVertices = meshData.vertices.Select(v => new Vector3(v.x, v.y + Settings.NavMeshOffset.Value, v.z)).ToArray();
 
             // Create our new mesh and add all the vertices
-            Mesh mesh = new();
+            UnityEngine.Mesh mesh = new();
             mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.vertices = adjustedVertices;
             mesh.triangles = meshData.indices;

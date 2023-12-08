@@ -9,10 +9,9 @@ namespace StayInTarkov.Coop.Web
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data
-            , bool useWebSocket = false
             )
         {
-            PostLocalPlayerData(player, data, useWebSocket, out _, out _);
+            PostLocalPlayerData(player, data, out _, out _);
         }
 
         /// <summary>
@@ -25,7 +24,6 @@ namespace StayInTarkov.Coop.Web
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data
-            , bool useWebSocket
             , out string returnedData
             , out Dictionary<string, object> generatedData)
         {
@@ -41,7 +39,7 @@ namespace StayInTarkov.Coop.Web
             }
             if (!data.ContainsKey("profileId"))
             {
-                data.Add("profileId", player.ProfileId); // PatchConstants.GetPlayerProfileAccountId(profile));
+                data.Add("profileId", player.ProfileId);
             }
             AkiBackendCommunication.Instance.SendDataToPool("", data);
             generatedData = data;

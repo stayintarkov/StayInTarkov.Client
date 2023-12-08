@@ -192,7 +192,7 @@ namespace StayInTarkov.Coop
             PreviousSentDamageInfoPackets.Add(packet.ToJson());
             // -----------------------------------------------------------
 
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
         public void ReceiveDamageFromServer(Dictionary<string, object> dict)
@@ -336,9 +336,12 @@ namespace StayInTarkov.Coop
 
         public override void Move(Vector2 direction)
         {
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if(prc == null)
+                return;
+
             base.Move(direction);
 
-            var prc = GetComponent<PlayerReplicatedComponent>();
             if (prc.IsClientDrone)
                 return;
 
@@ -416,7 +419,7 @@ namespace StayInTarkov.Coop
 
         private TagBank GetTagBank(EPhraseTrigger trigger)
         {
-            Voice asset = Singleton<IAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
+            Voice asset = Singleton<IEasyAssets>.Instance.GetAsset<Voice>(ResourceBundleConstants.TakePhrasePath(this.Profile.Info.Voice));
             if (asset == null)
             {
                 BepInLogger.LogError($"{nameof(Say)}: Asset is null");
