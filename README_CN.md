@@ -11,7 +11,7 @@
 
 ![GitHub all releases](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total)
 
-[English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [???-Korean](README_KO.md) **|** [Fran?ais](README_FR.md)
+[English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
 </div>
 
 ---
@@ -80,8 +80,8 @@ SIT/
 
 ### 服务端
 - 请参考 SIT.Aki-Server-Mod 的 [自述文件](https://github.com/stayintarkov/SIT.Aki-Server-Mod#readme) 了解如何安装服务端模组.
-- 只有服主需要运行服务端, 服主需要进行端口转发, 或者使用 Hamachi, Radmin 等软件搭建虚拟局域网进行联机. 如果您感到困惑, 请加入我们的 Discord 获取更多帮助.
-  - 您可能已经习惯了玩 SPT-Aki 时连接自己开的服务端, 但这会导致问题. 只有一个人需要开着服务端, 而其他人则连接到此服务端进行联机.
+- 只有服主需要运行服务端, 而服主需要进行端口转发, 或者使用 Hamachi, Radmin 等软件搭建虚拟局域网进行联机. 如果您感到困惑, 请加入我们的 Discord 获取更多帮助.
+  - 您可能已经习惯了游玩 SPT-Aki 时连接自己运行的服务端, 但这会导致问题. 只有一个人需要运行服务端, 而其他人则需要连接到此服务端进行联机.
 
 ### 启动器
 - 请参考 [SIT.Manager 的自述文件](https://github.com/stayintarkov/SIT.Manager#readme) 或 [SIT.Launcher.Classic 的自述文件](https://github.com/stayintarkov/SIT.Launcher.Classic#readme) 了解如何安装启动器.
@@ -93,8 +93,8 @@ SIT/
 ### 实际游玩
 - **服主**: 搭建好可以正常运行的 SPT-Aki 服务端, 并已完成端口转发或连接上虚拟局域网
   - 确保已按照 SIT 服务端模组的自述文件修改了 IP 地址!
-- **玩家**: 打开启动器, 输入服主服务端上显示的 IP 地址及端口并连接.
-  - 任何人均可以成为"房主", 只需选择好地图, 点击"主持战局", 即可创建新战局, 其他人可以直接点击加入.
+- **玩家**: 打开启动器, 输入服主所提供的 IP 地址及端口并连接.
+  - 任何人均可以成为"房主", 只需选择好地图, 点击"主持战局", 即可创建新战局, 其他人可以直接加入战局.
 
 
 ## 疑难解答 (FAQ)
@@ -103,13 +103,13 @@ SIT/
 不是. 出于显而易见的原因, BSG 的服务器代码在客户端中是找不到的. 因此, BSG 的"练习组队模式"是直接使用了他们的服务器. 我们触碰不到代码, 因此无法使用.
 
 ### SIT 兼容哪些 SPT-Aki 的模块?
-以下 Aki 模块已兼容.
+以下 Aki 模块已完成兼容.
 - aki-core
 - Aki.Common
 - Aki.Reflection
 
 ### SPT-Aki 的那些客户端模组是否可以直接使用?
-这取决于模组的具体编写方式. 如果它们是直接使用代码中的 "GClass***" 或 "public" / "private" 那大概率是无法使用的.
+这取决于模组的具体编写方式. 如果它们是直接使用代码中的 "GClass***" 或 "public" / "private" 变量那大概率是无法使用的.
 
 ### 为什么不直接使用 SPT-Aki 的模块?
 Aki 的模块是专门为自身设计的, 其并不能很好兼容 Paulov 自行使用的技术.

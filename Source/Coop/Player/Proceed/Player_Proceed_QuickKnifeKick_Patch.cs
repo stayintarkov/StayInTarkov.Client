@@ -66,7 +66,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 if (item.TryGetItemComponent(out KnifeComponent knifeComponent))
                 {
                     CallLocally.Add(player.ProfileId);
-                    player.Proceed(knifeComponent, (Callback<IKnifeController>)null, playerProceedPacket.Scheduled);
+                    player.Proceed(knifeComponent, (Callback<IQuickKnifeKickController>)null, playerProceedPacket.Scheduled);
                 }
                 else
                 {

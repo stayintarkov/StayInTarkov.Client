@@ -404,6 +404,8 @@ namespace StayInTarkov.Coop
         {
             NONE = -1,
             YouAreDead,
+            YouAreDeadAsHost,
+            YouAreDeadAsClient,
             YourTeamIsDead,
             YourTeamHasExtracted,
             YouHaveExtractedOnlyAsHost,
@@ -434,11 +436,7 @@ namespace StayInTarkov.Coop
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
 
-            // Simple check to see if you are dead
-            if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
-            {
-                quitState = EQuitState.YouAreDead;
-            }
+            var world = Singleton<GameWorld>.Instance;
 
             // You are playing with a team
             if (PlayerUsers.Count() > 1)
@@ -448,11 +446,22 @@ namespace StayInTarkov.Coop
                 {
                     quitState = EQuitState.YourTeamIsDead;
                 }
+                else if (!world.MainPlayer.HealthController.IsAlive)
+                {
+                    if (MatchmakerAcceptPatches.IsClient)
+                        quitState = EQuitState.YouAreDeadAsClient;
+                    else if (MatchmakerAcceptPatches.IsServer)
+                        quitState = EQuitState.YouAreDeadAsHost;
+                }
+            }
+            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
+            {
+                quitState = EQuitState.YouAreDead;
             }
 
             // -------------------------
             // Extractions
-            if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
+            if (coopGame.ExtractedPlayers.Contains(world.MainPlayer.ProfileId))
             {
                 if (MatchmakerAcceptPatches.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
@@ -487,7 +496,7 @@ namespace StayInTarkov.Coop
                 if (MatchmakerAcceptPatches.IsServer)
                 {
                     // A host needs to wait for the team to extract or die!
-                    if((PlayerUsers.Count() > 1) && (quitState == EQuitState.YouAreDead || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
+                    if((PlayerUsers.Count() > 1) && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
                     {
                         NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
                     }
@@ -1334,23 +1343,25 @@ namespace StayInTarkov.Coop
             switch (quitState)
             {
                 case EQuitState.YourTeamIsDead:
-                    //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
-                    if (GUI.Button(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle))
-                    {
-
-                    }
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"], middleLargeLabelStyle);
+                    break;
+                case EQuitState.YouAreDeadAsHost:
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"], middleLargeLabelStyle);
+                    break;
+                case EQuitState.YouAreDeadAsClient:
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YourTeamHasExtracted:
                     GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"], middleLargeLabelStyle);
                     break;
             }
 
