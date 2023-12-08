@@ -20,4 +20,3 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 - [Portuguese Home](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-Portuguese)
 - [Japanese Home](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-Japanese)
 - [French Home](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-French)
-- [Korean Home](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Home-French)
