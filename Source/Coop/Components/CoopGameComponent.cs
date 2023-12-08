@@ -499,6 +499,8 @@ namespace StayInTarkov.Coop
                     if((PlayerUsers.Count() > 1) && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
                     {
                         NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
+                        RequestQuitGame = false;
+                        return;
                     }
                     else
                     {
