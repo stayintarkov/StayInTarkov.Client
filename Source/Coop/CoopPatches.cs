@@ -44,6 +44,7 @@ namespace StayInTarkov.Coop
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();
+            new LoadLocationLootPatch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
