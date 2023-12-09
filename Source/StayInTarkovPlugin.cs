@@ -29,6 +29,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -44,25 +45,47 @@ namespace StayInTarkov
     [BepInProcess("EscapeFromTarkov.exe")]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
+        /// <summary>
+        /// Stores the Instance of this Plugin
+        /// </summary>
         public static StayInTarkovPlugin Instance;
+
+        /// <summary>
+        /// A static location to obtain SIT settings from the BepInEx .cfg
+        /// </summary>
         public static PluginConfigSettings Settings { get; private set; }
 
+        /// <summary>
+        /// If any mod dependencies fail, show an error. This is a flag to say it has occurred.
+        /// </summary>
         private bool ShownDependancyError { get; set; }
+
+        /// <summary>
+        /// This is the Official EFT Version defined by BSG
+        /// </summary>
         public static string EFTVersionMajor { get; internal set; }
+
+        /// <summary>
+        /// This is the EFT Version defined by BSG that is found in the Assembly
+        /// </summary>
         public static string EFTAssemblyVersion { get; internal set; }
+
+        /// <summary>
+        /// This is the EFT Version defined by BSG that is found in the Executable file
+        /// </summary>
         public static string EFTEXEFileVersion { get; internal set; }
 
         public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
-        public static string IllegalMessage { get; }
+        internal static string IllegalMessage { get; }
             = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
             ? LanguageDictionary["ILLEGAL_MESSAGE"]
             : "Illegal game found. Please buy, install and launch the game once.";
 
 
-        private void Awake()
+        async void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
@@ -75,17 +98,39 @@ namespace StayInTarkov
             ReadInLanguageDictionary();
 
             EnableCorePatches();
+            EnableBundlePatches();
 
-            EnableSPPatches();
+            await Task.Run(() =>
+            {
 
-            EnableCoopPatches();
+                EnableSPPatches();
 
-            EnableAirdropPatches();
+                EnableCoopPatches();
 
-            ThirdPartyModPatches.Run(Config, this);
+                EnableAirdropPatches();
+
+                ThirdPartyModPatches.Run(Config, this);
+
+            });
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void EnableBundlePatches()
+        {
+            try
+            {
+                BundleManager.GetBundles();
+                new EasyAssetsPatch().Enable();
+                new EasyBundlePatch().Enable();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("// --- ERROR -----------------------------------------------");
+                Logger.LogError("Bundle System Failed!!");
+                Logger.LogError(ex.ToString());
+                Logger.LogError("// --- ERROR -----------------------------------------------");
+            }
         }
 
         private void EnableAirdropPatches()
@@ -224,7 +269,7 @@ namespace StayInTarkov
                         }
                     }
 
-                    yield break;
+                    break;
                 }
             }
         }
@@ -298,19 +343,7 @@ namespace StayInTarkov
 
                 new QTEPatch().Enable();
 
-                try
-                {
-                    BundleManager.GetBundles();
-                    new EasyAssetsPatch().Enable();
-                    new EasyBundlePatch().Enable();
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError("// --- ERROR -----------------------------------------------");
-                    Logger.LogError("Bundle System Failed!!");
-                    Logger.LogError(ex.ToString());
-                    Logger.LogError("// --- ERROR -----------------------------------------------");
-                }
+               
 
             }
             catch (Exception ex)
@@ -371,53 +404,6 @@ namespace StayInTarkov
         {
             CoopPatches.Run(Config);
         }
-
-        public static GameWorld gameWorld { get; private set; }
-
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        {
-            //GetPoolManager();
-            //GetBackendConfigurationInstance();
-
-            if (Singleton<GameWorld>.Instantiated)
-                gameWorld = Singleton<GameWorld>.Instance;
-        }
-
-        //private void GetBackendConfigurationInstance()
-        //{
-        //    //if (
-        //    //    PatchConstants.BackendStaticConfigurationType != null &&
-        //    //    PatchConstants.BackendStaticConfigurationConfigInstance == null)
-        //    //{
-        //    //    PatchConstants.BackendStaticConfigurationConfigInstance = ReflectionHelpers.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
-        //    //    //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
-        //    //}
-
-        //    if (PatchConstants.BackendStaticConfigurationConfigInstance != null
-        //        && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
-        //        )
-        //    {
-        //        PatchConstants.CharacterControllerSettings.CharacterControllerInstance
-        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
-        //        //Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
-        //    }
-
-        //    if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
-        //        && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
-        //        )
-        //    {
-        //        PatchConstants.CharacterControllerSettings.ClientPlayerMode
-        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
-
-        //        PatchConstants.CharacterControllerSettings.ObservedPlayerMode
-        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
-
-        //        PatchConstants.CharacterControllerSettings.BotPlayerMode
-        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
-        //    }
-
-        //}
-
 
         private void LogDependancyErrors()
         {

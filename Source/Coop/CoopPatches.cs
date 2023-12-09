@@ -17,11 +17,11 @@ namespace StayInTarkov.Coop
 {
     internal class CoopPatches
     {
-        public static ManualLogSource Logger { get; private set; }
+        internal static ManualLogSource Logger { get; private set; }
 
         private static BepInEx.Configuration.ConfigFile m_Config;
 
-        public static void Run(BepInEx.Configuration.ConfigFile config)
+        internal static void Run(BepInEx.Configuration.ConfigFile config)
         {
             m_Config = config;
 
@@ -51,11 +51,11 @@ namespace StayInTarkov.Coop
 
         }
 
-        public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
+        internal static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
-        public static GameObject CoopGameComponentParent { get; internal set; }
+        internal static GameObject CoopGameComponentParent { get; set; }
 
-        public static void EnableDisablePatches()
+        internal static void EnableDisablePatches()
         {
             var enablePatches = true;
 
@@ -131,7 +131,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        public static void LeftGameDestroyEverything()
+        internal static void LeftGameDestroyEverything()
         {
             EnableDisablePatches();
 

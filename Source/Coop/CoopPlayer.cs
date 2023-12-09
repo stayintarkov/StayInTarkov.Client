@@ -21,7 +21,7 @@ using static UnityEngine.RemoteConfigSettingsHelper;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopPlayer : LocalPlayer
+    public class CoopPlayer : LocalPlayer
     {
         ManualLogSource BepInLogger { get; set; }
 

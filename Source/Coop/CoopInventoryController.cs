@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopInventoryController
-        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
+    internal sealed class CoopInventoryController
+        : EFT.Player.PlayerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 

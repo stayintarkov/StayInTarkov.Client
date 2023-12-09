@@ -4,7 +4,7 @@ using static EFT.ClientPlayer;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopPlayerClient : CoopPlayer
+    public class CoopPlayerClient : CoopPlayer
     {
         public override void InitVoip(EVoipState voipState)
         {
