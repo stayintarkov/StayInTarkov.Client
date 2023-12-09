@@ -2,7 +2,7 @@
 
 namespace StayInTarkov.Coop
 {
-    public interface IModuleReplicationPatch
+    internal interface IModuleReplicationPatch
     {
         public abstract Type InstanceType { get; }
         public abstract string MethodName { get; }
