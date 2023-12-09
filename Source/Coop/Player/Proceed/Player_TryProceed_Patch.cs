@@ -62,6 +62,13 @@ namespace StayInTarkov.Coop.Player.Proceed
             {
                 CallLocally.Add(player.ProfileId);
 
+                EFT.Player.ItemHandsController itemHandsController;
+                if ((itemHandsController = player.HandsController as EFT.Player.ItemHandsController) != null && item is GItem212)
+                {
+                    itemHandsController.ToggleCompassState();
+                    return;
+                }
+
                 // Make sure Tagilla and Cultists are using correct callback.
                 if (player.IsAI && item.Attributes.Any(x => x.Name == "knifeDurab"))
                 {
