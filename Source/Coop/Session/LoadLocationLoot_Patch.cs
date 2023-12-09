@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 using UnityEngine.Networking.Match;
 using UnityEngine.Profiling;
 
-namespace StayInTarkov.Coop.LocalGame
+namespace StayInTarkov.Coop.Session
 {
-    public class LocationRequest()
+    public class LocationDataRequest()
     {
         [JsonProperty("data")]
-        public LocationSettings.Location data { get; set; }
+        public LocationSettings.Location Data { get; set; }
     }
 
     public class LoadLocationLootPatch : ModulePatch
@@ -27,17 +27,17 @@ namespace StayInTarkov.Coop.LocalGame
         {
             var method = ReflectionHelpers.GetMethodForType(typeof(Session4), "LoadLocationLoot");
 
-            Logger.LogDebug($"{this.GetType().Name} Method: {method?.Name}");
+            Logger.LogDebug($"{GetType().Name} Method: {method?.Name}");
 
             return method;
         }
-        
+
         [PatchPrefix]
         private static bool PatchPrefix(string locationId, int variantId, ref Task<LocationSettings.Location> __result)
         {
             Logger.LogDebug("LoadLocationLoot PatchPrefix");
 
-            if(MatchmakerAcceptPatches.MatchingType == EMatchmakerType.Single)
+            if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.Single)
             {
                 return true;
             }
@@ -54,8 +54,8 @@ namespace StayInTarkov.Coop.LocalGame
             __result = Task.Run(() =>
             {
                 var result = AkiBackendCommunication.Instance.PostJson($"/coop/location/getLoot", JsonConvert.SerializeObject(objectToSend));
-                result.TrySITParseJson(out LocationRequest LocationRequest);
-                return LocationRequest.data;
+                result.TrySITParseJson(out LocationDataRequest locationDataRequest);
+                return locationDataRequest.Data;
             });
 
             return false;
