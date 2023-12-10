@@ -60,7 +60,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
         /// BotsPresets.GetNewProfile()
         /// </summary>
         [PatchPrefix]
-        public static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, List<Profile> ___list_0, CreationData data, ref bool withDelete)
+        public static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, List<Profile> ___list_0, Data1 data, ref bool withDelete)
         {
             //PatchConstants.Logger.LogInfo("Prefix");
             //Logger.LogInfo("Prefix");
