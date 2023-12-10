@@ -56,18 +56,15 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;
 
+            // Prevent compass switch code running twice.
+            if (player.IsYourPlayer && playerProceedPacket.TemplateId == "5f4f9eb969cdc30ff33f09db") // EYE MK.2 professional hand-held compass
+                return;
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
                 CallLocally.Add(player.ProfileId);
-
-                EFT.Player.ItemHandsController itemHandsController;
-                if ((itemHandsController = player.HandsController as EFT.Player.ItemHandsController) != null && item.TemplateId == "5f4f9eb969cdc30ff33f09db") // Compass Template Id
-                {
-                    itemHandsController.ToggleCompassState();
-                    //return;
-                }
 
                 // Make sure Tagilla and Cultists are using correct callback.
                 if (player.IsAI && item.Attributes.Any(x => x.Name == "knifeDurab"))
