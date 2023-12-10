@@ -9,7 +9,7 @@ namespace StayInTarkov.Coop.NetworkPacket
     {
         public Vector3 Position { get; set; }
         public Vector2 Rotation { get; set; }
-        public Vector2 HeadRotation { get; set; }
+        public Vector3 HeadRotation { get; set; }
         public Vector2 MovementDirection { get; set; }
         public Vector3 Velocity { get; set; }
         public EPlayerState State { get; set; }
@@ -20,10 +20,11 @@ namespace StayInTarkov.Coop.NetworkPacket
         public bool IsProne { get; set; }
         public float PoseLevel { get; set; }
         public bool IsSprinting { get; set; }
+        public Physical.PhysicalStamina Stamina { get; set; }
 
-        public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector2 headRotation, Vector2 movementDirection,
+        public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             Vector3 velocity, EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting) : base(profileId, "Move")
+            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina) : base(profileId, "Move")
         {
             ProfileId = profileId;
             Position = position;
@@ -39,6 +40,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsProne = isProne;
             PoseLevel = poseLevel;
             IsSprinting = isSprinting;
+            Stamina = stamina;
         }
 
         public static byte[] SerializeState(PlayerStatePacket playerStatePacket)
@@ -81,7 +83,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             var rotation = reader.ReadVector2();
             GStruct85 headRotStruct = default;
             headRotStruct.Deserialize(reader);
-            var headRotation = new Vector2(GClass1048.ScaleByteToFloat(headRotStruct.x, -50f, 20f), GClass1048.ScaleByteToFloat(headRotStruct.y, -40f, 40f));
+            var headRotation = new Vector3(GClass1048.ScaleByteToFloat(headRotStruct.x, -50f, 20f), GClass1048.ScaleByteToFloat(headRotStruct.y, -40f, 40f));
             GStruct85 movDirStruct = default;
             movDirStruct.Deserialize(reader);
             var movDir = GClass1048.ScaleFromVector2Byte(movDirStruct, -1f, 1f);
@@ -96,8 +98,9 @@ namespace StayInTarkov.Coop.NetworkPacket
             var isProne = reader.ReadBool();
             var poseLevel = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             var isSprinting = reader.ReadBool();
+            var stamina = new Physical.PhysicalStamina();
 
-            return new PlayerStatePacket(profileId, position, rotation, headRotation, movDir, velocity, state, tilt, step, animatorStateIndex, characterMovementSpeed, isProne, poseLevel, isSprinting);
+            return new PlayerStatePacket(profileId, position, rotation, headRotation, movDir, velocity, state, tilt, step, animatorStateIndex, characterMovementSpeed, isProne, poseLevel, isSprinting, stamina);
         }
 
         public void Dispose()

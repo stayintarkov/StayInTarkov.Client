@@ -1,25 +1,19 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
 using EFT;
-using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Security.Permissions;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChartAndGraph.ChartItemEvents;
-using static UnityEngine.RemoteConfigSettingsHelper;
+using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -120,6 +114,14 @@ namespace StayInTarkov.Coop
             return player;
         }
 
+        private void Start()
+        {
+            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
+                MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct);
+        }
+
         /// <summary>
         /// A way to block the same Damage Info being run multiple times on this Character
         /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
@@ -128,6 +130,7 @@ namespace StayInTarkov.Coop
         private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
+        private PlayerStatePacket lastPlayerState = default;
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
@@ -340,7 +343,7 @@ namespace StayInTarkov.Coop
         public override void Move(Vector2 direction)
         {
             var prc = GetComponent<PlayerReplicatedComponent>();
-            if(prc == null)
+            if (prc == null)
                 return;
 
             base.Move(direction);
@@ -363,10 +366,10 @@ namespace StayInTarkov.Coop
                     { "index", clip.NetId },
                     { "m", "Say" }
                 };
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet); 
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
             }
         }
-        
+
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
@@ -378,33 +381,89 @@ namespace StayInTarkov.Coop
             Speaker.PlayDirect(trigger, index);
         }
 
-        public void ApplyStatePacket (PlayerStatePacket playerStatePacket)
+        public void ApplyStatePacket(PlayerStatePacket playerStatePacket)
         {
             // Todo: Add interpolator to fight lag
             if (!IsYourPlayer)
             {
-                MovementContext.TransformPosition = playerStatePacket.Position;
-                Rotation = playerStatePacket.Rotation;
+                float interpolationRatio = 0.75f;
+
+                //MovementContext.TransformPosition = Vector3.Lerp(lastPlayerState.Position, playerStatePacket.Position, interpolationRation);
+                //Rotation = Vector2.Lerp(lastPlayerState.Rotation, playerStatePacket.Rotation, interpolationRatio);
+
+                //var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
+                //MovementContext.ProcessStateEnter(newState);
+
+                Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, interpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, interpolationRatio));
+
                 HeadRotation = playerStatePacket.HeadRotation;
-                MovementContext.MovementDirection = playerStatePacket.MovementDirection;
+                ProceduralWeaponAnimation.SetHeadRotation(playerStatePacket.HeadRotation);
+                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, interpolationRatio));
+                MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(playerStatePacket.MovementDirection));
 
-                Move(playerStatePacket.Velocity);
+                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
+                CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
+                //Move(playerStatePacket.MovementDirection);
+                InputDirection = playerStatePacket.MovementDirection;
+                //Move(playerStatePacket.Velocity);                
 
-                var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
-                MovementContext.ProcessStateEnter(newState);
+                EPlayerState name = MovementContext.CurrentState.Name;
+                EPlayerState eplayerState = playerStatePacket.State;
+                if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
+                {
+                    MovementContext.PlayerAnimatorEnableJump(false);
+                    MovementContext.PlayerAnimatorEnableLanding(true);
+                }
+                if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
+                {
+                    MovementContext.IsInPronePose = false;
+                }
+                if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
+                {
+                    MovementContext.IsInPronePose = true;
+                }
 
+                MovementContext.InputMotion = a - MovementContext.TransformPosition;
+
+                Physical.SerializationStruct = playerStatePacket.Stamina;
+
+                //CurrentManagedState.SetTilt(Mathf.Lerp(lastPlayerState.Tilt, playerStatePacket.Tilt, interpolationRatio));
                 CurrentManagedState.SetTilt(playerStatePacket.Tilt);
                 CurrentManagedState.SetStep(playerStatePacket.Step);
-                MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+                //MovementContext.EnableSprint(playerStatePacket.IsSprinting);
                 MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+                //MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
 
                 MovementContext.IsInPronePose = playerStatePacket.IsProne;
-                MovementContext.SetPoseLevel(playerStatePacket.PoseLevel);
+                MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, interpolationRatio));
 
                 MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
-                MovementContext.CharacterMovementSpeed = playerStatePacket.CharacterMovementSpeed;
-                
+                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
             }
+            /*
+            MovementContext.TransformPosition = playerStatePacket.Position;
+            Rotation = playerStatePacket.Rotation;
+            HeadRotation = playerStatePacket.HeadRotation;
+            MovementContext.MovementDirection = playerStatePacket.MovementDirection;
+
+            Move(playerStatePacket.Velocity);
+
+            var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
+            MovementContext.ProcessStateEnter(newState);
+
+            CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+            CurrentManagedState.SetStep(playerStatePacket.Step);
+            MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+            MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+
+            MovementContext.IsInPronePose = playerStatePacket.IsProne;
+            MovementContext.SetPoseLevel(playerStatePacket.PoseLevel);
+
+            MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
+            MovementContext.CharacterMovementSpeed = playerStatePacket.CharacterMovementSpeed;
+            */
+
+            lastPlayerState = playerStatePacket;
         }
 
         public override void LateUpdate()
@@ -414,7 +473,7 @@ namespace StayInTarkov.Coop
             PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled);
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct);
 
             Dictionary<string, object> packet = new()
             {
