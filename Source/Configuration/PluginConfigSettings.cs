@@ -98,7 +98,7 @@ namespace StayInTarkov.Configuration
 
             public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
-            public bool SETTING_ShowFeed { get; set; } = true;
+            public bool SETTING_ShowFeed { get; set; } = false;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
 
