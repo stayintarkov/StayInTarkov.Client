@@ -25,7 +25,7 @@ namespace StayInTarkov.Coop.Session
     {
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(typeof(Session4), "LoadLocationLoot");
+            var method = ReflectionHelpers.GetMethodForType(typeof(Session1), "LoadLocationLoot");
 
             Logger.LogDebug($"{GetType().Name} Method: {method?.Name}");
 
