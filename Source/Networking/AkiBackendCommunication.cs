@@ -625,7 +625,7 @@ namespace StayInTarkov.Networking
         {
             using (HttpClientHandler handler = new HttpClientHandler())
             {
-                using(HttpClient httpClient = new HttpClient(handler))
+                using (HttpClient httpClient = new HttpClient(handler))
                 {
                     handler.UseCookies = true;
                     handler.CookieContainer = new CookieContainer();
@@ -665,7 +665,7 @@ namespace StayInTarkov.Networking
                             httpClient.DefaultRequestHeaders.Add("debug", "1");
                         }
                         var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
+                        byte[] bytes = compress ? Zlib.Compress(inputDataBytes) : inputDataBytes;
                         byteContent = new ByteArrayContent(bytes);
                         byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                         if (compress)
