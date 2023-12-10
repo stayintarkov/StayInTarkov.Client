@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using StayInTarkov.Coop.Session;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.LocalGame;
 using StayInTarkov.Coop.Matchmaker;
@@ -44,6 +45,7 @@ namespace StayInTarkov.Coop
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();
+            new LoadLocationLootPatch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
