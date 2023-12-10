@@ -48,7 +48,8 @@ jobs:
       - name: dotnet Publish
         run: |
           mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -f netstandard2.0 -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+
 
       # Remove unnecessary files
       - name: Remove unnecessary files
