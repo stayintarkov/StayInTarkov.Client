@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StayInTarkov.Coop
 {
-    public interface IModuleReplicationWorldPatch
+    internal interface IModuleReplicationWorldPatch
     {
         public Type InstanceType { get; }
         public string MethodName { get; }
