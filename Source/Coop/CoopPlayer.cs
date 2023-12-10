@@ -5,6 +5,7 @@ using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
@@ -14,6 +15,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Permissions;
 using System.Threading.Tasks;
 using UnityEngine;
 using static ChartAndGraph.ChartItemEvents;
@@ -307,32 +309,32 @@ namespace StayInTarkov.Coop
 
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
-            if (
-                (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-                || IsSprintEnabled
-                )
-            {
-                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-                rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", this.Rotation.x);
-                rotationPacket.Add("y", this.Rotation.y);
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
-            }
+            //if (
+            //    (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
+            //    && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
+            //    || IsSprintEnabled
+            //    )
+            //{
+            //    Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
+            //    rotationPacket.Add("m", "PlayerRotate");
+            //    rotationPacket.Add("x", this.Rotation.x);
+            //    rotationPacket.Add("y", this.Rotation.y);
+            //    AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
+            //}
 
             base.Rotate(deltaRotation, ignoreClamp);
         }
 
-        public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
-        {
-            var prc = this.GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
+        //public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
+        //{
+        //    var prc = this.GetComponent<PlayerReplicatedComponent>();
+        //    if (prc == null || !prc.IsClientDrone)
+        //        return;
 
-            this.Rotation = rotation;
-            prc.ReplicatedRotation = rotation; 
+        //    this.Rotation = rotation;
+        //    prc.ReplicatedRotation = rotation; 
 
-        }
+        //}
 
 
         public override void Move(Vector2 direction)
@@ -374,6 +376,53 @@ namespace StayInTarkov.Coop
                 return;
 
             Speaker.PlayDirect(trigger, index);
+        }
+
+        public void ApplyStatePacket (PlayerStatePacket playerStatePacket)
+        {
+            // Todo: Add interpolator to fight lag
+            if (!IsYourPlayer)
+            {
+                MovementContext.TransformPosition = playerStatePacket.Position;
+                Rotation = playerStatePacket.Rotation;
+                HeadRotation = playerStatePacket.HeadRotation;
+                MovementContext.MovementDirection = playerStatePacket.MovementDirection;
+
+                Move(playerStatePacket.Velocity);
+
+                var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
+                MovementContext.ProcessStateEnter(newState);
+
+                CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+                CurrentManagedState.SetStep(playerStatePacket.Step);
+                MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+                MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+
+                MovementContext.IsInPronePose = playerStatePacket.IsProne;
+                MovementContext.SetPoseLevel(playerStatePacket.PoseLevel);
+
+                MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
+                MovementContext.CharacterMovementSpeed = playerStatePacket.CharacterMovementSpeed;
+                
+            }
+        }
+
+        public override void LateUpdate()
+        {
+            base.LateUpdate();
+
+            PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled);
+
+            Dictionary<string, object> packet = new()
+            {
+                { "state", playerStatePacket.ToJson() },
+                { "m", "ApplyState" }
+            };
+
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
         public override void OnDestroy()
