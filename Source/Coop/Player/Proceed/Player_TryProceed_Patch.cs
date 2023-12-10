@@ -66,7 +66,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 if ((itemHandsController = player.HandsController as EFT.Player.ItemHandsController) != null && item.TemplateId == "5f4f9eb969cdc30ff33f09db") // Compass Template Id
                 {
                     itemHandsController.ToggleCompassState();
-                    return;
+                    //return;
                 }
 
                 // Make sure Tagilla and Cultists are using correct callback.
