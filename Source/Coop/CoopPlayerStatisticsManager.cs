@@ -13,7 +13,7 @@ namespace StayInTarkov.Coop
             Profile = base.Profile_0;
         }
 
-        protected override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
+        public override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
         {
 
         }
