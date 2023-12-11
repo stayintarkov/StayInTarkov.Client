@@ -152,9 +152,10 @@ namespace StayInTarkov.Core.Player
 
             if (method == "ApplyState")
             {
-                var state = packet["state"].ToString().SITParseJson<PlayerStatePacket>();
+                var state = packet["state"].ToString().SITParseJson<byte[]>();
+                var state2 = PlayerStatePacket.DeserializeState(state);
                 CoopPlayer cP = player as CoopPlayer;
-                cP.ApplyStatePacket(state);
+                cP.ApplyStatePacket(state2);
             }
 
             if (method != "PlayerState")

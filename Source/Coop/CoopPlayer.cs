@@ -117,7 +117,7 @@ namespace StayInTarkov.Coop
         private void Start()
         {
             lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
-                MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
         }
@@ -388,12 +388,6 @@ namespace StayInTarkov.Coop
             {
                 float interpolationRatio = 0.75f;
 
-                //MovementContext.TransformPosition = Vector3.Lerp(lastPlayerState.Position, playerStatePacket.Position, interpolationRation);
-                //Rotation = Vector2.Lerp(lastPlayerState.Rotation, playerStatePacket.Rotation, interpolationRatio);
-
-                //var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
-                //MovementContext.ProcessStateEnter(newState);
-
                 Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, interpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, interpolationRatio));
 
                 HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio);
@@ -417,17 +411,13 @@ namespace StayInTarkov.Coop
                     MovementContext.IsInPronePose = true;
                 }
 
-                //MovementContext.InputMotion = a - MovementContext.TransformPosition;
-
                 Physical.SerializationStruct = playerStatePacket.Stamina;
 
-                //CurrentManagedState.SetTilt(Mathf.Lerp(lastPlayerState.Tilt, playerStatePacket.Tilt, interpolationRatio));
-                CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+                //CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+                MovementContext.SetTilt(Mathf.Round(playerStatePacket.Tilt)); // Round the float due to byte converting error...
                 CurrentManagedState.SetStep(playerStatePacket.Step);
-                //MovementContext.EnableSprint(playerStatePacket.IsSprinting);
                 MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
                 MovementContext.EnableSprint(playerStatePacket.IsSprinting);
-                //MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
 
                 MovementContext.IsInPronePose = playerStatePacket.IsProne;
                 MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, interpolationRatio));
@@ -438,8 +428,6 @@ namespace StayInTarkov.Coop
                 Move(playerStatePacket.InputDirection);
                 Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
                 CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
-
-                //CurrentManagedState.OnStateMove(Time.deltaTime);
             }
             /*
             MovementContext.TransformPosition = playerStatePacket.Position;
@@ -472,13 +460,15 @@ namespace StayInTarkov.Coop
             base.LateUpdate();
 
             PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
-                MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
+            var toSend = PlayerStatePacket.SerializeState(playerStatePacket);
+
             Dictionary<string, object> packet = new()
             {
-                { "state", playerStatePacket.ToJson() },
+                { "state", toSend.ToJson() },
                 { "m", "ApplyState" }
             };
 
