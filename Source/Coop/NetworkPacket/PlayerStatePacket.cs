@@ -21,10 +21,11 @@ namespace StayInTarkov.Coop.NetworkPacket
         public float PoseLevel { get; set; }
         public bool IsSprinting { get; set; }
         public Physical.PhysicalStamina Stamina { get; set; }
+        public Vector2 InputDirection { get; set; }
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             Vector3 velocity, EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina) : base(profileId, "Move")
+            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection) : base(profileId, "Move")
         {
             ProfileId = profileId;
             Position = position;
@@ -41,6 +42,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             PoseLevel = poseLevel;
             IsSprinting = isSprinting;
             Stamina = stamina;
+            InputDirection = inputDirection;
         }
 
         public static byte[] SerializeState(PlayerStatePacket playerStatePacket)
@@ -99,8 +101,9 @@ namespace StayInTarkov.Coop.NetworkPacket
             var poseLevel = GClass1048.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             var isSprinting = reader.ReadBool();
             var stamina = new Physical.PhysicalStamina();
+            var inputDirection = Vector2.zero;
 
-            return new PlayerStatePacket(profileId, position, rotation, headRotation, movDir, velocity, state, tilt, step, animatorStateIndex, characterMovementSpeed, isProne, poseLevel, isSprinting, stamina);
+            return new PlayerStatePacket(profileId, position, rotation, headRotation, movDir, velocity, state, tilt, step, animatorStateIndex, characterMovementSpeed, isProne, poseLevel, isSprinting, stamina, inputDirection);
         }
 
         public void Dispose()

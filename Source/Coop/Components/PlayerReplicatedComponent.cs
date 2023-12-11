@@ -152,7 +152,6 @@ namespace StayInTarkov.Core.Player
 
             if (method == "ApplyState")
             {
-                EFT.UI.ConsoleScreen.Log("Received ApplyState Packet");
                 var state = packet["state"].ToString().SITParseJson<PlayerStatePacket>();
                 CoopPlayer cP = player as CoopPlayer;
                 cP.ApplyStatePacket(state);

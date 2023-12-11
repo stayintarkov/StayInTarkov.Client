@@ -119,7 +119,7 @@ namespace StayInTarkov.Coop
             lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct);
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
         }
 
         /// <summary>
@@ -396,16 +396,10 @@ namespace StayInTarkov.Coop
 
                 Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, interpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, interpolationRatio));
 
-                HeadRotation = playerStatePacket.HeadRotation;
-                ProceduralWeaponAnimation.SetHeadRotation(playerStatePacket.HeadRotation);
+                HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio);
+                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio));
                 MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, interpolationRatio));
                 MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(playerStatePacket.MovementDirection));
-
-                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
-                CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
-                //Move(playerStatePacket.MovementDirection);
-                InputDirection = playerStatePacket.MovementDirection;
-                //Move(playerStatePacket.Velocity);                
 
                 EPlayerState name = MovementContext.CurrentState.Name;
                 EPlayerState eplayerState = playerStatePacket.State;
@@ -423,7 +417,7 @@ namespace StayInTarkov.Coop
                     MovementContext.IsInPronePose = true;
                 }
 
-                MovementContext.InputMotion = a - MovementContext.TransformPosition;
+                //MovementContext.InputMotion = a - MovementContext.TransformPosition;
 
                 Physical.SerializationStruct = playerStatePacket.Stamina;
 
@@ -432,6 +426,7 @@ namespace StayInTarkov.Coop
                 CurrentManagedState.SetStep(playerStatePacket.Step);
                 //MovementContext.EnableSprint(playerStatePacket.IsSprinting);
                 MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+                MovementContext.EnableSprint(playerStatePacket.IsSprinting);
                 //MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
 
                 MovementContext.IsInPronePose = playerStatePacket.IsProne;
@@ -439,6 +434,12 @@ namespace StayInTarkov.Coop
 
                 MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
+
+                Move(playerStatePacket.InputDirection);
+                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
+                CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
+
+                //CurrentManagedState.OnStateMove(Time.deltaTime);
             }
             /*
             MovementContext.TransformPosition = playerStatePacket.Position;
@@ -472,8 +473,8 @@ namespace StayInTarkov.Coop
 
             PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, InputDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct);
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
             Dictionary<string, object> packet = new()
             {
