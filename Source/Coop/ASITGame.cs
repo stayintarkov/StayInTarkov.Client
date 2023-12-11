@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop
         ManualLogSource Logger { get; set; }
 
         // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
-        internal static T Create<T>(
+        public static T Create<T>(
             InputTree inputTree
             , Profile profile
             , GameDateTime backendDateTime

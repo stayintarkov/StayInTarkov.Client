@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using StayInTarkov.Coop.Session;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.LocalGame;
 using StayInTarkov.Coop.Matchmaker;
@@ -17,11 +18,11 @@ namespace StayInTarkov.Coop
 {
     internal class CoopPatches
     {
-        public static ManualLogSource Logger { get; private set; }
+        internal static ManualLogSource Logger { get; private set; }
 
         private static BepInEx.Configuration.ConfigFile m_Config;
 
-        public static void Run(BepInEx.Configuration.ConfigFile config)
+        internal static void Run(BepInEx.Configuration.ConfigFile config)
         {
             m_Config = config;
 
@@ -44,6 +45,7 @@ namespace StayInTarkov.Coop
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();
+            new LoadLocationLootPatch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
@@ -51,11 +53,11 @@ namespace StayInTarkov.Coop
 
         }
 
-        public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
+        internal static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
-        public static GameObject CoopGameComponentParent { get; internal set; }
+        internal static GameObject CoopGameComponentParent { get; set; }
 
-        public static void EnableDisablePatches()
+        internal static void EnableDisablePatches()
         {
             var enablePatches = true;
 
@@ -131,7 +133,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        public static void LeftGameDestroyEverything()
+        internal static void LeftGameDestroyEverything()
         {
             EnableDisablePatches();
 

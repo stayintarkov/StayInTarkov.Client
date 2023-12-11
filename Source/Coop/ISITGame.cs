@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StayInTarkov.Coop
 {
-    internal interface ISITGame
+    public interface ISITGame
     {
         public List<string> ExtractedPlayers { get; }
 

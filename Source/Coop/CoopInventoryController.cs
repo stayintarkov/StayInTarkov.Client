@@ -2,6 +2,7 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using EFT.UI;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
@@ -10,18 +11,21 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopInventoryController
+    internal sealed class CoopInventoryController
+        // At this point in time. PlayerOwnerInventoryController is required to fix Malfunction and Discard errors. This class needs to be replaced with PlayerInventoryController.
         : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
         public HashSet<string> AlreadySent = new();
 
+        private EFT.Player Player { get; set; }
+
 
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
-
+            this.Player = player;
             if (profile.ProfileId.StartsWith("pmc") && !IsDiscardLimitsFine(DiscardLimits))
                 base.ResetDiscardLimits();
         }
@@ -83,6 +87,30 @@ namespace StayInTarkov.Coop
                 && DiscardLimits.ContainsKey("5710c24ad2720bc3458b45a3") // F-1 Grenade, Value: 20
                 && DiscardLimits.ContainsKey(DogtagComponent.BearDogtagsTemplate) // Value: 0
                 && DiscardLimits.ContainsKey(DogtagComponent.UsecDogtagsTemplate); // Value: 0
+        }
+
+
+
+
+        // PlayerOwnerInventoryController methods. We should inherit EFT.Player.PlayerInventoryController and override these methods based on EFT.Player.PlayerOwnerInventoryController
+
+        public override void CallMalfunctionRepaired(Weapon weapon)
+        {
+            base.CallMalfunctionRepaired(weapon);
+            if (!Player.IsAI && (bool)Singleton<SettingsManager>.Instance.Game.Settings.MalfunctionVisability)
+            {
+                MonoBehaviourSingleton<PreloaderUI>.Instance.MalfunctionGlow.ShowGlow(BattleUIMalfunctionGlow.GlowType.Repaired, force: true, GetMalfunctionGlowAlphaMultiplier());
+            }
+        }
+
+        private float GetMalfunctionGlowAlphaMultiplier()
+        {
+            float result = 0.5f;
+            if (Player.HealthController.FindActiveEffect<IEffect21>() != null)
+            {
+                result = 1f;
+            }
+            return result;
         }
     }
 

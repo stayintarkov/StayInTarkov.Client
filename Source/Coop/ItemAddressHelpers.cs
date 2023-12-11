@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StayInTarkov.Coop
 {
-    internal static class ItemAddressHelpers
+    public static class ItemAddressHelpers
     {
         private static string DICTNAMES_SlotItemAddressDescriptor { get; } = "sitad";
         private static string DICTNAMES_GridItemAddressDescriptor { get; } = "grad";
