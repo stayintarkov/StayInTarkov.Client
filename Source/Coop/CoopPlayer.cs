@@ -112,15 +112,7 @@ namespace StayInTarkov.Coop
             }
 
             return player;
-        }
-
-        private void Start()
-        {
-            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
-                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
-        }
+        }        
 
         /// <summary>
         /// A way to block the same Damage Info being run multiple times on this Character
@@ -424,6 +416,7 @@ namespace StayInTarkov.Coop
 
                 MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
+                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
 
                 Move(playerStatePacket.InputDirection);
                 Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
@@ -455,10 +448,8 @@ namespace StayInTarkov.Coop
             lastPlayerState = playerStatePacket;
         }
 
-        public override void LateUpdate()
+        public void SendStatePacket()
         {
-            base.LateUpdate();
-
             PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
@@ -473,6 +464,22 @@ namespace StayInTarkov.Coop
             };
 
             AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+        }
+
+        public override void LateUpdate()
+        {
+            base.LateUpdate();
+            //SendStatePacket();
+        }
+
+        private void Start()
+        {
+            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+
+            InvokeRepeating("SendStatePacket", 0.1f, 0.005f); // Need to stop this one as well with CancelInvoke on death
         }
 
         public override void OnDestroy()
