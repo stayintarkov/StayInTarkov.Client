@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
@@ -150,7 +151,7 @@ namespace StayInTarkov.Core.Player
 
             var method = packet["m"].ToString();
 
-            if (method == "ApplyState")
+            if (method == "ApplyState" && IsClientDrone)
             {
                 var state = packet["state"].ToString().SITParseJson<byte[]>();
                 var state2 = PlayerStatePacket.DeserializeState(state);

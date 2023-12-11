@@ -294,6 +294,7 @@ namespace StayInTarkov.Coop
 
         public override Corpse CreateCorpse()
         {
+            CancelInvoke("SendStatePacket");
             return base.CreateCorpse();
         }
 

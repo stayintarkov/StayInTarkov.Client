@@ -24,7 +24,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector2 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection) : base(profileId, "Move")
+            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection) : base(profileId, "ApplyState")
         {
             ProfileId = profileId;
             Position = position;
