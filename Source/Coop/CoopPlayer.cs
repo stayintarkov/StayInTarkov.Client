@@ -1,23 +1,19 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
 using EFT;
-using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChartAndGraph.ChartItemEvents;
-using static UnityEngine.RemoteConfigSettingsHelper;
+using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -118,6 +114,14 @@ namespace StayInTarkov.Coop
             return player;
         }
 
+        private void Start()
+        {
+            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+        }
+
         /// <summary>
         /// A way to block the same Damage Info being run multiple times on this Character
         /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
@@ -126,6 +130,7 @@ namespace StayInTarkov.Coop
         private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
+        private PlayerStatePacket lastPlayerState = default;
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
@@ -307,38 +312,38 @@ namespace StayInTarkov.Coop
 
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
-            if (
-                (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-                || IsSprintEnabled
-                )
-            {
-                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-                rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", this.Rotation.x);
-                rotationPacket.Add("y", this.Rotation.y);
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
-            }
+            //if (
+            //    (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
+            //    && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
+            //    || IsSprintEnabled
+            //    )
+            //{
+            //    Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
+            //    rotationPacket.Add("m", "PlayerRotate");
+            //    rotationPacket.Add("x", this.Rotation.x);
+            //    rotationPacket.Add("y", this.Rotation.y);
+            //    AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
+            //}
 
             base.Rotate(deltaRotation, ignoreClamp);
         }
 
-        public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
-        {
-            var prc = this.GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
+        //public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
+        //{
+        //    var prc = this.GetComponent<PlayerReplicatedComponent>();
+        //    if (prc == null || !prc.IsClientDrone)
+        //        return;
 
-            this.Rotation = rotation;
-            prc.ReplicatedRotation = rotation; 
+        //    this.Rotation = rotation;
+        //    prc.ReplicatedRotation = rotation; 
 
-        }
+        //}
 
 
         public override void Move(Vector2 direction)
         {
             var prc = GetComponent<PlayerReplicatedComponent>();
-            if(prc == null)
+            if (prc == null)
                 return;
 
             base.Move(direction);
@@ -361,10 +366,10 @@ namespace StayInTarkov.Coop
                     { "index", clip.NetId },
                     { "m", "Say" }
                 };
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet); 
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
             }
         }
-        
+
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
@@ -374,6 +379,100 @@ namespace StayInTarkov.Coop
                 return;
 
             Speaker.PlayDirect(trigger, index);
+        }
+
+        public void ApplyStatePacket(PlayerStatePacket playerStatePacket)
+        {
+            // Todo: Add interpolator to fight lag
+            if (!IsYourPlayer)
+            {
+                float interpolationRatio = 0.75f;
+
+                Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, interpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, interpolationRatio));
+
+                HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio);
+                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio));
+                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, interpolationRatio));
+                MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(playerStatePacket.MovementDirection));
+
+                EPlayerState name = MovementContext.CurrentState.Name;
+                EPlayerState eplayerState = playerStatePacket.State;
+                if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
+                {
+                    MovementContext.PlayerAnimatorEnableJump(false);
+                    MovementContext.PlayerAnimatorEnableLanding(true);
+                }
+                if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
+                {
+                    MovementContext.IsInPronePose = false;
+                }
+                if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
+                {
+                    MovementContext.IsInPronePose = true;
+                }
+
+                Physical.SerializationStruct = playerStatePacket.Stamina;
+
+                //CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+                MovementContext.SetTilt(Mathf.Round(playerStatePacket.Tilt)); // Round the float due to byte converting error...
+                CurrentManagedState.SetStep(playerStatePacket.Step);
+                MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+                MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+
+                MovementContext.IsInPronePose = playerStatePacket.IsProne;
+                MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, interpolationRatio));
+
+                MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
+                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
+
+                Move(playerStatePacket.InputDirection);
+                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
+                CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
+            }
+            /*
+            MovementContext.TransformPosition = playerStatePacket.Position;
+            Rotation = playerStatePacket.Rotation;
+            HeadRotation = playerStatePacket.HeadRotation;
+            MovementContext.MovementDirection = playerStatePacket.MovementDirection;
+
+            Move(playerStatePacket.Velocity);
+
+            var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
+            MovementContext.ProcessStateEnter(newState);
+
+            CurrentManagedState.SetTilt(playerStatePacket.Tilt);
+            CurrentManagedState.SetStep(playerStatePacket.Step);
+            MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+            MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
+
+            MovementContext.IsInPronePose = playerStatePacket.IsProne;
+            MovementContext.SetPoseLevel(playerStatePacket.PoseLevel);
+
+            MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
+            MovementContext.CharacterMovementSpeed = playerStatePacket.CharacterMovementSpeed;
+            */
+
+            lastPlayerState = playerStatePacket;
+        }
+
+        public override void LateUpdate()
+        {
+            base.LateUpdate();
+
+            PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+
+            var toSend = PlayerStatePacket.SerializeState(playerStatePacket);
+
+            Dictionary<string, object> packet = new()
+            {
+                { "state", toSend.ToJson() },
+                { "m", "ApplyState" }
+            };
+
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
         public override void OnDestroy()
