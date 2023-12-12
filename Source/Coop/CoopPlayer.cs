@@ -5,6 +5,7 @@ using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Web;
@@ -16,8 +17,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChartAndGraph.ChartItemEvents;
-using static UnityEngine.RemoteConfigSettingsHelper;
 
 namespace StayInTarkov.Coop
 {
@@ -105,7 +104,7 @@ namespace StayInTarkov.Coop
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
-            player._animators[0].speed = isYourPlayer ? 0.9f : 0.6f;
+            player._animators[0].speed = isYourPlayer ? 0.9f : 0.8f;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             // If this is a Client Drone add Player Replicated Component
@@ -305,12 +304,14 @@ namespace StayInTarkov.Coop
             base.OnItemAddedOrRemoved(item, location, added);
         }
 
+        private Vector2 LastRotationSent = Vector2.zero;
+
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
             if (
                 (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
                 && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-                || IsSprintEnabled
+                && LastRotationSent != this.Rotation
                 )
             {
                 Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
@@ -318,6 +319,7 @@ namespace StayInTarkov.Coop
                 rotationPacket.Add("x", this.Rotation.x);
                 rotationPacket.Add("y", this.Rotation.y);
                 AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
+                LastRotationSent = this.Rotation;
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
