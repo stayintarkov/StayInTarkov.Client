@@ -1,12 +1,15 @@
 ﻿using EFT;
+using LiteNetLib.Utils;
+using StayInTarkov.Coop.NetworkPacket.PacketStructs;
 using System;
 using System.IO;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerStatePacket : BasePlayerPacket, IDisposable
+    public class PlayerStatePacket : INetSerializable
     {
+        public string ProfileId { get; set; }
         public Vector3 Position { get; set; }
         public Vector2 Rotation { get; set; }
         public Vector3 HeadRotation { get; set; }
@@ -22,9 +25,14 @@ namespace StayInTarkov.Coop.NetworkPacket
         public Physical.PhysicalStamina Stamina { get; set; }
         public Vector2 InputDirection { get; set; }
 
+        public PlayerStatePacket()
+        {
+
+        }
+
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector2 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection) : base(profileId, "ApplyState")
+            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection)
         {
             ProfileId = profileId;
             Position = position;
@@ -111,6 +119,52 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             ProfileId = null;
             //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
+        }
+
+        public void Serialize(NetDataWriter writer)
+        {
+            writer.Put(ProfileId);
+            writer.Put(Position.x); writer.Put(Position.y); writer.Put(Position.z);
+            writer.Put(Rotation.x); writer.Put(Rotation.y);
+            writer.Put(HeadRotation.x); writer.Put(HeadRotation.y);
+            writer.Put(MovementDirection.x); writer.Put(MovementDirection.y);
+            writer.Put((byte)State);
+            writer.Put(GClass1048.ScaleFloatToByte(Tilt, -5f, 5f));
+            writer.Put(GClass1048.ScaleIntToByte(Step, -1, 1));
+            writer.Put((byte)AnimatorStateIndex);
+            writer.Put(GClass1048.ScaleFloatToByte(CharacterMovementSpeed, 0f, 1f));
+            writer.Put(IsProne);
+            writer.Put(GClass1048.ScaleFloatToByte(PoseLevel, 0f, 1f));
+            writer.Put(IsSprinting);
+            writer.Put(Stamina.StaminaExhausted);
+            writer.Put(Stamina.OxygenExhausted);
+            writer.Put(Stamina.HandsExhausted);
+            writer.Put(InputDirection.x); writer.Put(InputDirection.y);
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            
+            ProfileId = reader.GetString();
+            Position = new Vector3() { x = reader.GetFloat(), y = reader.GetFloat(), z = reader.GetFloat() };
+            Rotation = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
+            HeadRotation = new Vector3 { x = reader.GetFloat(), y = reader.GetFloat() };
+            MovementDirection = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
+            State = (EPlayerState)reader.GetByte();
+            Tilt = GClass1048.ScaleByteToFloat(reader.GetByte(), -5f, 5f);
+            Step = GClass1048.ScaleByteToInt(reader.GetByte(), -1, 1);
+            AnimatorStateIndex = (int)reader.GetByte();
+            CharacterMovementSpeed = GClass1048.ScaleByteToFloat(reader.GetByte(), 0f, 1f);
+            IsProne = reader.GetBool();
+            PoseLevel = GClass1048.ScaleByteToFloat(reader.GetByte(), 0f, 1f);
+            IsSprinting = reader.GetBool();
+            Stamina = new Physical.PhysicalStamina()
+            {
+                StaminaExhausted = reader.GetBool(),
+                OxygenExhausted = reader.GetBool(),
+                HandsExhausted = reader.GetBool(),
+            };
+            InputDirection = new Vector2() { x = reader.GetFloat(),y = reader.GetFloat() };
         }
     }
 }

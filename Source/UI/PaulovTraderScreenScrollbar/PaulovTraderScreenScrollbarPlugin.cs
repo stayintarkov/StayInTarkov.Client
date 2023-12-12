@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using EFT.UI;
+using StayInTarkov.Networking;
 using System;
 using System.Reflection;
 using UnityEngine;
