@@ -5,8 +5,8 @@ namespace StayInTarkov.Coop
 {
     public static class ItemAddressHelpers
     {
-        private static string DICTNAMES_SlotItemAddressDescriptor { get; } = "sitad";
-        private static string DICTNAMES_GridItemAddressDescriptor { get; } = "grad";
+        private const string DICTNAMES_SlotItemAddressDescriptor = "sitad";
+        private const string DICTNAMES_GridItemAddressDescriptor = "grad";
 
         public static void ConvertItemAddressToDescriptor(ItemAddress location, ref Dictionary<string, object> dictionary)
         {
