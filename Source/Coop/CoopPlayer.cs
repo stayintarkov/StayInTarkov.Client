@@ -27,6 +27,8 @@ namespace StayInTarkov.Coop
         public SITClient Client { get; set; }
         public NetDataWriter Writer { get; set; }
         private float InterpolationRatio { get; set; } = 0;
+        public PlayerStatePacket LastState { get; set; }
+        public PlayerStatePacket NewState { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -381,21 +383,21 @@ namespace StayInTarkov.Coop
             Speaker.PlayDirect(trigger, index);
         }
 
-        public void ApplyStatePacket(PlayerStatePacket playerStatePacket)
+        public void Interpolate()
         {
             if (!IsYourPlayer)
             {
                 InterpolationRatio += Time.deltaTime / Time.fixedDeltaTime;
 
-                Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, InterpolationRatio));
+                Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
-                HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, InterpolationRatio);
-                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, InterpolationRatio));
-                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, InterpolationRatio));
-                MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(playerStatePacket.MovementDirection));
+                HeadRotation = Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio);
+                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
+                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
+                MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
 
                 EPlayerState name = MovementContext.CurrentState.Name;
-                EPlayerState eplayerState = playerStatePacket.State;
+                EPlayerState eplayerState = NewState.State;
                 if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
                 {
                     MovementContext.PlayerAnimatorEnableJump(false);
@@ -410,48 +412,26 @@ namespace StayInTarkov.Coop
                     MovementContext.IsInPronePose = true;
                 }
 
-                Physical.SerializationStruct = playerStatePacket.Stamina;
-                MovementContext.SetTilt(Mathf.Round(playerStatePacket.Tilt)); // Round the float due to byte converting error...
-                CurrentManagedState.SetStep(playerStatePacket.Step);
-                MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
-                MovementContext.EnableSprint(playerStatePacket.IsSprinting);
+                Physical.SerializationStruct = NewState.Stamina;
+                MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
+                CurrentManagedState.SetStep(NewState.Step);
+                MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
+                MovementContext.EnableSprint(NewState.IsSprinting);
 
-                MovementContext.IsInPronePose = playerStatePacket.IsProne;
-                MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, InterpolationRatio));
+                MovementContext.IsInPronePose = NewState.IsProne;
+                MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
 
-                MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
-                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, InterpolationRatio));
-                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, InterpolationRatio));
+                MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
+                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
-                Move(playerStatePacket.InputDirection);
-                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, InterpolationRatio);
+                Move(NewState.InputDirection);
+                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
                 CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
-            }
-            /*
-            MovementContext.TransformPosition = playerStatePacket.Position;
-            Rotation = playerStatePacket.Rotation;
-            HeadRotation = playerStatePacket.HeadRotation;
-            MovementContext.MovementDirection = playerStatePacket.MovementDirection;
 
-            Move(playerStatePacket.Velocity);
-
-            var newState = MovementContext.States.Where(x => x.Key == playerStatePacket.State).FirstOrDefault().Value;
-            MovementContext.ProcessStateEnter(newState);
-
-            CurrentManagedState.SetTilt(playerStatePacket.Tilt);
-            CurrentManagedState.SetStep(playerStatePacket.Step);
-            MovementContext.EnableSprint(playerStatePacket.IsSprinting);
-            MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
-
-            MovementContext.IsInPronePose = playerStatePacket.IsProne;
-            MovementContext.SetPoseLevel(playerStatePacket.PoseLevel);
-
-            MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
-            MovementContext.CharacterMovementSpeed = playerStatePacket.CharacterMovementSpeed;
-            */
-
-            lastPlayerState = playerStatePacket;
-            InterpolationRatio = 0;
+                LastState = NewState;
+                InterpolationRatio = 0;
+            }            
         }
 
         public void SendStatePacket()
@@ -466,7 +446,8 @@ namespace StayInTarkov.Coop
                 Writer.Reset();
                 playerStatePacket.Serialize(Writer);
 
-                Client.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable); 
+                Client.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+                return;
             }
             else if (MatchmakerAcceptPatches.IsServer && Server != null)
             {
@@ -479,8 +460,9 @@ namespace StayInTarkov.Coop
                 playerStatePacket.Serialize(Writer);
 
                 Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+                return;
             }
-            else if (MatchmakerAcceptPatches.IsServer && IsAI)
+            else if (MatchmakerAcceptPatches.IsServer)
             {
                 PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                         MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
@@ -491,13 +473,17 @@ namespace StayInTarkov.Coop
                 Writer.Reset();
                 playerStatePacket.Serialize(Writer);
                 e.Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+                return;
             }
         }
 
         public override void LateUpdate()
         {
             base.LateUpdate();
-            //SendStatePacket();
+            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer))
+            {
+                Interpolate();
+            }
         }
 
         private void Start()
@@ -514,7 +500,7 @@ namespace StayInTarkov.Coop
 
             Writer = new();
 
-            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
+            LastState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);

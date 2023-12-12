@@ -27,8 +27,8 @@ namespace StayInTarkov.Networking
                 AutoRecycle = true,
                 IPv6Enabled = false
             };
-            var ip = "127.0.0.1";
-            _netServer.Start(IPAddress.Parse(ip), IPAddress.IPv6Any, 5000);
+            var ip = "78.72.78.93";
+            _netServer.Start(5000);
             EFT.UI.ConsoleScreen.Log("Started SITServer");
             NotificationManagerClass.DisplayMessageNotification($"Server started on {ip}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
@@ -99,10 +99,10 @@ namespace StayInTarkov.Networking
             PlayerStatePacket pSP = new();
             pSP.Deserialize(reader);
 
-            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID[pSP.ProfileId] as CoopPlayer;
-            if (playerToApply != null && !playerToApply.IsYourPlayer)
+            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID.Where(x => x.Key == pSP.ProfileId).FirstOrDefault().Value as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
-                playerToApply.ApplyStatePacket(pSP);
+                playerToApply.NewState = pSP;
             }
         }
     }

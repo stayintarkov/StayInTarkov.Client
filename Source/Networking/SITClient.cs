@@ -27,10 +27,11 @@ namespace StayInTarkov.Networking
             _netClient = new LiteNetLib.NetManager(this)
             {
                 UnconnectedMessagesEnabled = true,
-                UpdateTime = 15
+                UpdateTime = 15,
+                NatPunchEnabled = true
             };
             _netClient.Start();
-            _netClient.Connect("localhost", 5000, "sit.core");
+            _netClient.Connect("78.72.78.93", 5000, "sit.core");
         }
 
         void Update()
@@ -77,10 +78,10 @@ namespace StayInTarkov.Networking
             PlayerStatePacket pSP = new();
             pSP.Deserialize(reader);
 
-            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID[pSP.ProfileId] as CoopPlayer;
-            if (playerToApply != null && !playerToApply.IsYourPlayer)
+            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID.Where(x => x.Key == pSP.ProfileId).FirstOrDefault().Value as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
-                playerToApply.ApplyStatePacket(pSP);
+                playerToApply.NewState = pSP;
             }
         }
 

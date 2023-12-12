@@ -151,14 +151,6 @@ namespace StayInTarkov.Core.Player
 
             var method = packet["m"].ToString();
 
-            if (method == "ApplyState" && IsClientDrone)
-            {
-                var state = packet["state"].ToString().SITParseJson<byte[]>();
-                var state2 = PlayerStatePacket.DeserializeState(state);
-                CoopPlayer cP = player as CoopPlayer;
-                cP.ApplyStatePacket(state2);
-            }
-
             if (method != "PlayerState")
                 return;
 
