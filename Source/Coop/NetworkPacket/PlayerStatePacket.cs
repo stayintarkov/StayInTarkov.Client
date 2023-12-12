@@ -148,8 +148,8 @@ namespace StayInTarkov.Coop.NetworkPacket
             ProfileId = reader.GetString();
             Position = new Vector3() { x = reader.GetFloat(), y = reader.GetFloat(), z = reader.GetFloat() };
             Rotation = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
-            HeadRotation = new Vector3 { x = reader.GetFloat(), y = reader.GetFloat() };
-            MovementDirection = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
+            HeadRotation = new Vector2 { x = reader.GetFloat(), y = reader.GetFloat() };
+            MovementDirection = new Vector2() { x = Mathf.Clamp(reader.GetFloat(), -50f, 20f), y = Mathf.Clamp(reader.GetFloat(), -40, 40f) };
             State = (EPlayerState)reader.GetByte();
             Tilt = GClass1048.ScaleByteToFloat(reader.GetByte(), -5f, 5f);
             Step = GClass1048.ScaleByteToInt(reader.GetByte(), -1, 1);
