@@ -10,6 +10,8 @@ using UnityEngine;
 using LiteNetLib.Utils;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.NetworkPacket;
+using EFT;
+using Comfort.Common;
 
 namespace StayInTarkov.Networking
 {
@@ -28,7 +30,7 @@ namespace StayInTarkov.Networking
                 UpdateTime = 15
             };
             _netClient.Start();
-            _netClient.Connect("localhost", 5000, "sample_app");
+            _netClient.Connect("localhost", 5000, "sit.core");
         }
 
         void Update()
@@ -61,6 +63,8 @@ namespace StayInTarkov.Networking
         public void OnPeerConnected(NetPeer peer)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
+            NotificationManagerClass.DisplayMessageNotification($"Connected to server {peer.EndPoint}.",
+                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
@@ -70,9 +74,14 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
-            PlayerStatePacket playerStatePacket = default;
-            playerStatePacket.Deserialize(reader);
-            Player.ApplyStatePacket(playerStatePacket);
+            PlayerStatePacket pSP = new();
+            pSP.Deserialize(reader);
+
+            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID[pSP.ProfileId] as CoopPlayer;
+            if (playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.ApplyStatePacket(pSP);
+            }
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
@@ -80,7 +89,7 @@ namespace StayInTarkov.Networking
             if (messageType == UnconnectedMessageType.BasicMessage && _netClient.ConnectedPeersCount == 0 && reader.GetInt() == 1)
             {
                 EFT.UI.ConsoleScreen.Log("[CLIENT] Received discovery response. Connecting to: " + remoteEndPoint);
-                _netClient.Connect(remoteEndPoint, "sample_app");
+                _netClient.Connect(remoteEndPoint, "sit.core");
             }
         }
 

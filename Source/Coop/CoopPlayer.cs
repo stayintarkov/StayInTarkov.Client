@@ -1,7 +1,9 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using LiteNetLib.Utils;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
@@ -23,6 +25,7 @@ namespace StayInTarkov.Coop
         ManualLogSource BepInLogger { get; set; }
         public SITServer Server { get; set; }
         public SITClient Client { get; set; }
+        public NetDataWriter Writer { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -460,10 +463,36 @@ namespace StayInTarkov.Coop
                         MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
                         IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
-                Client._dataWriter.Reset();
-                playerStatePacket.Serialize(Client._dataWriter);
+                Writer.Reset();
+                playerStatePacket.Serialize(Writer);
 
-                Client.SendData(Client._dataWriter, LiteNetLib.DeliveryMethod.Unreliable); 
+                Client.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable); 
+            }
+            else if (MatchmakerAcceptPatches.IsServer && Server != null)
+            {
+                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+
+                Writer.Reset();
+                playerStatePacket.Serialize(Writer);
+
+                Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+            }
+            else if (MatchmakerAcceptPatches.IsServer && IsAI)
+            {
+                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+
+                
+
+                var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
+                Writer.Reset();
+                playerStatePacket.Serialize(Writer);
+                e.Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
             }
         }
 
@@ -484,6 +513,8 @@ namespace StayInTarkov.Coop
                 Client = this.GetOrAddComponent<SITClient>();
                 Client.Player = this;
             }
+
+            Writer = new();
 
             lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
