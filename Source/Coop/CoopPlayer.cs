@@ -26,6 +26,7 @@ namespace StayInTarkov.Coop
         public SITServer Server { get; set; }
         public SITClient Client { get; set; }
         public NetDataWriter Writer { get; set; }
+        private float InterpolationRatio { get; set; } = 0;
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -384,13 +385,13 @@ namespace StayInTarkov.Coop
         {
             if (!IsYourPlayer)
             {
-                float interpolationRatio = 0.75f;
+                InterpolationRatio += Time.deltaTime / Time.fixedDeltaTime;
 
-                Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, interpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, interpolationRatio));
+                Rotation = new Vector2(Mathf.LerpAngle(Yaw, playerStatePacket.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, playerStatePacket.Rotation.y, InterpolationRatio));
 
-                HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio);
-                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, interpolationRatio));
-                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, interpolationRatio));
+                HeadRotation = Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, InterpolationRatio);
+                ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(lastPlayerState.HeadRotation, playerStatePacket.HeadRotation, InterpolationRatio));
+                MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastPlayerState.MovementDirection, playerStatePacket.MovementDirection, InterpolationRatio));
                 MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(playerStatePacket.MovementDirection));
 
                 EPlayerState name = MovementContext.CurrentState.Name;
@@ -410,23 +411,21 @@ namespace StayInTarkov.Coop
                 }
 
                 Physical.SerializationStruct = playerStatePacket.Stamina;
-
-                //CurrentManagedState.SetTilt(playerStatePacket.Tilt);
                 MovementContext.SetTilt(Mathf.Round(playerStatePacket.Tilt)); // Round the float due to byte converting error...
                 CurrentManagedState.SetStep(playerStatePacket.Step);
                 MovementContext.PlayerAnimatorEnableSprint(playerStatePacket.IsSprinting);
                 MovementContext.EnableSprint(playerStatePacket.IsSprinting);
 
                 MovementContext.IsInPronePose = playerStatePacket.IsProne;
-                MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, interpolationRatio));
+                MovementContext.SetPoseLevel(Mathf.Lerp(lastPlayerState.PoseLevel, playerStatePacket.PoseLevel, InterpolationRatio));
 
                 MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
-                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
-                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
+                MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, InterpolationRatio));
+                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, InterpolationRatio));
 
                 Move(playerStatePacket.InputDirection);
-                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
-                CharacterController.Move(a - MovementContext.TransformPosition, interpolationRatio);
+                Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, InterpolationRatio);
+                CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
             }
             /*
             MovementContext.TransformPosition = playerStatePacket.Position;
@@ -452,6 +451,7 @@ namespace StayInTarkov.Coop
             */
 
             lastPlayerState = playerStatePacket;
+            InterpolationRatio = 0;
         }
 
         public void SendStatePacket()
@@ -486,8 +486,6 @@ namespace StayInTarkov.Coop
                         MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                         MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
                         IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
-
-                
 
                 var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
                 Writer.Reset();
