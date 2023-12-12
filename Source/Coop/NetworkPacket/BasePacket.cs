@@ -104,7 +104,9 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            return this.DeserializePacketSIT(Encoding.UTF8.GetString(bytes));
+            var resultString = Encoding.UTF8.GetString(bytes);
+            //StayInTarkovHelperConstants.Logger.LogInfo(resultString);   
+            return this.DeserializePacketSIT(resultString);
         }
 
         public override string ToString()
@@ -124,6 +126,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
+        public const char SIT_SERIALIZATION_PACKET_SEPERATOR = ',';
         private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos { get; } = new();
 
         static SerializerExtensions()
@@ -150,7 +153,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             Stopwatch sw = Stopwatch.StartNew();
 
-            var separatedPacket = serializedPacket.Split(',');
+            var separatedPacket = serializedPacket.Split(SIT_SERIALIZATION_PACKET_SEPERATOR);
             var index = 0;
 
             foreach (var prop in TypeToPropertyInfos[obj.GetType()])
