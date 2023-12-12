@@ -7,6 +7,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace StayInTarkov.Coop
     public class CoopPlayer : LocalPlayer
     {
         ManualLogSource BepInLogger { get; set; }
+        public SITServer Server { get; set; }
+        public SITClient Client { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -112,15 +115,7 @@ namespace StayInTarkov.Coop
             }
 
             return player;
-        }
-
-        private void Start()
-        {
-            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
-                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
-        }
+        }        
 
         /// <summary>
         /// A way to block the same Damage Info being run multiple times on this Character
@@ -302,6 +297,7 @@ namespace StayInTarkov.Coop
 
         public override Corpse CreateCorpse()
         {
+            CancelInvoke("SendStatePacket");
             return base.CreateCorpse();
         }
 
@@ -340,19 +336,19 @@ namespace StayInTarkov.Coop
         //}
 
 
-        public override void Move(Vector2 direction)
-        {
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null)
-                return;
+        //public override void Move(Vector2 direction)
+        //{
+        //    var prc = GetComponent<PlayerReplicatedComponent>();
+        //    if (prc == null)
+        //        return;
 
-            base.Move(direction);
+        //    base.Move(direction);
 
-            if (prc.IsClientDrone)
-                return;
+        //    if (prc.IsClientDrone)
+        //        return;
 
 
-        }
+        //}
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
@@ -383,7 +379,6 @@ namespace StayInTarkov.Coop
 
         public void ApplyStatePacket(PlayerStatePacket playerStatePacket)
         {
-            // Todo: Add interpolator to fight lag
             if (!IsYourPlayer)
             {
                 float interpolationRatio = 0.75f;
@@ -424,6 +419,7 @@ namespace StayInTarkov.Coop
 
                 MovementContext.SetCurrentClientAnimatorStateIndex(playerStatePacket.AnimatorStateIndex);
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
+                MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(lastPlayerState.CharacterMovementSpeed, playerStatePacket.CharacterMovementSpeed, interpolationRatio));
 
                 Move(playerStatePacket.InputDirection);
                 Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, playerStatePacket.Position, interpolationRatio);
@@ -455,24 +451,46 @@ namespace StayInTarkov.Coop
             lastPlayerState = playerStatePacket;
         }
 
+        public void SendStatePacket()
+        {
+            if (Client != null && IsYourPlayer)
+            {
+                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+
+                Client._dataWriter.Reset();
+                playerStatePacket.Serialize(Client._dataWriter);
+
+                Client.SendData(Client._dataWriter, LiteNetLib.DeliveryMethod.Unreliable); 
+            }
+        }
+
         public override void LateUpdate()
         {
             base.LateUpdate();
+            //SendStatePacket();
+        }
 
-            PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+        private void Start()
+        {
+            if (MatchmakerAcceptPatches.IsServer && IsYourPlayer)
+            {
+                Server = this.GetOrAddComponent<SITServer>();
+            }
+            else if (IsYourPlayer)
+            {
+                Client = this.GetOrAddComponent<SITClient>();
+                Client.Player = this;
+            }
+
+            lastPlayerState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
-            var toSend = PlayerStatePacket.SerializeState(playerStatePacket);
-
-            Dictionary<string, object> packet = new()
-            {
-                { "state", toSend.ToJson() },
-                { "m", "ApplyState" }
-            };
-
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+            InvokeRepeating("SendStatePacket", 0.1f, 0.005f);
         }
 
         public override void OnDestroy()
