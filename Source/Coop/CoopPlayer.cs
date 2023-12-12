@@ -131,7 +131,6 @@ namespace StayInTarkov.Coop
         private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
-        private PlayerStatePacket lastPlayerState = default;
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
@@ -425,7 +424,10 @@ namespace StayInTarkov.Coop
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
                 MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
-                Move(NewState.InputDirection);
+                if (Velocity.x != 0 || Velocity.y != 0 || Velocity.z != 0)
+                {
+                    Move(NewState.InputDirection); 
+                }
                 Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
                 CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
 

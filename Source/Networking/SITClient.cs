@@ -31,7 +31,7 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = true
             };
             _netClient.Start();
-            _netClient.Connect("78.72.78.93", 5000, "sit.core");
+            _netClient.Connect("localhost", 5000, "sit.core");
         }
 
         void Update()

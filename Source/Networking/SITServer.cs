@@ -27,7 +27,6 @@ namespace StayInTarkov.Networking
                 AutoRecycle = true,
                 IPv6Enabled = false
             };
-            var ip = "78.72.78.93";
             _netServer.Start(5000);
             EFT.UI.ConsoleScreen.Log("Started SITServer");
             NotificationManagerClass.DisplayMessageNotification($"Server started on {ip}.",
