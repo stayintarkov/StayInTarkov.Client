@@ -376,7 +376,6 @@ namespace StayInTarkov.Coop
 
         public void ApplyStatePacket(PlayerStatePacket playerStatePacket)
         {
-            // Todo: Add interpolator to fight lag
             if (!IsYourPlayer)
             {
                 float interpolationRatio = 0.75f;
