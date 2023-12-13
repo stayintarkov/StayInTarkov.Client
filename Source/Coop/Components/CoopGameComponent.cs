@@ -469,7 +469,9 @@ namespace StayInTarkov.Coop
                     quitState = EQuitState.YouHaveExtractedOnlyAsHost;
             }
 
-            if (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
+            // If there are any players alive. Number of players Alive Equals Numbers of players Extracted
+            // OR Number of Players Equals Number of players Extracted 
+            if ((numberOfPlayersAlive > 0 && numberOfPlayersAlive == numberOfPlayersExtracted) || PlayerUsers.Count() == numberOfPlayersExtracted)
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
