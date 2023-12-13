@@ -715,6 +715,18 @@ namespace StayInTarkov.Coop
                 EBotAmount.Horde => 15,
                 _ => 16,
             };
+            switch(controllerSettings.BotAmount)
+            {
+                case EBotAmount.Low:
+                    MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
+                    break;
+                case EBotAmount.High:
+                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.1);
+                    break;
+                case EBotAmount.Horde:
+                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.25);
+                    break;
+            };
 
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
             //Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
@@ -722,23 +734,25 @@ namespace StayInTarkov.Coop
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
 
-            //foreach(var friendlyB in FriendlyPlayers.Values)
+            //foreach (var friendlyB in FriendlyPlayers.Values)
             //{
             //    //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
             //    //botOwner.GetComponentsInChildren<Collider>();
             //    //botOwner.GetPlayer.CharacterController.isEnabled = false;
             //    Logger.LogDebug("Attempting to Activate friendly bot");
-            //    botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
-            //        Logger.LogDebug("group action");
-            //        return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
-            //    }, (owner) => {
+            //    //botCreator.ActivateBot(friendlyB.Profile, botZones[0], false, (bot, zone) =>
+            //    //{
+            //    //    Logger.LogDebug("group action");
+            //    //    return new BotsGroup(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
+            //    //}, (owner) =>
+            //    //{
 
-            //        Logger.LogDebug("Bot Owner created");
+            //    //    Logger.LogDebug("Bot Owner created");
 
-            //        owner.GetComponentsInChildren<Collider>();
-            //        owner.GetPlayer.CharacterController.isEnabled = false;
+            //    //    owner.GetComponentsInChildren<Collider>();
+            //    //    owner.GetPlayer.CharacterController.isEnabled = false;
 
-            //    }, cancellationToken: CancellationToken.None);
+            //    //}, cancellationToken: CancellationToken.None);
             //}
 
             yield return new WaitForSeconds(startDelay);
@@ -941,6 +955,8 @@ namespace StayInTarkov.Coop
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
+            Status = GameStatus.Stopped;
+
             Logger.LogInfo("CoopGame.Stop");
 
             // Notify that I have left the Server

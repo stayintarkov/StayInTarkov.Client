@@ -411,7 +411,7 @@ namespace StayInTarkov.Coop.Components
             float cellHeight = (windowInnerRect.height - 40) / numRows;
 
             // Calculate the vertical positions for lines and labels
-            float topSeparatorY = 20;
+            float topSeparatorY = 15;
             float middleSeparatorY = topSeparatorY + cellHeight - 7;
             float bottomSeparatorY = topSeparatorY + numRows * cellHeight;
 
@@ -469,7 +469,7 @@ namespace StayInTarkov.Coop.Components
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                     // Create "Join" button for each match on the next column
-                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
+                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
                         JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["ServerId"].ToString());
@@ -679,6 +679,31 @@ namespace StayInTarkov.Coop.Components
 
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);
+        }
+    }
+
+    internal class CalculateXAxis
+    {
+        /// <summary>
+        /// X-Axis for a checkbox
+        /// </summary>
+        public float Checkbox { get; private set; } = 0;
+        /// <summary>
+        /// X-Axis to put text besides a checkbox
+        /// </summary>
+        public float CheckboxText { get; private set; } = 0;
+        /// <summary>
+        /// X-Axis for text that's not needed to be formatted next to a checkbox
+        /// </summary>
+        public float Text { get; private set; } = 0;
+
+        public CalculateXAxis(GUIContent Content, float WindowWidth, int HorizontalSpacing = 10)
+        {
+            var CalcSize = GUI.skin.label.CalcSize(Content);
+
+            Checkbox = WindowWidth - CalcSize.x / 2 - HorizontalSpacing;
+            CheckboxText = Checkbox + 20;
+            Text = Checkbox;
         }
     }
 }
