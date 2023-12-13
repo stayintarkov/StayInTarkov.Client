@@ -955,7 +955,7 @@ namespace StayInTarkov.Coop
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
-            Status = GameStatus.Stopped;
+            //Status = GameStatus.Stopped;
 
             Logger.LogInfo("CoopGame.Stop");
 
@@ -982,7 +982,6 @@ namespace StayInTarkov.Coop
                 }
             }
 
-            CoopPatches.LeftGameDestroyEverything();
 
             if (this.BossWaveManager != null)
                 this.BossWaveManager.Stop();
@@ -993,10 +992,10 @@ namespace StayInTarkov.Coop
             if (this.wavesSpawnScenario_0 != null)
                 this.wavesSpawnScenario_0.Stop();
 
-            // @konstantin90s suggestion to disable patches as the game closes
-            CoopPatches.EnableDisablePatches();
 
+            CoopPatches.EnableDisablePatches();
             base.Stop(profileId, exitStatus, exitName, delay);
+            CoopPatches.LeftGameDestroyEverything();
         }
 
         public override void CleanUp()
