@@ -44,7 +44,7 @@ namespace StayInTarkov.Coop
         /// <summary>
         /// ProfileId to Player instance
         /// </summary>
-        public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
+        public ConcurrentDictionary<string, CoopPlayer> Players { get; } = new();
 
         //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
@@ -177,7 +177,7 @@ namespace StayInTarkov.Coop
             OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
             // Add own Player to Players list
-            Players.TryAdd(OwnPlayer.ProfileId, OwnPlayer);
+            Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
 
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -1026,7 +1026,7 @@ namespace StayInTarkov.Coop
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
             if (!Players.ContainsKey(profile.ProfileId))
-                Players.TryAdd(profile.ProfileId, otherPlayer);
+                Players.TryAdd(profile.ProfileId, (CoopPlayer)otherPlayer);
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);

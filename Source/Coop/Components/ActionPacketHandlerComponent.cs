@@ -22,7 +22,7 @@ namespace StayInTarkov.Coop.Components
         public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new(9999);
-        public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
+        public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
         private List<string> RemovedFromAIPlayers = new();

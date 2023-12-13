@@ -1,18 +1,21 @@
-﻿using StayInTarkov.Coop.Components;
+﻿using Newtonsoft.Json.Linq;
+using StayInTarkov.Coop.Components;
+using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.PacketHandlers
 {
     /// <summary>
     /// Created by Paulov
-    /// Description: Here is an example of how to use IPlayerPacketHandlerComponent. You contract the interface and then use ProcessPacket to do the work.
     /// </summary>
     internal class PlayerRotatePacketHandler : IPlayerPacketHandlerComponent
     {
         private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
-        public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
+        public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
 
         private BepInEx.Logging.ManualLogSource Logger { get; set; }
 
@@ -23,6 +26,11 @@ namespace StayInTarkov.Coop.PacketHandlers
 
         public void ProcessPacket(Dictionary<string, object> packet)
         {
+            ProcessPacket(JObject.FromObject(packet));
+        }
+
+        public void ProcessPacket(JObject packet)
+        {
             string profileId = null;
             string method = null;
 
@@ -31,22 +39,28 @@ namespace StayInTarkov.Coop.PacketHandlers
 
             profileId = packet["profileId"].ToString();
 
-            if (!packet.ContainsKey("m"))
+            if (!packet.ContainsKey(AkiBackendCommunication.PACKET_TAG_METHOD))
                 return;
 
-            method = packet["m"].ToString();
+            method = packet[AkiBackendCommunication.PACKET_TAG_METHOD].ToString();
 
             // Now Process dependant on the Packet
             // e.g. if (packet["m"].ToString() == "MoveOperation")
             if (method != "PlayerRotate")
                 return;
 
+            var player = (Players[profileId]);
+            //if (!player.GetComponent<PlayerReplicatedComponent>().IsClientDrone)
+            //    return;
             //Logger.LogInfo(packet.SITToJson());
 
             var x = float.Parse(packet["x"].ToString());
             var y = float.Parse(packet["y"].ToString());
+
+            //Logger.LogInfo(x);
+            //Logger.LogInfo(y);
             Vector2 rot = new Vector2(x, y);
-            ((CoopPlayer)Players[profileId]).ReceiveRotate(rot, false);
+            player.ReceiveRotate(rot, false);
         }
 
     }
