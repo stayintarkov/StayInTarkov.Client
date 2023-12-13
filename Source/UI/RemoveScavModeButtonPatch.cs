@@ -1,17 +1,15 @@
-﻿using System.Reflection;
+﻿using EFT.UI;
+using System.Reflection;
 using UnityEngine;
 
 
 namespace StayInTarkov.UI
 {
-    /// <summary>
-    /// Created by: Paulov
-    /// </summary>
     public class RemoveScavModeButtonPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(EFT.UI.Matchmaker.MatchMakerSideSelectionScreen).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            return ReflectionHelpers.GetMethodForType(typeof(EFT.UI.Matchmaker.MatchMakerSideSelectionScreen), "Awake");
         }
 
         [PatchPostfix]
@@ -26,9 +24,15 @@ namespace StayInTarkov.UI
             var pmcdesc = GameObject.Find("Description");
             pmcdesc.active = false;
 
+            Logger.LogInfo(Screen.width);
+            Logger.LogInfo(Screen.width / 2);
+
             var pmcs = GameObject.Find("PMCs");
             var mmSSC = pmcs.transform.parent.gameObject;
-            pmcs.transform.position = new Vector3(mmSSC.transform.position.x / 1.305f, pmcs.transform.position.y * 0.75f, 0);
+            Logger.LogInfo(pmcs.transform.position.x);
+            Logger.LogInfo(mmSSC.transform.position.x);
+            pmcs.transform.position = new Vector3(Screen.width * 0.39f, pmcs.transform.position.y * 0.75f, 0);
+           
         }
     }
 }
