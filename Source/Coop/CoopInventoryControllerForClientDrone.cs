@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop
 {
-    internal class CoopInventoryControllerForClientDrone
+    internal sealed class CoopInventoryControllerForClientDrone
         : EFT.Player.PlayerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }

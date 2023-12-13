@@ -56,6 +56,10 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;
 
+            // Prevent compass switch code running twice.
+            if (player.IsYourPlayer && playerProceedPacket.TemplateId == "5f4f9eb969cdc30ff33f09db") // EYE MK.2 professional hand-held compass
+                return;
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))

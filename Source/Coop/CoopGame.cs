@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop
 {
-    public class FriendlyAIPMCSystem
+    public sealed class FriendlyAIPMCSystem
     {
         /// <summary>
         /// This spawns bots but does nothing. DO NOT USE!
@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    internal sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
 
         public new bool InRaid { get { return true; } }

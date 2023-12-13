@@ -16,9 +16,11 @@
   "AI_DIFFICULTY": "AI Difficulty",
   "AI_BOSSES_ENABLED": "Enable Bosses",
   "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once.",
-  "RAID_PLAYER_EXTRACTED": "You have extracted! Please wait for the game to end or quit now using the F8 Key.",
-  "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait for all players to extract or quit now using the F8 Key.",
-  "RAID_PLAYER_DEAD": "You are Dead! Please wait for the game to end or quit now using the F8 Key.",
-  "RAID_TEAM_EXTRACTED": "Your team has extracted! Quit now using the F8 Key.",
-  "RAID_TEAM_DEAD": "Your team is Dead! Please quit now using the F8 Key."
+  "RAID_TEAM_DEAD": "Your team is Dead! You can quit now using the F8 Key.",
+  "RAID_PLAYER_DEAD_SOLO": "You are Dead! You can quit now using the F8 Key.",
+  "RAID_PLAYER_DEAD_HOST": "You are Dead! Please wait other player(s) to extract or died.",
+  "RAID_PLAYER_DEAD_CLIENT": "You are Dead! Please wait for the game to end or quit now using the F8 Key.",
+  "RAID_TEAM_EXTRACTED": "Your team has extracted! You can quit now using the F8 Key.",
+  "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait other player(s) to extract or died.",
+  "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key."
 }

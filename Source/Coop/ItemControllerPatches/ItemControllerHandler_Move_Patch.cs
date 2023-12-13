@@ -139,6 +139,18 @@ namespace StayInTarkov.Coop.ItemControllerPatches
                 slotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
                 slotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
                 dictionary.Add("sitad", slotItemAddressDescriptor);
+
+                if (to.Container.ParentItem != null)
+                {
+                    IItemOwner owner = to.Container.ParentItem.Owner;
+                    if (owner != null)
+                    {
+                        if (owner is ItemController itemControllerOwner && itemControllerOwner.ID.StartsWith("pmc"))
+                        {
+                            dictionary.Add("ply", itemControllerOwner.ID);
+                        }
+                    }
+                }
             }
 
             if (to is StackSlotItemAddress stackSlotItemAddress)
@@ -234,6 +246,8 @@ namespace StayInTarkov.Coop.ItemControllerPatches
                     GetLogger().LogInfo(packet["sitad"].ToString());
                     descriptor = packet["sitad"].ToString().SITParseJson<SlotItemAddressDescriptor>();
 
+                    if (packet.ContainsKey("ply"))
+                        ItemFinder.TryFindItemController(packet["ply"].ToString(), out itemController);
                 }
 
                 if (packet.ContainsKey("ssad"))
@@ -250,14 +264,10 @@ namespace StayInTarkov.Coop.ItemControllerPatches
                     return;
                 }
 
-                if (!ItemFinder.TryFindItemController(descriptor.Container.ParentId, out itemController))
-                {
-                    if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
-                    {
-                        GetLogger().LogError("Unable to find ItemController");
-                        return;
-                    }
-                }
+                if (itemController == null)
+                    if (!ItemFinder.TryFindItemController(descriptor.Container.ParentId, out itemController))
+                        if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
+                            ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController);
 
                 if (itemController == null)
                 {
