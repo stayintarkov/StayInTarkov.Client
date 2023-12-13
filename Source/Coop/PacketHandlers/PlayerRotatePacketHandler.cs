@@ -50,8 +50,8 @@ namespace StayInTarkov.Coop.PacketHandlers
                 return;
 
             var player = (Players[profileId]);
-            //if (!player.GetComponent<PlayerReplicatedComponent>().IsClientDrone)
-            //    return;
+            if (!player.GetComponent<PlayerReplicatedComponent>().IsClientDrone)
+                return;
             //Logger.LogInfo(packet.SITToJson());
 
             var x = float.Parse(packet["x"].ToString());
