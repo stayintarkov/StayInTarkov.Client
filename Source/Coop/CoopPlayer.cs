@@ -5,11 +5,11 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using LiteNetLib.Utils;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
+using StayInTarkov.Networking.Packets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -303,6 +303,7 @@ namespace StayInTarkov.Coop
         public override Corpse CreateCorpse()
         {
             CancelInvoke("SendStatePacket");
+            CancelInvoke("Interpolate");
             return base.CreateCorpse();
         }
 
@@ -310,50 +311,6 @@ namespace StayInTarkov.Coop
         {
             base.OnItemAddedOrRemoved(item, location, added);
         }
-
-        public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
-        {
-            //if (
-            //    (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
-            //    && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-            //    || IsSprintEnabled
-            //    )
-            //{
-            //    Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-            //    rotationPacket.Add("m", "PlayerRotate");
-            //    rotationPacket.Add("x", this.Rotation.x);
-            //    rotationPacket.Add("y", this.Rotation.y);
-            //    AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
-            //}
-
-            base.Rotate(deltaRotation, ignoreClamp);
-        }
-
-        //public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
-        //{
-        //    var prc = this.GetComponent<PlayerReplicatedComponent>();
-        //    if (prc == null || !prc.IsClientDrone)
-        //        return;
-
-        //    this.Rotation = rotation;
-        //    prc.ReplicatedRotation = rotation; 
-
-        //}
-
-
-        //public override void Move(Vector2 direction)
-        //{
-        //    var prc = GetComponent<PlayerReplicatedComponent>();
-        //    if (prc == null)
-        //        return;
-
-        //    base.Move(direction);
-
-        //    if (prc.IsClientDrone)
-        //        return;
-
-
-        //}
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
@@ -397,6 +354,10 @@ namespace StayInTarkov.Coop
 
                 EPlayerState name = MovementContext.CurrentState.Name;
                 EPlayerState eplayerState = NewState.State;
+                if (eplayerState == EPlayerState.Jump)
+                {
+                    Jump();
+                }
                 if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
                 {
                     MovementContext.PlayerAnimatorEnableJump(false);
@@ -424,7 +385,7 @@ namespace StayInTarkov.Coop
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
                 MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
-                if (Velocity.x != 0 || Velocity.y != 0 || Velocity.z != 0)
+                if (!IsInventoryOpened)
                 {
                     Move(NewState.InputDirection); 
                 }
@@ -446,9 +407,8 @@ namespace StayInTarkov.Coop
                         IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
                 Writer.Reset();
-                playerStatePacket.Serialize(Writer);
 
-                Client.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+                Client.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
                 return;
             }
             else if (MatchmakerAcceptPatches.IsServer && Server != null)
@@ -459,9 +419,8 @@ namespace StayInTarkov.Coop
                         IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
                 Writer.Reset();
-                playerStatePacket.Serialize(Writer);
 
-                Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
+                Server.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
                 return;
             }
             else if (MatchmakerAcceptPatches.IsServer)
@@ -473,18 +432,9 @@ namespace StayInTarkov.Coop
 
                 var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
                 Writer.Reset();
-                playerStatePacket.Serialize(Writer);
-                e.Server.SendData(Writer, LiteNetLib.DeliveryMethod.Unreliable);
-                return;
-            }
-        }
 
-        public override void LateUpdate()
-        {
-            base.LateUpdate();
-            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer))
-            {
-                Interpolate();
+                e.Server.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
+                return;
             }
         }
 
@@ -502,12 +452,20 @@ namespace StayInTarkov.Coop
 
             Writer = new();
 
-            LastState = new(ProfileId, Position, Rotation, HeadRotation,
+            LastState = new(ProfileId, new Vector3(Position.x, Position.y, 1000), Rotation, HeadRotation,
+                MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+            NewState = new(ProfileId, new Vector3(Position.x, Position.y, 1000), Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
-            InvokeRepeating("SendStatePacket", 0.1f, 0.005f);
+            InvokeRepeating("SendStatePacket", 1f, 0.003f);
+            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer))
+            {
+                InvokeRepeating("Interpolate", 1f, 0.003f);
+            }
         }
 
         public override void OnDestroy()

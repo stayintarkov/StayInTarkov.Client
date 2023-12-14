@@ -1,25 +1,35 @@
-﻿using Comfort.Common;
-using EFT;
-using LiteNetLib;
+﻿using LiteNetLib;
 using LiteNetLib.Utils;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
-using StayInTarkov.Coop.NetworkPacket;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using static StayInTarkov.Networking.StructUtils;
+using StayInTarkov.Networking.Packets;
 
 namespace StayInTarkov.Networking
 {
     public class SITServer : MonoBehaviour, INetEventListener, INetLogger
     {
         private LiteNetLib.NetManager _netServer;
-        public NetDataWriter _dataWriter;
+        public NetPacketProcessor _packetProcessor = new();
+
+        public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
+        private CoopGameComponent CoopGameComponent { get; set; }
 
         public void Start()
         {
             NetDebug.Logger = this;
-            _dataWriter = new NetDataWriter();
+
+            _packetProcessor.RegisterNestedType(Vector3Utils.Serialize, Vector3Utils.Deserialize);
+            _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
+            _packetProcessor.RegisterNestedType(PhysicalUtils.Serialize, PhysicalUtils.Deserialize);
+
+            _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
+
             _netServer = new LiteNetLib.NetManager(this)
             {
                 BroadcastReceiveEnabled = true,
@@ -27,10 +37,29 @@ namespace StayInTarkov.Networking
                 AutoRecycle = true,
                 IPv6Enabled = false
             };
-            _netServer.Start(5000);
+
+            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort);   
+
             EFT.UI.ConsoleScreen.Log("Started SITServer");
-            NotificationManagerClass.DisplayMessageNotification($"Server started on {ip}.",
+            NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+        }
+
+        private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
+        {
+            if (!CoopGameComponent.Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.NewState = packet;
+            }
+        }
+
+        public void Awake()
+        {
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
         }
 
         void Update()
@@ -45,15 +74,15 @@ namespace StayInTarkov.Networking
                 _netServer.Stop();
         }
 
-        public void SendData(NetDataWriter dataWriter, DeliveryMethod deliveryMethod)
+        public void SendData<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod) where T : INetSerializable
         {
-            _netServer.SendToAll(dataWriter, deliveryMethod);
+            _packetProcessor.WriteNetSerializable(writer, ref packet);
+            _netServer.SendToAll(writer, deliveryMethod);
         }
 
         public void OnPeerConnected(NetPeer peer)
         {
-            EFT.UI.ConsoleScreen.Log("[SERVER] We have new peer " + peer.EndPoint);
-            NotificationManagerClass.DisplayMessageNotification($"Peer {peer.Id} connected to server.",
+            NotificationManagerClass.DisplayMessageNotification($"Peer {peer.EndPoint} connected to server.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
         }
 
@@ -62,8 +91,7 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[SERVER] error " + socketErrorCode);
         }
 
-        public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader,
-            UnconnectedMessageType messageType)
+        public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
             if (messageType == UnconnectedMessageType.Broadcast)
             {
@@ -95,14 +123,7 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
-            PlayerStatePacket pSP = new();
-            pSP.Deserialize(reader);
-
-            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID.Where(x => x.Key == pSP.ProfileId).FirstOrDefault().Value as CoopPlayer;
-            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
-            {
-                playerToApply.NewState = pSP;
-            }
+            _packetProcessor.ReadAllPackets(reader, peer);
         }
     }
 }

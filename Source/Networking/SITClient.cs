@@ -1,17 +1,13 @@
 ﻿using LiteNetLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using LiteNetLib.Utils;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
-using StayInTarkov.Coop.NetworkPacket;
-using EFT;
-using Comfort.Common;
+using StayInTarkov.Networking.Packets;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using UnityEngine;
+using static StayInTarkov.Networking.StructUtils;
 
 namespace StayInTarkov.Networking
 {
@@ -19,19 +15,46 @@ namespace StayInTarkov.Networking
     {
         private LiteNetLib.NetManager _netClient;
         public CoopPlayer Player { get; set; }
-
-        public NetDataWriter _dataWriter = new();
+        public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
+        private CoopGameComponent CoopGameComponent { get; set; }
+        public NetPacketProcessor _packetProcessor = new();
 
         public void Start()
         {
+            _packetProcessor.RegisterNestedType(Vector3Utils.Serialize, Vector3Utils.Deserialize);
+            _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
+            _packetProcessor.RegisterNestedType(PhysicalUtils.Serialize, PhysicalUtils.Deserialize);
+
+            _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
+
             _netClient = new LiteNetLib.NetManager(this)
             {
                 UnconnectedMessagesEnabled = true,
                 UpdateTime = 15,
-                NatPunchEnabled = true
+                NatPunchEnabled = false,
+                IPv6Enabled = false
             };
+
             _netClient.Start();
-            _netClient.Connect("localhost", 5000, "sit.core");
+
+            _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITGamePlayIP, PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort, "sit.core");
+        }
+
+        private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
+        {
+            if (!CoopGameComponent.Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.NewState = packet;
+            }
+        }
+
+        public void Awake()
+        {
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
         }
 
         void Update()
@@ -46,7 +69,7 @@ namespace StayInTarkov.Networking
             }
             else
             {
-                _netClient.SendBroadcast(new byte[] { 1 }, 5000);
+                _netClient.SendBroadcast([1], PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort);
             }
         }
 
@@ -56,9 +79,10 @@ namespace StayInTarkov.Networking
                 _netClient.Stop();
         }
 
-        public void SendData(NetDataWriter dataWriter, DeliveryMethod deliveryMethod)
+        public void SendData<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod) where T : INetSerializable
         {
-            _netClient.FirstPeer.Send(dataWriter, deliveryMethod);
+            _packetProcessor.WriteNetSerializable(writer, ref packet);
+            _netClient.FirstPeer.Send(writer, deliveryMethod);
         }
 
         public void OnPeerConnected(NetPeer peer)
@@ -75,14 +99,7 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
-            PlayerStatePacket pSP = new();
-            pSP.Deserialize(reader);
-
-            var playerToApply = Singleton<GameWorld>.Instance.allAlivePlayersByID.Where(x => x.Key == pSP.ProfileId).FirstOrDefault().Value as CoopPlayer;
-            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
-            {
-                playerToApply.NewState = pSP;
-            }
+            _packetProcessor.ReadAllPackets(reader, peer);
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
