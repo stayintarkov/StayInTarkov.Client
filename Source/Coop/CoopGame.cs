@@ -342,9 +342,10 @@ namespace StayInTarkov.Coop
             if (MatchmakerAcceptPatches.IsClient)
                 return null;
 
-            Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
             if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
                 return null;
+
+            Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
 
             LocalPlayer localPlayer;
             if (!base.Status.IsRunned())
@@ -729,7 +730,7 @@ namespace StayInTarkov.Coop
             };
 
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
-            //Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
+            Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
 
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
@@ -760,10 +761,10 @@ namespace StayInTarkov.Coop
             {
                 this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
 
-                if (this.nonWavesSpawnScenario_0 != null)
-                    this.nonWavesSpawnScenario_0.Run();
+                //if (this.nonWavesSpawnScenario_0 != null)
+                //    this.nonWavesSpawnScenario_0.Run();
 
-                Logger.LogDebug($"Running Wave Scenarios");
+                //Logger.LogDebug($"Running Wave Scenarios");
 
                 if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
                 {
@@ -802,6 +803,13 @@ namespace StayInTarkov.Coop
 
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
 
+            if (shouldSpawnBots)
+            {
+                if (this.nonWavesSpawnScenario_0 != null)
+                    this.nonWavesSpawnScenario_0.Run();
+
+                Logger.LogDebug($"Running Wave Scenarios");
+            }
             yield break;
         }
 
