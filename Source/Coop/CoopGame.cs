@@ -335,7 +335,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
+        public Dictionary<string, EFT.Player> Bots { get; } = new ();
 
         private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
@@ -343,8 +343,18 @@ namespace StayInTarkov.Coop
                 return null;
 
             if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
+            {
+                Logger.LogDebug("Block spawn of Bot. Max Bot Count has been reached!");
                 return null;
+            }
 
+            if (GameDateTime.Calculate().TimeOfDay < new TimeSpan(20, 0, 0) && profile.Info != null && profile.Info.Settings != null
+                && (profile.Info.Settings.Role == WildSpawnType.sectantPriest || profile.Info.Settings.Role == WildSpawnType.sectantWarrior)
+                )
+            {
+                Logger.LogDebug("Block spawn of Sectant (Cultist) in day time!");
+                return null;
+            }
             Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
 
             LocalPlayer localPlayer;
@@ -363,7 +373,6 @@ namespace StayInTarkov.Coop
 
                 localPlayer
                    = (await CoopPlayer.Create(
-                       //= (await LocalPlayer.Create(
                        num
                        , position
                        , Quaternion.identity
@@ -376,10 +385,10 @@ namespace StayInTarkov.Coop
                        , EFT.Player.EUpdateMode.Manual
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
-                   , () => 1f
-                   , () => 1f
-, FilterCustomizationClass1.Default
-)
+                    , () => 1f
+                    , () => 1f
+                    , FilterCustomizationClass1.Default
+                    )
                   );
                 localPlayer.Location = base.Location_0.Id;
                 if (this.Bots.ContainsKey(localPlayer.ProfileId))
