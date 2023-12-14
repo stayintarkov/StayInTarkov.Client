@@ -22,6 +22,7 @@ namespace StayInTarkov.Networking.Packets
         public Physical.PhysicalStamina Stamina { get; set; }
         public Vector2 InputDirection { get; set; }
         public int Blindfire { get; set; }
+        public float LinearSpeed { get; set; }
 
         public PlayerStatePacket()
         {
@@ -30,7 +31,7 @@ namespace StayInTarkov.Networking.Packets
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector2 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection, int blindfire)
+            bool isProne, float poseLevel, bool isSprinting, Physical.PhysicalStamina stamina, Vector2 inputDirection, int blindfire, float linearSpeed)
         {
             ProfileId = profileId;
             Position = position;
@@ -48,6 +49,7 @@ namespace StayInTarkov.Networking.Packets
             Stamina = stamina;
             InputDirection = inputDirection;
             Blindfire = blindfire;
+            LinearSpeed = linearSpeed;
         }
 
         public void Serialize(NetDataWriter writer)
@@ -76,6 +78,7 @@ namespace StayInTarkov.Networking.Packets
             //writer.Put(InputDirection.x); writer.Put(InputDirection.y);
             Vector2Utils.Serialize(writer, InputDirection);
             writer.Put(Blindfire);
+            writer.Put(LinearSpeed);
         }
 
         public void Deserialize(NetDataReader reader)
@@ -107,6 +110,7 @@ namespace StayInTarkov.Networking.Packets
             //InputDirection = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
             InputDirection = Vector2Utils.Deserialize(reader);
             Blindfire = reader.GetInt();
+            LinearSpeed = reader.GetFloat();
         }
     }
 }

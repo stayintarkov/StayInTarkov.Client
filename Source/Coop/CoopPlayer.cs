@@ -114,7 +114,7 @@ namespace StayInTarkov.Coop
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
             if (!player.IsYourPlayer)
             {
-                player._armsUpdateQueue = EUpdateQueue.Update;                
+                player._armsUpdateQueue = EUpdateQueue.Update;
 
                 //PlayerSpirit playerSpirit = Singleton<PoolManager>.Instance.CreateFromPool<PlayerSpirit>(ResourceBundleConstants.PLAYER_SPIRIT_RESOURCE_KEY);
                 //playerSpirit.transform.position = Vector3.zero;
@@ -486,7 +486,7 @@ namespace StayInTarkov.Coop
 
                 MovementContext.SetBlindFire(NewState.Blindfire);
 
-                if (!IsInventoryOpened)
+                if (!IsInventoryOpened && NewState.LinearSpeed > 0.2)
                 {
                     Move(NewState.InputDirection);
                 }
@@ -510,7 +510,8 @@ namespace StayInTarkov.Coop
                     PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                             MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                             MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
+                            MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
 
                     Writer.Reset();
 
@@ -521,7 +522,8 @@ namespace StayInTarkov.Coop
                     PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                             MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                             MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
+                            MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
 
                     Writer.Reset();
 
@@ -532,7 +534,8 @@ namespace StayInTarkov.Coop
                     PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
                             MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                             MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
+                            MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
 
                     var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
                     Writer.Reset();
@@ -560,6 +563,20 @@ namespace StayInTarkov.Coop
             }
         }
 
+        IEnumerator SpawnPlayer()
+        {
+            yield return new WaitForSeconds(6);
+
+            ActiveHealthController.SetDamageCoeff(0);
+            Teleport(new Vector3(NewState.Position.x, NewState.Position.y, NewState.Position.z + 3));
+
+            yield return new WaitForSeconds(1);
+
+            ActiveHealthController.SetDamageCoeff(1);
+            gameObject.layer = LayerMask.GetMask("Player");
+            yield break;
+        }
+
         private void Start()
         {
             if (MatchmakerAcceptPatches.IsServer && IsYourPlayer)
@@ -574,14 +591,16 @@ namespace StayInTarkov.Coop
 
             Writer = new();
 
-            LastState = new(ProfileId, Position, Rotation, HeadRotation,
+            LastState = new(ProfileId, new Vector3(Position.x, Position.y, Position.z + 3), Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
-            NewState = new(ProfileId, Position, Rotation, HeadRotation,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
+                MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
+            NewState = new(ProfileId, new Vector3(Position.x, Position.y, Position.z + 3), Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
+                MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
 
             if (IsYourPlayer) // Run if it's us
             {
@@ -599,6 +618,13 @@ namespace StayInTarkov.Coop
             {
                 StartCoroutine(SyncWorld());
             }
+
+            if (!IsYourPlayer && !IsAI)
+            {
+                gameObject.layer = LayerMask.GetMask("PlayerSpiritAura");
+                StartCoroutine(SpawnPlayer()); 
+            }
+            
         }
 
         public override void UpdateTick()
