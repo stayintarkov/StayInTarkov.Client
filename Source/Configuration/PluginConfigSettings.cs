@@ -143,7 +143,7 @@ namespace StayInTarkov.Configuration
 
                 SITGamePlayPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "GameplayPort", 25565, new ConfigDescription("Port to use for UDP packets. DEFAULT = 25565")).Value;
 
-                SITGamePlayIP = StayInTarkovPlugin.Instance.Config.Bind("Coop", "GamePlayIP", "127.0.0.1", new ConfigDescription("The IP to connect to for UDP connections. DEFAULT = 127.0.0.1")).Value;
+                SITGamePlayIP = StayInTarkovPlugin.Instance.Config.Bind("Coop", "GameplayIP", "127.0.0.1", new ConfigDescription("The IP to connect to for UDP connections. DEFAULT = 127.0.0.1")).Value;
 
                 AllPlayersSpawnTogether = StayInTarkovPlugin.Instance.Config.Bind
                ("Coop", "AllPlayersSpawnTogether", true, new ConfigDescription("Whether to spawn all players in the same place")).Value;

@@ -25,9 +25,10 @@ namespace StayInTarkov.Coop
         public SITServer Server { get; set; }
         public SITClient Client { get; set; }
         public NetDataWriter Writer { get; set; }
-        private float InterpolationRatio { get; set; } = 0;
+        private float InterpolationRatio { get; set; } = 0.5f;
         public PlayerStatePacket LastState { get; set; }
         public PlayerStatePacket NewState { get; set; }
+        private FollowerCullingObject CullingObject { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -57,8 +58,8 @@ namespace StayInTarkov.Coop
                     , playerId
                     , position
                     , updateQueue
-                    , EFT.Player.EUpdateMode.Manual
-                    , EFT.Player.EUpdateMode.Manual
+                    , EUpdateMode.Manual
+                    , EUpdateMode.Auto
                     , characterControllerMode
                     , getSensitivity
                     , getAimingSensitivity
@@ -109,8 +110,30 @@ namespace StayInTarkov.Coop
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
-            player._animators[0].speed = isYourPlayer ? 0.9f : 0.6f;
+            //player._animators[0].speed = isYourPlayer ? 0.9f : 0.6f;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+            if (!player.IsYourPlayer)
+            {
+                player._armsUpdateQueue = EUpdateQueue.Update;                
+
+                //PlayerSpirit playerSpirit = Singleton<PoolManager>.Instance.CreateFromPool<PlayerSpirit>(ResourceBundleConstants.PLAYER_SPIRIT_RESOURCE_KEY);
+                //playerSpirit.transform.position = Vector3.zero;
+                //playerSpirit.gameObject.SetActive(true);
+                //player.Spirit = playerSpirit;
+                //player.Transform.Original.SetParent(player.Spirit.transform, false);
+                //player.Spirit.Init(player, player.Position, player._bodyUpdateMode != EUpdateMode.None,
+                //    BackendConfigManager.Config.CharacterController.ObservedPlayerMode, BackendConfigManager.Config.CharacterController.ObservedPlayerMode);
+
+                //player.CullingObject = player.GetOrAddComponent<FollowerCullingObject>();
+                //player.CullingObject.enabled = true;
+                //player.CullingObject.CullByDistanceOnly = false;
+
+                ////player.CullingObject.Init(new Func<Transform>(player.GetTransform));
+                //player.CullingObject.Init(new Func<Transform>(player.Spirit.GetActiveTransform));                
+
+                //player.CullingObject.SetParams(EFTHardSettings.Instance.CULLING_PLAYER_SPHERE_RADIUS, EFTHardSettings.Instance.CULLING_PLAYER_SPHERE_SHIFT,
+                //    EFTHardSettings.Instance.CULLING_PLAYER_DISTANCE);
+            }
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
@@ -120,6 +143,19 @@ namespace StayInTarkov.Coop
             }
 
             return player;
+        }
+
+        //private void CullingObject_OnVisibilityChanged(bool isVisible)
+        //{
+        //    if (Spirit.IsActive == isVisible)
+        //    {
+        //        Spirit.Switch(!isVisible);
+        //    }
+        //}
+
+        private Transform GetTransform()
+        {
+            return PlayerBones.BodyTransform.Original;
         }
 
         /// <summary>
@@ -258,7 +294,7 @@ namespace StayInTarkov.Coop
 
             yield break;
 
-        }
+        }        
 
         public override void OnSkillLevelChanged(AbstractSkill skill)
         {
@@ -302,7 +338,7 @@ namespace StayInTarkov.Coop
         public override Corpse CreateCorpse()
         {
             CancelInvoke("SendStatePacket");
-            CancelInvoke("Interpolate");
+            StopCoroutine(Interpolate());
             return base.CreateCorpse();
         }
 
@@ -338,11 +374,75 @@ namespace StayInTarkov.Coop
             Speaker.PlayDirect(trigger, index);
         }
 
-        public void Interpolate()
+        public IEnumerator Interpolate()
+        {
+            var waitSeconds = new WaitForSeconds(0.005f);
+
+            while (true)
+            {
+                yield return waitSeconds;
+
+                if (!IsYourPlayer)
+                {
+
+                    Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
+
+                    HeadRotation = Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio);
+                    ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
+                    MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
+                    MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
+
+                    EPlayerState name = MovementContext.CurrentState.Name;
+                    EPlayerState eplayerState = NewState.State;
+                    if (eplayerState == EPlayerState.Jump)
+                    {
+                        Jump();
+                    }
+                    if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
+                    {
+                        MovementContext.PlayerAnimatorEnableJump(false);
+                        MovementContext.PlayerAnimatorEnableLanding(true);
+                    }
+                    if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
+                    {
+                        MovementContext.IsInPronePose = false;
+                    }
+                    if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
+                    {
+                        MovementContext.IsInPronePose = true;
+                    }
+
+                    Physical.SerializationStruct = NewState.Stamina;
+                    MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
+                    CurrentManagedState.SetStep(NewState.Step);
+                    MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
+                    MovementContext.EnableSprint(NewState.IsSprinting);
+
+                    MovementContext.IsInPronePose = NewState.IsProne;
+                    MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
+
+                    MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
+                    MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+                    MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+
+                    MovementContext.SetBlindFire(NewState.Blindfire);
+
+                    if (!IsInventoryOpened)
+                    {
+                        Move(NewState.InputDirection);
+                    }
+                    Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
+                    CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
+
+                    LastState = NewState;
+                } 
+            }
+        }
+
+        public void Interpolate2()
         {
             if (!IsYourPlayer)
             {
-                InterpolationRatio += Time.deltaTime / Time.fixedDeltaTime;
 
                 Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
@@ -384,6 +484,8 @@ namespace StayInTarkov.Coop
                 MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
                 MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
+                MovementContext.SetBlindFire(NewState.Blindfire);
+
                 if (!IsInventoryOpened)
                 {
                     Move(NewState.InputDirection);
@@ -392,48 +494,69 @@ namespace StayInTarkov.Coop
                 CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
 
                 LastState = NewState;
-                InterpolationRatio = 0;
             }
         }
 
-        public void SendStatePacket()
+        public IEnumerator SendStatePacket()
         {
-            if (Client != null && IsYourPlayer)
+            var waitSeconds = new WaitForSeconds(0.025f);
+
+            while (true)
             {
-                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
-                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+                yield return waitSeconds;
 
-                Writer.Reset();
+                if (Client != null && IsYourPlayer)
+                {
+                    PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                            MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                            MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
 
-                Client.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
-                return;
+                    Writer.Reset();
+
+                    Client.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
+                }
+                else if (MatchmakerAcceptPatches.IsServer && Server != null)
+                {
+                    PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                            MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                            MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+
+                    Writer.Reset();
+
+                    Server.SendDataToAll(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
+                }
+                else if (MatchmakerAcceptPatches.IsServer)
+                {
+                    PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
+                            MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
+                            MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
+                            IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+
+                    var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
+                    Writer.Reset();
+
+                    e.Server.SendDataToAll(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
+                } 
             }
-            else if (MatchmakerAcceptPatches.IsServer && Server != null)
+        }
+
+        public IEnumerator SyncWorld()
+        {
+            var waitSeconds = new WaitForSeconds(30f);
+
+            while (true)
             {
-                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
-                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+                yield return waitSeconds;
 
+                EFT.UI.ConsoleScreen.Log("Sending synchronization packets.");
                 Writer.Reset();
-
-                Server.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
-                return;
-            }
-            else if (MatchmakerAcceptPatches.IsServer)
-            {
-                PlayerStatePacket playerStatePacket = new(ProfileId, Position, Rotation, HeadRotation,
-                        MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
-                        MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.CharacterMovementSpeed,
-                        IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
-
-                var e = Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
+                GameTimerPacket gameTimerPacket = new(true);
+                Client.SendData(Writer, ref gameTimerPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
                 Writer.Reset();
-
-                e.Server.SendData(Writer, ref playerStatePacket, LiteNetLib.DeliveryMethod.Unreliable);
-                return;
+                WeatherPacket weatherPacket = new() { IsRequest = true };
+                Client.SendData(Writer, ref weatherPacket, LiteNetLib.DeliveryMethod.ReliableOrdered); 
             }
         }
 
@@ -451,26 +574,39 @@ namespace StayInTarkov.Coop
 
             Writer = new();
 
-            LastState = new(ProfileId, new Vector3(Position.x, Position.y, 1000), Rotation, HeadRotation,
+            LastState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
-            NewState = new(ProfileId, new Vector3(Position.x, Position.y, 1000), Rotation, HeadRotation,
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
+            NewState = new(ProfileId, Position, Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
-                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
+                IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection, MovementContext.BlindFire);
 
-            if (IsYourPlayer)
+            if (IsYourPlayer) // Run if it's us
             {
-                InvokeRepeating("SendStatePacket", 1f, 0.005f);
+                StartCoroutine(SendStatePacket());
             }
-            else if (MatchmakerAcceptPatches.IsServer)
+            else if (MatchmakerAcceptPatches.IsServer) // Only run on AI when we are the server
             {
-                InvokeRepeating("SendStatePacket", 1f, 0.005f);
+                StartCoroutine(SendStatePacket());
             }
-            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer))
+            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer)) // Interpolate only if it's other clients
             {
-                InvokeRepeating("Interpolate", 1f, 0.005f);
+                //StartCoroutine(Interpolate());
+            }
+            if (MatchmakerAcceptPatches.IsClient && IsYourPlayer)
+            {
+                StartCoroutine(SyncWorld());
+            }
+        }
+
+        public override void UpdateTick()
+        {
+            base.UpdateTick();
+            if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer) && HealthController.IsAlive) // Interpolate only if it's other clients and alive
+            {
+                Interpolate2();
             }
         }
 

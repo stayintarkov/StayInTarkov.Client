@@ -210,14 +210,14 @@ namespace StayInTarkov.Coop.Components
                     ReplicateAirdropLoot(packet);
                     result = true;
                     break;
-                case "RaidTimer":
-                    ReplicateRaidTimer(packet);
-                    result = true;
-                    break;
-                case "TimeAndWeather":
-                    ReplicateTimeAndWeather(packet);
-                    result = true;
-                    break;
+                //case "RaidTimer":
+                //    ReplicateRaidTimer(packet);
+                //    result = true;
+                //    break;
+                //case "TimeAndWeather":
+                //    ReplicateTimeAndWeather(packet);
+                //    result = true;
+                //    break;
                 case "LootableContainer_Interact":
                     LootableContainer_Interact_Patch.Replicated(packet);
                     result = true;

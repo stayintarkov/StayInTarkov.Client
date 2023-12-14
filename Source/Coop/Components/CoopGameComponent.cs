@@ -562,35 +562,35 @@ namespace StayInTarkov.Coop
             if (RequestingObj == null)
                 return;
 
-            List<Dictionary<string, object>> playerStates = new();
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
-            {
-                foreach (var player in Players.Values)
-                {
-                    if (player == null)
-                        continue;
+            //List<Dictionary<string, object>> playerStates = new();
+            //if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
+            //{
+            //    foreach (var player in Players.Values)
+            //    {
+            //        if (player == null)
+            //            continue;
 
-                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
-                        continue;
+            //        if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
+            //            continue;
 
-                    if (prc.IsClientDrone)
-                        continue;
+            //        if (prc.IsClientDrone)
+            //            continue;
 
-                    if (!player.enabled)
-                        continue;
+            //        if (!player.enabled)
+            //            continue;
 
-                    if (!player.isActiveAndEnabled)
-                        continue;
+            //        if (!player.isActiveAndEnabled)
+            //            continue;
 
-                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
-                }
+            //        CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+            //    }
 
 
-                //Logger.LogDebug(playerStates.SITToJson());
-                RequestingObj.SendListDataToPool(string.Empty, playerStates);
+            //    //Logger.LogDebug(playerStates.SITToJson());
+            //    RequestingObj.SendListDataToPool(string.Empty, playerStates);
 
-                LastPlayerStateSent = DateTime.Now;
-            }
+            //    LastPlayerStateSent = DateTime.Now;
+            //}
 
             if (SpawnedPlayersToFinalize == null)
                 return;
@@ -924,6 +924,9 @@ namespace StayInTarkov.Coop
                         return;
                     }
 
+                    //Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local,
+                    //[ResourceBundleConstants.PLAYER_SPIRIT_RESOURCE_KEY], JobPriority.General);
+
                     Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, allPrefabPaths.ToArray(), JobPriority.General)
                         .ContinueWith(x =>
                         {
@@ -998,26 +1001,25 @@ namespace StayInTarkov.Coop
             // logic when aiControl is turned off (in other words, for players)?
 
             //var otherPlayer = LocalPlayer.Create(playerId
-            var otherPlayer = CoopPlayer.Create(playerId
-               , position
-               , Quaternion.identity
-               ,
-               "Player",
-               ""
-               , EPointOfView.ThirdPerson
-               , profile
-               , aiControl: useAiControl
-               , EUpdateQueue.Update
-               , EFT.Player.EUpdateMode.Auto
-               , EFT.Player.EUpdateMode.Auto
-               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-               , FilterCustomizationClass.Default
-               , null
-               , isYourPlayer: false
-               , isClientDrone: true
-               ).Result;
+            var otherPlayer = CoopPlayer.Create(
+                playerId,
+                position,
+                Quaternion.identity,
+                "Player",
+                "",
+                EPointOfView.ThirdPerson,
+                profile,
+                aiControl: useAiControl,
+                EUpdateQueue.Update,
+                EFT.Player.EUpdateMode.Manual,
+                EFT.Player.EUpdateMode.Auto,
+                BackendConfigManager.Config.CharacterController.ObservedPlayerMode,
+                () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity,
+                () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity,
+                FilterCustomizationClass.Default,
+                null,
+                isYourPlayer: false,
+                isClientDrone: true).Result;
 
 
             if (otherPlayer == null)
