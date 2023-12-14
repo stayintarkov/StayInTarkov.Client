@@ -24,15 +24,10 @@ namespace StayInTarkov.UI
             var pmcdesc = GameObject.Find("Description");
             pmcdesc.active = false;
 
-            Logger.LogInfo(Screen.width);
-            Logger.LogInfo(Screen.width / 2);
-
             var pmcs = GameObject.Find("PMCs");
             var mmSSC = pmcs.transform.parent.gameObject;
-            Logger.LogInfo(pmcs.transform.position.x);
-            Logger.LogInfo(mmSSC.transform.position.x);
-            pmcs.transform.position = new Vector3(Screen.width * 0.39f, pmcs.transform.position.y * 0.75f, 0);
-           
+            pmcs.transform.localPosition = new Vector3(-225, 500, 0);
+
         }
     }
 }
