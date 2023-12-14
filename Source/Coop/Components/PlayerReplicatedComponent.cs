@@ -239,20 +239,23 @@ namespace StayInTarkov.Core.Player
             }
 
             // Process Prone
-            bool prone = ReplicatedPlayerStatePacket.IsProne;
-            if (!player.IsInPronePose)
+            if (ReplicatedPlayerStatePacket != null)
             {
-                if (prone)
+                bool prone = ReplicatedPlayerStatePacket.IsProne;
+                if (!player.IsInPronePose)
                 {
-                    player.CurrentManagedState.Prone();
+                    if (prone)
+                    {
+                        player.CurrentManagedState.Prone();
+                    }
                 }
-            }
-            else
-            {
-                if (!prone)
+                else
                 {
-                    player.ToggleProne();
-                    player.MovementContext.UpdatePoseAfterProne();
+                    if (!prone)
+                    {
+                        player.ToggleProne();
+                        player.MovementContext.UpdatePoseAfterProne();
+                    }
                 }
             }
         }
