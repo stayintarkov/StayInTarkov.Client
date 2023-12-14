@@ -229,7 +229,6 @@ namespace StayInTarkov.Coop.Components
 
         bool ProcessPlayerPacket(Dictionary<string, object> packet)
         {
-
             if (packet == null)
                 return true;
 

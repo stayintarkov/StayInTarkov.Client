@@ -42,7 +42,7 @@ namespace StayInTarkov.Networking
 
         private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
         {
-            if (!CoopGameComponent.Players.ContainsKey(packet.ProfileId))
+            if (!Players.ContainsKey(packet.ProfileId))
                 return;
 
             var playerToApply = Players[packet.ProfileId] as CoopPlayer;

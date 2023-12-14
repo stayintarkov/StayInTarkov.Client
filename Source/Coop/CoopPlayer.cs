@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace StayInTarkov.Coop
 {
@@ -121,7 +120,7 @@ namespace StayInTarkov.Coop
             }
 
             return player;
-        }        
+        }
 
         /// <summary>
         /// A way to block the same Damage Info being run multiple times on this Character
@@ -387,14 +386,14 @@ namespace StayInTarkov.Coop
 
                 if (!IsInventoryOpened)
                 {
-                    Move(NewState.InputDirection); 
+                    Move(NewState.InputDirection);
                 }
                 Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
                 CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
 
                 LastState = NewState;
                 InterpolationRatio = 0;
-            }            
+            }
         }
 
         public void SendStatePacket()
@@ -461,10 +460,17 @@ namespace StayInTarkov.Coop
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection);
 
-            InvokeRepeating("SendStatePacket", 1f, 0.003f);
+            if (IsYourPlayer)
+            {
+                InvokeRepeating("SendStatePacket", 1f, 0.005f);
+            }
+            else if (MatchmakerAcceptPatches.IsServer)
+            {
+                InvokeRepeating("SendStatePacket", 1f, 0.005f);
+            }
             if ((MatchmakerAcceptPatches.IsClient && !IsYourPlayer) || (MatchmakerAcceptPatches.IsServer && !IsAI && !IsYourPlayer))
             {
-                InvokeRepeating("Interpolate", 1f, 0.003f);
+                InvokeRepeating("Interpolate", 1f, 0.005f);
             }
         }
 
