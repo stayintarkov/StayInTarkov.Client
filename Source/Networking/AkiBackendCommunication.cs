@@ -2,6 +2,7 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
@@ -27,6 +28,7 @@ namespace StayInTarkov.Networking
         public const int DEFAULT_TIMEOUT_MS = 5000;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
         public const string PACKET_TAG_METHOD = "m";
+        public const string PACKET_TAG_SERVERID = "serverId";
         public const string PACKET_TAG_DATA = "data";
 
         private string m_Session;
@@ -256,6 +258,12 @@ namespace StayInTarkov.Networking
                     Logger.LogInfo(packet.SITToJson());
                 }
 
+                if (packet.ContainsKey("dataList"))
+                {
+                    if (ProcessDataListPacket(ref packet))
+                        return;
+                }
+
                 //Logger.LogDebug($"Step.1. Packet exists. {packet.ToJson()}");
 
                 // If this is a pong packet, resolve and create a smooth ping
@@ -347,6 +355,37 @@ namespace StayInTarkov.Networking
             }
         }
 
+        private bool ProcessDataListPacket(ref Dictionary<string, object> packet)
+        {
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return false;
+
+            if (!packet.ContainsKey("dataList"))
+                return false;
+
+            JArray dataList = JArray.FromObject(packet["dataList"]);
+            
+            foreach (var d in dataList)
+            {
+                // This needs to be a little more dynamic but for now. This switch will do.
+                // Depending on the method defined, deserialize packet to defined type
+                switch (packet[PACKET_TAG_METHOD].ToString())
+                {
+                    case "PlayerStates":
+                        PlayerStatePacket playerStatePacket = new PlayerStatePacket();
+                        playerStatePacket = (PlayerStatePacket)playerStatePacket.Deserialize((byte[])d);
+                        if(coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
+                            coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
+
+                        break;
+                }
+               
+            }
+
+            return true;
+        }
+
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
         {
             if (createInstance)
@@ -360,7 +399,6 @@ namespace StayInTarkov.Networking
         public static bool DEBUGPACKETS { get; } = false;
 
         public bool HighPingMode { get; set; }
-        public BlockingCollection<string> PooledJsonToPost { get; } = new();
         public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
