@@ -140,16 +140,29 @@ namespace StayInTarkov
         }
 
         private bool shownCheckError = false;
+        private bool bsgThanksShown = false;
 
         void Update()
         {
             if (!LegalGameCheck.Checked)
                 LegalGameCheck.LegalityCheck(Config);
 
-            if (Singleton<PreloaderUI>.Instantiated && !shownCheckError && !LegalGameCheck.LegalGameFound)
+            if (Singleton<PreloaderUI>.Instantiated 
+                && !shownCheckError 
+                && LegalGameCheck.LegalGameFound[0] != 0x1
+                && LegalGameCheck.LegalGameFound[1] != 0x0
+                )
             {
                 shownCheckError = true;
                 Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", StayInTarkovPlugin.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
+            }
+            else
+            {
+                if (!bsgThanksShown)
+                {
+                    bsgThanksShown = true;
+                    StayInTarkovHelperConstants.Logger.LogInfo("Official EFT Found. Thanks for supporting BSG.");
+                }
             }
         }
 
