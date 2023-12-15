@@ -3,14 +3,17 @@ using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
+using StayInTarkov.Health;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -66,17 +69,18 @@ namespace StayInTarkov.Core.Player
                     if (dogtagSlot == null)
                         return;
 
-                    string itemId = "";
-                    using (SHA256 sha256 = SHA256.Create())
-                    {
-                        StringBuilder sb = new();
+                    string itemId = new MongoID(true);
+                    Logger.LogInfo($"New Dogtag Id: {itemId}");
+                    //using (SHA256 sha256 = SHA256.Create())
+                    //{
+                    //    StringBuilder sb = new();
 
-                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
-                        for (int i = 0; i < hashes.Length; i++)
-                            sb.Append(hashes[i].ToString("x2"));
+                    //    byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
+                    //    for (int i = 0; i < hashes.Length; i++)
+                    //        sb.Append(hashes[i].ToString("x2"));
 
-                        itemId = sb.ToString().Substring(0, 24);
-                    }
+                    //    itemId = sb.ToString().Substring(0, 24);
+                    //}
 
                     Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
 
@@ -257,9 +261,50 @@ namespace StayInTarkov.Core.Player
                         player.MovementContext.UpdatePoseAfterProne();
                     }
                 }
+
+                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Energy, "Current", ReplicatedPlayerStatePacket.Energy);
+                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Hydration, "Current", ReplicatedPlayerStatePacket.Hydration);
+
+                //Logger.LogDebug(ReplicatedPlayerStatePacket.PlayerHealthSerialized);
+                if (ReplicatedPlayerHealth != null)
+                {
+                    //Logger.LogDebug($"{ReplicatedPlayerHealth.ToJson()}");
+
+                    //if (ReplicatedPlayerHealth.ContainsKey("Chest"))
+                    {
+                        var dictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.ActiveHealthController, "Dictionary_0", false);
+                        if (dictionary != null)
+                        {
+                            foreach (EBodyPart bodyPart in BodyPartEnumValues)
+                            {
+                                if (
+                                    ReplicatedPlayerHealth.ContainsKey($"{bodyPart}c")
+                                    && ReplicatedPlayerHealth.ContainsKey($"{bodyPart}m")
+                                    )
+                                {
+                                    BodyPartState bodyPartState = dictionary[bodyPart];
+                                    if (bodyPartState != null)
+                                    {
+                                        bodyPartState.Health = new(float.Parse(ReplicatedPlayerHealth[$"{bodyPart}c"].ToString()), float.Parse(ReplicatedPlayerHealth[$"{bodyPart}m"].ToString()));
+                                        //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPart} health to {ReplicatedPlayerHealth[$"{bodyPart}c"]}");
+                                    }
+                                }
+                            }
+                        }
+
+                        HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_0", false);
+                        if (energy != null)
+                            energy.Current = ReplicatedPlayerStatePacket.Energy;
+
+                        HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_1", false);
+                        if (hydration != null)
+                            hydration.Current = ReplicatedPlayerStatePacket.Hydration;
+                    }
+                }
             }
         }
 
+        private static Array BodyPartEnumValues => Enum.GetValues(typeof(EBodyPart));
 
         //private void ProcessPlayerStateProne(Dictionary<string, object> packet)
         //{
@@ -290,7 +335,7 @@ namespace StayInTarkov.Core.Player
         public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
         public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
         private float PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : 1;
-
+        public JObject ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? JObject.Parse(ReplicatedPlayerStatePacket.PlayerHealthSerialized) : null;
 
         public bool IsSprinting
         {
