@@ -1163,6 +1163,20 @@ namespace StayInTarkov.Coop
 
         private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
+            Dictionary<string, object> playerHCSync = new();
+            if (player.HealthController.IsAlive)
+            {
+                foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+                {
+                    if (bodyPart == EBodyPart.Common)
+                        continue;
+
+                    var health = player.HealthController.GetBodyPartHealth(bodyPart);
+                    playerHCSync.Add($"{bodyPart}c", health.Current);
+                    playerHCSync.Add($"{bodyPart}m", health.Maximum);
+                }
+            }
+
             PlayerStatePacket playerStatePacket = new PlayerStatePacket(
                 player.ProfileId
                 , player.Position
@@ -1178,8 +1192,12 @@ namespace StayInTarkov.Coop
                 , player.MovementContext.PoseLevel
                 , player.MovementContext.IsSprintEnabled
                 , player.InputDirection
-                );
+                , player.ActiveHealthController != null ? player.ActiveHealthController.Energy.Current : 0
+                , player.ActiveHealthController != null ? player.ActiveHealthController.Hydration.Current : 0
+                , playerHCSync.SITToJson()
+                );;
             ;
+            playerHCSync = null;
             playerStates.Add(playerStatePacket.Serialize());
 
             //Dictionary<string, object> dictPlayerState = new();
