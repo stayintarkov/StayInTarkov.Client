@@ -14,6 +14,11 @@ using EFT;
 using Comfort.Common;
 using EFT.Weather;
 
+/* 
+* This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
+* You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License.
+*/
+
 namespace StayInTarkov.Networking
 {
     public class SITServer : MonoBehaviour, INetEventListener, INetLogger

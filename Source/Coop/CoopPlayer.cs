@@ -441,6 +441,11 @@ namespace StayInTarkov.Coop
 
         public void Interpolate2()
         {
+            /* 
+             * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
+             * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License.
+             */
+
             if (!IsYourPlayer)
             {
 
@@ -486,7 +491,7 @@ namespace StayInTarkov.Coop
 
                 MovementContext.SetBlindFire(NewState.Blindfire);
 
-                if (!IsInventoryOpened && NewState.LinearSpeed > 0.2)
+                if (!IsInventoryOpened && NewState.LinearSpeed > 0.25)
                 {
                     Move(NewState.InputDirection);
                 }
@@ -564,17 +569,20 @@ namespace StayInTarkov.Coop
         }
 
         IEnumerator SpawnPlayer()
-        {
-            yield return new WaitForSeconds(6);
-
-            ActiveHealthController.SetDamageCoeff(0);
-            Teleport(new Vector3(NewState.Position.x, NewState.Position.y, NewState.Position.z + 3));
+        {            
+            yield return new WaitForSeconds(4);
+            
+            Teleport(new Vector3(NewState.Position.x, NewState.Position.y, NewState.Position.z));
 
             yield return new WaitForSeconds(1);
 
             ActiveHealthController.SetDamageCoeff(1);
-            gameObject.layer = LayerMask.GetMask("Player");
             yield break;
+        }
+
+        public void Awake()
+        {
+            
         }
 
         private void Start()
@@ -591,12 +599,13 @@ namespace StayInTarkov.Coop
 
             Writer = new();
 
-            LastState = new(ProfileId, new Vector3(Position.x, Position.y, Position.z + 3), Rotation, HeadRotation,
+            LastState = new(ProfileId, new Vector3(Position.x, Position.y + 0.3f, Position.z), Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
                 MovementContext.BlindFire, MovementContext.ActualLinearSpeed);
-            NewState = new(ProfileId, new Vector3(Position.x, Position.y, Position.z + 3), Rotation, HeadRotation,
+
+            NewState = new(ProfileId, new Vector3(Position.x, Position.y + 0.3f, Position.z), Rotation, HeadRotation,
                 MovementContext.MovementDirection, CurrentManagedState.Name, MovementContext.Tilt,
                 MovementContext.Step, CurrentAnimatorStateIndex, MovementContext.SmoothedCharacterMovementSpeed,
                 IsInPronePose, PoseLevel, MovementContext.IsSprintEnabled, Physical.SerializationStruct, InputDirection,
@@ -621,10 +630,9 @@ namespace StayInTarkov.Coop
 
             if (!IsYourPlayer && !IsAI)
             {
-                gameObject.layer = LayerMask.GetMask("PlayerSpiritAura");
-                StartCoroutine(SpawnPlayer()); 
+                ActiveHealthController.SetDamageCoeff(0);
+                StartCoroutine(SpawnPlayer());
             }
-            
         }
 
         public override void UpdateTick()

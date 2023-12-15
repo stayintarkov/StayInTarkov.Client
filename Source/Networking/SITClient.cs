@@ -10,8 +10,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
-using UnityStandardAssets.Water;
 using static StayInTarkov.Networking.StructUtils;
+
+/* 
+* This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
+* You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License.
+*/
 
 namespace StayInTarkov.Networking
 {
@@ -216,7 +220,7 @@ namespace StayInTarkov.Networking
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
             NotificationManagerClass.DisplayMessageNotification($"Connected to server {peer.EndPoint}.",
-                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);            
+                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
