@@ -955,8 +955,6 @@ namespace StayInTarkov.Coop
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
-            Status = GameStatus.Stopped;
-
             Logger.LogInfo("CoopGame.Stop");
 
             // Notify that I have left the Server
