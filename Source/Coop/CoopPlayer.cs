@@ -332,7 +332,7 @@ namespace StayInTarkov.Coop
                 return;
 
             this.Rotation = rotation;
-            prc.ReplicatedRotation = rotation; 
+            //prc.ReplicatedRotation = rotation; 
 
         }
 
@@ -381,8 +381,20 @@ namespace StayInTarkov.Coop
         public override void OnDestroy()
         {
             BepInLogger.LogDebug("OnDestroy()");
+
             base.OnDestroy();
         }
 
+        public virtual void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
+        {
+            //Logger.LogInfo(playerStatePacket.SITToJson());
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            prc.ReplicatedPlayerStatePacket = playerStatePacket;
+
+
+        }
     }
 }

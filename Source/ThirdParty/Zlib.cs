@@ -1,4 +1,5 @@
 using ComponentAce.Compression.Libs.zlib;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.ThirdParty
@@ -69,9 +70,21 @@ namespace StayInTarkov.ThirdParty
             return SimpleZlib.CompressToBytes(data, 6);
         }
 
-        public static async Task<byte[]> CompressAsync(string data, ZlibCompression level)
+        public static byte[] Compress(byte[] data, ZlibCompression level = ZlibCompression.Normal)
         {
-            return await Task.Run(() => Compress(data));
+            var ms = new MemoryStream();
+            using (var zs = (level > ZlibCompression.Store)
+                    ? new ZOutputStream(ms, (int)level)
+                    : new ZOutputStream(ms))
+                {
+                    zs.Write(data, 0, data.Length);
+                }
+
+            var result = ms.ToArray();
+            ms.Close();
+            ms.Dispose();
+            ms = null;
+            return result;
         }
 
         /// <summary>
