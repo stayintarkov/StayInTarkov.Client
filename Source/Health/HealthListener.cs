@@ -75,36 +75,38 @@ namespace StayInTarkov.Health
             SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.LeftLeg);
             SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.RightLeg);
 
-            SetCurrent("Energy");
-            SetCurrent("Hydration");
+            SetCurrent(MyHealthController, CurrentHealth, "Energy");
+            SetCurrent(MyHealthController, CurrentHealth, "Hydration");
 
             AkiBackendCommunication.Instance.PostJson("/player/health/sync", Instance.CurrentHealth.ToJson());
         }
 
-        private void SetCurrent(string v)
+        public static void SetCurrent(object healthController, PlayerHealth currentHealth, string v)
         {
             //PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
 
-            if (ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
+            if (ReflectionHelpers.GetAllPropertiesForObject(healthController).Any(x => x.Name == v))
             {
-                var valuestruct = ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
+                var valuestruct = ReflectionHelpers.GetAllPropertiesForObject(healthController).FirstOrDefault(x => x.Name == v).GetValue(healthController);
                 if (valuestruct == null)
                     return;
 
                 var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
                 //PatchConstants.Logger.LogInfo(currentAmount);
-                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
+                if(currentHealth != null)
+                    currentHealth.GetType().GetProperty(v).SetValue(currentHealth, float.Parse(currentAmount.ToString()));
             }
-            else if (ReflectionHelpers.GetAllFieldsForObject(MyHealthController).Any(x => x.Name == v))
+            else if (ReflectionHelpers.GetAllFieldsForObject(healthController).Any(x => x.Name == v))
             {
-                var valuestruct = ReflectionHelpers.GetAllFieldsForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
+                var valuestruct = ReflectionHelpers.GetAllFieldsForObject(healthController).FirstOrDefault(x => x.Name == v).GetValue(healthController);
                 if (valuestruct == null)
                     return;
 
                 var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
                 //PatchConstants.Logger.LogInfo(currentAmount);
 
-                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
+                if(currentHealth != null)
+                    currentHealth.GetType().GetProperty(v).SetValue(currentHealth, float.Parse(currentAmount.ToString()));
             }
 
         }

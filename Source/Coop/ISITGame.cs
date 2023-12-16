@@ -15,6 +15,6 @@ namespace StayInTarkov.Coop
 
         public void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f);
 
-        GameStatus Status { get; }
+        //GameStatus Status { get; }
     }
 }

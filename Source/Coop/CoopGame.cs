@@ -335,16 +335,27 @@ namespace StayInTarkov.Coop
             }
         }
 
-        public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
+        public Dictionary<string, EFT.Player> Bots { get; } = new ();
 
         private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
             if (MatchmakerAcceptPatches.IsClient)
                 return null;
 
-            Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
             if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
+            {
+                Logger.LogDebug("Block spawn of Bot. Max Bot Count has been reached!");
                 return null;
+            }
+
+            if (GameDateTime.Calculate().TimeOfDay < new TimeSpan(20, 0, 0) && profile.Info != null && profile.Info.Settings != null
+                && (profile.Info.Settings.Role == WildSpawnType.sectantPriest || profile.Info.Settings.Role == WildSpawnType.sectantWarrior)
+                )
+            {
+                Logger.LogDebug("Block spawn of Sectant (Cultist) in day time!");
+                return null;
+            }
+            Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
 
             LocalPlayer localPlayer;
             if (!base.Status.IsRunned())
@@ -362,7 +373,6 @@ namespace StayInTarkov.Coop
 
                 localPlayer
                    = (await CoopPlayer.Create(
-                       //= (await LocalPlayer.Create(
                        num
                        , position
                        , Quaternion.identity
@@ -375,10 +385,10 @@ namespace StayInTarkov.Coop
                        , EFT.Player.EUpdateMode.Manual
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
-                   , () => 1f
-                   , () => 1f
-, FilterCustomizationClass1.Default
-)
+                    , () => 1f
+                    , () => 1f
+                    , FilterCustomizationClass1.Default
+                    )
                   );
                 localPlayer.Location = base.Location_0.Id;
                 if (this.Bots.ContainsKey(localPlayer.ProfileId))
@@ -729,7 +739,7 @@ namespace StayInTarkov.Coop
             };
 
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
-            //Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
+            Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
 
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
@@ -760,10 +770,10 @@ namespace StayInTarkov.Coop
             {
                 this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
 
-                if (this.nonWavesSpawnScenario_0 != null)
-                    this.nonWavesSpawnScenario_0.Run();
+                //if (this.nonWavesSpawnScenario_0 != null)
+                //    this.nonWavesSpawnScenario_0.Run();
 
-                Logger.LogDebug($"Running Wave Scenarios");
+                //Logger.LogDebug($"Running Wave Scenarios");
 
                 if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
                 {
@@ -802,6 +812,13 @@ namespace StayInTarkov.Coop
 
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
 
+            if (shouldSpawnBots)
+            {
+                if (this.nonWavesSpawnScenario_0 != null)
+                    this.nonWavesSpawnScenario_0.Run();
+
+                Logger.LogDebug($"Running Wave Scenarios");
+            }
             yield break;
         }
 
@@ -955,7 +972,7 @@ namespace StayInTarkov.Coop
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
-            Status = GameStatus.Stopped;
+            //Status = GameStatus.Stopped;
 
             Logger.LogInfo("CoopGame.Stop");
 
@@ -982,7 +999,6 @@ namespace StayInTarkov.Coop
                 }
             }
 
-            CoopPatches.LeftGameDestroyEverything();
 
             if (this.BossWaveManager != null)
                 this.BossWaveManager.Stop();
@@ -993,10 +1009,10 @@ namespace StayInTarkov.Coop
             if (this.wavesSpawnScenario_0 != null)
                 this.wavesSpawnScenario_0.Stop();
 
-            // @konstantin90s suggestion to disable patches as the game closes
-            CoopPatches.EnableDisablePatches();
 
+            CoopPatches.EnableDisablePatches();
             base.Stop(profileId, exitStatus, exitName, delay);
+            CoopPatches.LeftGameDestroyEverything();
         }
 
         public override void CleanUp()

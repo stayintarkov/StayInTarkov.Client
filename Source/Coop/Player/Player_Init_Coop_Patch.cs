@@ -50,7 +50,7 @@ namespace StayInTarkov.Coop.Player
             if (Singleton<GameWorld>.Instance != null)
             {
                 if (!coopGC.Players.ContainsKey(profileId))
-                    coopGC.Players.TryAdd(profileId, player);
+                    coopGC.Players.TryAdd(profileId, (CoopPlayer)player);
 
                 if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                     Singleton<GameWorld>.Instance.RegisterPlayer(player);

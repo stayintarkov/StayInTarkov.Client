@@ -19,10 +19,10 @@ namespace StayInTarkov.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new(9999);
+        public readonly BlockingCollection<Dictionary<string, object>> ActionPackets = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new(9999);
-        public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
+        public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
         private List<string> RemovedFromAIPlayers = new();
