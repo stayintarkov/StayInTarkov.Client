@@ -23,7 +23,10 @@ namespace StayInTarkov.Coop.Player.Proceed
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            return CallLocally.Contains(__instance.ProfileId);
+            // Giving 'false' to the player will cause issue.
+            // return CallLocally.Contains(__instance.ProfileId);
+
+            return true;
         }
 
         [PatchPostfix]
@@ -41,6 +44,10 @@ namespace StayInTarkov.Coop.Player.Proceed
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            // The original function is always running, don't let it run again.
+            if (player.IsYourPlayer)
+                return;
+
             if (!dict.ContainsKey("data"))
                 return;
 
