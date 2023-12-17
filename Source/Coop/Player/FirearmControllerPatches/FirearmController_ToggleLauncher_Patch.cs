@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Web;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -43,22 +44,25 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         [PatchPostfix]
         public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.ToggleLauncher = true;
+            player.WeaponPacket.ToggleSend();
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
-            dictionary.Add("m", "ToggleLauncher");
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
 
-            CallLocally.Add(player.ProfileId);
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new();
+            //dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
+            //dictionary.Add("m", "ToggleLauncher");
+
+            //CallLocally.Add(player.ProfileId);
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

@@ -4,19 +4,17 @@ using EFT;
 using Newtonsoft.Json;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    public class FirearmController_ReloadMag_Patch : ModuleReplicationPatch
+    public class FirearmController_ReloadGrenadeLauncher_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "ReloadMag";
+        public override string MethodName => "ReloadGrenadeLauncher";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -39,39 +37,21 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance, MagazineClass magazine, GridItemAddress gridItemAddress, EFT.Player ____player)
+        public static void PostPatch(EFT.Player.FirearmController __instance, AmmoPack foundItem, EFT.Player ____player)
         {
             var player = ____player as CoopPlayer;
             if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            GridItemAddressDescriptor gridItemAddressDescriptor = (gridItemAddress == null) ? null : OperationToDescriptorHelpers.FromGridItemAddress(gridItemAddress);
+            var reloadingAmmoIds = foundItem.GetReloadingAmmoIds();
 
-            using (MemoryStream memoryStream = new())
+            player.WeaponPacket.ReloadLauncher = new()
             {
-                using BinaryWriter binaryWriter = new(memoryStream);
-                byte[] locationDescription;
-                if (gridItemAddressDescriptor != null)
-                {
-                    binaryWriter.Write(gridItemAddressDescriptor);
-                    locationDescription = memoryStream.ToArray();
-                }
-                else
-                {
-                    locationDescription = new byte[0];
-                }
-
-                EFT.UI.ConsoleScreen.Log("Firing away ReloadMag packet!");
-
-                player.WeaponPacket.ReloadMag = new()
-                {
-                    Reload = true,
-                    MagId = magazine.Id,
-                    LocationLength = locationDescription.Length,
-                    LocationDescription = locationDescription,
-                };
-                player.WeaponPacket.ToggleSend();
-            }
+                Reload = true,
+                AmmoIdsCount = reloadingAmmoIds.Length,
+                AmmoIds = reloadingAmmoIds
+            };
+            player.WeaponPacket.ToggleSend();
 
             //if (CallLocally.Contains(player.ProfileId))
             //{

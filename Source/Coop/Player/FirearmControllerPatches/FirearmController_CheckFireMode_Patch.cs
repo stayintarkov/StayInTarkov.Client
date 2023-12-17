@@ -2,14 +2,13 @@
 using Newtonsoft.Json;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    public class FirearmController_ChangeFireMode_Patch : ModuleReplicationPatch
+    public class FirearmController_CheckFire_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ChangeFireMode";
@@ -17,12 +16,10 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new();
+        public static Dictionary<string, bool> CallLocally = new();
 
 
         //[PatchPrefix]

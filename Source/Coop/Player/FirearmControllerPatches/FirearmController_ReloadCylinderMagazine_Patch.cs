@@ -10,10 +10,10 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    public class FirearmController_ReloadWithAmmo_Patch : ModuleReplicationPatch
+    public class FirearmController_ReloadCylinderMagazine_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "ReloadWithAmmo";
+        public override string MethodName => "ReloadCylinderMagazine";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -50,6 +50,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
 
             var ammoIds = ammoPack.GetReloadingAmmoIds();
+            CylinderMagazine cylinderMagazine = __instance.Item.GetCurrentMagazine() as CylinderMagazine;
+            if (cylinderMagazine == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("ReloadCylinderMagazine: cylinderMagazine was null!");
+            }
 
             player.WeaponPacket.ReloadWithAmmo = new()
             {
@@ -57,6 +62,12 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 Status = SITSerialization.ReloadWithAmmoPacket.EReloadWithAmmoStatus.StartReload,
                 AmmoIdsCount = ammoIds.Length,
                 AmmoIds = ammoIds
+            };
+            player.WeaponPacket.CylinderMag = new()
+            {
+                Changed = true,
+                CamoraIndex = cylinderMagazine.CurrentCamoraIndex,
+                HammerClosed = __instance.Item.CylinderHammerClosed
             };
             player.WeaponPacket.ToggleSend();
 

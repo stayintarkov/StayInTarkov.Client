@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -33,69 +34,66 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player
-            , bool pressed
-            )
+        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player, bool pressed)
         {
-            if (CoopGameComponent.GetCoopGameComponent() == null)
-                return false;
+            return true;
 
-            if (AkiBackendCommunication.Instance.HighPingMode && ____player.IsYourPlayer)
-            {
-                return true;
-            }
+            //if (CoopGameComponent.GetCoopGameComponent() == null)
+            //    return false;
 
-            var player = ____player;
-            if (player == null)
-                return false;
+            //if (AkiBackendCommunication.Instance.HighPingMode && ____player.IsYourPlayer)
+            //{
+            //    return true;
+            //}
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
+            //var player = ____player;
+            //if (player == null)
+            //    return false;
 
-            return result;
+            //var result = false;
+            //if (CallLocally.Contains(player.ProfileId))
+            //    result = true;
+
+            //return result;
         }
 
         [PatchPostfix]
-        public static void PostPatch(
-            EFT.Player.FirearmController __instance
-            , bool pressed
-            , EFT.Player ____player
-            )
+        public static void PostPatch(EFT.Player.FirearmController __instance, bool pressed, EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (player.IsSprintEnabled)
-                return;
+            player.WeaponPacket.IsTriggerPressed = pressed;
+            player.WeaponPacket.ToggleSend();
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally = CallLocally.Where(x => x != player.ProfileId).ToList();
-                return;
-            }
+            //if (player.IsSprintEnabled)
+            //    return;
 
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc) && prc.IsClientDrone)
-                return;
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally = CallLocally.Where(x => x != player.ProfileId).ToList();
+            //    return;
+            //}
 
-            // Handle LastPress
-            if (LastPress.ContainsKey(player.ProfileId) && LastPress[player.ProfileId] == pressed)
-                return;
+            //if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc) && prc.IsClientDrone)
+            //    return;
 
-            if (!LastPress.ContainsKey(player.ProfileId))
-                LastPress.Add(player.ProfileId, pressed);
+            //// Handle LastPress
+            //if (LastPress.ContainsKey(player.ProfileId) && LastPress[player.ProfileId] == pressed)
+            //    return;
 
-            LastPress[player.ProfileId] = pressed;
+            //if (!LastPress.ContainsKey(player.ProfileId))
+            //    LastPress.Add(player.ProfileId, pressed);
 
-            TriggerPressedPacket triggerPressedPacket = new(player.ProfileId);
-            triggerPressedPacket.pr = pressed;
-            triggerPressedPacket.rX = player.Rotation.x;
-            triggerPressedPacket.rY = player.Rotation.y;
-            var serialized = triggerPressedPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            //LastPress[player.ProfileId] = pressed;
+
+            //TriggerPressedPacket triggerPressedPacket = new(player.ProfileId);
+            //triggerPressedPacket.pr = pressed;
+            //triggerPressedPacket.rX = player.Rotation.x;
+            //triggerPressedPacket.rY = player.Rotation.y;
+            //var serialized = triggerPressedPacket.Serialize();
+            //AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
 

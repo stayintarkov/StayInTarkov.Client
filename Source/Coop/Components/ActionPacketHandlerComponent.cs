@@ -145,7 +145,7 @@ namespace StayInTarkov.Coop.Components
                         continue;
 
                     var coopPlayer = (CoopPlayer)playerKVP;
-                    coopPlayer.ReceiveDamageFromServer(packet);
+                    //coopPlayer.ReceiveDamageFromServer(packet);
                 }
                 if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
                 {

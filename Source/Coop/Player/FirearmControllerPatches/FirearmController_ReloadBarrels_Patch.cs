@@ -4,7 +4,6 @@ using EFT;
 using Newtonsoft.Json;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,10 +12,10 @@ using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
-    public class FirearmController_ReloadMag_Patch : ModuleReplicationPatch
+    public class FirearmController_ReloadBarrels_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "ReloadMag";
+        public override string MethodName => "ReloadBarrels";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -39,13 +38,15 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance, MagazineClass magazine, GridItemAddress gridItemAddress, EFT.Player ____player)
+        public static void PostPatch(EFT.Player.FirearmController __instance, AmmoPack ammoPack, GridItemAddress placeToPutContainedAmmoMagazine, EFT.Player ____player)
         {
             var player = ____player as CoopPlayer;
             if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            GridItemAddressDescriptor gridItemAddressDescriptor = (gridItemAddress == null) ? null : OperationToDescriptorHelpers.FromGridItemAddress(gridItemAddress);
+            GridItemAddressDescriptor gridItemAddressDescriptor = (placeToPutContainedAmmoMagazine == null) ? null : OperationToDescriptorHelpers.FromGridItemAddress(placeToPutContainedAmmoMagazine);
+
+            var ammoIds = ammoPack.GetReloadingAmmoIds();
 
             using (MemoryStream memoryStream = new())
             {
@@ -63,10 +64,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
                 EFT.UI.ConsoleScreen.Log("Firing away ReloadMag packet!");
 
-                player.WeaponPacket.ReloadMag = new()
+                player.WeaponPacket.ReloadBarrels = new()
                 {
                     Reload = true,
-                    MagId = magazine.Id,
+                    AmmoIdsCount = ammoIds.Length,
+                    AmmoIds = ammoIds,
                     LocationLength = locationDescription.Length,
                     LocationDescription = locationDescription,
                 };

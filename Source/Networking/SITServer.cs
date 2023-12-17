@@ -1,18 +1,16 @@
-﻿using LiteNetLib;
+﻿using Comfort.Common;
+using EFT;
+using EFT.Weather;
+using LiteNetLib;
 using LiteNetLib.Utils;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
+using StayInTarkov.Networking.Packets;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
-using static StayInTarkov.Networking.StructUtils;
-using StayInTarkov.Networking.Packets;
-using System;
-using EFT;
-using Comfort.Common;
-using EFT.Weather;
+using static StayInTarkov.Networking.SITSerialization;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
@@ -41,6 +39,7 @@ namespace StayInTarkov.Networking
             _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
             _packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
             _packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnFirearmControllerPacketReceived);
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -50,11 +49,26 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false
             };
 
-            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort);   
+            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort);
 
             EFT.UI.ConsoleScreen.Log("Started SITServer");
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+        }
+
+        private void OnFirearmControllerPacketReceived(WeaponPacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
+
+            _dataWriter.Reset();
+            SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered);
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.FirearmPackets.Enqueue(packet);
+            }
         }
 
         private void OnWeatherPacketReceived(WeatherPacket packet, NetPeer peer)
@@ -110,12 +124,12 @@ namespace StayInTarkov.Networking
         private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
         {
             if (!Players.ContainsKey(packet.ProfileId))
-                return;
+                return;            
 
             var playerToApply = Players[packet.ProfileId] as CoopPlayer;
             if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
-                playerToApply.NewState = packet;
+                playerToApply.NewState = packet;                
             }
         }
 

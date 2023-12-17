@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Web;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,49 +14,54 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName, findFirst: true);
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName, findFirst: true);
         }
 
-        public static List<string> CallLocally
-            = new();
+        public static List<string> CallLocally = new();
 
 
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player)
-        {
-            var player = ____player;
-            if (player == null)
-                return false;
+        //[PatchPrefix]
+        //public static bool PrePatch(
+        //    EFT.Player.FirearmController __instance
+        //    , EFT.Player ____player)
+        //{
+        //    var player = ____player;
+        //    if (player == null)
+        //        return false;
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
+        //    var result = false;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        result = true;
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance, ref bool p)
+        public static void PostPatch(EFT.Player.FirearmController __instance, ref bool p, EFT.Player ____player)
         {
-            GetLogger(typeof(FirearmController_Loot_Patch)).LogInfo("Loot");
-
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.Loot = p;
+            player.WeaponPacket.ToggleSend();
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("p", p);
-            dictionary.Add("m", "Loot");
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            //GetLogger(typeof(FirearmController_Loot_Patch)).LogInfo("Loot");
+
+            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            //if (player == null)
+            //    return;
+
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
+
+            //Dictionary<string, object> dictionary = new();
+            //dictionary.Add("p", p);
+            //dictionary.Add("m", "Loot");
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

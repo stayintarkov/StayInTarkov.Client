@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -22,46 +23,43 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             = new();
 
 
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player)
-        {
-            var player = ____player;
-            if (player == null)
-                return false;
+        //[PatchPrefix]
+        //public static bool PrePatch(
+        //    EFT.Player.FirearmController __instance
+        //    , EFT.Player ____player)
+        //{
+        //    var player = ____player;
+        //    if (player == null)
+        //        return false;
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
-
-
-            //Logger.LogInfo($"CheckAmmo_prefix:{result}");
+        //    var result = false;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        result = true;
 
 
-            return result;
-        }
+        //    //Logger.LogInfo($"CheckAmmo_prefix:{result}");
+
+
+        //    return result;
+        //}
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             //Logger.LogInfo($"CheckAmmo_postfix");
 
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.CheckAmmo = true;
+            player.WeaponPacket.ToggleSend();
 
             //Dictionary<string, object> dictionary = new();
             //dictionary.Add("m", "CheckAmmo");
             //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize());
+            //AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

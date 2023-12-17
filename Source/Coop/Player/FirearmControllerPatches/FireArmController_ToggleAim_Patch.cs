@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Web;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -11,41 +12,45 @@ namespace StayInTarkov.Coop.Player.UsableItemControllerPatches
         public override string MethodName => "ToggleAim";
         public static List<string> CallLocally = new();
 
-        [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
-        {
-            var player = ____player;
-            if (player == null)
-            {
-                return false;
-            }
+        //[PatchPrefix]
+        //public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        //{
+        //    var player = ____player;
+        //    if (player == null)
+        //    {
+        //        return false;
+        //    }
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
+        //    var result = false;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        result = true;
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [PatchPostfix]
         public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.ToggleAim = true;
+            player.WeaponPacket.AimingIndex = (__instance.IsAiming) ? __instance.Item.AimIndex.Value : -1;
+            player.WeaponPacket.ToggleSend();
 
-            Dictionary<string, object> dictionary = new()
-            {
-                { "m", "ToggleAim" }
-            };
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
 
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new()
+            //{
+            //    { "m", "ToggleAim" }
+            //};
+
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

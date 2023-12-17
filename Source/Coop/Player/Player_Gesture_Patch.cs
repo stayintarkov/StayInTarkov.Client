@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Web;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -13,38 +14,39 @@ namespace StayInTarkov.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, "vmethod_3");
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, "vmethod_3");
         }
 
-        [PatchPrefix]
-        public static bool PrePatch(EFT.Player __instance)
-        {
-            var result = false;
-            if (CallLocally.Contains(__instance.ProfileId))
-                result = true;
+        //[PatchPrefix]
+        //public static bool PrePatch(EFT.Player __instance)
+        //{
+        //    var result = false;
+        //    if (CallLocally.Contains(__instance.ProfileId))
+        //        result = true;
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [PatchPostfix]
-        public static void PostPatch(
-           EFT.Player __instance,
-            EGesture gesture
-            )
+        public static void PostPatch(EFT.Player __instance, EGesture gesture)
         {
-            var player = __instance;
-
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
+            var player = __instance as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
-            }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("g", gesture.ToString());
-            dictionary.Add("m", "Gesture");
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            player.WeaponPacket.Gesture = gesture;
+            player.WeaponPacket.ToggleSend();
+
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
+
+            //Dictionary<string, object> dictionary = new();
+            //dictionary.Add("g", gesture.ToString());
+            //dictionary.Add("m", "Gesture");
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
 

@@ -41,7 +41,7 @@ namespace StayInTarkov
     /// Written by: Paulov
     /// Used template by BepInEx
     /// </summary>
-    [BepInPlugin("com.sit.core", "SIT.Core", "1.9.0")]
+    [BepInPlugin("com.sit.core", "SIT.Core", "2.0.0")]
     [BepInProcess("EscapeFromTarkov.exe")]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {

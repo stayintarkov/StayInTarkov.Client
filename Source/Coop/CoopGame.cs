@@ -630,7 +630,7 @@ namespace StayInTarkov.Coop
                        , new FilterCustomizationClass()
                        , null
                        , isYourPlayer: false));
-                    friendlyBot.IsFriendlyBot = true;
+                    //friendlyBot.IsFriendlyBot = true;
                     //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
                     //companionComponent.CoopPlayer = friendlyBot;
                     if (!FriendlyPlayers.ContainsKey(profileClone.Id))

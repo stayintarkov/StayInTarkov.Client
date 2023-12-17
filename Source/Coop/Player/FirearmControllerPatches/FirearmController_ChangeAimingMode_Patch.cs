@@ -1,5 +1,6 @@
 ﻿using StayInTarkov;
 using StayInTarkov.Coop;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using System;
@@ -12,49 +13,50 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
 
-        public override string MethodName => "ChangeAimingMode";
+        public override string MethodName => "CheckFireMode";
 
         public static HashSet<string> CallLocally = new();
 
 
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance, EFT.Player ____player)
-        {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
-            var player = ____player;
-            if (player == null)
-                return false;
+        //[PatchPrefix]
+        //public static bool PrePatch(
+        //    EFT.Player.FirearmController __instance, EFT.Player ____player)
+        //{
+        //    //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
+        //    var player = ____player;
+        //    if (player == null)
+        //        return false;
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
+        //    var result = false;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        result = true;
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [PatchPostfix]
-        public static void Postfix(
-           EFT.Player.FirearmController __instance, EFT.Player ____player)
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
-            var player = ____player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.CheckFireMode = true;
+            player.WeaponPacket.ToggleSend();
 
-            Dictionary<string, object> dictionary = new()
-            {
-                { "i", __instance.Item.AimIndex.Value.ToString() },
-                { "m", "ChangeAimingMode" }
-            };
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
 
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new()
+            //{
+            //    { "i", __instance.Item.AimIndex.Value.ToString() },
+            //    { "m", "ChangeAimingMode" }
+            //};
+
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
         }
 

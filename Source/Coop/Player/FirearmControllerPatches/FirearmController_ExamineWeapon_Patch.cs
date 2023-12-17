@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -20,33 +21,36 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public static List<string> CallLocally = new();
 
-        [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
-        {
-            var player = ____player;
-            if (player == null)
-                return false;
+        //[PatchPrefix]
+        //public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        //{
+        //    var player = ____player;
+        //    if (player == null)
+        //        return false;
 
-            if (CallLocally.Contains(player.ProfileId))
-                return true;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        return true;
 
-            return false;
-        }
+        //    return false;
+        //}
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            if (player == null)
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            player.WeaponPacket.ExamineWeapon = true;
+            player.WeaponPacket.ToggleSend();
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
+
+            //AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

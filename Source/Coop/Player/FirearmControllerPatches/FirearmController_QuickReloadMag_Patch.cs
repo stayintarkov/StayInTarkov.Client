@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
@@ -17,32 +18,40 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         [PatchPostfix]
-        public static void Postfix(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player
-            , MagazineClass magazine)
+        public static void Postfix(EFT.Player.FirearmController __instance, EFT.Player ____player, MagazineClass magazine)
         {
-            Dictionary<string, object> magAddressDict = new();
-            ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
+                return;
 
-            Dictionary<string, object> dictionary = new()
+            player.WeaponPacket.QuickReloadMag = new()
             {
-                { "fa.id", __instance.Item.Id },
-                { "fa.tpl", __instance.Item.TemplateId },
-                { "mg.id", magazine.Id },
-                { "mg.tpl", magazine.TemplateId },
-                { "ma", magAddressDict },
-                { "m", "ReloadMag" }
+                Reload = true,
+                MagId = magazine.Id
             };
-            AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
+            player.WeaponPacket.ToggleSend();
 
-            // Quick Reload is not Round Tripped. 
-            HasProcessed(typeof(FirearmController_QuickReloadMag_Patch), ____player, dictionary);
+
+            //Dictionary<string, object> magAddressDict = new();
+            //ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
+
+            //Dictionary<string, object> dictionary = new()
+            //{
+            //    { "fa.id", __instance.Item.Id },
+            //    { "fa.tpl", __instance.Item.TemplateId },
+            //    { "mg.id", magazine.Id },
+            //    { "mg.tpl", magazine.TemplateId },
+            //    { "ma", magAddressDict },
+            //    { "m", "ReloadMag" }
+            //};
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
+
+            //// Quick Reload is not Round Tripped. 
+            //HasProcessed(typeof(FirearmController_QuickReloadMag_Patch), ____player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

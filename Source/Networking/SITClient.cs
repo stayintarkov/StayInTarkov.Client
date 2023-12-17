@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
-using static StayInTarkov.Networking.StructUtils;
+using static StayInTarkov.Networking.SITSerialization;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
@@ -36,6 +36,7 @@ namespace StayInTarkov.Networking
             _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
             _packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
             _packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnFirearmControllerPacketReceived);
 
             _netClient = new LiteNetLib.NetManager(this)
             {
@@ -48,6 +49,18 @@ namespace StayInTarkov.Networking
             _netClient.Start();
 
             _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITGamePlayIP, PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort, "sit.core");
+        }
+
+        private void OnFirearmControllerPacketReceived(WeaponPacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.FirearmPackets.Enqueue(packet);
+            }
         }
 
         private void OnWeatherPacketReceived(WeatherPacket packet, NetPeer peer)

@@ -1,6 +1,6 @@
 ﻿using LiteNetLib.Utils;
 using UnityEngine;
-using static StayInTarkov.Networking.StructUtils;
+using static StayInTarkov.Networking.SITSerialization;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
@@ -60,13 +60,9 @@ namespace StayInTarkov.Networking.Packets
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(ProfileId);
-            //writer.Put(Position.x); writer.Put(Position.y); writer.Put(Position.z);
             Vector3Utils.Serialize(writer, Position);
-            //writer.Put(Rotation.x); writer.Put(Rotation.y);
             Vector2Utils.Serialize(writer, Rotation);
-            //writer.Put(HeadRotation.x); writer.Put(HeadRotation.y);
             Vector2Utils.Serialize(writer, HeadRotation);
-            //writer.Put(MovementDirection.x); writer.Put(MovementDirection.y);
             Vector2Utils.Serialize(writer, MovementDirection);
             writer.Put((byte)State);
             writer.Put(GClass1048.ScaleFloatToByte(Tilt, -5f, 5f));
@@ -76,11 +72,7 @@ namespace StayInTarkov.Networking.Packets
             writer.Put(IsProne);
             writer.Put(GClass1048.ScaleFloatToByte(PoseLevel, 0f, 1f));
             writer.Put(IsSprinting);
-            //writer.Put(Stamina.StaminaExhausted);
-            //writer.Put(Stamina.OxygenExhausted);
-            //writer.Put(Stamina.HandsExhausted);
             PhysicalUtils.Serialize(writer, Stamina);
-            //writer.Put(InputDirection.x); writer.Put(InputDirection.y);
             Vector2Utils.Serialize(writer, InputDirection);
             writer.Put(Blindfire);
             writer.Put(LinearSpeed);
@@ -89,13 +81,9 @@ namespace StayInTarkov.Networking.Packets
         public void Deserialize(NetDataReader reader)
         {
             ProfileId = reader.GetString();
-            //Position = new Vector3() { x = reader.GetFloat(), y = reader.GetFloat(), z = reader.GetFloat() };
             Position = Vector3Utils.Deserialize(reader);
-            //Rotation = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
             Rotation = Vector2Utils.Deserialize(reader);
-            //HeadRotation = new Vector2 { x = reader.GetFloat(), y = reader.GetFloat() };
             HeadRotation = Vector2Utils.Deserialize(reader);
-            //MovementDirection = new Vector2() { x = Mathf.Clamp(reader.GetFloat(), -50f, 20f), y = Mathf.Clamp(reader.GetFloat(), -40, 40f) };
             MovementDirection = Vector2Utils.Deserialize(reader);
             State = (EPlayerState)reader.GetByte();
             Tilt = GClass1048.ScaleByteToFloat(reader.GetByte(), -5f, 5f);
@@ -105,14 +93,7 @@ namespace StayInTarkov.Networking.Packets
             IsProne = reader.GetBool();
             PoseLevel = GClass1048.ScaleByteToFloat(reader.GetByte(), 0f, 1f);
             IsSprinting = reader.GetBool();
-            //Stamina = new Physical.PhysicalStamina()
-            //{
-            //    StaminaExhausted = reader.GetBool(),
-            //    OxygenExhausted = reader.GetBool(),
-            //    HandsExhausted = reader.GetBool(),
-            //};
             Stamina = PhysicalUtils.Deserialize(reader);
-            //InputDirection = new Vector2() { x = reader.GetFloat(), y = reader.GetFloat() };
             InputDirection = Vector2Utils.Deserialize(reader);
             Blindfire = reader.GetInt();
             LinearSpeed = reader.GetFloat();

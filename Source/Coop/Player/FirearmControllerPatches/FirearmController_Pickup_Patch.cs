@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -9,65 +10,61 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
     internal class FirearmController_Pickup_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "FCPickup";
+        public override string MethodName => "Pickup";
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, "Pickup", false, true);
-            return method;
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName, false, true);
         }
 
-        public static List<string> CallLocally
-            = new();
+        public static List<string> CallLocally = new();
 
 
-        [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player
-            )
-        {
-            //Logger.LogInfo("FirearmController_Pickup_Patch.PrePatch");
+        //[PatchPrefix]
+        //public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        //{
+        //    //Logger.LogInfo("FirearmController_Pickup_Patch.PrePatch");
 
-            if (CoopGameComponent.GetCoopGameComponent() == null)
-                return false;
+        //    if (CoopGameComponent.GetCoopGameComponent() == null)
+        //        return false;
 
-            //if (AkiBackendCommunication.Instance.HighPingMode && ____player.IsYourPlayer)
-            //{
-            //    return true;
-            //}
+        //    //if (AkiBackendCommunication.Instance.HighPingMode && ____player.IsYourPlayer)
+        //    //{
+        //    //    return true;
+        //    //}
 
-            var player = ____player;
-            if (player == null)
-                return false;
+        //    var player = ____player;
+        //    if (player == null)
+        //        return false;
 
-            var result = false;
-            if (CallLocally.Contains(player.ProfileId))
-                result = true;
+        //    var result = false;
+        //    if (CallLocally.Contains(player.ProfileId))
+        //        result = true;
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [PatchPostfix]
-        public static void PostPatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player
-            , bool p)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player, bool p)
         {
-            GetLogger(typeof(FirearmController_Pickup_Patch)).LogInfo("PostPatch");
-
-            var player = ____player;
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
+            var player = ____player as CoopPlayer;
+            if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
-            }
 
-            FCPickupPicket pickupPicket = new(player.ProfileId, p);
-            AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
+            player.WeaponPacket.Pickup = p;
+            player.WeaponPacket.ToggleSend();
 
+            //GetLogger(typeof(FirearmController_Pickup_Patch)).LogInfo("PostPatch");
 
+            //var player = ____player;
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
 
+            //FCPickupPicket pickupPicket = new(player.ProfileId, p);
+            //AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
