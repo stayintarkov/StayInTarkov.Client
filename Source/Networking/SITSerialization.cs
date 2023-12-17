@@ -1,6 +1,11 @@
 ﻿using EFT;
 using EFT.InventoryLogic;
 using LiteNetLib.Utils;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using StayInTarkov.Coop.Player.Health;
+using System.Diagnostics;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using static Physical;
 
@@ -50,6 +55,18 @@ namespace StayInTarkov.Networking
             {
                 return new PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
             }
+        }
+
+        public class DamageInfoUtils
+        {
+            public static void Serialize(NetDataWriter writer, DamageInfo dInfo)
+            {
+            }
+
+            //public static DamageInfo Deserialize(NetDataReader reader)
+            //{
+            //    return null;
+            //}
         }
 
         public struct LightStatesPacket
@@ -347,7 +364,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public struct ApplyDamageInfoPacket()
+        public struct ApplyDamageInfoPacket
         {
             public EDamageType DamageType { get; set; }
             public float Damage { get; set; }
@@ -369,6 +386,151 @@ namespace StayInTarkov.Networking
                 writer.Put(packet.Damage);
                 writer.Put((int)packet.BodyPartType);
                 writer.Put(packet.Absorbed);
+            }
+        }
+
+        public struct RestoreBodyPartPacket
+        {
+            public EBodyPart BodyPartType { get; set; }
+            public float HealthPenalty { get; set; }
+
+            public static RestoreBodyPartPacket Deserialize(NetDataReader reader)
+            {
+                RestoreBodyPartPacket packet = new();
+                packet.BodyPartType = (EBodyPart)reader.GetInt();
+                packet.HealthPenalty = reader.GetFloat();
+                return packet;
+            }
+            public static void Serialize(NetDataWriter writer, RestoreBodyPartPacket packet)
+            {
+                writer.Put((int)packet.BodyPartType);
+                writer.Put(packet.HealthPenalty);
+            }
+        }
+
+        public struct ChangeHealthPacket
+        {
+            public EBodyPart BodyPartType { get; set; }
+            public float Value { get; set; }
+
+            public static ChangeHealthPacket Deserialize(NetDataReader reader)
+            {
+                ChangeHealthPacket packet = new();
+                packet.BodyPartType = (EBodyPart)reader.GetInt();
+                packet.Value = reader.GetFloat();
+                return packet;
+            }
+            public static void Serialize(NetDataWriter writer, ChangeHealthPacket packet)
+            {
+                writer.Put((int)packet.BodyPartType);
+                writer.Put(packet.Value);
+            }
+        }
+
+        public struct AddEffectPacket()
+        {
+            public int Id { get; set; }
+            public byte Type { get; set; }
+            public EBodyPart BodyPartType { get; set; }
+            public float? DelayTime { get; set; }
+            public float? BuildUpTime { get; set; }
+            public float? WorkTime { get; set; }
+            public float? ResidueTime { get; set; }
+            public float? Strength { get; set; }
+            public ExtraDataType ExtraDataTypeValue { get; set; } = 0;
+            public ExtraData ExtraDataValue;
+            public enum ExtraDataType
+            {
+                None = 0,
+                MedEffect,
+                Stimulator
+            }
+            public struct ExtraData()
+            {
+                public MedEffect MedEffectValue { get; set; }
+                public Stimulator StimulatorValue { get; set; }
+                public struct MedEffect
+                {
+                    public string ItemId { get; set; }
+                    public float Amount { get; set; }
+                    public static MedEffect Deserialize(NetDataReader reader)
+                    {
+                        MedEffect packet = new();
+                        packet.ItemId = reader.GetString();
+                        packet.Amount = reader.GetFloat();
+                        return packet;
+                    }
+                    public static void Serialize(NetDataWriter writer, MedEffect packet)
+                    {
+                        writer.Put(packet.ItemId);
+                        writer.Put(packet.Amount);
+                    }
+                }
+                public struct Stimulator
+                {
+                    public string BuffsName { get; set; }
+                    public string ItemTemplateId { get; set; }
+                    public EBodyPart BodyPartType { get; set; }
+                    public static Stimulator Deserialize(NetDataReader reader)
+                    {
+                        Stimulator packet = new();
+                        packet.BuffsName = reader.GetString();
+                        packet.ItemTemplateId = reader.GetString();
+                        packet.BodyPartType = (EBodyPart)reader.GetInt();
+                        return packet;
+                    }
+                    public static void Serialize(NetDataWriter writer, Stimulator packet)
+                    {
+                        writer.Put(packet.BuffsName);
+                        writer.Put(packet.ItemTemplateId);
+                        writer.Put((int)packet.BodyPartType);
+                    }
+                }
+            }
+            public static AddEffectPacket Deserialize(NetDataReader reader)
+            {
+                AddEffectPacket packet = new();
+                packet.Id = reader.GetInt();
+                packet.Type = reader.GetByte();
+                packet.BodyPartType = (EBodyPart)reader.GetInt();
+                packet.DelayTime = reader.GetFloat();
+                packet.BuildUpTime = reader.GetFloat();
+                packet.WorkTime = reader.GetFloat();
+                packet.ResidueTime = reader.GetFloat();
+                packet.Strength = reader.GetFloat();
+                packet.ExtraDataTypeValue = (ExtraDataType)reader.GetInt();
+                if (packet.ExtraDataTypeValue == ExtraDataType.MedEffect)
+                {
+                    packet.ExtraDataValue = new();
+                    packet.ExtraDataValue.MedEffectValue = ExtraData.MedEffect.Deserialize(reader);
+                }
+                else if (packet.ExtraDataTypeValue == ExtraDataType.Stimulator)
+                {
+                    packet.ExtraDataValue = new();
+                    packet.ExtraDataValue.StimulatorValue = ExtraData.Stimulator.Deserialize(reader);
+                }
+                return packet;
+            }
+            public static void Serialize(NetDataWriter writer, AddEffectPacket packet)
+            {
+                writer.Put(packet.Id);
+                writer.Put(packet.Type);
+                writer.Put((int)packet.BodyPartType);
+                if (packet.DelayTime != null)
+                    writer.Put((float)packet.DelayTime);
+                if (packet.BuildUpTime != null)
+                    writer.Put((float)packet.BuildUpTime);
+                if (packet.WorkTime != null)
+                    writer.Put((float)packet.WorkTime);
+                if (packet.ResidueTime != null)
+                    writer.Put((float)packet.ResidueTime);
+                if (packet.Strength != null)
+                    writer.Put((float)packet.Strength);
+                writer.Put((int)packet.ExtraDataTypeValue);
+                if (packet.ExtraDataTypeValue == ExtraDataType.MedEffect)
+                    ExtraData.MedEffect.Serialize(writer, packet.ExtraDataValue.MedEffectValue);
+                else if (packet.ExtraDataTypeValue == ExtraDataType.Stimulator)
+                    ExtraData.Stimulator.Serialize(writer, packet.ExtraDataValue.StimulatorValue);
             }
         }
 

@@ -1,8 +1,6 @@
 ﻿using EFT.HealthSystem;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Core.Player;
-using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -11,11 +9,11 @@ using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractE
 
 namespace StayInTarkov.Coop.Player.Health
 {
-    internal class RestoreBodyPartPatch : ModuleReplicationPatch
+    internal class ActiveHealthController_ChangeHealth_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(PlayerHealthController);
+        public override Type InstanceType => typeof(ActiveHealthController);
 
-        public override string MethodName => "RestoreBodyPart";
+        public override string MethodName => "ChangeHealth";
 
         public static Dictionary<string, bool> CallLocally = new();
 
@@ -33,7 +31,7 @@ namespace StayInTarkov.Coop.Player.Health
         //}
 
         [PatchPostfix]
-        public static void PatchPostfix(PlayerHealthController __instance, EBodyPart bodyPart, float healthPenalty)
+        public static void PatchPostfix(ActiveHealthController __instance, EBodyPart bodyPart, float value, DamageInfo damageInfo)
         {
             //Logger.LogDebug("RestoreBodyPartPatch:PatchPostfix");
 
@@ -41,13 +39,16 @@ namespace StayInTarkov.Coop.Player.Health
             if (player == null || !player.IsYourPlayer && (!MatchmakerAcceptPatches.IsServer && !player.IsAI))
                 return;
 
-            player.HealthPacket.HasBodyPartRestoreInfo = true;
-            player.HealthPacket.RestoreBodyPartPacket = new()
+            if (damageInfo.DamageType == EFT.EDamageType.Medicine)
             {
-                BodyPartType = bodyPart,
-                HealthPenalty = healthPenalty
-            };
-            player.HealthPacket.ToggleSend();
+                player.HealthPacket.HasChangeHealthPacket = true;
+                player.HealthPacket.ChangeHealthPacket = new()
+                {
+                    BodyPartType = bodyPart,
+                    Value = value
+                };
+                player.HealthPacket.ToggleSend();
+            }
 
             // If it is a client Drone, do not resend the packet again!
             //if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))

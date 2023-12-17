@@ -23,7 +23,7 @@ namespace StayInTarkov.Networking
     {
         private LiteNetLib.NetManager _netServer;
         public NetPacketProcessor _packetProcessor = new();
-        private NetDataWriter _dataWriter = new NetDataWriter();
+        private NetDataWriter _dataWriter = new();
 
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         private CoopGameComponent CoopGameComponent { get; set; }
@@ -39,7 +39,9 @@ namespace StayInTarkov.Networking
             _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
             _packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
             _packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
-            _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnFirearmControllerPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnWeaponPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<HealthPacket, NetPeer>(OnHealthPacketReceived);
+
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -56,7 +58,19 @@ namespace StayInTarkov.Networking
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
-        private void OnFirearmControllerPacketReceived(WeaponPacket packet, NetPeer peer)
+        private void OnHealthPacketReceived(HealthPacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null)
+            {
+                playerToApply.HealthPackets.Enqueue(packet);
+            }
+        }
+
+        private void OnWeaponPacketReceived(WeaponPacket packet, NetPeer peer)
         {
             if (!Players.ContainsKey(packet.ProfileId))
                 return;
@@ -124,12 +138,12 @@ namespace StayInTarkov.Networking
         private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
         {
             if (!Players.ContainsKey(packet.ProfileId))
-                return;            
+                return;
 
             var playerToApply = Players[packet.ProfileId] as CoopPlayer;
             if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
-                playerToApply.NewState = packet;                
+                playerToApply.NewState = packet;
             }
         }
 

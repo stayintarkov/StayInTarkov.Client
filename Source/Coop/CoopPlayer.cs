@@ -6,7 +6,6 @@ using EFT.InventoryLogic;
 using LiteNetLib.Utils;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.PacketQueues;
-using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
@@ -15,9 +14,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop
 {
@@ -35,12 +34,12 @@ namespace StayInTarkov.Coop
         public HealthPacket HealthPacket = new("null");
         public HealthPacketQueue HealthPackets { get; set; } = new(100);
 
-        public static async Task<LocalPlayer>Create(
+        public static async Task<LocalPlayer> Create(
             int playerId,
             Vector3 position,
-            Quaternion rotation, 
-            string layerName, 
-            string prefix, 
+            Quaternion rotation,
+            string layerName,
+            string prefix,
             EPointOfView pointOfView,
             Profile profile,
             bool aiControl,
@@ -284,16 +283,34 @@ namespace StayInTarkov.Coop
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
+            // TODO: Try to run all of this locally so we do not rely on the server / fight lag
+            // TODO: Send information on who shot us to prevent the end screen to be empty / kill feed being wrong
+
             if (!MatchmakerAcceptPatches.IsServer)
                 return;
+
+            HealthPacket.HasDamageInfo = true;
+            HealthPacket.ApplyDamageInfo = new()
+            {
+                Damage = damageInfo.Damage,
+                DamageType = damageInfo.DamageType,
+                BodyPartType = bodyPartType,
+                Absorbed = absorbed
+            };
+            HealthPacket.ToggleSend();
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
         }
 
-        //public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
-        //{
-        //    return base.ApplyShot(damageInfo, bodyPartType, shotId);
-        //}
+        public void ClientApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        {
+            base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, null);
+        }
+
+        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
+        {
+            return base.ApplyShot(damageInfo, bodyPartType, shotId);
+        }
 
         //public void ReceiveApplyShotFromServer(Dictionary<string, object> dict)
         //{
@@ -343,6 +360,7 @@ namespace StayInTarkov.Coop
 
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
+            // Look at breathing problem with packets?
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
 
             var prc = GetComponent<PlayerReplicatedComponent>();
@@ -441,7 +459,14 @@ namespace StayInTarkov.Coop
                     {
                         Writer.Reset();
                         Client.SendData(Writer, ref WeaponPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
-                        WeaponPacket = new(ProfileId); 
+                        WeaponPacket = new(ProfileId);
+                    }
+
+                    if (HealthPacket.ShouldSend && !string.IsNullOrEmpty(HealthPacket.ProfileId))
+                    {
+                        Writer.Reset();
+                        Client.SendData(Writer, ref HealthPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
+                        HealthPacket = new(ProfileId);
                     }
                 }
                 else if (MatchmakerAcceptPatches.IsServer && Server != null)
@@ -460,7 +485,14 @@ namespace StayInTarkov.Coop
                     {
                         Writer.Reset();
                         Server.SendDataToAll(Writer, ref WeaponPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
-                        WeaponPacket = new(ProfileId); 
+                        WeaponPacket = new(ProfileId);
+                    }
+
+                    if (HealthPacket.ShouldSend && !string.IsNullOrEmpty(HealthPacket.ProfileId))
+                    {
+                        Writer.Reset();
+                        Server.SendDataToAll(Writer, ref HealthPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
+                        HealthPacket = new(ProfileId);
                     }
                 }
                 else if (MatchmakerAcceptPatches.IsServer)
@@ -490,32 +522,36 @@ namespace StayInTarkov.Coop
                         e.Server.SendDataToAll(Writer, ref HealthPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
                         HealthPacket = new(ProfileId);
                     }
-                } 
+                }
             }
         }
 
         public IEnumerator SyncWorld()
         {
-            var waitSeconds = new WaitForSeconds(30f);
+            // TODO: Consolidate into one packet.
 
             while (true)
             {
-                yield return waitSeconds;
-
                 EFT.UI.ConsoleScreen.Log("Sending synchronization packets.");
                 Writer.Reset();
                 GameTimerPacket gameTimerPacket = new(true);
                 Client.SendData(Writer, ref gameTimerPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
                 Writer.Reset();
                 WeatherPacket weatherPacket = new() { IsRequest = true };
-                Client.SendData(Writer, ref weatherPacket, LiteNetLib.DeliveryMethod.ReliableOrdered); 
+                Client.SendData(Writer, ref weatherPacket, LiteNetLib.DeliveryMethod.ReliableOrdered);
+
+                yield return new WaitForSeconds(30f);
             }
         }
 
         IEnumerator SpawnPlayer()
-        {            
+        {
+            // Temp fix to spawn players spawning underground. Still not completely fixed,
+            // might have to run a function every X second to compare Vector3 with current state and if it doesn't match teleport them up.
+            // Don't want to run that every state though as comparing Vector3s is expensive.
+
             yield return new WaitForSeconds(4);
-            
+
             Teleport(new Vector3(NewState.Position.x, NewState.Position.y, NewState.Position.z));
 
             yield return new WaitForSeconds(1);
@@ -586,10 +622,10 @@ namespace StayInTarkov.Coop
                 {
                     HandleWeaponPacket();
                 }
-                if (HealthPackets.Count > 0)
-                {
-                    HandleHealthPacket();
-                }
+            }
+            if (HealthPackets.Count > 0)
+            {
+                HandleHealthPacket();
             }
         }
 
@@ -638,7 +674,7 @@ namespace StayInTarkov.Coop
                 }
 
                 if (packet.ToggleLauncher)
-                    firearmController.ToggleLauncher();                
+                    firearmController.ToggleLauncher();
 
                 if (packet.EnableInventory)
                     firearmController.SetInventoryOpened(packet.InventoryStatus);
@@ -785,8 +821,58 @@ namespace StayInTarkov.Coop
 
         private void HandleHealthPacket()
         {
-            var healthController = HealthController;
+            EFT.UI.ConsoleScreen.Log("I received a HealthPacket");
             var packet = HealthPackets.Dequeue();
+
+            if (packet.HasDamageInfo) // Currently damage is being handled by the server, so we run this one on ourselves too
+            {
+                EFT.UI.ConsoleScreen.Log("I received a DamageInfoPacket");
+                DamageInfo damageInfo = new()
+                {
+                    Damage = packet.ApplyDamageInfo.Damage,
+                    DamageType = packet.ApplyDamageInfo.DamageType
+                };
+                ClientApplyDamageInfo(damageInfo, packet.ApplyDamageInfo.BodyPartType, packet.ApplyDamageInfo.Absorbed);
+            }
+
+            if (packet.HasBodyPartRestoreInfo && !IsYourPlayer)
+            {
+                EFT.UI.ConsoleScreen.Log("I received a RestoreBodyPartPacket");
+                ActiveHealthController.RestoreBodyPart(packet.RestoreBodyPartPacket.BodyPartType, packet.RestoreBodyPartPacket.HealthPenalty);
+            }
+
+            if (packet.HasChangeHealthPacket && !IsYourPlayer)
+            {
+                EFT.UI.ConsoleScreen.Log("I received a ChangeHealthPacket");
+                DamageInfo dInfo = new()
+                {
+                    DamageType = EDamageType.Medicine
+                };
+                ActiveHealthController.ChangeHealth(packet.ChangeHealthPacket.BodyPartType, packet.ChangeHealthPacket.Value, dInfo);
+            }
+
+            if (packet.HasEnergyChange && !IsYourPlayer)
+            {
+                EFT.UI.ConsoleScreen.Log("I received a EnergyChangePacket");
+                ActiveHealthController.ChangeEnergy(packet.EnergyChangeValue);
+            }
+
+            if (packet.HasHydrationChange && !IsYourPlayer)
+            {
+                EFT.UI.ConsoleScreen.Log("I received a HydrationChangePacket");
+                ActiveHealthController.ChangeHydration(packet.HydrationChangeValue);
+            }
+
+            if (packet.HasAddEffect && !IsYourPlayer)
+            {
+                EFT.UI.ConsoleScreen.Log("I received a AddEffectPacket");
+                switch (packet.AddEffectPacket.EffectTypeValue)
+                {
+                    case AddEffectPacket.EffectType.PainKiller:
+                        ActiveHealthController.DoPainKiller();
+                        break;
+                }
+            }
         }
 
         public override void OnDestroy()
