@@ -38,6 +38,7 @@ namespace StayInTarkov.Networking
             _packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
             _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnFirearmControllerPacketReceived);
             _packetProcessor.SubscribeNetSerializable<HealthPacket, NetPeer>(OnHealthPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<InventoryPacket, NetPeer>(OnInventoryPacketReceived);
 
             _netClient = new LiteNetLib.NetManager(this)
             {
@@ -50,6 +51,18 @@ namespace StayInTarkov.Networking
             _netClient.Start();
 
             _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITGamePlayIP, PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort, "sit.core");
+        }
+
+        private void OnInventoryPacketReceived(InventoryPacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null)
+            {
+                playerToApply.InventoryPackets.Enqueue(packet);
+            }
         }
 
         private void OnHealthPacketReceived(HealthPacket packet, NetPeer peer)

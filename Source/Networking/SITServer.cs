@@ -6,6 +6,7 @@ using LiteNetLib.Utils;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Networking.Packets;
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -41,7 +42,7 @@ namespace StayInTarkov.Networking
             _packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
             _packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnWeaponPacketReceived);
             _packetProcessor.SubscribeNetSerializable<HealthPacket, NetPeer>(OnHealthPacketReceived);
-
+            _packetProcessor.SubscribeNetSerializable<InventoryPacket, NetPeer>(OnInventoryPacketReceived);
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -56,6 +57,18 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("Started SITServer");
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+        }
+
+        private void OnInventoryPacketReceived(InventoryPacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
+
+            var playerToApply = Players[packet.ProfileId] as CoopPlayer;
+            if (playerToApply != default && playerToApply != null)
+            {
+                playerToApply.InventoryPackets.Enqueue(packet);
+            }
         }
 
         private void OnHealthPacketReceived(HealthPacket packet, NetPeer peer)

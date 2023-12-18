@@ -30,9 +30,7 @@ namespace StayInTarkov.Coop
 
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            //return base.UnloadMagazine(magazine);
-
-            return SuccessfulResult.Task;
+            return base.UnloadMagazine(magazine);
         }
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
@@ -42,15 +40,15 @@ namespace StayInTarkov.Coop
 
         public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
         {
-            BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
-            if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
-            {
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
-                base.UnloadMagazine((MagazineClass)magazine).ContinueWith(x =>
-                {
-                    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
-                });
-            }
+            //BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
+            //if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
+            //{
+            //    ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
+            //    base.UnloadMagazine((MagazineClass)magazine).ContinueWith(x =>
+            //    {
+            //        ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
+            //    });
+            //}
         }
     }
 }

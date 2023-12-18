@@ -38,25 +38,25 @@ namespace StayInTarkov.Coop
 
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            Task<IResult> result;
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
+            return base.UnloadMagazine(magazine);
+            //Task<IResult> result;
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
 
-            BepInLogger.LogInfo("UnloadMagazine");
-            ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
-            var serialized = unloadMagazinePacket.Serialize();
+            //BepInLogger.LogInfo("UnloadMagazine");
+            //ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
+            //var serialized = unloadMagazinePacket.Serialize();
 
-            //if (AlreadySent.Contains(serialized))
-            {
-                result = base.UnloadMagazine(magazine);
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
-            }
+            ////if (AlreadySent.Contains(serialized))
+            //{
+            //    result = base.UnloadMagazine(magazine);
+            //    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
+            //}
 
-            //AlreadySent.Add(serialized);
+            ////AlreadySent.Add(serialized);
 
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
-            result = base.UnloadMagazine(magazine);
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
-            return result;
+            //AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            //result = base.UnloadMagazine(magazine);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
         }
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
@@ -66,14 +66,14 @@ namespace StayInTarkov.Coop
 
         public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
         {
-            BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
-            if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
-            {
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
-                base.UnloadMagazine((MagazineClass)magazine);
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
+            //BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
+            //if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
+            //{
+            //    ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
+            //    base.UnloadMagazine((MagazineClass)magazine);
+            //    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
 
-            }
+            //}
         }
 
         public static bool IsDiscardLimitsFine(Dictionary<string, int> DiscardLimits)
@@ -88,9 +88,6 @@ namespace StayInTarkov.Coop
                 && DiscardLimits.ContainsKey(DogtagComponent.BearDogtagsTemplate) // Value: 0
                 && DiscardLimits.ContainsKey(DogtagComponent.UsecDogtagsTemplate); // Value: 0
         }
-
-
-
 
         // PlayerOwnerInventoryController methods. We should inherit EFT.Player.PlayerInventoryController and override these methods based on EFT.Player.PlayerOwnerInventoryController
 

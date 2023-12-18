@@ -1,13 +1,10 @@
 ﻿using EFT;
-using EFT.InventoryLogic;
 using LiteNetLib.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using StayInTarkov.Coop.Player.Health;
-using System.Diagnostics;
-using Unity.Collections.LowLevel.Unsafe;
+using System.Collections.Generic;
 using UnityEngine;
 using static Physical;
+
+// GClass2800
 
 namespace StayInTarkov.Networking
 {
@@ -57,16 +54,198 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public class DamageInfoUtils
+        public class AddressUtils
         {
-            public static void Serialize(NetDataWriter writer, DamageInfo dInfo)
+            public static void SerializeGridItemAddressDescriptor(NetDataWriter writer, GridItemAddressDescriptor gridItemAddressDescriptor)
             {
+                SerializeLocationInGrid(writer, gridItemAddressDescriptor.LocationInGrid);
+
             }
 
-            //public static DamageInfo Deserialize(NetDataReader reader)
-            //{
-            //    return null;
-            //}
+            public static GridItemAddressDescriptor DeserializeGridItemAddressDescriptor(NetDataReader reader)
+            {
+                return new GridItemAddressDescriptor()
+                {
+                    LocationInGrid = DeserializeLocationInGrid(reader),
+                    Container = DeserializeContainerDescriptor(reader)
+                };
+            }
+
+            public static void SerializeContainerDescriptor(NetDataWriter writer, ContainerDescriptor containerDescriptor)
+            {
+                writer.Put(containerDescriptor.ParentId);
+                writer.Put(containerDescriptor.ContainerId);
+            }
+
+            public static ContainerDescriptor DeserializeContainerDescriptor(NetDataReader reader)
+            {
+                return new ContainerDescriptor()
+                {
+                    ParentId = reader.GetString(),
+                    ContainerId = reader.GetString(),
+                };
+            }
+
+            public static void SerializeItemInGridDescriptor(NetDataWriter writer, ItemInGridDescriptor itemInGridDescriptor)
+            {
+                GClass1040 polyWriter = new();
+                SerializeLocationInGrid(writer, itemInGridDescriptor.Location);
+                SerializeItemDescriptor(polyWriter, itemInGridDescriptor.Item);
+                writer.Put(polyWriter.ToArray());
+            }
+
+            public static ItemInGridDescriptor DeserializeItemInGridDescriptor(NetDataReader reader)
+            {
+                GClass1035 polyReader = new(reader.RawData);
+                return new ItemInGridDescriptor()
+                {
+                    Location = DeserializeLocationInGrid(reader),
+                    Item = DeserializeItemDescriptor(polyReader)
+                };
+            }
+
+            public static void SerializeLocationInGrid(NetDataWriter writer, LocationInGrid locationInGrid)
+            {
+                writer.Put(locationInGrid.x);
+                writer.Put(locationInGrid.y);
+                writer.Put((int)locationInGrid.r);
+                writer.Put(locationInGrid.isSearched);
+            }
+
+            public static LocationInGrid DeserializeLocationInGrid(NetDataReader reader)
+            {
+                return new LocationInGrid()
+                {
+                    x = reader.GetInt(),
+                    y = reader.GetInt(),
+                    r = (ItemRotation)reader.GetInt(),
+                    isSearched = reader.GetBool()
+                };
+            }
+
+            public static void SerializeItemDescriptor(GClass1040 writer, ItemDescriptor itemDescriptor)
+            {
+                writer.WriteString(itemDescriptor.Id);
+                writer.WriteString(itemDescriptor.TemplateId);
+                writer.WriteInt(itemDescriptor.StackCount);
+                writer.WriteBool(itemDescriptor.SpawnedInSession);
+                writer.WriteByte(itemDescriptor.ActiveCamora);
+                writer.WriteBool(itemDescriptor.IsUnderBarrelDeviceActive);
+                for (int i = 0; i < itemDescriptor.Components.Count; i++)
+                {
+                    writer.WritePolymorph(itemDescriptor.Components[i]);
+                }
+                writer.WriteInt(itemDescriptor.Slots.Count);
+                for (int j = 0; j < itemDescriptor.Slots.Count; j++)
+                {
+                    writer.WriteEFTSlotDescriptor(itemDescriptor.Slots[j]);
+                }
+                writer.WriteInt(itemDescriptor.ShellsInWeapon.Count);
+                for (int k = 0; k < itemDescriptor.ShellsInWeapon.Count; k++)
+                {
+                    writer.WriteEFTShellTemplateDescriptor(itemDescriptor.ShellsInWeapon[k]);
+                }
+                writer.WriteInt(itemDescriptor.ShellsInUnderbarrelWeapon.Count);
+                for (int l = 0; l < itemDescriptor.ShellsInUnderbarrelWeapon.Count; l++)
+                {
+                    writer.WriteEFTShellTemplateDescriptor(itemDescriptor.ShellsInUnderbarrelWeapon[l]);
+                }
+                writer.WriteInt(itemDescriptor.Grids.Count);
+                for (int m = 0; m < itemDescriptor.Grids.Count; m++)
+                {
+                    writer.WriteEFTGridDescriptor(itemDescriptor.Grids[m]);
+                }
+                writer.WriteInt(itemDescriptor.StackSlots.Count);
+                for (int n = 0; n < itemDescriptor.StackSlots.Count; n++)
+                {
+                    writer.WriteEFTStackSlotDescriptor(itemDescriptor.StackSlots[n]);
+                }
+                writer.WriteInt(itemDescriptor.Malfunction.Count);
+                for (int num = 0; num < itemDescriptor.Malfunction.Count; num++)
+                {
+                    writer.WriteEFTMalfunctionDescriptor(itemDescriptor.Malfunction[num]);
+                }
+            }
+
+            public static ItemDescriptor DeserializeItemDescriptor(GClass1035 reader)
+            {
+                ItemDescriptor itemDescriptor = new();
+                itemDescriptor.Id = reader.ReadString();
+                itemDescriptor.TemplateId = reader.ReadString();
+                itemDescriptor.StackCount = reader.ReadInt();
+                itemDescriptor.SpawnedInSession = reader.ReadBool();
+                itemDescriptor.ActiveCamora = reader.ReadByte();
+                itemDescriptor.IsUnderBarrelDeviceActive = reader.ReadBool();
+                int num = reader.ReadInt();
+                itemDescriptor.Components = new List<AbstractDescriptor2>(num);
+                for (int i = 0; i < num; i++)
+                {
+                    itemDescriptor.Components.Add(reader.ReadPolymorph<AbstractDescriptor2>());
+                }
+                int num2 = reader.ReadInt();
+                itemDescriptor.Slots = new List<SlotDescriptor>(num2);
+                for (int j = 0; j < num2; j++)
+                {
+                    itemDescriptor.Slots.Add(reader.ReadEFTSlotDescriptor());
+                }
+                int num3 = reader.ReadInt();
+                itemDescriptor.ShellsInWeapon = new List<ShellTemplateDescriptor>(num3);
+                for (int k = 0; k < num3; k++)
+                {
+                    itemDescriptor.ShellsInWeapon.Add(reader.ReadEFTShellTemplateDescriptor());
+                }
+                int num4 = reader.ReadInt();
+                itemDescriptor.ShellsInUnderbarrelWeapon = new List<ShellTemplateDescriptor>(num4);
+                for (int l = 0; l < num4; l++)
+                {
+                    itemDescriptor.ShellsInUnderbarrelWeapon.Add(reader.ReadEFTShellTemplateDescriptor());
+                }
+                int num5 = reader.ReadInt();
+                itemDescriptor.Grids = new List<GridDescriptor>(num5);
+                for (int m = 0; m < num5; m++)
+                {
+                    itemDescriptor.Grids.Add(reader.ReadEFTGridDescriptor());
+                }
+                int num6 = reader.ReadInt();
+                itemDescriptor.StackSlots = new List<StackSlotDescriptor>(num6);
+                for (int n = 0; n < num6; n++)
+                {
+                    itemDescriptor.StackSlots.Add(reader.ReadEFTStackSlotDescriptor());
+                }
+                int num7 = reader.ReadInt();
+                itemDescriptor.Malfunction = new List<MalfunctionDescriptor>(num7);
+                for (int num8 = 0; num8 < num7; num8++)
+                {
+                    itemDescriptor.Malfunction.Add(reader.ReadEFTMalfunctionDescriptor());
+                }
+                return itemDescriptor;
+            }
+
+            public static void SerializeSlotItemAddressDescriptor(NetDataWriter writer, SlotItemAddressDescriptor slotItemAddressDescriptor)
+            {
+                SerializeContainerDescriptor(writer, slotItemAddressDescriptor.Container);
+            }
+
+            public static SlotItemAddressDescriptor DeserializeSlotItemAddressDescriptor(NetDataReader reader)
+            {
+                return new SlotItemAddressDescriptor()
+                {
+                    Container = DeserializeContainerDescriptor(reader)
+                };
+            }
+
+            public static void SerializeStackSlotItemAddressDescriptor(NetDataWriter writer, StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor)
+            {
+                SerializeContainerDescriptor(writer, stackSlotItemAddressDescriptor.Container);
+            }
+
+            public static StackSlotItemAddressDescriptor DeserializeStackSlotItemAddressDescriptor(NetDataReader reader)
+            {
+                return new StackSlotItemAddressDescriptor()
+                {
+                    Container = DeserializeContainerDescriptor(reader)
+                };
+            }
         }
 
         public struct LightStatesPacket
@@ -430,13 +609,13 @@ namespace StayInTarkov.Networking
         public struct AddEffectPacket()
         {
             public int Id { get; set; }
-            public byte Type { get; set; }
+            public string Type { get; set; }
             public EBodyPart BodyPartType { get; set; }
-            public float? DelayTime { get; set; }
-            public float? BuildUpTime { get; set; }
-            public float? WorkTime { get; set; }
-            public float? ResidueTime { get; set; }
-            public float? Strength { get; set; }
+            public float DelayTime { get; set; } = 0;
+            public float BuildUpTime { get; set; } = 0;
+            public float WorkTime { get; set; } = 0;
+            public float ResidueTime { get; set; } = 0;
+            public float Strength { get; set; } = 0;
             public ExtraDataType ExtraDataTypeValue { get; set; } = 0;
             public ExtraData ExtraDataValue;
             public enum ExtraDataType
@@ -491,7 +670,7 @@ namespace StayInTarkov.Networking
             {
                 AddEffectPacket packet = new();
                 packet.Id = reader.GetInt();
-                packet.Type = reader.GetByte();
+                packet.Type = reader.GetString();
                 packet.BodyPartType = (EBodyPart)reader.GetInt();
                 packet.DelayTime = reader.GetFloat();
                 packet.BuildUpTime = reader.GetFloat();
@@ -516,16 +695,11 @@ namespace StayInTarkov.Networking
                 writer.Put(packet.Id);
                 writer.Put(packet.Type);
                 writer.Put((int)packet.BodyPartType);
-                if (packet.DelayTime != null)
-                    writer.Put((float)packet.DelayTime);
-                if (packet.BuildUpTime != null)
-                    writer.Put((float)packet.BuildUpTime);
-                if (packet.WorkTime != null)
-                    writer.Put((float)packet.WorkTime);
-                if (packet.ResidueTime != null)
-                    writer.Put((float)packet.ResidueTime);
-                if (packet.Strength != null)
-                    writer.Put((float)packet.Strength);
+                writer.Put(packet.DelayTime);
+                writer.Put(packet.BuildUpTime);
+                writer.Put(packet.WorkTime);
+                writer.Put(packet.ResidueTime);
+                writer.Put(packet.Strength);
                 writer.Put((int)packet.ExtraDataTypeValue);
                 if (packet.ExtraDataTypeValue == ExtraDataType.MedEffect)
                     ExtraData.MedEffect.Serialize(writer, packet.ExtraDataValue.MedEffectValue);
@@ -534,52 +708,73 @@ namespace StayInTarkov.Networking
             }
         }
 
+        public struct RemoveEffectPacket()
+        {
+            public int Id { get; set; }
+            public string Type { get; set; }
+            public EBodyPart BodyPartType { get; set; }
+            public static RemoveEffectPacket Deserialize(NetDataReader reader)
+            {
+                RemoveEffectPacket packet = new();
+                packet.Id = reader.GetInt();
+                packet.Type = reader.GetString();
+                packet.BodyPartType = (EBodyPart)reader.GetInt();
+                return packet;
+            }
+            public static void Serialize(NetDataWriter writer, RemoveEffectPacket packet)
+            {
+                writer.Put(packet.Id);
+                writer.Put(packet.Type);
+                writer.Put((int)packet.BodyPartType);
+            }
+        }
 
-        //public struct ReloadBarrelsPacket : INetSerializable
-        //{
-        //    public bool Reload { get; set; }
-        //    public string AmmoId { get; set; }
-        //    public byte[] LocationDescription { get; set; }
+        public struct ItemMovementHandlerMovePacket
+        {
+            public string ItemId { get; set; }
+            public AbstractDescriptor Descriptor { get; set; }
+            public static ItemMovementHandlerMovePacket Deserialize(NetDataReader reader)
+            {
+                GClass1035 polyReader = new(reader.RawData);
+                return new ItemMovementHandlerMovePacket()
+                {
+                    ItemId = polyReader.ReadString(),
+                    Descriptor = polyReader.ReadPolymorph<AbstractDescriptor>()
+                };
+            }
+            public static void Serialize(NetDataWriter writer, ItemMovementHandlerMovePacket packet)
+            {
+                GClass1040 polyWriter = new();
+                polyWriter.WriteString(packet.ItemId);
+                polyWriter.WritePolymorph(packet.Descriptor);
+                writer.Put(polyWriter.ToArray());
+            }
 
-        //    public void Deserialize(NetDataReader reader)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
+        }
 
-        //    public void Serialize(NetDataWriter writer)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-        //public struct LauncherReloadPacket : INetSerializable
-        //{
-        //    public bool Reload { get; set; }
-        //    public string[] AmmoIds { get; set; }
-
-        //    public void Deserialize(NetDataReader reader)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-
-        //    public void Serialize(NetDataWriter writer)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-        //public struct CompassPacket : INetSerializable
-        //{
-        //    public bool Toggle { get; set; }
-        //    public bool Status { get; set; }
-
-        //    public void Deserialize(NetDataReader reader)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-
-        //    public void Serialize(NetDataWriter writer)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
+        public struct ItemControllerExecutePacket
+        {
+            public uint CallbackId { get; set; }
+            public int OperationBytesLength { get; set; }
+            public byte[] OperationBytes { get; set; }
+            public string InventoryId { get; set; }
+            public static ItemControllerExecutePacket Deserialize(NetDataReader reader)
+            {
+                ItemControllerExecutePacket packet = new();
+                packet.CallbackId = reader.GetUInt();
+                packet.OperationBytesLength = reader.GetInt();
+                packet.OperationBytes = new byte[packet.OperationBytesLength];
+                reader.GetBytes(packet.OperationBytes, packet.OperationBytesLength);
+                packet.InventoryId = reader.GetString();
+                return packet;
+            }
+            public static void Serialize(NetDataWriter writer, ItemControllerExecutePacket packet)
+            {
+                writer.Put(packet.CallbackId);
+                writer.Put(packet.OperationBytes.Length);
+                writer.Put(packet.OperationBytes);
+                writer.Put(packet.InventoryId);
+            }
+        }
     }
 }

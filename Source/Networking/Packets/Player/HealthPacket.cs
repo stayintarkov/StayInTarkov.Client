@@ -1,6 +1,4 @@
 ﻿using LiteNetLib.Utils;
-using System;
-using System.Configuration;
 using static StayInTarkov.Networking.SITSerialization;
 
 // Look at Packet3 in DnSpy
@@ -28,6 +26,8 @@ namespace StayInTarkov.Networking.Packets
         public float HydrationChangeValue { get; set; }
         public bool HasAddEffect { get; set; }
         public AddEffectPacket AddEffectPacket { get; set; }
+        public bool HasRemoveEffect { get; set; }
+        public RemoveEffectPacket RemoveEffectPacket { get; set; }
 
         public HealthPacket(string profileId)
         {
@@ -38,6 +38,7 @@ namespace StayInTarkov.Networking.Packets
             HasEnergyChange = false;
             HasHydrationChange = false;
             HasAddEffect = false;
+            HasRemoveEffect = false;
         }
 
         public void Deserialize(NetDataReader reader)
@@ -60,7 +61,10 @@ namespace StayInTarkov.Networking.Packets
                 HydrationChangeValue = reader.GetFloat();
             HasAddEffect = reader.GetBool();
             if (HasAddEffect)
-                AddEffectPacket = SITSerialization.AddEffectPacket.Deserialize(reader);
+                AddEffectPacket = AddEffectPacket.Deserialize(reader);
+            HasRemoveEffect = reader.GetBool();
+            if (HasRemoveEffect)
+                RemoveEffectPacket = RemoveEffectPacket.Deserialize(reader);
         }
 
         public void Serialize(NetDataWriter writer)
@@ -83,7 +87,10 @@ namespace StayInTarkov.Networking.Packets
                 writer.Put(HydrationChangeValue);
             writer.Put(HasAddEffect);
             if (HasAddEffect)
-                SITSerialization.AddEffectPacket.Serialize(writer, AddEffectPacket);
+                AddEffectPacket.Serialize(writer, AddEffectPacket);
+            writer.Put(HasRemoveEffect);
+            if (HasRemoveEffect)
+                RemoveEffectPacket.Serialize(writer, RemoveEffectPacket);
         }
 
         public void ToggleSend()
