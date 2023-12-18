@@ -94,7 +94,7 @@ namespace StayInTarkov.Coop.NetworkPacket
                     var prop = allPropsFiltered[i];
                     binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
                     if (i != allPropsFiltered.Count() - 1)
-                        binaryWriter.WriteNonPrefixedString(",");
+                        binaryWriter.WriteNonPrefixedString(SerializerExtensions.SIT_SERIALIZATION_PACKET_SEPERATOR.ToString());
                 }
                 result = ((MemoryStream)binaryWriter.BaseStream).ToArray();
             }
@@ -126,7 +126,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
     public static class SerializerExtensions
     {
-        public const char SIT_SERIALIZATION_PACKET_SEPERATOR = ',';
+        public const char SIT_SERIALIZATION_PACKET_SEPERATOR = '£';
         private static Dictionary<Type, PropertyInfo[]> TypeToPropertyInfos { get; } = new();
 
         static SerializerExtensions()

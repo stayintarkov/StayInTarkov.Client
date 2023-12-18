@@ -3,9 +3,11 @@ using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
@@ -44,7 +46,7 @@ namespace StayInTarkov.Coop
         /// <summary>
         /// ProfileId to Player instance
         /// </summary>
-        public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
+        public ConcurrentDictionary<string, CoopPlayer> Players { get; } = new();
 
         //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
@@ -177,7 +179,7 @@ namespace StayInTarkov.Coop
             OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
             // Add own Player to Players list
-            Players.TryAdd(OwnPlayer.ProfileId, OwnPlayer);
+            Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
 
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -469,7 +471,9 @@ namespace StayInTarkov.Coop
                     quitState = EQuitState.YouHaveExtractedOnlyAsHost;
             }
 
-            if (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
+            // If there are any players alive. Number of players Alive Equals Numbers of players Extracted
+            // OR Number of Players Equals Number of players Extracted 
+            if ((numberOfPlayersAlive > 0 && numberOfPlayersAlive == numberOfPlayersExtracted) || PlayerUsers.Count() == numberOfPlayersExtracted)
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
@@ -562,9 +566,12 @@ namespace StayInTarkov.Coop
             if (RequestingObj == null)
                 return;
 
-            List<Dictionary<string, object>> playerStates = new();
+            JObject playerStates = new();
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
             {
+                JArray playerStateArray = new JArray();
                 foreach (var player in Players.Values)
                 {
                     if (player == null)
@@ -582,12 +589,12 @@ namespace StayInTarkov.Coop
                     if (!player.isActiveAndEnabled)
                         continue;
 
-                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+                    CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
                 }
 
-
+                playerStates.Add("dataList", playerStateArray);
                 //Logger.LogDebug(playerStates.SITToJson());
-                RequestingObj.SendListDataToPool(string.Empty, playerStates);
+                RequestingObj.SendDataToPool(playerStates.SITToJson());
 
                 LastPlayerStateSent = DateTime.Now;
             }
@@ -1026,7 +1033,7 @@ namespace StayInTarkov.Coop
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
             if (!Players.ContainsKey(profile.ProfileId))
-                Players.TryAdd(profile.ProfileId, otherPlayer);
+                Players.TryAdd(profile.ProfileId, (CoopPlayer)otherPlayer);
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
@@ -1154,69 +1161,9 @@ namespace StayInTarkov.Coop
             });
         }
 
-        private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
-            Dictionary<string, object> dictPlayerState = new();
-
-            // --- The important Ids
-            dictPlayerState.Add("profileId", player.ProfileId);
-            dictPlayerState.Add("serverId", GetServerId());
-
-            // --- Positional 
-            dictPlayerState.Add("pX", player.Position.x);
-            dictPlayerState.Add("pY", player.Position.y);
-            dictPlayerState.Add("pZ", player.Position.z);
-            dictPlayerState.Add("rX", player.Rotation.x);
-            dictPlayerState.Add("rY", player.Rotation.y);
-
-            // --- Positional 
-            dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            dictPlayerState.Add("spr", player.Physical.Sprinting);
-            //if (player.MovementContext.IsSprintEnabled)
-            //{
-            //    prc.ReplicatedDirection = new Vector2(1, 0);
-            //}
-            //dictPlayerState.Add("tp", prc.TriggerPressed);
-            dictPlayerState.Add("alive", player.HealthController.IsAlive);
-            dictPlayerState.Add("tilt", player.MovementContext.Tilt);
-            dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-
-            dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
-            // ---------- 
-            //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
-            //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
-            //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
-            //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
-            //
-            if (prc.ReplicatedDirection.HasValue)
-            {
-                dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
-                dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
-            }
-
-            // ---------- 
-            /*
-            if (player.PlayerHealthController != null)
-            {
-                foreach (var b in Enum.GetValues(typeof(EBodyPart)))
-                {
-                    var effects = player.PlayerHealthController
-                        .GetAllActiveEffects((EBodyPart)b).Where(x => !x.ToString().Contains("Exist"))
-                        .Select(x => x.ToString());
-
-                    if (!effects.Any())
-                        continue;
-
-                    var k = "hE." + b.ToString();
-                    //Logger.LogInfo(k);
-                    //Logger.LogInfo(effects.ToJson());
-                    dictPlayerState.Add(k, effects.ToJson());
-                }
-
-            }
-            */
-            // ---------- 
+            Dictionary<string, object> playerHCSync = new();
             if (player.HealthController.IsAlive)
             {
                 foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
@@ -1225,17 +1172,79 @@ namespace StayInTarkov.Coop
                         continue;
 
                     var health = player.HealthController.GetBodyPartHealth(bodyPart);
-                    dictPlayerState.Add($"hp.{bodyPart}", health.Current);
-                    dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
+                    playerHCSync.Add($"{bodyPart}c", health.Current);
+                    playerHCSync.Add($"{bodyPart}m", health.Maximum);
                 }
-
-                dictPlayerState.Add("en", player.HealthController.Energy.Current);
-                dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
             }
-            // ----------
-            dictPlayerState.Add("m", "PlayerState");
 
-            playerStates.Add(dictPlayerState);
+            PlayerStatePacket playerStatePacket = new PlayerStatePacket(
+                player.ProfileId
+                , player.Position
+                , player.Rotation
+                , player.HeadRotation
+                , player.MovementContext.MovementDirection
+                , player.MovementContext.CurrentState.Name
+                , player.MovementContext.Tilt
+                , player.MovementContext.Step
+                , player.MovementContext.CurrentAnimatorStateIndex
+                , player.MovementContext.CharacterMovementSpeed
+                , player.MovementContext.IsInPronePose
+                , player.MovementContext.PoseLevel
+                , player.MovementContext.IsSprintEnabled
+                , player.InputDirection
+                , player.ActiveHealthController != null ? player.ActiveHealthController.Energy.Current : 0
+                , player.ActiveHealthController != null ? player.ActiveHealthController.Hydration.Current : 0
+                , playerHCSync.SITToJson()
+                );;
+            ;
+            playerHCSync = null;
+            playerStates.Add(playerStatePacket.Serialize());
+
+            //Dictionary<string, object> dictPlayerState = new();
+
+            //// --- The important Ids
+            //dictPlayerState.Add("profileId", player.ProfileId);
+            //dictPlayerState.Add("serverId", GetServerId());
+
+            //// --- Positional 
+            //dictPlayerState.Add("pX", player.Position.x);
+            //dictPlayerState.Add("pY", player.Position.y);
+            //dictPlayerState.Add("pZ", player.Position.z);
+            //dictPlayerState.Add("rX", player.Rotation.x);
+            //dictPlayerState.Add("rY", player.Rotation.y);
+
+            //// --- Positional 
+            //dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
+            //dictPlayerState.Add("spr", player.Physical.Sprinting);
+            //dictPlayerState.Add("alive", player.HealthController.IsAlive);
+            //dictPlayerState.Add("tilt", player.MovementContext.Tilt);
+            //dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
+
+            //// ---------- 
+            ////
+            //dictPlayerState.Add("dX", player.InputDirection.x);
+            //dictPlayerState.Add("dY", player.InputDirection.y);
+
+            //// ---------- 
+            //if (player.HealthController.IsAlive)
+            //{
+            //    foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+            //    {
+            //        if (bodyPart == EBodyPart.Common)
+            //            continue;
+
+            //        var health = player.HealthController.GetBodyPartHealth(bodyPart);
+            //        dictPlayerState.Add($"hp.{bodyPart}", health.Current);
+            //        dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
+            //    }
+
+            //    dictPlayerState.Add("en", player.HealthController.Energy.Current);
+            //    dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
+            //}
+            //// ----------
+            //dictPlayerState.Add("m", "PlayerState");
+
+            //playerStates.Add(dictPlayerState);
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;

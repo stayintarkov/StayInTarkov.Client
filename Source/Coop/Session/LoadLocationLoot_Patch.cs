@@ -15,7 +15,7 @@ using UnityEngine.Profiling;
 
 namespace StayInTarkov.Coop.Session
 {
-    public class LocationDataRequest()
+    public class LocationDataRequest
     {
         [JsonProperty("data")]
         public LocationSettings.Location Data { get; set; }

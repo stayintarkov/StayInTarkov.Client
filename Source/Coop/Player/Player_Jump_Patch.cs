@@ -41,6 +41,7 @@ namespace StayInTarkov.Coop.Player
             BasePlayerPacket playerPacket = new(player.ProfileId, "Jump");
             var serialized = playerPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            playerPacket = null;
             //AkiBackendCommunication.Instance.PostDownWebSocketImmediately( serialized );
 
             //Logger.LogInfo("================================");
@@ -72,14 +73,8 @@ namespace StayInTarkov.Coop.Player
             if (HasProcessed(GetType(), player, bpp))
                 return;
 
-            try
-            {
-                player.CurrentManagedState.Jump();
-            }
-            catch (Exception e)
-            {
-                Logger.LogInfo(e);
-            }
+            player.CurrentManagedState.Jump();
+            bpp = null;
 
         }
 

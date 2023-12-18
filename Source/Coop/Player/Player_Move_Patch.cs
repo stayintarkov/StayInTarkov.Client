@@ -122,42 +122,55 @@ namespace StayInTarkov.Coop.Player
 
         public void ReplicatedMove(EFT.Player player, PlayerMovePacket playerMovePacket)
         {
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
-            {
-                if (playerReplicatedComponent.IsClientDrone)
-                {
-                    if (playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
-                    {
-                        //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
-                        var ReplicatedPosition = new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ);
-                        var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
-                        if (replicationDistance >= 3)
-                        {
-                            player.Teleport(ReplicatedPosition, true);
-                        }
-                        else
-                        {
-                            player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
-                        }
-                    }
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
+                return;
 
-                    UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
-                    float spd = playerMovePacket.spd;
+            if (!playerReplicatedComponent.IsClientDrone)
+                return;
 
-                    playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-                    playerReplicatedComponent.ReplicatedDirection = null;
+            ReplicatedMove(player
+                , new ReceivedPlayerMoveStruct(
+                    playerMovePacket.pX
+                    , playerMovePacket.pY
+                    , playerMovePacket.pZ
+                    , playerMovePacket.dX
+                    , playerMovePacket.dY
+                    , playerMovePacket.spd
+                    ));
+            playerMovePacket = null;
 
-                    player.InputDirection = direction;
-                    player.MovementContext.MovementDirection = direction;
+            //if (playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
+            //{
+            //    //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
+            //    var ReplicatedPosition = new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ);
+            //    var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
+            //    if (replicationDistance >= 3)
+            //    {
+            //        player.Teleport(ReplicatedPosition, true);
+            //    }
+            //    else
+            //    {
+            //        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
+            //    }
+            //}
 
-                    player.MovementContext.CharacterMovementSpeed = spd;
+            //UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
+            //float spd = playerMovePacket.spd;
 
-                    player.CurrentManagedState.Move(direction);
+            //playerReplicatedComponent.ReplicatedMovementSpeed = spd;
+            //playerReplicatedComponent.ReplicatedDirection = null;
 
-                    playerReplicatedComponent.ReplicatedDirection = direction;
+            //player.InputDirection = direction;
+            //player.MovementContext.MovementDirection = direction;
 
-                }
-            }
+            //player.MovementContext.CharacterMovementSpeed = spd;
+
+            ////player.CurrentManagedState.Move(direction);
+
+            //playerReplicatedComponent.ReplicatedDirection = direction;
+
+            //playerReplicatedComponent = null;
+
         }
 
         public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
@@ -186,13 +199,16 @@ namespace StayInTarkov.Coop.Player
             UnityEngine.Vector2 direction = new(playerMoveStruct.dX, playerMoveStruct.dY);
             float spd = playerMoveStruct.spd;
 
-            player.InputDirection = direction;
-            player.MovementContext.MovementDirection = direction;
+            //player.InputDirection = direction;
+            //player.MovementContext.MovementDirection = direction;
+            //player.MovementContext.PlayerAnimatorSetMovementDirection(direction);
 
-            playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-            player.MovementContext.CharacterMovementSpeed = spd;
+            //playerReplicatedComponent.ReplicatedMovementSpeed = spd;
+            //player.MovementContext.CharacterMovementSpeed = spd;
 
-            //player.CurrentManagedState.Move(direction);
+            player.CurrentManagedState.Move(direction);
+
+            playerReplicatedComponent = null;
         }
     }
 }

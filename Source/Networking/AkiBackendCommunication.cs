@@ -2,6 +2,7 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
@@ -26,6 +27,9 @@ namespace StayInTarkov.Networking
     {
         public const int DEFAULT_TIMEOUT_MS = 5000;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
+        public const string PACKET_TAG_METHOD = "m";
+        public const string PACKET_TAG_SERVERID = "serverId";
+        public const string PACKET_TAG_DATA = "data";
 
         private string m_Session;
 
@@ -207,45 +211,32 @@ namespace StayInTarkov.Networking
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
             GC.AddMemoryPressure(e.RawData.Length);
+
+            if (e == null)
+                return;
+
+            if (string.IsNullOrEmpty(e.Data))
+                return;
+
+            ProcessPacketBytes(e.RawData);
+            GC.RemoveMemoryPressure(e.RawData.Length);
+
+        }
+
+        private void ProcessPacketBytes(byte[] data)
+        {
             try
             {
-                //Logger.LogInfo($"Step.0. WebSocket_OnMessage");
-
-                if (sender == null)
+                if (data == null)
                     return;
 
-                if (e == null)
-                    return;
-
-                if (string.IsNullOrEmpty(e.Data))
-                    return;
-
-                if (e.RawData == null)
-                    return;
-
-                if (e.RawData.Length == 0)
+                if (data.Length == 0)
                     return;
 
                 Dictionary<string, object> packet = null;
-                if (e.Data.IndexOf("{") > 0)
-                    return;
-
-                if (!e.Data.EndsWith("}"))
-                    return;
-
-
-                //if (WebSocketPreviousReceived.Contains(e.Data))
-                //    return;
-
-                //WebSocketPreviousReceived.Add(e.Data);
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo(e.Data);
-                }
-
+               
                 // Use StreamReader & JsonTextReader to improve memory / cpu usage
-                using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
+                using (var streamReader = new StreamReader(new MemoryStream(data)))
                 {
                     using (var reader = new JsonTextReader(streamReader))
                     {
@@ -254,14 +245,24 @@ namespace StayInTarkov.Networking
                     }
                 }
 
-                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    return;
+                var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
 
                 if (coopGameComponent == null)
                     return;
 
                 if (packet == null)
                     return;
+
+                if (DEBUGPACKETS)
+                {
+                    Logger.LogInfo(packet.SITToJson());
+                }
+
+                if (packet.ContainsKey("dataList"))
+                {
+                    if (ProcessDataListPacket(ref packet))
+                        return;
+                }
 
                 //Logger.LogDebug($"Step.1. Packet exists. {packet.ToJson()}");
 
@@ -291,7 +292,6 @@ namespace StayInTarkov.Networking
                 {
                     if (Singleton<ISITGame>.Instantiated && !Singleton<ISITGame>.Instance.ExtractedPlayers.Contains(packet["profileId"].ToString()))
                     {
-                        Logger.LogInfo(e.Data);
                         Singleton<ISITGame>.Instance.ExtractedPlayers.Add(packet["profileId"].ToString());
                     }
                     return;
@@ -308,33 +308,20 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
-                // If this is a SIT serialization packet
-                if (packet.ContainsKey("data") && packet.ContainsKey("m"))
-                {
-                    var data = packet["data"];
-                    if (data == null)
-                        return;
-                    //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
-                    //Logger.LogInfo(" ==================SIT Packet============= ");
-                    //Logger.LogInfo(packet.ToJson());
-                    //Logger.LogInfo(" ========================================= ");
-                    //if (!packet.ContainsKey("accountId"))
-                    if (!packet.ContainsKey("profileId"))
-                    {
-                        packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
-                    }
-                }
+
 
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
                 if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
 
-                if (packet.ContainsKey("m")
-                    && packet["m"].ToString() == "Move")
+                ProcessSITPacket(ref packet);
+
+                if (packet.ContainsKey(PACKET_TAG_METHOD)
+                    && packet[PACKET_TAG_METHOD].ToString() == "Move")
                     coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
-                else if (packet.ContainsKey("m")
-                    && packet["m"].ToString() == "ApplyDamageInfo")
+                else if (packet.ContainsKey(PACKET_TAG_METHOD)
+                    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
                 {
                     coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
                 }
@@ -346,7 +333,57 @@ namespace StayInTarkov.Networking
             {
                 Logger.LogError(ex);
             }
+        }
 
+        private void ProcessSITPacket(ref Dictionary<string, object> packet)
+        {
+            // If this is a SIT serialization packet
+            if (packet.ContainsKey(PACKET_TAG_DATA) && packet.ContainsKey(PACKET_TAG_METHOD))
+            {
+                var data = packet[PACKET_TAG_DATA];
+                if (data == null)
+                    return;
+                //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                //Logger.LogInfo(" ==================SIT Packet============= ");
+                //Logger.LogInfo(packet.ToJson());
+                //Logger.LogInfo(" ========================================= ");
+                //if (!packet.ContainsKey("accountId"))
+                if (!packet.ContainsKey("profileId"))
+                {
+                    packet.Add("profileId", packet[PACKET_TAG_DATA].ToString().Split(SerializerExtensions.SIT_SERIALIZATION_PACKET_SEPERATOR)[0]);
+                }
+            }
+        }
+
+        private bool ProcessDataListPacket(ref Dictionary<string, object> packet)
+        {
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return false;
+
+            if (!packet.ContainsKey("dataList"))
+                return false;
+
+            JArray dataList = JArray.FromObject(packet["dataList"]);
+            
+            foreach (var d in dataList)
+            {
+                // This needs to be a little more dynamic but for now. This switch will do.
+                // Depending on the method defined, deserialize packet to defined type
+                switch (packet[PACKET_TAG_METHOD].ToString())
+                {
+                    case "PlayerStates":
+                        PlayerStatePacket playerStatePacket = new PlayerStatePacket();
+                        playerStatePacket = (PlayerStatePacket)playerStatePacket.Deserialize((byte[])d);
+                        if(coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
+                            coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
+
+                        break;
+                }
+               
+            }
+
+            return true;
         }
 
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
@@ -362,7 +399,6 @@ namespace StayInTarkov.Networking
         public static bool DEBUGPACKETS { get; } = false;
 
         public bool HighPingMode { get; set; }
-        public BlockingCollection<string> PooledJsonToPost { get; } = new();
         public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
@@ -665,7 +701,7 @@ namespace StayInTarkov.Networking
                             httpClient.DefaultRequestHeaders.Add("debug", "1");
                         }
                         var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
+                        byte[] bytes = compress ? Zlib.Compress(inputDataBytes) : inputDataBytes;
                         byteContent = new ByteArrayContent(bytes);
                         byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                         if (compress)
