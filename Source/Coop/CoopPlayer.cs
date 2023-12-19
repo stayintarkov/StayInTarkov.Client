@@ -52,8 +52,8 @@ namespace StayInTarkov.Coop
                     , playerId
                     , position
                     , updateQueue
-                    , EFT.Player.EUpdateMode.Manual
-                    , EFT.Player.EUpdateMode.Manual
+                    , armsUpdateMode
+                    , bodyUpdateMode
                     , characterControllerMode
                     , getSensitivity
                     , getAimingSensitivity
@@ -104,8 +104,11 @@ namespace StayInTarkov.Coop
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
-            player._animators[0].speed = isYourPlayer ? 0.9f : 0.8f;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+            if (!player.IsYourPlayer)
+            {
+                player._armsUpdateQueue = EUpdateQueue.Update;
+            }
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
