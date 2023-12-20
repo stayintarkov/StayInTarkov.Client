@@ -1015,9 +1015,11 @@ namespace StayInTarkov.Coop
                , profile
                , aiControl: useAiControl
                , EUpdateQueue.Update
+               , EFT.Player.EUpdateMode.Manual
                , EFT.Player.EUpdateMode.Auto
-               , EFT.Player.EUpdateMode.Auto
-               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+               // Cant use ObservedPlayerMode, it causes the player to fall through the floor and die
+               //, BackendConfigManager.Config.CharacterController.ObservedPlayerMode
+               , BackendConfigManager.Config.CharacterController.BotPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                , FilterCustomizationClass.Default
