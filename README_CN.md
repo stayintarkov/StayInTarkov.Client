@@ -29,6 +29,7 @@ Stay In Tarkov 项目的诞生是因为 Battlestate Games' (BSG) 迟迟不愿推
 本项目的目标非常单纯, 即创造一个 PvE 的逃离塔科夫.
 如果 BSG 推出了"只有 PvE 的逃离塔科夫", 或本项目收到了《数字千年版权法》的侵权通知, 本项目将立即终止.
 
+
 ## 免责声明
 
 * 您必须拥有一份正版的逃离塔科夫才可使用本项目, 您可前往他们的官网进行购买. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com)
@@ -42,14 +43,8 @@ Stay In Tarkov 项目的诞生是因为 Battlestate Games' (BSG) 迟迟不愿推
 
 ## 支持
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* 你可以使用上面的 Ko-Fi 链接为 Paulov 购买一杯咖啡.
 * 欢迎发起合并请求改进这个项目！感谢所有贡献者的付出！
-* 请勿抱有"有偿求助"的心态寻求帮助.
-* 这只是一个娱乐性质的项目, 请不要太当真.
-* Paulov: 我知道这个项目还是个半成品, 但我还是会尽我所能完善它. 贡献者们: "我们可以合作共进!"
 * [SIT Discord 群](https://discord.gg/f4CN4n3nP2) 现已开放. 我们的社区群体会在这里互相帮助.
-
 
 ## SPT-Aki 说明
 * Stay In Tarkov 需要配合 [最新的 Aki 服务端](https://dev.sp-tarkov.com/SPT-AKI/Server) 以进行联机. 您可以前往 [他们的官网](https://www.sp-tarkov.com/) 来了解 SPT-Aki 的更多信息.
@@ -112,20 +107,20 @@ SIT/
 这取决于模组的具体编写方式. 如果它们是直接使用代码中的 "GClass***" 或 "public" / "private" 变量那大概率是无法使用的.
 
 ### 为什么不直接使用 SPT-Aki 的模块?
-Aki 的模块是专门为自身设计的, 其并不能很好兼容 Paulov 自行使用的技术.
-因此, Aki 的许多特性均被移植到了本项目中. 最终目标是依靠 Aki, 并使其可以专注于实现 SIT 的专有功能.
+Aki 的模块是专门为其自身而设计的, 它们所使用的反混淆技术与 Paulov 的技术之间无法兼容.
 
 ## 如何编译 SIT ?
 请参阅 [编译手册](COMPILE.md)
 
 ## 致谢名单
+- [Paulov](https://github.com/paulov-t) (Stay in Tarkov 的原作者)
 - SPT-Aki 项目组 (每一个所使用的 Aki 代码均保留了 Aki 的注释信息, 非常感谢每位开发者的支持)
 - SPT-Aki 模组社群
 - DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) 与 [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) 模组已内置进本项目)
-- SIT 项目组与所有贡献者
+- SIT 项目组与所有曾经为 SIT.Core 做出过贡献的贡献者
 
 ## 许可
-
 - DrakiaXYZ 的项目均为 MIT 许可证
 - 几乎所有的单人游戏与其核心代码为 SPT-Aki 编写. 本项目使用与其相同的开源许可: NCSA 开源许可证
-- 我所编写的代码没有许可. 本项目仅仅是为了"寻乐子", 我不在乎你拿代码去干什么.
+- Paulov 所编写的代码没有许可. 但是"没有许可"并不意味着你可以随意使用它
+- SIT 项目组所编写的代码为 MIT 许可证

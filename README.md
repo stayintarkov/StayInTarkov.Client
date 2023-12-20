@@ -29,6 +29,7 @@ The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance t
 The project's aim is simple, create a Cooperation PvE experience that retains progression. 
 If BSG decide to create the ability to do this on live OR I receive a DCMA request, this project will be shut down immediately.
 
+
 ## Disclaimer
 
 * You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
@@ -42,14 +43,8 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 
 ## Support
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* The Ko-Fi link is buying Paulov a coffee.
 * Pull Requests are encouraged. Thanks to all contributors!
-* Please do not hand over money expecting help or a solution. 
-* This is a hobby, for fun, project. Please don't treat it seriously. 
-* Paulov: I know this is a semi-broken attempt but will try to fix as best I can. SIT Contributors: "We can do it!"
 * [SIT Discord](https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
-
 
 ## SPT-AKI Requirement
 * Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to facilitate coop connections. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
@@ -171,20 +166,20 @@ The following Aki Modules are supported.
 This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
 
 ### Why don't you use Aki Module DLLs?
-SPT-Aki DLLs are written specifically for their own Deobfuscation technique and Paulov's own technique is not working well with Aki Modules at this moment in time.
-So I ported many of SPT-Aki features into this module. The end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
+SPT-Aki DLLs are written specifically for SPT-Aki own Deobfuscation technique and Paulov's own technique does not work with Aki Modules.
 
 ## How to compile? 
 [Compiling Document](COMPILE.md)
 
 ## Thanks List
+- [Paulov](https://github.com/paulov-t) (original creator of Stay in Tarkov)
 - SPT-Aki team (Credits provided on each code file used and much love to their Dev team for their support)
 - SPT-Aki Modding Community
 - DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
-- SIT team and it's original contributors
+- SIT team and the original contributors of Paulov's SIT.Core
 
 ## License
-
 - DrakiaXYZ projects contain the MIT License
-- 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source.
-- None of my own work is Licensed. This is solely a just for fun project. I don't care what you do with it.
+- 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
+- Paulov's work is unlicensed. Unlicensed does not entitle you to use it at will
+- SIT team's work is MIT licensed
