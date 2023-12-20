@@ -324,24 +324,80 @@ namespace StayInTarkov
             return await Task.Run(() => GetFieldOrPropertyFromInstance<T>(o, name, safeConvert));
         }
 
-        public static void SetFieldOrPropertyFromInstance(object o, string name, object v)
-        {
-            var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (field != null)
-                field.SetValue(o, v);
+        //public static void SetFieldOrPropertyFromInstance(object o, string name, object v)
+        //{
+        //    var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+        //    if (field != null)
+        //        field.SetValue(o, v);
 
-            var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (property != null)
-                property.SetValue(o, v);
-        }
+        //    var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+        //    if (property != null)
+        //        property.SetValue(o, v);
+        //}
+
+        private static Dictionary<Type, Dictionary<string, FieldInfo>> _cachedFields = new();
+        private static Dictionary<Type, Dictionary<string, PropertyInfo>> _cachedProperties = new();
 
         public static void SetFieldOrPropertyFromInstance<T>(object o, string name, T v)
         {
-            var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (field != null)
-                field.SetValue(o, v);
+            Type type = o.GetType();
 
-            var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+            // Cache the Field --------------------------------------------------------------------
+
+            FieldInfo field = null;
+            if(_cachedFields.ContainsKey(o.GetType()))
+            {
+                if (_cachedFields[o.GetType()].ContainsKey(name))
+                    field = _cachedFields[o.GetType()][name];
+            }
+
+            if (field == null)
+            {
+                field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (field != null)
+                {
+                    if (!_cachedFields.ContainsKey(type))
+                        _cachedFields.Add(type, new Dictionary<string, FieldInfo>());
+
+                    if (!_cachedFields[type].ContainsKey(name))
+                        _cachedFields[type].Add(name, field);
+
+                    StayInTarkovHelperConstants.Logger.LogInfo($"Added {type.Name},{name} to {nameof(_cachedFields)}");
+                }
+            }
+
+            // Set the Field value (if found)  -----------------------------------------------------
+
+            if (field != null)
+            {
+                field.SetValue(o, v);
+            }
+
+            // Cache the Property --------------------------------------------------------------------
+            PropertyInfo property = null;
+            if (_cachedProperties.ContainsKey(o.GetType()))
+            {
+                if (_cachedProperties[o.GetType()].ContainsKey(name))
+                    property = _cachedProperties[o.GetType()][name];
+            }
+
+            
+
+            if (property == null)
+            {
+                property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (property != null)
+                {
+                    if (!_cachedProperties.ContainsKey(type))
+                        _cachedProperties.Add(type, new Dictionary<string, PropertyInfo>());
+
+                    if (!_cachedProperties[type].ContainsKey(name))
+                        _cachedProperties[type].Add(name, property);
+
+                    StayInTarkovHelperConstants.Logger.LogInfo($"Added {type.Name},{name} to {nameof(_cachedProperties)}");
+                }
+            }
+
             if (property != null)
                 property.SetValue(o, v);
         }

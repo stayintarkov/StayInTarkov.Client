@@ -64,7 +64,7 @@ namespace StayInTarkov.Coop.NetworkPacket
                 TypeProperties.Add(t, allPropsFiltered);
             }
 
-            return TypeProperties[t];
+            return TypeProperties[t].Distinct(x => x.Name).ToArray();
         }
 
         public virtual byte[] Serialize()
@@ -92,7 +92,16 @@ namespace StayInTarkov.Coop.NetworkPacket
                 for (var i = 0; i < allPropsFiltered.Count(); i++)
                 {
                     var prop = allPropsFiltered[i];
-                    binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
+
+                    if (prop.GetValue(this) == null)
+                    {
+                        binaryWriter.WriteNonPrefixedString("null");
+                    }
+                    else
+                    {
+                        binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
+                    }
+
                     if (i != allPropsFiltered.Count() - 1)
                         binaryWriter.WriteNonPrefixedString(SerializerExtensions.SIT_SERIALIZATION_PACKET_SEPERATOR.ToString());
                 }
@@ -153,11 +162,22 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             Stopwatch sw = Stopwatch.StartNew();
 
-            var separatedPacket = serializedPacket.Split(SIT_SERIALIZATION_PACKET_SEPERATOR);
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{serializedPacket}");
+
+            var bodyFromPacket = serializedPacket.Split('?')[serializedPacket.Split('?').Length - 1];
+            serializedPacket = null;
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{bodyFromPacket}");
+            var separatedPacket = bodyFromPacket.Split(SIT_SERIALIZATION_PACKET_SEPERATOR);
             var index = 0;
 
-            foreach (var prop in TypeToPropertyInfos[obj.GetType()])
+            foreach (var prop in BasePacket.GetPropertyInfos(obj.GetType()))
             {
+                if (separatedPacket[index].ToString() == "null")
+                {
+                    index++;
+                    continue;
+                }
+
                 switch (prop.PropertyType.Name)
                 {
                     case "Float":
@@ -203,6 +223,8 @@ namespace StayInTarkov.Coop.NetworkPacket
             if (sw.ElapsedMilliseconds > 1)
                 StayInTarkovHelperConstants.Logger.LogDebug($"DeserializePacketSIT {obj.GetType()} took {sw.ElapsedMilliseconds}ms to process!");
 
+            bodyFromPacket = null;
+            separatedPacket = null;
             return obj;
         }
     }
