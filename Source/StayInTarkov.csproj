@@ -101,6 +101,9 @@
       <HintPath>..\References\Unity.ScriptableBuildPipeline.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\References\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\References\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -116,6 +119,12 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>..\References\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\References\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\References\UnityEngine.UIModule.dll</HintPath>
     </Reference>
 	  <Reference Include="websocket-sharp">
 		  <HintPath>..\References\websocket-sharp.dll</HintPath>
