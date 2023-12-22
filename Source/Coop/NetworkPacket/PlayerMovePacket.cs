@@ -2,7 +2,7 @@
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerMovePacket : BasePlayerPacket, IDisposable
+    public class PlayerMovePacket : BasePlayerPacket
     {
         public float pX { get; set; }
 
@@ -24,10 +24,5 @@ namespace StayInTarkov.Coop.NetworkPacket
             spd = speed;
         }
 
-        public void Dispose()
-        {
-            ProfileId = null;
-            //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
-        }
     }
 }
