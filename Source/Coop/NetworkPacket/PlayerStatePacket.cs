@@ -34,14 +34,14 @@ namespace StayInTarkov.Coop.NetworkPacket
         public float InputDirectionY { get; set; }
         public float Energy { get; set; }
         public float Hydration { get; set; }
-        public string PlayerHealthSerialized { get; set; }
+        public PlayerHealthPacket PlayerHealth { get; set; }
 
         public PlayerStatePacket() { }
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
             bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, 
-            float energy, float hydration, string playerHealthSerialized)
+            float energy, float hydration, PlayerHealthPacket playerHealth)
             : base(profileId, "PlayerState")
         {
             ProfileId = profileId;
@@ -66,7 +66,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             InputDirectionY = inputDirection.y;
             Energy = energy;
             Hydration = hydration;
-            PlayerHealthSerialized = playerHealthSerialized;
+            PlayerHealth = playerHealth;
         }
     }
 }

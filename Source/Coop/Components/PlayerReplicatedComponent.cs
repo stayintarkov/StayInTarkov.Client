@@ -187,13 +187,13 @@ namespace StayInTarkov.Core.Player
 
             // This must exist in Update AND LateUpdate to function correctly.
             //player.MovementContext.EnableSprint(ShouldSprint);
-            player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
-            if (ShouldSprint)
-            {
-                player.Rotation = ReplicatedRotation.Value;
-                player.MovementContext.Rotation = ReplicatedRotation.Value;
-                player.MovementContext.PlayerAnimator.SetMovementDirection(ReplicatedDirection.HasValue ? ReplicatedDirection.Value : player.InputDirection);
-            }
+            //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+            //if (ShouldSprint)
+            //{
+            //    player.Rotation = ReplicatedRotation.Value;
+            //    player.MovementContext.Rotation = ReplicatedRotation.Value;
+            //    player.MovementContext.PlayerAnimator.SetMovementDirection(ReplicatedDirection.HasValue ? ReplicatedDirection.Value : player.InputDirection);
+            //}
 
         }
 
@@ -209,16 +209,7 @@ namespace StayInTarkov.Core.Player
                 player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 2);
             }
 
-            //if (ReplicatedDirection.HasValue)
-            //{
-            //    if (_playerMovePatch == null)
-            //        _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
-
-            //    _playerMovePatch?.ReplicatedMove(player,
-            //        new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
-            //}
-
-            player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+            //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
             if (!ShouldSprint)
             {
                 PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
@@ -226,21 +217,22 @@ namespace StayInTarkov.Core.Player
             }
             else
             {
+                player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
                 // This must exist in Update AND LateUpdate to function correctly.
                 player.Rotation = ReplicatedRotation.Value;
                 if (ReplicatedDirection.HasValue)
                     player.MovementContext.PlayerAnimatorSetMovementDirection(ReplicatedDirection.Value);
             }
 
-            if (ReplicatedHeadRotation.HasValue)
-            {
-                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
-            }
+            //if (ReplicatedHeadRotation.HasValue)
+            //{
+            //    player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
+            //}
 
-            if (ReplicatedTilt.HasValue)
-            {
-                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
-            }
+            //if (ReplicatedTilt.HasValue)
+            //{
+            //    player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
+            //}
 
             // Process Prone
             if (ReplicatedPlayerStatePacket != null)
@@ -262,48 +254,44 @@ namespace StayInTarkov.Core.Player
                     }
                 }
 
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Energy, "Current", ReplicatedPlayerStatePacket.Energy);
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Hydration, "Current", ReplicatedPlayerStatePacket.Hydration);
-
-                //Logger.LogDebug(ReplicatedPlayerStatePacket.PlayerHealthSerialized);
                 if (ReplicatedPlayerHealth != null)
                 {
-                    //Logger.LogDebug($"{ReplicatedPlayerHealth.ToJson()}");
+                    //    if (_healthDictionary == null)
+                    //        _healthDictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.ActiveHealthController, "Dictionary_0", false);
 
-                    //if (ReplicatedPlayerHealth.ContainsKey("Chest"))
-                    {
-                        var dictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.ActiveHealthController, "Dictionary_0", false);
-                        if (dictionary != null)
-                        {
-                            foreach (EBodyPart bodyPart in BodyPartEnumValues)
-                            {
-                                if (
-                                    ReplicatedPlayerHealth.ContainsKey($"{bodyPart}c")
-                                    && ReplicatedPlayerHealth.ContainsKey($"{bodyPart}m")
-                                    )
-                                {
-                                    BodyPartState bodyPartState = dictionary[bodyPart];
-                                    if (bodyPartState != null)
-                                    {
-                                        bodyPartState.Health = new(float.Parse(ReplicatedPlayerHealth[$"{bodyPart}c"].ToString()), float.Parse(ReplicatedPlayerHealth[$"{bodyPart}m"].ToString()));
-                                        //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPart} health to {ReplicatedPlayerHealth[$"{bodyPart}c"]}");
-                                    }
-                                }
-                            }
-                        }
+                    //    if (_healthDictionary != null)
+                    //    {
+                    //        foreach (EBodyPart bodyPart in BodyPartEnumValues)
+                    //        {
+                    //            if (
+                    //                ReplicatedPlayerHealth.ContainsKey($"{bodyPart}c")
+                    //                && ReplicatedPlayerHealth.ContainsKey($"{bodyPart}m")
+                    //                )
+                    //            {
+                    //                BodyPartState bodyPartState = _healthDictionary[bodyPart];
+                    //                if (bodyPartState != null)
+                    //                {
+                    //                    bodyPartState.Health = new(float.Parse(ReplicatedPlayerHealth[$"{bodyPart}c"].ToString()), float.Parse(ReplicatedPlayerHealth[$"{bodyPart}m"].ToString()));
+                    //                    //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPart} health to {ReplicatedPlayerHealth[$"{bodyPart}c"]}");
+                    //                }
+                    //            }
+                    //        }
 
-                        HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_0", false);
-                        if (energy != null)
-                            energy.Current = ReplicatedPlayerStatePacket.Energy;
+                    //        //ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController, "Dictionary_0", _healthDictionary);
+                    //    }
 
-                        HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_1", false);
-                        if (hydration != null)
-                            hydration.Current = ReplicatedPlayerStatePacket.Hydration;
-                    }
+                    HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_0", false);
+                    if (energy != null)
+                        energy.Current = ReplicatedPlayerStatePacket.Energy;
+
+                    HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_1", false);
+                    if (hydration != null)
+                        hydration.Current = ReplicatedPlayerStatePacket.Hydration;
                 }
             }
         }
 
+        private Dictionary<EBodyPart, BodyPartState> _healthDictionary;
         private static Array BodyPartEnumValues => Enum.GetValues(typeof(EBodyPart));
 
         //private void ProcessPlayerStateProne(Dictionary<string, object> packet)
@@ -335,7 +323,7 @@ namespace StayInTarkov.Core.Player
         public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
         public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
         private float PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : 1;
-        public JObject ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? JObject.Parse(ReplicatedPlayerStatePacket.PlayerHealthSerialized) : null;
+        public PlayerHealthPacket ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PlayerHealth : null;
 
         public bool IsSprinting
         {

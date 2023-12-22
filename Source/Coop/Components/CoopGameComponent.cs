@@ -211,10 +211,14 @@ namespace StayInTarkov.Coop
             StartCoroutine(ProcessServerCharacters());
 
             // Run any methods you wish every second
-            StartCoroutine(EverySecondCoroutine());
+            //StartCoroutine(EverySecondCoroutine());
 
             // Start the SIT Garbage Collector
-            _ = Task.Run(() => PeriodicEnableDisableGC());
+            //if (PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
+            //    InvokeRepeating(nameof(PeriodicEnableDisableGC), 1.0f, 60.0f);
+            StartCoroutine(PeriodicEnableDisableGC());
+            GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
@@ -236,54 +240,47 @@ namespace StayInTarkov.Coop
         /// This clears out the RAM usage very effectively.
         /// </summary>
         /// <returns></returns>
-        private async Task PeriodicEnableDisableGC()
+        private IEnumerator PeriodicEnableDisableGC()
         {
-            var coopGame = LocalGameInstance as CoopGame;
-            if (coopGame == null)
-                return;
+            if (!PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
+                yield break;
 
-            int counter = 0;
-            await Task.Run(async () =>
+            var memory = GC.GetTotalMemory(false);
+            if (!_SITGCLastMemory.HasValue)
+                _SITGCLastMemory = memory;
+
+            long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
+
+            if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + (memoryThreshold * 1024 * 1024))
             {
-                do
+                _SITGCLastMemory = memory;
+#if DEBUG
+                Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
+                Stopwatch sw = Stopwatch.StartNew();
+#endif
+
+                if (PluginConfigSettings.Instance.AdvancedSettings.SITGCAggressiveClean)
                 {
-                    await Task.Delay(1000);
+                    GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                }
+                else
+                {
+                    GCHelpers.ClearGarbage(false, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                }
 
-                    counter++;
+#if DEBUG
+                var freedMemory = GC.GetTotalMemory(false);
+                Logger.LogDebug($"Freed {(freedMemory > 0 ? (freedMemory / 1024 / 1024) : 0)}mb in memory");
+                Logger.LogDebug($"Garbage Collection took {sw.ElapsedMilliseconds}ms");
+                sw.Stop();
+                sw = null;
+#endif
 
-                    var memory = GC.GetTotalMemory(false);
-                    if (!_SITGCLastMemory.HasValue)
-                        _SITGCLastMemory = memory;
+            }
 
-                    long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
+            yield return new WaitForSeconds(60);
 
-                    if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + (memoryThreshold * 1024 * 1024))
-                    {
-                        Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
-                        _SITGCLastMemory = memory;
-                        Stopwatch sw = Stopwatch.StartNew();
-
-                        GCHelpers.EnableGC();
-                        if (PluginConfigSettings.Instance.AdvancedSettings.SITGCAggressiveClean)
-                        {
-                            GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
-                        }
-                        else
-                        {
-                            GC.GetTotalMemory(true);
-                            GCHelpers.DisableGC(true);
-                        }
-
-                        var freedMemory = GC.GetTotalMemory(false);
-                        Logger.LogDebug($"Freed {(freedMemory > 0 ? (freedMemory / 1024 / 1024) : 0)}mb in memory");
-                        Logger.LogDebug($"Garbage Collection took {sw.ElapsedMilliseconds}ms");
-                        sw.Stop();
-                        sw = null;
-
-                    }
-
-                } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);
-            });
+            StartCoroutine(PeriodicEnableDisableGC());
         }
 
         /// <summary>
@@ -552,7 +549,7 @@ namespace StayInTarkov.Coop
                 return;
 
             ProcessQuitting();
-            ProcessServerHasStopped();
+            //ProcessServerHasStopped();
 
             if (ActionPackets == null)
                 return;
@@ -566,38 +563,38 @@ namespace StayInTarkov.Coop
             if (RequestingObj == null)
                 return;
 
-            JObject playerStates = new();
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
-            {
-                JArray playerStateArray = new JArray();
-                foreach (var player in Players.Values)
-                {
-                    if (player == null)
-                        continue;
+            //JObject playerStates = new();
+            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
+            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
+            //if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
+            //{
+            //    JArray playerStateArray = new JArray();
+            //    foreach (var player in Players.Values)
+            //    {
+            //        if (player == null)
+            //            continue;
 
-                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
-                        continue;
+            //        if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
+            //            continue;
 
-                    if (prc.IsClientDrone)
-                        continue;
+            //        if (prc.IsClientDrone)
+            //            continue;
 
-                    if (!player.enabled)
-                        continue;
+            //        if (!player.enabled)
+            //            continue;
 
-                    if (!player.isActiveAndEnabled)
-                        continue;
+            //        if (!player.isActiveAndEnabled)
+            //            continue;
 
-                    CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
-                }
+            //        CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
+            //    }
 
-                playerStates.Add("dataList", playerStateArray);
-                //Logger.LogDebug(playerStates.SITToJson());
-                RequestingObj.SendDataToPool(playerStates.SITToJson());
+            //    playerStates.Add("dataList", playerStateArray);
+            //    //Logger.LogDebug(playerStates.SITToJson());
+            //    RequestingObj.SendDataToPool(playerStates.SITToJson());
 
-                LastPlayerStateSent = DateTime.Now;
-            }
+            //    LastPlayerStateSent = DateTime.Now;
+            //}
 
             if (SpawnedPlayersToFinalize == null)
                 return;
@@ -1019,7 +1016,7 @@ namespace StayInTarkov.Coop
                , EFT.Player.EUpdateMode.Auto
                // Cant use ObservedPlayerMode, it causes the player to fall through the floor and die
                //, BackendConfigManager.Config.CharacterController.ObservedPlayerMode
-               , BackendConfigManager.Config.CharacterController.BotPlayerMode
+               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                , FilterCustomizationClass.Default
@@ -1165,20 +1162,27 @@ namespace StayInTarkov.Coop
 
         private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
-            Dictionary<string, object> playerHCSync = new();
-            if (player.HealthController.IsAlive)
+            // Build up the SEX MOD player dick Health Packet /s
+            // Actually.
+            // What this does is create a ISITPacket for the Character's health that can be SIT Serialized.
+            PlayerHealthPacket playerHealth = new PlayerHealthPacket(player.ProfileId);
+            playerHealth.Method = "53xMOD";
+            playerHealth.IsAlive = player.HealthController.IsAlive;
+            var bpIndex = 0;
+            // Initialize the BodyParts array
+            playerHealth.BodyParts = new PlayerBodyPartHealthPacket[Enum.GetValues(typeof(EBodyPart)).Length];
+            // Iterate over the BodyParts
+            foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
             {
-                foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
-                {
-                    if (bodyPart == EBodyPart.Common)
-                        continue;
-
-                    var health = player.HealthController.GetBodyPartHealth(bodyPart);
-                    playerHCSync.Add($"{bodyPart}c", health.Current);
-                    playerHCSync.Add($"{bodyPart}m", health.Maximum);
-                }
+                var health = player.HealthController.GetBodyPartHealth(bodyPart);
+                playerHealth.BodyParts[bpIndex] = new PlayerBodyPartHealthPacket();
+                playerHealth.BodyParts[bpIndex].BodyPart = bodyPart;
+                playerHealth.BodyParts[bpIndex].Current = health.Current;
+                playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
+                bpIndex++;
             }
 
+            // Create the ISITPacket for the Character's Current State
             PlayerStatePacket playerStatePacket = new PlayerStatePacket(
                 player.ProfileId
                 , player.Position
@@ -1196,57 +1200,13 @@ namespace StayInTarkov.Coop
                 , player.InputDirection
                 , player.ActiveHealthController != null ? player.ActiveHealthController.Energy.Current : 0
                 , player.ActiveHealthController != null ? player.ActiveHealthController.Hydration.Current : 0
-                , playerHCSync.SITToJson()
-                );;
+                , playerHealth
+                );
             ;
-            playerHCSync = null;
+
+            // Add the serialized packets to the PlayerStates JArray
             playerStates.Add(playerStatePacket.Serialize());
 
-            //Dictionary<string, object> dictPlayerState = new();
-
-            //// --- The important Ids
-            //dictPlayerState.Add("profileId", player.ProfileId);
-            //dictPlayerState.Add("serverId", GetServerId());
-
-            //// --- Positional 
-            //dictPlayerState.Add("pX", player.Position.x);
-            //dictPlayerState.Add("pY", player.Position.y);
-            //dictPlayerState.Add("pZ", player.Position.z);
-            //dictPlayerState.Add("rX", player.Rotation.x);
-            //dictPlayerState.Add("rY", player.Rotation.y);
-
-            //// --- Positional 
-            //dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            //dictPlayerState.Add("spr", player.Physical.Sprinting);
-            //dictPlayerState.Add("alive", player.HealthController.IsAlive);
-            //dictPlayerState.Add("tilt", player.MovementContext.Tilt);
-            //dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-
-            //// ---------- 
-            ////
-            //dictPlayerState.Add("dX", player.InputDirection.x);
-            //dictPlayerState.Add("dY", player.InputDirection.y);
-
-            //// ---------- 
-            //if (player.HealthController.IsAlive)
-            //{
-            //    foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
-            //    {
-            //        if (bodyPart == EBodyPart.Common)
-            //            continue;
-
-            //        var health = player.HealthController.GetBodyPartHealth(bodyPart);
-            //        dictPlayerState.Add($"hp.{bodyPart}", health.Current);
-            //        dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
-            //    }
-
-            //    dictPlayerState.Add("en", player.HealthController.Energy.Current);
-            //    dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
-            //}
-            //// ----------
-            //dictPlayerState.Add("m", "PlayerState");
-
-            //playerStates.Add(dictPlayerState);
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
