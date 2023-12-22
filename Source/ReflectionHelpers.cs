@@ -2,11 +2,13 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using EFT.UI.DragAndDrop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace StayInTarkov
 {
@@ -211,8 +213,18 @@ namespace StayInTarkov
             return GetAllPropertiesForType(t);
         }
 
-        public static IEnumerable<PropertyInfo> GetAllPropertiesForType(Type t)
+
+
+        public static IEnumerable<PropertyInfo> GetAllPropertiesForType(Type t, bool cache = false)
         {
+            if (cache)
+            {
+                if(_cachedProperties.ContainsKey(t))
+                {
+                    return _cachedProperties[t].Values;
+                }
+            }
+
             var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public).ToList();
             props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
             props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
@@ -227,7 +239,20 @@ namespace StayInTarkov
                 props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             }
-            //return props.Distinct(x => x.Name).AsEnumerable();
+
+            if (cache)
+            { 
+                if (!_cachedProperties.ContainsKey(t))
+                {
+                    _cachedProperties.Add(t, new Dictionary<string, PropertyInfo>());
+                }
+                
+                foreach (var p in props.AsEnumerable())
+                {
+                    _cachedProperties[t].Add(p.Name, p);
+                }
+            }
+
             return props.AsEnumerable();
         }
 
@@ -269,11 +294,10 @@ namespace StayInTarkov
 
         public static T GetFieldOrPropertyFromInstance<T>(object o, string name, bool safeConvert = true)
         {
-            PropertyInfo property = null;
-            FieldInfo field = null;
+            FieldInfo field = FindAndCacheFieldInfo(o, name);
+            PropertyInfo property = FindAndCachePropertyInfo(o, name);
             try
             {
-                property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
                 if (property != null)
                 {
                     if (safeConvert)
@@ -281,7 +305,6 @@ namespace StayInTarkov
                     else
                         return (T)property.GetValue(o);
                 }
-                field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
                 if (field != null)
                 {
                     if (safeConvert)
@@ -338,50 +361,44 @@ namespace StayInTarkov
         private static Dictionary<Type, Dictionary<string, FieldInfo>> _cachedFields = new();
         private static Dictionary<Type, Dictionary<string, PropertyInfo>> _cachedProperties = new();
 
-        public static void SetFieldOrPropertyFromInstance<T>(object o, string name, T v)
+        public static FieldInfo FindAndCacheFieldInfo(object o, string fieldName)
         {
             Type type = o.GetType();
-
-            // Cache the Field --------------------------------------------------------------------
-
             FieldInfo field = null;
-            if(_cachedFields.ContainsKey(o.GetType()))
+            if (_cachedFields.ContainsKey(type))
             {
-                if (_cachedFields[o.GetType()].ContainsKey(name))
-                    field = _cachedFields[o.GetType()][name];
+                if (_cachedFields[type].ContainsKey(fieldName))
+                    field = _cachedFields[type][fieldName];
             }
 
             if (field == null)
             {
-                field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
                 if (field != null)
                 {
                     if (!_cachedFields.ContainsKey(type))
                         _cachedFields.Add(type, new Dictionary<string, FieldInfo>());
 
-                    if (!_cachedFields[type].ContainsKey(name))
-                        _cachedFields[type].Add(name, field);
+                    if (!_cachedFields[type].ContainsKey(fieldName))
+                        _cachedFields[type].Add(fieldName, field);
 
-                    StayInTarkovHelperConstants.Logger.LogInfo($"Added {type.Name},{name} to {nameof(_cachedFields)}");
+                    StayInTarkovHelperConstants.Logger.LogDebug($"Added {type.Name},{fieldName} to {nameof(_cachedFields)}");
                 }
             }
 
-            // Set the Field value (if found)  -----------------------------------------------------
+            return field;
+        }
 
-            if (field != null)
-            {
-                field.SetValue(o, v);
-            }
+        public static PropertyInfo FindAndCachePropertyInfo(object o, string name) 
+        {
+            Type type = o.GetType();
 
-            // Cache the Property --------------------------------------------------------------------
             PropertyInfo property = null;
-            if (_cachedProperties.ContainsKey(o.GetType()))
+            if (_cachedProperties.ContainsKey(type))
             {
-                if (_cachedProperties[o.GetType()].ContainsKey(name))
-                    property = _cachedProperties[o.GetType()][name];
+                if (_cachedProperties[type].ContainsKey(name))
+                    property = _cachedProperties[type][name];
             }
-
-            
 
             if (property == null)
             {
@@ -398,6 +415,22 @@ namespace StayInTarkov
                 }
             }
 
+            return property;
+        }
+
+        public static void SetFieldOrPropertyFromInstance<T>(object o, string name, T v)
+        {
+            Type type = o.GetType();
+
+            // Cache the Field --------------------------------------------------------------------
+            FieldInfo field = FindAndCacheFieldInfo(o, name);
+            // Set the Field value (if found)  -----------------------------------------------------
+            if (field != null)
+                field.SetValue(o, v);
+
+            // Cache the Property --------------------------------------------------------------------
+            PropertyInfo property = FindAndCachePropertyInfo(o, name);
+            // Set the Property value (if found)  -----------------------------------------------------
             if (property != null)
                 property.SetValue(o, v);
         }
