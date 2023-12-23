@@ -3,6 +3,7 @@ using Aki.Custom.Airdrops.Models;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.UI.BattleTimer;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.World;
@@ -12,6 +13,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -349,8 +351,15 @@ namespace StayInTarkov.Coop.Components
                         Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
                         gameTimer.ChangeSessionTime(timeRemain);
 
-                        // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
-                        coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
+                        MainTimerPanel mainTimerPanel = ReflectionHelpers.GetFieldOrPropertyFromInstance<MainTimerPanel>(coopGame.GameUi.TimerPanel, "_mainTimerPanel", false);
+                        if (mainTimerPanel != null)
+                        {
+                            FieldInfo extractionDateTimeField = ReflectionHelpers.GetFieldFromType(typeof(TimerPanel), "dateTime_0");
+                            extractionDateTimeField.SetValue(mainTimerPanel, gameTimer.StartDateTime.Value.AddSeconds(timeRemain.TotalSeconds));
+
+                            MethodInfo UpdateTimerMI = ReflectionHelpers.GetMethodForType(typeof(MainTimerPanel), "UpdateTimer");
+                            UpdateTimerMI.Invoke(mainTimerPanel, new object[] { });
+                        }
                     }
                 }
             }
