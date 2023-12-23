@@ -1,10 +1,12 @@
 ﻿using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,6 +72,12 @@ namespace StayInTarkov.Coop.Player
             }
 
             SendPlayerDataToServer(player);
+
+            JObject joinPacket = new();
+            joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("m", "JoinMatch");
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
 
             //if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
             //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");

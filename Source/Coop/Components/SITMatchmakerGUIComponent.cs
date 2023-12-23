@@ -640,7 +640,6 @@ namespace StayInTarkov.Coop.Components
 
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
-                DestroyThis();
 
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
@@ -649,6 +648,8 @@ namespace StayInTarkov.Coop.Components
                 joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
                 joinPacket.Add("m", "JoinMatch");
                 AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+
+                DestroyThis();
             }
         }
 
