@@ -137,16 +137,6 @@ namespace StayInTarkov.Coop.Player
             prc.player = player;
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
 
-
-
-            // ==================== TEST ==========================
-            // TODO: Replace with Unit Tests
-            var pJson = player.Profile.SITToJson();
-            //Logger.LogDebug(pJson);
-            var pProfile = pJson.SITParseJson<Profile>();
-            Assert.AreEqual<Profile>(player.Profile, pProfile);
-
-
         }
     }
 }
