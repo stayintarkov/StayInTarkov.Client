@@ -81,8 +81,8 @@ namespace StayInTarkov.Memory
         public static void RunHeapPreAllocation()
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            int objectArrayLength = 64;
-            int byteArrayLength = 512;
+            int objectArrayLength = 512;
+            int byteArrayLength = 1024;
 
             object[] array = new object[objectArrayLength];
             for (int i = 0; i < array.Length; i++)
