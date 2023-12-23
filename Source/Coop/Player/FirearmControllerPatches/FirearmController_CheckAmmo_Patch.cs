@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
@@ -43,25 +44,20 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance)
+        public static void PostPatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             //Logger.LogInfo($"CheckAmmo_postfix");
 
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            if (player == null)
-                return;
-
+            var player = ____player;
             if (CallLocally.Contains(player.ProfileId))
             {
                 CallLocally.Remove(player.ProfileId);
                 return;
             }
 
-            //Dictionary<string, object> dictionary = new();
-            //dictionary.Add("m", "CheckAmmo");
-            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
-
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize());
+            var checkAmmo = new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize();
+            //Logger.LogInfo(Encoding.UTF8.GetString(checkAmmo));
+            AkiBackendCommunication.Instance.SendDataToPool(checkAmmo);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
