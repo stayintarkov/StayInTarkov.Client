@@ -78,6 +78,7 @@ namespace StayInTarkov.Coop.Networking
 
         public void WebSocketClose()
         {
+            ClientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
             //if (WebSocket != null)
             //{
             //    Logger.LogDebug("WebSocketClose");
