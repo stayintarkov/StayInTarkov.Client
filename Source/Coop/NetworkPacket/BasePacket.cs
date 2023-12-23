@@ -1,4 +1,5 @@
-﻿using EFT.InventoryLogic;
+﻿using Comfort.Common;
+using EFT.InventoryLogic;
 using EFT.UI;
 using Mono.Cecil;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
+using System.Threading.Tasks;
 using WebSocketSharp;
 
 namespace StayInTarkov.Coop.NetworkPacket
@@ -158,9 +160,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            var resultString = Encoding.UTF8.GetString(bytes);
-            //StayInTarkovHelperConstants.Logger.LogInfo(resultString);   
-            return this.DeserializePacketSIT(resultString);
+            return this.DeserializePacketSIT(bytes);
         }
 
         public override string ToString()
@@ -236,6 +236,9 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public unsafe static void Clear(this string s)
         {
+            if (s == null)
+                return;
+
             fixed (char* ptr = s)
             {
                 for (int i = 0; i < s.Length; i++)
@@ -252,42 +255,114 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static Stopwatch swDeserializerDebug = new Stopwatch();
 
+        public static ISITPacket DeserializePacketSIT<ISITPacket>(this ISITPacket obj, byte[] serializedPacket)
+        {
+            //StayInTarkovHelperConstants.Logger.LogInfo("DeserializePacketSIT<ISITPacket>");
+
+            var stringOfSP = Encoding.UTF8.GetString(serializedPacket);
+            //StayInTarkovHelperConstants.Logger.LogInfo(stringOfSP);
+            var indexOfQuestionMark = stringOfSP.IndexOf('?');
+            //File.WriteAllBytes("_sit_D_DeserializePacketSIT.bin", serializedPacket);
+
+            long headerReaderEndPosition = indexOfQuestionMark != -1 ? ReadPacketHeader(ref obj, serializedPacket, indexOfQuestionMark) : 0;
+
+            BinaryReader bodyReader = new BinaryReader(new MemoryStream(serializedPacket));
+            bodyReader.BaseStream.Position = headerReaderEndPosition;
+            var bodyPacketBytes = bodyReader.ReadBytes((int)bodyReader.BaseStream.Length - (int)headerReaderEndPosition);
+            bodyReader.Close();
+            bodyReader.Dispose();
+            bodyReader = null;
+            DeserializePacketIntoObj(ref obj, bodyPacketBytes);
+
+            //StayInTarkovHelperConstants.Logger.LogInfo(obj.ToJson());
+
+            return obj;
+        }
+
+        private static long ReadPacketHeader<ISITPacket>(ref ISITPacket obj, byte[] serializedPacket, int indexOfQuestionMark)
+        {
+            var playerPacket = obj as BasePlayerPacket;
+
+            BinaryReader headerReader = new BinaryReader(new MemoryStream(serializedPacket));
+            headerReader.ReadBytes(3); // SIT
+            var profileIdBytes = headerReader.ReadBytes(27); // ProfileId
+            if (playerPacket != null)
+                playerPacket.ProfileId = Encoding.UTF8.GetString(profileIdBytes);
+
+            var methodBytes = headerReader.ReadBytes(indexOfQuestionMark - 30); // Method
+            if (playerPacket != null)
+            {
+                playerPacket.Method = Encoding.UTF8.GetString(methodBytes);
+                //StayInTarkovHelperConstants.Logger.LogInfo(playerPacket.Method);
+            }
+            var headerReaderEndPosition = headerReader.BaseStream.Position + 1; // remove the ?
+            headerReader.Close();
+            headerReader.Dispose();
+            headerReader = null;
+            return headerReaderEndPosition;
+        }
+
         public static T DeserializePacketSIT<T>(this T obj, string serializedPacket)
         {
-            //File.WriteAllText("_serializedPacket.bin", serializedPacket);
+            if (serializedPacket == null)
+                throw new NullReferenceException(nameof(serializedPacket));
 
-            //swDeserializerDebug.Restart();
+            var indexOfQuestionMark = serializedPacket.IndexOf('?');
+            long headerReaderEndPosition = indexOfQuestionMark != -1 ? ReadPacketHeader(ref obj, Encoding.UTF8.GetBytes(serializedPacket), indexOfQuestionMark) : 0;
+            var bodyString = serializedPacket.Substring((int)headerReaderEndPosition);
+            //StayInTarkovHelperConstants.Logger.LogInfo(bodyString);
+            DeserializePacketIntoObj(ref obj, Encoding.UTF8.GetBytes(bodyString));
+            return obj;
+            //string method = new string([]);
+            //if (serializedPacket.Length == 0)
+            //    return obj;
 
-            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(DeserializePacketSIT)}");
-            //StayInTarkovHelperConstants.Logger.LogDebug($"{serializedPacket}");
+            //var indexOfQuestionMark = serializedPacket.IndexOf('?');
+            //if (indexOfQuestionMark != -1)
+            //{
+            //    var headerFromPacket = serializedPacket.Substring(0, indexOfQuestionMark);
 
-            string method = new string([]);
-            if (serializedPacket.Contains("?"))
-            {
-                var headerFromPacket = serializedPacket.Split('?')[0];
-                StreamReader streamReaderHeader = new StreamReader(new MemoryStream());
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{headerFromPacket}");
-                var sit = streamReaderHeader.ReadToEnd();
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{sit}");
-                var serverId = sit.Substring(2, 27);
-                method = sit.Substring(30, sit.Length - 30);
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
-                sit = sit.Substring(0, 3);
-                streamReaderHeader.Close();
-                streamReaderHeader.Dispose();
-                streamReaderHeader = null;
-                sit.Clear();
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
-            }
+            //    StreamReader streamReaderHeader = new StreamReader(new MemoryStream());
+            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{headerFromPacket}");
+            //    var sit = streamReaderHeader.ReadToEnd();
+            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{sit}");
+            //    if (sit.Length < 3)
+            //        return obj;
+            //    var serverId = sit.Substring(2, 27);
 
-            var bodyFromPacket = serializedPacket.Contains("?") ? serializedPacket.Split('?')[1] : serializedPacket;
-            //serializedPacket.Clear();
-            //serializedPacket = null;
-            //StayInTarkovHelperConstants.Logger.LogDebug($"{bodyFromPacket}");
-            var separatedPacket = bodyFromPacket.Split(SIT_SERIALIZATION_PACKET_SEPERATOR);
-            var index = 0;
+            //    if (sit.Length < 31)
+            //        return obj;
 
-            var bodyPacketBytes = Encoding.UTF8.GetBytes(bodyFromPacket);
+            //    method = sit.Substring(30, sit.Length - 30);
+            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
+            //    sit = sit.Substring(0, 3);
+            //    streamReaderHeader.Close();
+            //    streamReaderHeader.Dispose();
+            //    streamReaderHeader = null;
+            //    sit.Clear();
+            //    StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
+            //}
+
+            //var bodyFromPacket = serializedPacket.Contains("?") ? serializedPacket.Split('?')[1] : serializedPacket;
+            //var index = 0;
+            //var bodyPacketBytes = Encoding.UTF8.GetBytes(bodyFromPacket);
+            //DeserializePacketIntoObj(ref obj, bodyPacketBytes);
+
+            //bodyPacketBytes = null;
+            //bodyFromPacket = null;
+
+            //if (((ISITPacket)obj).TimeSerializedBetter == null)
+            //    ((ISITPacket)obj).TimeSerializedBetter = DateTime.Now.Ticks.ToString();
+
+            //if (string.IsNullOrEmpty(((ISITPacket)obj).Method) && method != null)
+            //    ((ISITPacket)obj).Method = method;
+
+
+            //return obj;
+        }
+
+        private static void DeserializePacketIntoObj<T>(ref T obj, byte[] bodyPacketBytes)
+        {
             //bodyFromPacket.Clear();
             //bodyFromPacket = null;
 
@@ -311,11 +386,10 @@ namespace StayInTarkov.Coop.NetworkPacket
                 var isNotNull = binaryReader.ReadBoolean();
                 if (!isNotNull)
                 {
-                    index++;
                     StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name} is NULL");
                     continue;
                 }
-                
+
                 // Is an array
                 if (prop.PropertyType.IsArray)
                 {
@@ -326,7 +400,7 @@ namespace StayInTarkov.Coop.NetworkPacket
                     var arrayType = binaryReader.ReadString().Replace("[", "").Replace("]", "");
                     var arrayCount = binaryReader.ReadInt32();
                     StayInTarkovHelperConstants.Logger.LogDebug($"{arrayType}");
-                    Array array = Array.CreateInstance(ReflectionHelpers.SearchForType(arrayType), arrayCount);
+                    //Array array = Array.CreateInstance(ReflectionHelpers.SearchForType(arrayType), arrayCount);
 
                     //foreach (var item in array)
                     //{
@@ -339,8 +413,7 @@ namespace StayInTarkov.Coop.NetworkPacket
                     //    else
                     //        binaryWriter.Write(item.ToString());
                     //}
-                    array = null;
-                    index++;
+                    //array = null;
                     continue;
                 }
                 // Is a SITPacket
@@ -355,10 +428,9 @@ namespace StayInTarkov.Coop.NetworkPacket
                     var packetBytes = binaryReader.ReadBytes(packetByteLength);
 
                     packetBytes = null;
-                    index++;
                     continue;
                 }
-                else if(prop.PropertyType == typeof(bool))
+                else if (prop.PropertyType == typeof(bool))
                 {
                     prop.SetValue(obj, binaryReader.ReadBoolean());
                     continue;
@@ -399,8 +471,8 @@ namespace StayInTarkov.Coop.NetworkPacket
                         // Process an Enum
                         if (prop.PropertyType.IsEnum)
                             prop.SetValue(obj, Enum.Parse(prop.PropertyType, readString));
-                        
-                        
+
+
                         else
                         {
                             var jobj = JObject.Parse(readString);
@@ -410,29 +482,11 @@ namespace StayInTarkov.Coop.NetworkPacket
                         }
                         break;
                 }
-                index++;
             }
-
-//#if DEBUG
-//            if (swDeserializerDebug.ElapsedMilliseconds > 1)
-//                StayInTarkovHelperConstants.Logger.LogDebug($"DeserializePacketSIT {obj.GetType()} took {swDeserializerDebug.ElapsedMilliseconds}ms to process!");
-//#endif
-
-            bodyPacketBytes = null;
-            bodyFromPacket = null;
-            separatedPacket = null;
             binaryReader.Close();
             binaryReader.Dispose();
             binaryReader = null;
 
-            if (((ISITPacket)obj).TimeSerializedBetter == null)
-                ((ISITPacket)obj).TimeSerializedBetter = DateTime.Now.Ticks.ToString();
-
-            if (string.IsNullOrEmpty(((ISITPacket)obj).Method) && method != null)
-                ((ISITPacket)obj).Method = method;
-
-
-            return obj;
         }
     }
 
