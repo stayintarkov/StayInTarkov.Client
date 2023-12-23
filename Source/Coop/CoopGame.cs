@@ -197,7 +197,7 @@ namespace StayInTarkov.Coop
 
             if (MatchmakerAcceptPatches.IsServer)
             {
-                StartCoroutine(HostPinger());
+                //StartCoroutine(HostPinger());
                 StartCoroutine(GameTimerSync());
                 StartCoroutine(TimeAndWeatherSync());
             }
