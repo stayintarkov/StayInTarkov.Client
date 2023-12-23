@@ -48,6 +48,12 @@ namespace StayInTarkov.Coop
         /// </summary>
         public ConcurrentDictionary<string, CoopPlayer> Players { get; } = new();
 
+        /// <summary>
+        /// The Client Drones connected to this Raid
+        /// </summary>
+        public HashSet<CoopPlayerClient> PlayerClients { get; } = new();
+
+
         //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
         {
@@ -236,6 +242,8 @@ namespace StayInTarkov.Coop
         /// </summary>
         private long? _SITGCLastMemory;
 
+        private int _SITGCLastIndex;
+
         /// <summary>
         /// This clears out the RAM usage very effectively.
         /// </summary>
@@ -265,7 +273,10 @@ namespace StayInTarkov.Coop
                 }
                 else
                 {
-                    GCHelpers.ClearGarbage(false, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                    GCHelpers.ClearGarbage(_SITGCLastIndex == 4, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                    _SITGCLastIndex++;
+                    if (_SITGCLastIndex == 5)
+                        _SITGCLastIndex = 0;
                 }
 
 #if DEBUG
@@ -563,38 +574,38 @@ namespace StayInTarkov.Coop
             if (RequestingObj == null)
                 return;
 
-            //JObject playerStates = new();
-            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            //if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
-            //{
-            //    JArray playerStateArray = new JArray();
-            //    foreach (var player in Players.Values)
-            //    {
-            //        if (player == null)
-            //            continue;
+            JObject playerStates = new();
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
+            {
+                JArray playerStateArray = new JArray();
+                foreach (var player in Players.Values)
+                {
+                    if (player == null)
+                        continue;
 
-            //        if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
-            //            continue;
+                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
+                        continue;
 
-            //        if (prc.IsClientDrone)
-            //            continue;
+                    if (prc.IsClientDrone)
+                        continue;
 
-            //        if (!player.enabled)
-            //            continue;
+                    if (!player.enabled)
+                        continue;
 
-            //        if (!player.isActiveAndEnabled)
-            //            continue;
+                    if (!player.isActiveAndEnabled)
+                        continue;
 
-            //        CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
-            //    }
+                    CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
+                }
 
-            //    playerStates.Add("dataList", playerStateArray);
-            //    //Logger.LogDebug(playerStates.SITToJson());
-            //    RequestingObj.SendDataToPool(playerStates.SITToJson());
+                playerStates.Add("dataList", playerStateArray);
+                //Logger.LogDebug(playerStates.SITToJson());
+                RequestingObj.SendDataToPool(playerStates.SITToJson());
 
-            //    LastPlayerStateSent = DateTime.Now;
-            //}
+                LastPlayerStateSent = DateTime.Now;
+            }
 
             if (SpawnedPlayersToFinalize == null)
                 return;
@@ -1034,6 +1045,8 @@ namespace StayInTarkov.Coop
             if (!Players.ContainsKey(profile.ProfileId))
                 Players.TryAdd(profile.ProfileId, (CoopPlayer)otherPlayer);
 
+            PlayerClients.Add((CoopPlayerClient)otherPlayer);
+
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
 
@@ -1206,6 +1219,8 @@ namespace StayInTarkov.Coop
 
             // Add the serialized packets to the PlayerStates JArray
             playerStates.Add(playerStatePacket.Serialize());
+            playerStatePacket.Dispose();
+            playerStatePacket = null;
 
         }
 
