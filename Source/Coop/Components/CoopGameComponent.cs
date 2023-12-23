@@ -273,9 +273,9 @@ namespace StayInTarkov.Coop
                 }
                 else
                 {
-                    GCHelpers.ClearGarbage(_SITGCLastIndex == 4, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
+                    GCHelpers.ClearGarbage(_SITGCLastIndex == 2, _SITGCLastIndex == 2);
                     _SITGCLastIndex++;
-                    if (_SITGCLastIndex == 5)
+                    if (_SITGCLastIndex == 2)
                         _SITGCLastIndex = 0;
                 }
 
