@@ -643,6 +643,12 @@ namespace StayInTarkov.Coop.Components
                 DestroyThis();
 
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+
+                JObject joinPacket = new();
+                joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
+                joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
+                joinPacket.Add("m", "JoinMatch");
+                AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
             }
         }
 
