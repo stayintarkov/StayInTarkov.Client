@@ -51,7 +51,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (!dict.ContainsKey("data"))
                 return;
 
-            PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(null, true, true, null);
+            PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(player.ProfileId, true, true, null);
             playerProceedEmptyHandsPacket = playerProceedEmptyHandsPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedEmptyHandsPacket))

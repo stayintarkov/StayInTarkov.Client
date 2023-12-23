@@ -42,9 +42,8 @@ namespace StayInTarkov.Coop.NetworkPacket
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
             bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, 
             float energy, float hydration, PlayerHealthPacket playerHealth)
-            : base(profileId, "PlayerState")
+            : base(new string(profileId.ToCharArray()), "PlayerState")
         {
-            ProfileId = profileId;
             PositionX = position.x;
             PositionY = position.y;
             PositionZ = position.z;

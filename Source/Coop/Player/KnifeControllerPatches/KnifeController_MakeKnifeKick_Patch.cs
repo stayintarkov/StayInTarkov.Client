@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
             if (!dict.ContainsKey("data"))
                 return;
 
-            BasePlayerPacket makeKnifeKickPacket = new();
+            BasePlayerPacket makeKnifeKickPacket = new(player.ProfileId, "");
             makeKnifeKickPacket = makeKnifeKickPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, makeKnifeKickPacket))

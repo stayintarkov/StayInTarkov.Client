@@ -108,11 +108,10 @@ namespace StayInTarkov.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket ReplicatedPMP = new(null, 0, 0, 0, 0, 0, 0);
-            ReplicatedPMP = ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
+            using PlayerMovePacket ReplicatedPMP = new(player.ProfileId, 0, 0, 0, 0, 0, 0);
+            ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
             ReplicatedMove(player, ReplicatedPMP);
 
-            ReplicatedPMP = null;
             dict = null;
         }
 
