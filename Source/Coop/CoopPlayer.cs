@@ -22,7 +22,7 @@ namespace StayInTarkov.Coop
 {
     public class CoopPlayer : LocalPlayer
     {
-        ManualLogSource BepInLogger { get; set; }
+        protected ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
