@@ -6,7 +6,6 @@ using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.Networking;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.ThirdParty;
 using System;
@@ -18,11 +17,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.XR;
 
 namespace StayInTarkov.Networking
 {
@@ -81,7 +78,7 @@ namespace StayInTarkov.Networking
 
         protected ManualLogSource Logger;
 
-        //WebSocketSharp.WebSocket WebSocket { get; set; }
+        WebSocketSharp.WebSocket WebSocket { get; set; }
 
         public static int PING_LIMIT_HIGH { get; } = 125;
         public static int PING_LIMIT_MID { get; } = 100;
@@ -148,31 +145,28 @@ namespace StayInTarkov.Networking
             Logger.LogDebug(wsUrl);
 
             //WebSocketPreviousReceived = new HashSet<string>();
-            //WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-            //WebSocket.WaitTime = TimeSpan.FromMinutes(1);
-            //WebSocket.EmitOnPing = true;
-            //WebSocket.Connect();
-            //WebSocket.Send("CONNECTED FROM SIT COOP");
-            //// ---
-            //// Start up after initial Send
-            //WebSocket.OnError += WebSocket_OnError;
-            //WebSocket.OnMessage += WebSocket_OnMessage;
+            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
+            WebSocket.WaitTime = TimeSpan.FromMinutes(1);
+            WebSocket.EmitOnPing = true;
+            WebSocket.Connect();
+            WebSocket.Send("CONNECTED FROM SIT COOP");
+            // ---
+            // Start up after initial Send
+            WebSocket.OnError += WebSocket_OnError;
+            WebSocket.OnMessage += WebSocket_OnMessage;
             // ---
 
-            _sitWebSocket = new SITWebSocket(this);
-            _sitWebSocket.WebSocketCreate(profile);
         }
-
-        SITWebSocket _sitWebSocket { get; set; }
-
 
         public void WebSocketClose()
         {
-            if (_sitWebSocket != null)
+            if (WebSocket != null)
             {
                 Logger.LogDebug("WebSocketClose");
-                _sitWebSocket.WebSocketClose();
-                _sitWebSocket = null;
+                WebSocket.OnError -= WebSocket_OnError;
+                WebSocket.OnMessage -= WebSocket_OnMessage;
+                WebSocket.Close(WebSocketSharp.CloseStatusCode.Normal);
+                WebSocket = null;
             }
         }
 
@@ -180,10 +174,8 @@ namespace StayInTarkov.Networking
         {
             await Task.Run(() =>
             {
-                //if (WebSocket != null)
-                //    WebSocket.Send(packet.SITToJson());
-                if(_sitWebSocket != null)
-                    _sitWebSocket.Send(packet.SITToJson());
+                if (WebSocket != null)
+                    WebSocket.Send(packet.SITToJson());
             });
         }
 
@@ -191,40 +183,43 @@ namespace StayInTarkov.Networking
         {
             await Task.Run(() =>
             {
-                if (_sitWebSocket != null)
-                    _sitWebSocket.Send(packet);
+                if (WebSocket != null)
+                    WebSocket.Send(packet);
             });
         }
 
-        //private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
-        //{
-        //    Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {Environment.NewLine}");
-        //    Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Exception}");
-        //    WebSocket_OnError();
-        //    WebSocketClose();
-        //    WebSocketCreate(MyProfile);
-        //}
+        private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {Environment.NewLine}");
+            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Exception}");
+            WebSocket_OnError();
+            WebSocketClose();
+            WebSocketCreate(MyProfile);
+        }
 
-        //private void WebSocket_OnError()
-        //{
-        //    Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
-        //    if (Singleton<ISITGame>.Instantiated)
-        //    {
-        //        Singleton<ISITGame>.Instance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation);
-        //    }
-        //    else
-        //        Application.Quit();
-        //}
+        private void WebSocket_OnError()
+        {
+            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
+            if (Singleton<ISITGame>.Instantiated)
+            {
+                Singleton<ISITGame>.Instance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation);
+            }
+            else
+                Application.Quit();
+        }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
+            GC.AddMemoryPressure(e.RawData.Length);
+
             if (e == null)
                 return;
 
             if (string.IsNullOrEmpty(e.Data))
                 return;
 
-            //ProcessPacketBytes(e.RawData);
+            ProcessPacketBytes(e.RawData);
+            GC.RemoveMemoryPressure(e.RawData.Length);
 
         }
 
@@ -239,16 +234,16 @@ namespace StayInTarkov.Networking
                     return;
 
                 Dictionary<string, object> packet = null;
-               
+
                 // Use StreamReader & JsonTextReader to improve memory / cpu usage
-                //using (var streamReader = new StreamReader(new MemoryStream(data)))
-                //{
-                //    using (var reader = new JsonTextReader(streamReader))
-                //    {
-                //        var serializer = new JsonSerializer();
-                //        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
-                //    }
-                //}
+                using (var streamReader = new StreamReader(new MemoryStream(data)))
+                {
+                    using (var reader = new JsonTextReader(streamReader))
+                    {
+                        var serializer = new JsonSerializer();
+                        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
+                    }
+                }
 
                 var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
 
@@ -272,8 +267,17 @@ namespace StayInTarkov.Networking
                 //Logger.LogDebug($"Step.1. Packet exists. {packet.ToJson()}");
 
                 // If this is a pong packet, resolve and create a smooth ping
-                if (ProcessPong(ref packet, ref coopGameComponent))
+                if (packet.ContainsKey("pong"))
+                {
+                    var pongRaw = long.Parse(packet["pong"].ToString());
+                    var dtPong = new DateTime(pongRaw);
+                    var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
+                    if (coopGameComponent.ServerPingSmooth.Count > 60)
+                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
+                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
+                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
                     return;
+                }
 
                 if (packet.ContainsKey("HostPing"))
                 {
@@ -311,41 +315,24 @@ namespace StayInTarkov.Networking
                 if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
 
-                //ProcessSITPacket(ref packet);
+                ProcessSITPacket(ref packet);
 
-                //if (packet.ContainsKey(PACKET_TAG_METHOD)
-                //    && packet[PACKET_TAG_METHOD].ToString() == "Move")
-                //    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
-                //else if (packet.ContainsKey(PACKET_TAG_METHOD)
-                //    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
-                //{
-                //    coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
-                //}
-                //else
-                //    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
+                if (packet.ContainsKey(PACKET_TAG_METHOD)
+                    && packet[PACKET_TAG_METHOD].ToString() == "Move")
+                    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
+                else if (packet.ContainsKey(PACKET_TAG_METHOD)
+                    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
+                {
+                    coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
+                }
+                else
+                    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
 
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
             }
-        }
-
-        private bool ProcessPong(ref Dictionary<string, object> packet, ref CoopGameComponent coopGameComponent)
-        {
-            if (packet.ContainsKey("pong"))
-            {
-                var pongRaw = long.Parse(packet["pong"].ToString());
-                var dtPong = new DateTime(pongRaw);
-                var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                if (coopGameComponent.ServerPingSmooth.Count > 60)
-                    coopGameComponent.ServerPingSmooth.TryDequeue(out _);
-                coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
-                coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
-                return true;
-            }
-
-            return false;
         }
 
         private void ProcessSITPacket(ref Dictionary<string, object> packet)
@@ -356,20 +343,22 @@ namespace StayInTarkov.Networking
                 var data = packet[PACKET_TAG_DATA];
                 if (data == null)
                     return;
-
-                          
+                //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                //Logger.LogInfo(" ==================SIT Packet============= ");
+                //Logger.LogInfo(packet.ToJson());
+                //Logger.LogInfo(" ========================================= ");
+                //if (!packet.ContainsKey("accountId"))
                 if (!packet.ContainsKey("profileId"))
                 {
-                    //Logger.LogInfo(nameof(ProcessSITPacket));
-                    //Logger.LogInfo("No profileId found");
-                    var bpp = new BasePlayerPacket();
-                    bpp = bpp.DeserializePacketSIT(data.ToString());
-                    if (!string.IsNullOrEmpty(bpp.ProfileId))
-                        packet.Add("profileId", bpp.ProfileId);
-
+                    var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
+                    bpp.DeserializePacketSIT(Encoding.UTF8.GetBytes(data.ToString()));
+                    packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
+                    bpp.Dispose();
                     bpp = null;
-                    //Logger.LogInfo(packet.ToJson());
                 }
+
+                //Logger.LogInfo(" ==================SIT Packet============= ");
+                //Logger.LogInfo(packet.ToJson());
             }
         }
 
@@ -383,7 +372,7 @@ namespace StayInTarkov.Networking
                 return false;
 
             JArray dataList = JArray.FromObject(packet["dataList"]);
-            
+
             foreach (var d in dataList)
             {
                 // This needs to be a little more dynamic but for now. This switch will do.
@@ -393,12 +382,15 @@ namespace StayInTarkov.Networking
                     case "PlayerStates":
                         PlayerStatePacket playerStatePacket = new PlayerStatePacket();
                         playerStatePacket = (PlayerStatePacket)playerStatePacket.Deserialize((byte[])d);
-                        if(coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
+                        if (playerStatePacket == null || string.IsNullOrEmpty(playerStatePacket.ProfileId))
+                            continue;
+
+                        if (coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
                             coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
 
                         break;
                 }
-               
+
             }
 
             return true;
@@ -430,19 +422,20 @@ namespace StayInTarkov.Networking
 
         public void SendDataToPool(string serializedData)
         {
-            SendDataToPool(Encoding.UTF8.GetBytes(serializedData));
+            if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                WebSocket.Send(serializedData);
         }
 
         public void SendDataToPool(byte[] serializedData)
         {
             if (HighPingMode)
             {
-                if(_sitWebSocket != null)
-                    _sitWebSocket.Send(serializedData);
+                PooledBytesToPost.Add(serializedData);
             }
             else
             {
-                PooledBytesToPost.Add(serializedData);
+                if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                    WebSocket.Send(serializedData);
             }
         }
 
@@ -456,8 +449,8 @@ namespace StayInTarkov.Networking
             PooledDictionaryCollectionToPost.Add(data);
         }
 
-        public int HostPing { get; set; } = 1;
-        public int PostPing { get; set; } = 1;
+        public int HostPing { get; private set; } = 1;
+        public int PostPing { get; private set; } = 1;
         public ConcurrentQueue<int> PostPingSmooth { get; } = new();
 
         private Task PeriodicallySendPooledDataTask;
@@ -478,7 +471,7 @@ namespace StayInTarkov.Networking
 
                 while (true)
                 {
-                    if (_sitWebSocket == null)
+                    if (WebSocket == null)
                     {
                         await Task.Delay(awaitPeriod);
                         continue;
@@ -487,14 +480,21 @@ namespace StayInTarkov.Networking
                     swPing.Restart();
                     await Task.Delay(awaitPeriod);
 
-                    if (PooledBytesToPost.Any())
+                    while (PooledBytesToPost.Any())
                     {
-                        if (_sitWebSocket != null)
+                        await Task.Delay(awaitPeriod);
+                        if (WebSocket != null)
                         {
-                            while (PooledBytesToPost.TryTake(out var bytes))
+                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                             {
-                                //WebSocket.Send(bytes);
-                                _sitWebSocket.Send(bytes);
+                                while (PooledBytesToPost.TryTake(out var bytes))
+                                {
+                                    WebSocket.Send(bytes);
+                                }
+                            }
+                            else
+                            {
+                                WebSocket_OnError();
                             }
                         }
                     }
@@ -509,39 +509,35 @@ namespace StayInTarkov.Networking
 
                             var url = d.Key;
                             var json = JsonConvert.SerializeObject(d.Value);
-                            _sitWebSocket.Send(json);
-
                             //var json = d.Value.ToJson();
-                            //if (WebSocket != null)
-                            //{
-                            //    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                            //    {
-                            //        WebSocket.Send(json);
-                            //    }
-                            //    else
-                            //    {
-                            //        WebSocket_OnError();
-                            //    }
-                            //}
+                            if (WebSocket != null)
+                            {
+                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                                {
+                                    WebSocket.Send(json);
+                                }
+                                else
+                                {
+                                    WebSocket_OnError();
+                                }
+                            }
                         }
                     }
 
                     if (PooledDictionaryCollectionToPost.TryTake(out var d2))
                     {
                         var json = JsonConvert.SerializeObject(d2);
-                        _sitWebSocket.Send(json);
-
-                        //if (WebSocket != null)
-                        //{
-                        //    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                        //    {
-                        //        WebSocket.Send(json);
-                        //    }
-                        //    else
-                        //    {
-                        //        StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
-                        //    }
-                        //}
+                        if (WebSocket != null)
+                        {
+                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                            {
+                                WebSocket.Send(json);
+                            }
+                            else
+                            {
+                                StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
+                            }
+                        }
                         json = null;
                     }
 
@@ -575,7 +571,10 @@ namespace StayInTarkov.Networking
                 {
                     await Task.Delay(awaitPeriod);
 
-                    if (_sitWebSocket == null)
+                    if (WebSocket == null)
+                        continue;
+
+                    if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
                         continue;
 
                     if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
@@ -591,7 +590,7 @@ namespace StayInTarkov.Networking
                         serverId = coopGameComponent.ServerId
                     };
 
-                    _sitWebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
+                    WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
                     packet = null;
                 }
             });
@@ -672,7 +671,7 @@ namespace StayInTarkov.Networking
         {
             using (HttpClientHandler handler = new HttpClientHandler())
             {
-                using(HttpClient httpClient = new HttpClient(handler))
+                using (HttpClient httpClient = new HttpClient(handler))
                 {
                     handler.UseCookies = true;
                     handler.CookieContainer = new CookieContainer();
