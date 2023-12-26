@@ -1173,6 +1173,8 @@ namespace StayInTarkov.Coop
             });
         }
 
+        private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
+
         private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
             // Build up the SEX MOD player dick Health Packet /s
@@ -1193,6 +1195,19 @@ namespace StayInTarkov.Coop
                 playerHealth.BodyParts[bpIndex].Current = health.Current;
                 playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
                 bpIndex++;
+            }
+
+            if (LastPlayerHealthPackets.ContainsKey(player.ProfileId) && LastPlayerHealthPackets[player.ProfileId].Equals(playerHealth))
+            {
+                playerHealth = null;
+            }
+
+            if (playerHealth != null)
+            {
+                if (!LastPlayerHealthPackets.ContainsKey(player.ProfileId))
+                    LastPlayerHealthPackets.Add(player.ProfileId, playerHealth);
+
+                LastPlayerHealthPackets[player.ProfileId] = playerHealth;
             }
 
             // Create the ISITPacket for the Character's Current State
