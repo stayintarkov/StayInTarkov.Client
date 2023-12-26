@@ -185,7 +185,7 @@ namespace StayInTarkov.Core.Player
             if (!IsClientDrone)
                 return;
 
-            Update_ClientDrone();
+            //Update_ClientDrone();
 
             // This must exist in Update AND LateUpdate to function correctly.
             //player.MovementContext.EnableSprint(ShouldSprint);
@@ -206,7 +206,7 @@ namespace StayInTarkov.Core.Player
 
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue && !IsSprinting && !ShouldSprint)
+            if (ReplicatedRotation.HasValue)
             {
                 player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 2);
             }
@@ -220,15 +220,12 @@ namespace StayInTarkov.Core.Player
             else
             {
                 player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
-                // This must exist in Update AND LateUpdate to function correctly.
-                player.Rotation = ReplicatedRotation.Value;
-                if (ReplicatedDirection.HasValue)
-                    player.MovementContext.PlayerAnimatorSetMovementDirection(ReplicatedDirection.Value);
+                player.EnableSprint(ShouldSprint);
             }
 
             if (ReplicatedHeadRotation.HasValue)
             {
-                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
+                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 10);
             }
 
             if (ReplicatedTilt.HasValue)
@@ -258,22 +255,25 @@ namespace StayInTarkov.Core.Player
 
                 if (ReplicatedPlayerHealth != null)
                 {
-                    Logger.LogDebug($"{nameof(ReplicatedPlayerHealth)} found");
+                    //Logger.LogDebug($"{nameof(ReplicatedPlayerHealth)} found");
 
                     if (_healthDictionary == null)
                         _healthDictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.HealthController, "dictionary_0", false);
 
-                    if (_healthDictionary != null)
+                    if (_healthDictionary != null && ReplicatedPlayerHealth.BodyParts != null)
                     {
-                        Logger.LogDebug($"{nameof(_healthDictionary)} found");
+                        //Logger.LogDebug($"{nameof(_healthDictionary)} found");
 
                         foreach (PlayerBodyPartHealthPacket bodyPartHP in ReplicatedPlayerHealth.BodyParts)
                         {
-                            BodyPartState bodyPartState = _healthDictionary[bodyPartHP.BodyPart];
-                            if (bodyPartState != null)
+                            if (_healthDictionary.ContainsKey(bodyPartHP.BodyPart))
                             {
-                                bodyPartState.Health = new HealthValue(bodyPartHP.Current, bodyPartHP.Maximum);
-                                Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPartHP.BodyPart} health to {bodyPartHP.Current}/{bodyPartHP.Maximum}");
+                                BodyPartState bodyPartState = _healthDictionary[bodyPartHP.BodyPart];
+                                if (bodyPartState != null)
+                                {
+                                    bodyPartState.Health = new HealthValue(bodyPartHP.Current, bodyPartHP.Maximum);
+                                    //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPartHP.BodyPart} health to {bodyPartHP.Current}/{bodyPartHP.Maximum}");
+                                }
                             }
                         }
 
@@ -355,6 +355,11 @@ namespace StayInTarkov.Core.Player
         public bool IsOwnedPlayer()
         {
             return player.Profile.Id.StartsWith("pmc") && !IsClientDrone;
+        }
+
+        internal void UpdateTick()
+        {
+            Update_ClientDrone();
         }
     }
 }
