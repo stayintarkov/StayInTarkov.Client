@@ -577,7 +577,13 @@ namespace StayInTarkov.Coop
             JObject playerStates = new();
             playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
             playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
+
+            var timeForPlayerStateTick = PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS;
+            // If someone is sprinting. Be prepared to send more packets to update the rotation.
+            if (Players.Values.Any(x => x.IsSprintEnabled))
+                timeForPlayerStateTick = (int)Math.Round(timeForPlayerStateTick * 0.5);
+
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-timeForPlayerStateTick))
             {
                 JArray playerStateArray = new JArray();
                 foreach (var player in Players.Values)
