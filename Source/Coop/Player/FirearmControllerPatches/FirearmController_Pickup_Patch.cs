@@ -81,7 +81,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pp = new(null, false);
-            pp = pp.DeserializePacketSIT(dict["data"].ToString());
+            pp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, pp))
                 return;

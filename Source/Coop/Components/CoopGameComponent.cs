@@ -1181,9 +1181,9 @@ namespace StayInTarkov.Coop
             PlayerHealthPacket playerHealth = new PlayerHealthPacket(player.ProfileId);
             playerHealth.Method = "53xMOD";
             playerHealth.IsAlive = player.HealthController.IsAlive;
+            playerHealth.Energy = player.HealthController.Energy.Current;
+            playerHealth.Hydration = player.HealthController.Hydration.Current;
             var bpIndex = 0;
-            // Initialize the BodyParts array
-            playerHealth.BodyParts = new PlayerBodyPartHealthPacket[Enum.GetValues(typeof(EBodyPart)).Length];
             // Iterate over the BodyParts
             foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
             {

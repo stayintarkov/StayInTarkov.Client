@@ -63,7 +63,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedMedsPacket playerProceedMedsPacket = new(player.ProfileId, null, null, 0, 0, true, null);
-            playerProceedMedsPacket = playerProceedMedsPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedMedsPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedMedsPacket))
                 return;

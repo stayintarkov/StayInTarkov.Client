@@ -160,7 +160,7 @@ namespace StayInTarkov.Core.Player
 
         void Update()
         {
-            Update_ClientDrone();
+            //Update_ClientDrone();
 
             
 
@@ -184,6 +184,8 @@ namespace StayInTarkov.Core.Player
         {
             if (!IsClientDrone)
                 return;
+
+            Update_ClientDrone();
 
             // This must exist in Update AND LateUpdate to function correctly.
             //player.MovementContext.EnableSprint(ShouldSprint);
@@ -224,15 +226,15 @@ namespace StayInTarkov.Core.Player
                     player.MovementContext.PlayerAnimatorSetMovementDirection(ReplicatedDirection.Value);
             }
 
-            //if (ReplicatedHeadRotation.HasValue)
-            //{
-            //    player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
-            //}
+            if (ReplicatedHeadRotation.HasValue)
+            {
+                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
+            }
 
-            //if (ReplicatedTilt.HasValue)
-            //{
-            //    player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
-            //}
+            if (ReplicatedTilt.HasValue)
+            {
+                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
+            }
 
             // Process Prone
             if (ReplicatedPlayerStatePacket != null)
@@ -256,37 +258,35 @@ namespace StayInTarkov.Core.Player
 
                 if (ReplicatedPlayerHealth != null)
                 {
-                    //    if (_healthDictionary == null)
-                    //        _healthDictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.ActiveHealthController, "Dictionary_0", false);
+                    Logger.LogDebug($"{nameof(ReplicatedPlayerHealth)} found");
 
-                    //    if (_healthDictionary != null)
-                    //    {
-                    //        foreach (EBodyPart bodyPart in BodyPartEnumValues)
-                    //        {
-                    //            if (
-                    //                ReplicatedPlayerHealth.ContainsKey($"{bodyPart}c")
-                    //                && ReplicatedPlayerHealth.ContainsKey($"{bodyPart}m")
-                    //                )
-                    //            {
-                    //                BodyPartState bodyPartState = _healthDictionary[bodyPart];
-                    //                if (bodyPartState != null)
-                    //                {
-                    //                    bodyPartState.Health = new(float.Parse(ReplicatedPlayerHealth[$"{bodyPart}c"].ToString()), float.Parse(ReplicatedPlayerHealth[$"{bodyPart}m"].ToString()));
-                    //                    //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPart} health to {ReplicatedPlayerHealth[$"{bodyPart}c"]}");
-                    //                }
-                    //            }
-                    //        }
+                    if (_healthDictionary == null)
+                        _healthDictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.HealthController, "dictionary_0", false);
 
-                    //        //ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController, "Dictionary_0", _healthDictionary);
-                    //    }
+                    if (_healthDictionary != null)
+                    {
+                        Logger.LogDebug($"{nameof(_healthDictionary)} found");
+
+                        foreach (PlayerBodyPartHealthPacket bodyPartHP in ReplicatedPlayerHealth.BodyParts)
+                        {
+                            BodyPartState bodyPartState = _healthDictionary[bodyPartHP.BodyPart];
+                            if (bodyPartState != null)
+                            {
+                                bodyPartState.Health = new HealthValue(bodyPartHP.Current, bodyPartHP.Maximum);
+                                Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPartHP.BodyPart} health to {bodyPartHP.Current}/{bodyPartHP.Maximum}");
+                            }
+                        }
+
+                        //ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController, "Dictionary_0", _healthDictionary);
+                    }
 
                     HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_0", false);
                     if (energy != null)
-                        energy.Current = ReplicatedPlayerStatePacket.Energy;
+                        energy.Current = ReplicatedPlayerStatePacket.PlayerHealth.Energy;
 
                     HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_1", false);
                     if (hydration != null)
-                        hydration.Current = ReplicatedPlayerStatePacket.Hydration;
+                        hydration.Current = ReplicatedPlayerStatePacket.PlayerHealth.Hydration;
                 }
             }
         }

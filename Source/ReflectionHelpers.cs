@@ -437,7 +437,10 @@ namespace StayInTarkov
 
         internal static Type SearchForType(string v, bool debug = false)
         {
-            var typesFound = EftTypes.Where(x => x.FullName.Contains(v)).ToList();
+            var typesFound = 
+                EftTypes
+                .Where(x => x.FullName.Contains(v))
+                .ToList();
             foreach (var type in typesFound)
             {
                 if (debug)

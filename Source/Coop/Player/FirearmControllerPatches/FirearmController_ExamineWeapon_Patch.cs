@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             BasePlayerPacket examineWeaponPacket = new();
 
             if (dict.ContainsKey("data"))
-                examineWeaponPacket = examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
+                examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, examineWeaponPacket))
                 return;

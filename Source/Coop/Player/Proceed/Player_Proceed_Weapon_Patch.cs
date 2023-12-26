@@ -49,7 +49,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
-            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;

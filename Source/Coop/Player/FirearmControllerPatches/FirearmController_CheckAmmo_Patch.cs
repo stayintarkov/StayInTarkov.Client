@@ -65,7 +65,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             BasePlayerPacket checkAmmoPacket = new();
 
             if (dict.ContainsKey("data"))
-                checkAmmoPacket = checkAmmoPacket.DeserializePacketSIT(dict["data"].ToString());
+                checkAmmoPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, checkAmmoPacket))
                 return;
