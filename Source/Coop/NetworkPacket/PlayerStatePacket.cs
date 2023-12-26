@@ -90,7 +90,12 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(IsSprinting);
             writer.Write(InputDirectionX);
             writer.Write(InputDirectionY);
-            writer.WriteLengthPrefixedBytes(PlayerHealth.Serialize());
+
+            // Has PlayerHealth packet
+            writer.Write(PlayerHealth != null);
+            if (PlayerHealth != null)
+                writer.WriteLengthPrefixedBytes(PlayerHealth.Serialize());
+
             return ms.ToArray();
 
         }
@@ -123,7 +128,8 @@ namespace StayInTarkov.Coop.NetworkPacket
             InputDirectionX = reader.ReadSingle();
             InputDirectionY = reader.ReadSingle();
 
-            if (ProfileId != null)
+            // If has a PlayerHealth packet
+            if (reader.ReadBoolean())
             {
                 PlayerHealth = new PlayerHealthPacket(ProfileId);
                 PlayerHealth = (PlayerHealthPacket)PlayerHealth.Deserialize(reader.ReadLengthPrefixedBytes());

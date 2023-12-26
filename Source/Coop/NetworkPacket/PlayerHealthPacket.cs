@@ -71,5 +71,34 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             return base.DeserializePacketSIT(serializedPacket);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PlayerHealthPacket other)
+            {
+                if (other == null) return false;
+
+                if (
+                    other.ProfileId == ProfileId &&
+                    other.Energy == this.Energy &&
+                    other.Hydration == this.Hydration &&
+                    other.IsAlive == this.IsAlive &&
+                    other.BodyParts != null &&
+                    this.BodyParts != null &&
+                    other.BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current == this.BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current
+                    )
+                {
+                    //StayInTarkovHelperConstants.Logger.LogInfo("PlayerHealthPacket is the same");
+                    return true;
+                }
+            }
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
