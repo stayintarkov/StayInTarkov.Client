@@ -39,7 +39,8 @@ namespace StayInTarkov.Coop
             , CharacterControllerSpawner.Mode characterControllerMode
             , Func<float> getSensitivity, Func<float> getAimingSensitivity
             , IFilterCustomization filter
-            , QuestControllerClass questController = null
+            , AbstractQuestController questController = null
+            , AbstractAchievementsController achievementsController = null
             , bool isYourPlayer = false
             , bool isClientDrone = false)
         {
@@ -92,6 +93,7 @@ namespace StayInTarkov.Coop
                 , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
                 , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
                 , questController
+                , achievementsController
                 , filter
                 , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
@@ -129,7 +131,7 @@ namespace StayInTarkov.Coop
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
 
-        public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
             // Quick check?
             if (PreviousDamageInfos.Any(x =>
@@ -149,16 +151,15 @@ namespace StayInTarkov.Coop
             {
                 // If we are not using the Client Side Damage, then only run this on the server
                 if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
-                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+                    SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
                 else
-                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+                    SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
             }
         }
 
-        private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
             Dictionary<string, object> packet = new();
-            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
             Dictionary<string, string> playerDict = new();
@@ -184,7 +185,6 @@ namespace StayInTarkov.Coop
             packet.Add("bpt", bodyPartType.ToString());
             packet.Add("bpct", bodyPartColliderType.ToString());
             packet.Add("ab", absorbed.ToString());
-            packet.Add("hs", headSegment.ToString());
             packet.Add("m", "ApplyDamageInfo");
 
             // -----------------------------------------------------------
@@ -214,7 +214,7 @@ namespace StayInTarkov.Coop
             //BepInLogger.LogDebug(dict.ToJson());
 
             Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
+            Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
             var absorbed = float.Parse(dict["ab"].ToString());
 
             var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
@@ -251,7 +251,7 @@ namespace StayInTarkov.Coop
                 }
             }
 
-            base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+            base.ApplyDamageInfo(damageInfo, bodyPartType, bodyPartColliderType, absorbed);
             //base.ShotReactions(damageInfo, bodyPartType);
 
             yield break;

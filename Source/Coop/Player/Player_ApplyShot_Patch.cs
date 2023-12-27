@@ -125,8 +125,9 @@ namespace StayInTarkov.Coop.Player
                     shotId = new ShotId(dict["ammoid"].ToString(), 1);
                 }
 
-                CallLocally.Add(player.ProfileId);
-                player.ApplyShot(damageInfo, bodyPartType, shotId);
+
+                //CallLocally.Add(player.ProfileId);
+                //player.ApplyShot(damageInfo, bodyPartType, shotId);
             }
             catch (Exception e)
             {
