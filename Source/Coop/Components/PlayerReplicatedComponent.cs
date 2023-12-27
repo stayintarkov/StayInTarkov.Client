@@ -3,20 +3,15 @@ using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
-using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
-using StayInTarkov.Health;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
@@ -204,12 +199,50 @@ namespace StayInTarkov.Core.Player
             if (!IsClientDrone)
                 return;
 
+            if (ReplicatedPlayerStatePacket == null)
+                return;
+
+
+            // Head Rotation
+            var newHeadRotation = new Vector3(ReplicatedPlayerStatePacket.HeadRotationX, ReplicatedPlayerStatePacket.HeadRotationY, ReplicatedPlayerStatePacket.HeadRotationZ);
+            player.HeadRotation = Vector3.Lerp(player.HeadRotation, newHeadRotation, Time.deltaTime * 4);
+            player.ProceduralWeaponAnimation.SetHeadRotation(player.HeadRotation);
+
+            var lastMoveDir = new Vector2(LastReplicatedPlayerStatePacket.MovementDirectionX, LastReplicatedPlayerStatePacket.MovementDirectionY);
+            var newMoveDir = new Vector2(ReplicatedPlayerStatePacket.MovementDirectionX, ReplicatedPlayerStatePacket.MovementDirectionY);
+            player.MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastMoveDir, newMoveDir, Time.deltaTime * 2));
+            //player.MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
+
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
             if (ReplicatedRotation.HasValue)
             {
-                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 2);
+                var r = Vector2.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
+                player.Rotate((r - player.Rotation).normalized, true);
             }
+
+            if (!ShouldSprint && ReplicatedPosition.HasValue && Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
+            {
+                if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 3)
+                    player.Teleport(ReplicatedPosition.Value);   
+                //else
+                //    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
+            }
+            //else if (ReplicatedPlayerStatePacket != null)
+            //{
+            //    //player.CurrentManagedState.Move(new Vector2(ReplicatedPlayerStatePacket.InputDirectionX, ReplicatedPlayerStatePacket.InputDirectionY));
+            //}
+
+            //if (!player.IsInventoryOpened)
+            //{
+            //    var inputDir = new Vector2(ReplicatedPlayerStatePacket.InputDirectionX, ReplicatedPlayerStatePacket.InputDirectionY);
+            //    player.CurrentManagedState.Move(inputDir);
+
+            //    if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
+            //    {
+            //        player.CurrentManagedState.Move((ReplicatedPosition.Value - player.Position).normalized);
+            //    }
+            //}
 
             //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
             if (!ShouldSprint)
@@ -225,12 +258,12 @@ namespace StayInTarkov.Core.Player
 
             if (ReplicatedHeadRotation.HasValue)
             {
-                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 10);
+                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 7);
             }
 
             if (ReplicatedTilt.HasValue)
             {
-                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
+                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 7), true);
             }
 
             // Process Prone
@@ -289,6 +322,8 @@ namespace StayInTarkov.Core.Player
                         hydration.Current = ReplicatedPlayerStatePacket.PlayerHealth.Hydration;
                 }
             }
+
+            LastReplicatedPlayerStatePacket = ReplicatedPlayerStatePacket;
         }
 
         private Dictionary<EBodyPart, BodyPartState> _healthDictionary;
@@ -329,7 +364,8 @@ namespace StayInTarkov.Core.Player
         {
             get { return player.IsSprintEnabled; }
         }
-        public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; }
+        public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; } = new();
+        public PlayerStatePacket LastReplicatedPlayerStatePacket { get; internal set; } = new();
 
         public ManualLogSource Logger { get; private set; }
 
