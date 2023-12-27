@@ -97,7 +97,7 @@ namespace StayInTarkov.Configuration
                 }
             }
 
-            public int SETTING_PlayerStateTickRateInMS { get; set; } = 200;
+            public int SETTING_PlayerStateTickRateInMS { get; set; } = 150;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
@@ -129,8 +129,8 @@ namespace StayInTarkov.Configuration
                 //SETTING_DEBUGShowPlayerList = 
 
                 SETTING_PlayerStateTickRateInMS = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "PlayerStateTickRateInMS", 200, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
-                SETTING_PlayerStateTickRateInMS = Math.Min(999, Math.Max(200, SETTING_PlayerStateTickRateInMS));
+                  ("Coop", "PlayerStateTickRateInMS", 150, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
+                SETTING_PlayerStateTickRateInMS = Math.Min(999, Math.Max(150, SETTING_PlayerStateTickRateInMS));
 
                 SETTING_HeadshotsAlwaysKill = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", false, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
