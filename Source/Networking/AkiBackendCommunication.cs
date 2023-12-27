@@ -347,7 +347,6 @@ namespace StayInTarkov.Networking
                 //Logger.LogInfo(" ==================SIT Packet============= ");
                 //Logger.LogInfo(packet.ToJson());
                 //Logger.LogInfo(" ========================================= ");
-                //if (!packet.ContainsKey("accountId"))
                 if (!packet.ContainsKey("profileId"))
                 {
                     var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
@@ -375,7 +374,7 @@ namespace StayInTarkov.Networking
 
             foreach (var d in dataList)
             {
-                // This needs to be a little more dynamic but for now. This switch will do.
+                // TODO: This needs to be a little more dynamic but for now. This switch will do.
                 // Depending on the method defined, deserialize packet to defined type
                 switch (packet[PACKET_TAG_METHOD].ToString())
                 {
@@ -387,6 +386,10 @@ namespace StayInTarkov.Networking
 
                         if (coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
                             coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
+
+
+                        var serverPing = (int)(DateTime.UtcNow - new DateTime(long.Parse(packet["t"].ToString()))).TotalMilliseconds;
+                        coopGC.ServerPingSmooth.Enqueue(serverPing);
 
                         break;
                 }

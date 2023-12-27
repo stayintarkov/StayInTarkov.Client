@@ -577,6 +577,7 @@ namespace StayInTarkov.Coop
             JObject playerStates = new();
             playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
             playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
+            playerStates.Add("t", DateTime.UtcNow.Ticks);
 
             var timeForPlayerStateTick = PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS;
             // If someone is sprinting. Be prepared to send more packets to update the rotation.
