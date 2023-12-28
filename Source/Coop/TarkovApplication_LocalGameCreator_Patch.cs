@@ -161,18 +161,20 @@ namespace StayInTarkov.Coop
             //}
             );
             Singleton<AbstractGame>.Create(localGame);
+            timeHasComeScreenController.ChangeStatus("Created Coop Game");
+
             await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
 
-                //using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
-                //{
-                UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
-                MainMenuController mmc =
-                        (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
-                mmc.Unsubscribe();
-                Singleton<GameWorld>.Instance.OnGameStarted();
-                //}
+                using (TokenStarter.StartWithToken("LoadingScreen.LoadComplete"))
+                {
+                    UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
+                    MainMenuController mmc =
+                            (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
+                    mmc.Unsubscribe();
+                    Singleton<GameWorld>.Instance.OnGameStarted();
+                }
 
             }));
 
