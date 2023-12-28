@@ -91,7 +91,8 @@ namespace StayInTarkov.Coop
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
-                , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
+                //, isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
+                , isYourPlayer ? new StatisticsManager() : new NullStatisticsManager()
                 , questController
                 , achievementsController
                 , filter
