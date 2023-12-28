@@ -431,6 +431,9 @@ namespace StayInTarkov.Coop
             if (PlayerUsers == null)
                 return quitState;
 
+            if (PlayerUsers.Count() == 0)
+                return quitState;
+
             if (coopGame.ExtractedPlayers == null)
                 return quitState;
 
