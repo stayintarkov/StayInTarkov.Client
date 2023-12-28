@@ -53,11 +53,13 @@ namespace StayInTarkov.Coop
         {
             get
             {
-
                 if (Players == null)
                     yield return null;
 
-                var keys = Players.Keys.Where(x => x.StartsWith("pmc")).ToArray();
+                if (ProfileIdsUser == null)
+                    yield return null;
+
+                var keys = Players.Keys.Where(x => ProfileIdsUser.Contains(x)).ToArray();
                 foreach (var key in keys)
                     yield return Players[key];
 
@@ -91,6 +93,9 @@ namespace StayInTarkov.Coop
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
         public Dictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
         public ConcurrentDictionary<string, Vector3> PlayersToSpawnPositions { get; private set; } = new();
+
+        public HashSet<string> ProfileIdsAI { get; } = new();
+        public HashSet<string> ProfileIdsUser { get; } = new();
 
         public List<EFT.LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
 
@@ -743,6 +748,19 @@ namespace StayInTarkov.Coop
 
                                 if (!PlayersToSpawn.ContainsKey(profileId))
                                     PlayersToSpawn.TryAdd(profileId, ESpawnState.None);
+
+
+                                if (queuedPacket.ContainsKey("IsAI") && queuedPacket["IsAI"].ToString() == "true" && !ProfileIdsAI.Contains(profileId))
+                                {
+                                    ProfileIdsAI.Add(profileId);
+                                    Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
+                                }
+
+                                if (queuedPacket.ContainsKey("IsAI") && queuedPacket["IsAI"].ToString() == "false" && !ProfileIdsUser.Contains(profileId))
+                                {
+                                    ProfileIdsUser.Add(profileId);
+                                    Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
+                                }
 
                             }
                         }
