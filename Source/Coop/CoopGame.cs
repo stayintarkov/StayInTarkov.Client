@@ -14,6 +14,8 @@ using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Web;
+using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
@@ -21,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace StayInTarkov.Coop
 {
@@ -424,6 +427,17 @@ namespace StayInTarkov.Coop
                     }
                 }
 
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                {
+                    Logger.LogDebug($"{nameof(CreatePhysicalBot)}:Unable to find {nameof(CoopGameComponent)}");
+                    await Task.Delay(5000);
+                }
+
+                // 0.14 update. Add to ProfileIdsAI list.
+                // Add to CoopGameComponent list
+                coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)localPlayer);
+                coopGameComponent.ProfileIdsAI.Add(profile.Id);
+
 
             }
             return localPlayer;
@@ -530,11 +544,12 @@ namespace StayInTarkov.Coop
         /// <returns></returns>
         public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestController questController, AbstractAchievementsController achievementsController)
         {
-            //Logger.LogInfo("Creating CoopPlayer!");
+
+            Logger.LogDebug($"{nameof(vmethod_2)}:Running {nameof(this.CreateCoopGameComponent)}");
             this.CreateCoopGameComponent();
             CoopGameComponent.GetCoopGameComponent().LocalGameInstance = this;
 
-
+            Logger.LogDebug($"{nameof(vmethod_2)}:Creating Owner CoopPlayer");
             var myPlayer = await CoopPlayer
                .Create(
                playerId
@@ -555,22 +570,25 @@ namespace StayInTarkov.Coop
                , questController
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(CoopGameComponent)}");
+                await Task.Delay(5000);
+            }
+            Logger.LogDebug($"{nameof(vmethod_2)}:{nameof(SendOrReceiveSpawnPoint)}");
+            coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)myPlayer);
+            coopGameComponent.ProfileIdsUser.Add(profile.Id);
             SendOrReceiveSpawnPoint(myPlayer);
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
             await Task.Run(async () =>
             {
-                CoopGameComponent coopGameComponent = null;
-                while (!CoopGameComponent.TryGetCoopGameComponent(out coopGameComponent))
-                {
-                    await Task.Delay(5000);
-                }
-
                 if (coopGameComponent != null)
                 {
                     while (coopGameComponent.PlayerUsers == null)
                     {
+                        Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
                         await Task.Delay(1000);
                     }
 
@@ -579,12 +597,14 @@ namespace StayInTarkov.Coop
                     {
                         if (coopGameComponent.PlayerUsers == null)
                         {
+                            Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
                             await Task.Delay(1000);
                             continue;
                         }
 
                         if (coopGameComponent.PlayerUsers.Count() == 0)
                         {
+                        Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is empty");
                             await Task.Delay(1000);
                             continue;
                         }
@@ -652,6 +672,67 @@ namespace StayInTarkov.Coop
 
             return myPlayer;
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
+        }
+
+        public static void SendPlayerDataToServer(EFT.LocalPlayer player)
+        {
+            var profileJson = player.Profile.SITToJson();
+
+
+            Dictionary<string, object> packet = new()
+            {
+                        {
+                            "serverId",
+                            MatchmakerAcceptPatches.GetGroupId()
+                        },
+                        {
+                        "isAI",
+                            player.IsAI
+                        },
+                        {
+                            "profileId",
+                            player.ProfileId
+                        },
+                        {
+                            "groupId",
+                            Matchmaker.MatchmakerAcceptPatches.GetGroupId()
+                        },
+                        {
+                            "sPx",
+                            player.Transform.position.x
+                        },
+                        {
+                            "sPy",
+                            player.Transform.position.y
+                        },
+                        {
+                            "sPz",
+                            player.Transform.position.z
+                        },
+                        {
+                            "profileJson",
+                            profileJson
+                        },
+                        { "m", "PlayerSpawn" },
+                    };
+
+
+            //Logger.LogDebug(packet.ToJson());
+
+            var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+            prc.player = player;
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+
+
+
+            // ==================== TEST ==========================
+            // TODO: Replace with Unit Tests
+            var pJson = player.Profile.SITToJson();
+            //Logger.LogDebug(pJson);
+            var pProfile = pJson.SITParseJson<Profile>();
+            Assert.AreEqual<Profile>(player.Profile, pProfile);
+
+
         }
 
         /// <summary>
