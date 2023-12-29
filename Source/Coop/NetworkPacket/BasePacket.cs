@@ -77,7 +77,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             Method = reader.ReadString();
         }
 
-        public virtual byte[] Serialize()
+        public byte[] AutoSerialize()
         {
             if (string.IsNullOrEmpty(ServerId))
             {
@@ -91,20 +91,21 @@ namespace StayInTarkov.Coop.NetworkPacket
 
             byte[] result = null;
             BinaryWriter binaryWriter = new(new MemoryStream());
-            binaryWriter.WriteNonPrefixedString("SIT"); // 3
-            binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
-            binaryWriter.WriteNonPrefixedString(Method); // Unknown
-            binaryWriter.WriteNonPrefixedString("?");
+            //binaryWriter.WriteNonPrefixedString("SIT"); // 3
+            //binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
+            //binaryWriter.WriteNonPrefixedString(Method); // Unknown
+            //binaryWriter.WriteNonPrefixedString("?");
+            WriteHeader(binaryWriter);
 
             var allPropsFiltered = GetPropertyInfos(this);
             if (allPropsFiltered == null)
                 return null;
 
             // Extremely useful tool for discovering what is calling something else...
-//#if DEBUG
-//            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace(true);
-//                StayInTarkovHelperConstants.Logger.LogInfo($"{t.ToString()}");
-//#endif
+            //#if DEBUG
+            //            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace(true);
+            //                StayInTarkovHelperConstants.Logger.LogInfo($"{t.ToString()}");
+            //#endif
 
 
             for (var i = 0; i < allPropsFiltered.Count(); i++)
@@ -173,28 +174,24 @@ namespace StayInTarkov.Coop.NetworkPacket
             return result;
         }
 
-        public virtual ISITPacket Deserialize(byte[] bytes)
+        public virtual byte[] Serialize()
         {
-            return this.DeserializePacketSIT(bytes);
+            return AutoSerialize();
         }
 
-        public virtual ISITPacket DeserializePacketSIT(byte[] serializedPacket)
+        public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            //StayInTarkovHelperConstants.Logger.LogInfo("DeserializePacketSIT<ISITPacket>");
+            return this.AutoDeserialize(bytes);
+        }
 
-            var stringOfSP = Encoding.UTF8.GetString(serializedPacket);
-            //StayInTarkovHelperConstants.Logger.LogInfo(stringOfSP);
-            var indexOfQuestionMark = stringOfSP.IndexOf('?');
-            //File.WriteAllBytes("_sit_D_DeserializePacketSIT.bin", serializedPacket);
-
-            long headerReaderEndPosition = indexOfQuestionMark != -1 ? ReadPacketHeader(serializedPacket, indexOfQuestionMark) : 0;
-
-            BinaryReader bodyReader = new BinaryReader(new MemoryStream(serializedPacket));
-            bodyReader.BaseStream.Position = headerReaderEndPosition;
-            var bodyPacketBytes = bodyReader.ReadBytes((int)bodyReader.BaseStream.Length - (int)headerReaderEndPosition);
-            bodyReader.Close();
-            bodyReader.Dispose();
-            bodyReader = null;
+        public virtual ISITPacket AutoDeserialize(byte[] serializedPacket)
+        {
+            BinaryReader reader = new BinaryReader(new MemoryStream(serializedPacket));
+            ReadHeader(reader);
+            var bodyPacketBytes = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position);
+            reader.Close();
+            reader.Dispose();
+            reader = null;
             DeserializePacketIntoObj(bodyPacketBytes);
 
             //StayInTarkovHelperConstants.Logger.LogInfo(obj.ToJson());
@@ -202,97 +199,14 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        private long ReadPacketHeader(byte[] serializedPacket, int indexOfQuestionMark)
-        {
-            var playerPacket = this as BasePlayerPacket;
-
-            BinaryReader headerReader = new BinaryReader(new MemoryStream(serializedPacket));
-            headerReader.ReadBytes(3); // SIT
-
-            var profileIdBytes = headerReader.ReadBytes(27); // ProfileId
-            if (playerPacket != null)
-                playerPacket.ProfileId = Encoding.UTF8.GetString(profileIdBytes);
-
-            var methodBytes = headerReader.ReadBytes(indexOfQuestionMark - 30); // Method
-            if (playerPacket != null)
-            {
-                playerPacket.Method = Encoding.UTF8.GetString(methodBytes);
-                //StayInTarkovHelperConstants.Logger.LogInfo(playerPacket.Method);
-            }
-            var headerReaderEndPosition = headerReader.BaseStream.Position + 1; // remove the ?
-            headerReader.Close();
-            headerReader.Dispose();
-            headerReader = null;
-            return headerReaderEndPosition;
-        }
-
         public ISITPacket DeserializePacketSIT(string serializedPacket)
         {
-            if (serializedPacket == null)
-                throw new NullReferenceException(nameof(serializedPacket));
-
-            var indexOfQuestionMark = serializedPacket.IndexOf('?');
-            long headerReaderEndPosition = indexOfQuestionMark != -1 ? ReadPacketHeader(Encoding.UTF8.GetBytes(serializedPacket), indexOfQuestionMark) : 0;
-            var bodyString = serializedPacket.Substring((int)headerReaderEndPosition);
-            //StayInTarkovHelperConstants.Logger.LogInfo(bodyString);
-            DeserializePacketIntoObj(Encoding.UTF8.GetBytes(bodyString));
+            AutoDeserialize(Encoding.UTF8.GetBytes(serializedPacket));
             return this;
-            //string method = new string([]);
-            //if (serializedPacket.Length == 0)
-            //    return obj;
-
-            //var indexOfQuestionMark = serializedPacket.IndexOf('?');
-            //if (indexOfQuestionMark != -1)
-            //{
-            //    var headerFromPacket = serializedPacket.Substring(0, indexOfQuestionMark);
-
-            //    StreamReader streamReaderHeader = new StreamReader(new MemoryStream());
-            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{headerFromPacket}");
-            //    var sit = streamReaderHeader.ReadToEnd();
-            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{sit}");
-            //    if (sit.Length < 3)
-            //        return obj;
-            //    var serverId = sit.Substring(2, 27);
-
-            //    if (sit.Length < 31)
-            //        return obj;
-
-            //    method = sit.Substring(30, sit.Length - 30);
-            //    //StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
-            //    sit = sit.Substring(0, 3);
-            //    streamReaderHeader.Close();
-            //    streamReaderHeader.Dispose();
-            //    streamReaderHeader = null;
-            //    sit.Clear();
-            //    StayInTarkovHelperConstants.Logger.LogDebug($"{method}");
-            //}
-
-            //var bodyFromPacket = serializedPacket.Contains("?") ? serializedPacket.Split('?')[1] : serializedPacket;
-            //var index = 0;
-            //var bodyPacketBytes = Encoding.UTF8.GetBytes(bodyFromPacket);
-            //DeserializePacketIntoObj(ref obj, bodyPacketBytes);
-
-            //bodyPacketBytes = null;
-            //bodyFromPacket = null;
-
-            //if (((ISITPacket)obj).TimeSerializedBetter == null)
-            //    ((ISITPacket)obj).TimeSerializedBetter = DateTime.Now.Ticks.ToString();
-
-            //if (string.IsNullOrEmpty(((ISITPacket)obj).Method) && method != null)
-            //    ((ISITPacket)obj).Method = method;
-
-
-            //return obj;
         }
 
         private void DeserializePacketIntoObj(byte[] bodyPacketBytes)
         {
-            //bodyFromPacket.Clear();
-            //bodyFromPacket = null;
-
-            //File.WriteAllBytes("t.bin", bodyPacketBytes);
-
-
             var binaryReader = new BinaryReader(new MemoryStream(bodyPacketBytes));
 
             try

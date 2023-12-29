@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.IO;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
@@ -27,6 +28,23 @@ namespace StayInTarkov.Coop.NetworkPacket
                 ProfileId = null;
             }
             //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
+        }
+
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+            return this;
+        }
+
+        public override byte[] Serialize()
+        {
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+            return ms.ToArray();
         }
     }
 }

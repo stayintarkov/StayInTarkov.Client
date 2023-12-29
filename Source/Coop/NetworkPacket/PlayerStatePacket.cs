@@ -108,6 +108,10 @@ namespace StayInTarkov.Coop.NetworkPacket
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeader(reader);
             ProfileId = reader.ReadString();
+
+            if (reader.BaseStream.Position < reader.BaseStream.Length)
+                return this;
+
             PositionX = reader.ReadSingle();
             PositionY = reader.ReadSingle();
             PositionZ = reader.ReadSingle();
@@ -139,7 +143,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public override ISITPacket DeserializePacketSIT(byte[] serializedPacket)
+        public override ISITPacket AutoDeserialize(byte[] serializedPacket)
         {
             //return base.DeserializePacketSIT(serializedPacket);
             throw new NotImplementedException();    

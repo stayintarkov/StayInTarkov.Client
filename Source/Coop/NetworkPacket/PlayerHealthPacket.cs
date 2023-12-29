@@ -67,9 +67,9 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public override ISITPacket DeserializePacketSIT(byte[] serializedPacket)
+        public override ISITPacket AutoDeserialize(byte[] serializedPacket)
         {
-            return base.DeserializePacketSIT(serializedPacket);
+            return base.AutoDeserialize(serializedPacket);
         }
 
         public override bool Equals(object obj)

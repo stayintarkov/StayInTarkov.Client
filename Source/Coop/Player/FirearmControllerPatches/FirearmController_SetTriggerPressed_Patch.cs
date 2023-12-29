@@ -115,13 +115,9 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 }
                 return;
             }
-
-            //var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            //taskScheduler.Do((s) =>
-            //{
             TriggerPressedPacket tpp = new(player.ProfileId);
 
-            //Logger.LogInfo("Pressed:Replicated");
+            Logger.LogInfo("Pressed:Replicated");
             if (!dict.ContainsKey("data"))
                 return;
 
@@ -178,17 +174,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             yield break;
         }
 
-        public class TriggerPressedPacket : BasePlayerPacket
-        {
-            public bool pr { get; set; }
-            public float rX { get; set; }
-            public float rY { get; set; }
-
-            public TriggerPressedPacket(string profileId) : base(profileId, "SetTriggerPressed")
-            {
-            }
-
-        }
+        
 
 
 
