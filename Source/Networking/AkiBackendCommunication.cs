@@ -350,7 +350,7 @@ namespace StayInTarkov.Networking
                 if (!packet.ContainsKey("profileId"))
                 {
                     var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
-                    bpp.DeserializePacketSIT(Encoding.UTF8.GetBytes(data.ToString()));
+                    bpp.Deserialize(Encoding.UTF8.GetBytes(data.ToString()));
                     packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
                     bpp.Dispose();
                     bpp = null;
@@ -409,7 +409,7 @@ namespace StayInTarkov.Networking
             return Instance;
         }
 
-        public static bool DEBUGPACKETS { get; } = false;
+        public static bool DEBUGPACKETS { get; } = true;
 
         public bool HighPingMode { get; set; }
         public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
@@ -429,17 +429,28 @@ namespace StayInTarkov.Networking
                 WebSocket.Send(serializedData);
         }
 
+        private HashSet<string> _previousPooledData = new HashSet<string>();
+
         public void SendDataToPool(byte[] serializedData)
         {
-            if (HighPingMode)
-            {
-                PooledBytesToPost.Add(serializedData);
-            }
-            else
-            {
-                if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                    WebSocket.Send(serializedData);
-            }
+            Logger.LogDebug(nameof(SendDataToPool));
+            Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
+
+            if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
+                return;
+
+            _previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
+            PooledBytesToPost.Add(serializedData);
+
+            //if (HighPingMode)
+            //{
+            //    PooledBytesToPost.Add(serializedData);
+            //}
+            //else
+            //{
+            //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+            //        WebSocket.Send(serializedData);
+            //}
         }
 
         public void SendDataToPool(string url, Dictionary<string, object> data)
