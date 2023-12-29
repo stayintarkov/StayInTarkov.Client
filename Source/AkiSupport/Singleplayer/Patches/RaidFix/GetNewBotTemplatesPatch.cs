@@ -82,7 +82,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
 
             var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             var taskAwaiter = (Task<Profile>)null;
-            taskAwaiter = StayInTarkovHelperConstants.BackEndSession.LoadBots(source).ContinueWith(GetFirstResult, taskScheduler);
+            taskAwaiter = StayInTarkovHelperConstants.BackEndSession.LoadBots(source).ContinueWith(GetRandomResult, taskScheduler);
 
             // Load bundles for bot profile
             var continuation = new Aki.Custom.Models.BundleLoader(taskScheduler);
@@ -91,9 +91,11 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
             return false;
         }
 
-        private static Profile GetFirstResult(Task<Profile[]> task)
+        private static Random _random = new();
+
+        private static Profile GetRandomResult(Task<Profile[]> task)
         {
-            var result = task.Result[0];
+            var result = task.Result[_random.Next(0, task.Result.Length - 1)];
             Logger.LogDebug($"{DateTime.Now:T} Loading bot {result.Info.Nickname} profile from server. role: {result.Info.Settings.Role} side: {result.Side}");
 
             return result;

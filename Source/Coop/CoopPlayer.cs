@@ -22,7 +22,7 @@ namespace StayInTarkov.Coop
 {
     public class CoopPlayer : LocalPlayer
     {
-        ManualLogSource BepInLogger { get; set; }
+        protected ManualLogSource BepInLogger { get; set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -397,8 +397,17 @@ namespace StayInTarkov.Coop
                 return;
 
             prc.ReplicatedPlayerStatePacket = playerStatePacket;
+        }
 
+        public override void UpdateTick()
+        {
+            base.UpdateTick();
 
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            prc.UpdateTick();
         }
     }
 }

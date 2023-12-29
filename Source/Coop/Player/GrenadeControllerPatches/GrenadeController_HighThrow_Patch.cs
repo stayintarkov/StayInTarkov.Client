@@ -45,7 +45,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
 
             GrenadeThrowPacket grenadeThrowPacket = new(null, Vector2.zero, null);
-            grenadeThrowPacket = grenadeThrowPacket.DeserializePacketSIT(dict["data"].ToString());
+            grenadeThrowPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, grenadeThrowPacket))
                 return;

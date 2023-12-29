@@ -234,7 +234,7 @@ namespace StayInTarkov.Networking
                     return;
 
                 Dictionary<string, object> packet = null;
-               
+
                 // Use StreamReader & JsonTextReader to improve memory / cpu usage
                 using (var streamReader = new StreamReader(new MemoryStream(data)))
                 {
@@ -347,11 +347,17 @@ namespace StayInTarkov.Networking
                 //Logger.LogInfo(" ==================SIT Packet============= ");
                 //Logger.LogInfo(packet.ToJson());
                 //Logger.LogInfo(" ========================================= ");
-                //if (!packet.ContainsKey("accountId"))
                 if (!packet.ContainsKey("profileId"))
                 {
-                    packet.Add("profileId", packet[PACKET_TAG_DATA].ToString().Split(SerializerExtensions.SIT_SERIALIZATION_PACKET_SEPERATOR)[0]);
+                    var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
+                    bpp.DeserializePacketSIT(Encoding.UTF8.GetBytes(data.ToString()));
+                    packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
+                    bpp.Dispose();
+                    bpp = null;
                 }
+
+                //Logger.LogInfo(" ==================SIT Packet============= ");
+                //Logger.LogInfo(packet.ToJson());
             }
         }
 
@@ -365,22 +371,29 @@ namespace StayInTarkov.Networking
                 return false;
 
             JArray dataList = JArray.FromObject(packet["dataList"]);
-            
+
             foreach (var d in dataList)
             {
-                // This needs to be a little more dynamic but for now. This switch will do.
+                // TODO: This needs to be a little more dynamic but for now. This switch will do.
                 // Depending on the method defined, deserialize packet to defined type
                 switch (packet[PACKET_TAG_METHOD].ToString())
                 {
                     case "PlayerStates":
                         PlayerStatePacket playerStatePacket = new PlayerStatePacket();
                         playerStatePacket = (PlayerStatePacket)playerStatePacket.Deserialize((byte[])d);
-                        if(coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
+                        if (playerStatePacket == null || string.IsNullOrEmpty(playerStatePacket.ProfileId))
+                            continue;
+
+                        if (coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
                             coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
+
+
+                        var serverPing = (int)(DateTime.UtcNow - new DateTime(long.Parse(packet["t"].ToString()))).TotalMilliseconds;
+                        coopGC.ServerPingSmooth.Enqueue(serverPing);
 
                         break;
                 }
-               
+
             }
 
             return true;
@@ -661,7 +674,7 @@ namespace StayInTarkov.Networking
         {
             using (HttpClientHandler handler = new HttpClientHandler())
             {
-                using(HttpClient httpClient = new HttpClient(handler))
+                using (HttpClient httpClient = new HttpClient(handler))
                 {
                     handler.UseCookies = true;
                     handler.CookieContainer = new CookieContainer();

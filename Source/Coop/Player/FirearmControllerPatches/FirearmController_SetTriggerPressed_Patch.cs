@@ -125,7 +125,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             if (!dict.ContainsKey("data"))
                 return;
 
-            tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
+            tpp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, tpp))
                 return;

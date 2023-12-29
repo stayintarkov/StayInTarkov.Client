@@ -46,8 +46,8 @@ namespace StayInTarkov.Coop.Player
             if (!dict.ContainsKey("data"))
                 return;
 
-            ItemPlayerPacket itemPacket = new(null, null, null, null);
-            itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
+            ItemPlayerPacket itemPacket = new(player.ProfileId, null, null, dict["m"].ToString());
+            itemPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, itemPacket))
                 return;

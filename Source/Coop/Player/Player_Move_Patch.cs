@@ -72,33 +72,29 @@ namespace StayInTarkov.Coop.Player
                 return;
 
             PlayerMovePacket playerMovePacket = new(player.ProfileId, player.Position.x, player.Position.y, player.Position.z, direction.x, direction.y, player.MovementContext.CharacterMovementSpeed);
-
-            var serialized = playerMovePacket.Serialize();
-            if (serialized == null)
-                return;
-
+            
             if (!PlayerMovePackets.ContainsKey(player.ProfileId))
             {
                 PlayerMovePackets.Add(player.ProfileId, playerMovePacket);
-                AkiBackendCommunication.Instance.SendDataToPool(serialized);
+                AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.Serialize());
             }
             else
             {
                 var lastMovePacket = (PlayerMovePackets[player.ProfileId]);
 
                 if (
-                    lastMovePacket.dX == direction.x
-                    && lastMovePacket.dY == direction.y
-                    && lastMovePacket.pX == player.Position.x
-                    && lastMovePacket.pY == player.Position.y
-                    && lastMovePacket.pZ == player.Position.z
+                    lastMovePacket.dX.ApproxEquals(direction.x)
+                    && lastMovePacket.dY.ApproxEquals(direction.y)
+                    && lastMovePacket.pX.ApproxEquals(player.Position.x)
+                    && lastMovePacket.pY.ApproxEquals(player.Position.y)
+                    && lastMovePacket.pZ.ApproxEquals(player.Position.z)
                     )
                     return;
 
                 lastMovePacket.Dispose();
                 lastMovePacket = null;
                 PlayerMovePackets[player.ProfileId] = playerMovePacket;
-                AkiBackendCommunication.Instance.SendDataToPool(serialized);
+                AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.Serialize());
             }
         }
 
@@ -112,11 +108,10 @@ namespace StayInTarkov.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket ReplicatedPMP = new(null, 0, 0, 0, 0, 0, 0);
-            ReplicatedPMP = ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
+            using PlayerMovePacket ReplicatedPMP = new(player.ProfileId, 0, 0, 0, 0, 0, 0);
+            ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
             ReplicatedMove(player, ReplicatedPMP);
 
-            ReplicatedPMP = null;
             dict = null;
         }
 
@@ -137,6 +132,7 @@ namespace StayInTarkov.Coop.Player
                     , playerMovePacket.dY
                     , playerMovePacket.spd
                     ));
+            playerMovePacket.Dispose();
             playerMovePacket = null;
 
             //if (playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
@@ -175,8 +171,11 @@ namespace StayInTarkov.Coop.Player
 
         public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
         {
-            if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
+            PlayerReplicatedComponent playerReplicatedComponent = null;
+            if (player.GetComponent<PlayerReplicatedComponent>() == null)
                 return;
+
+            playerReplicatedComponent = player.GetComponent<PlayerReplicatedComponent>();
 
             if (!playerReplicatedComponent.IsClientDrone)
                 return;
