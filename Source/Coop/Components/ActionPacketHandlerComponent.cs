@@ -3,6 +3,7 @@ using Aki.Custom.Airdrops.Models;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.MovingPlatforms;
 using EFT.UI.BattleTimer;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Coop.Matchmaker;
@@ -218,6 +219,10 @@ namespace StayInTarkov.Coop.Components
                     break;
                 case "TimeAndWeather":
                     ReplicateTimeAndWeather(packet);
+                    result = true;
+                    break;
+                case "ArmoredTrainTime":
+                    ReplicateArmoredTrainTime(packet);
                     result = true;
                     break;
                 case "LootableContainer_Interact":
@@ -459,6 +464,39 @@ namespace StayInTarkov.Coop.Components
                 else
                 {
                     Logger.LogError("TimeAndWeather: WeatherController is null!");
+                }
+            }
+        }
+
+        void ReplicateArmoredTrainTime(Dictionary<string, object> packet)
+        {
+            CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            if (coopGameComponent == null)
+                return;
+
+            if (MatchmakerAcceptPatches.IsClient)
+            {
+                DateTime utcTime = new(long.Parse(packet["utcTime"].ToString()));
+
+                if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
+                {
+                    Timer1 gameTimer = coopGame.GameTimer;
+
+                    // Process only after raid began.
+                    if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
+                    {
+                        // Looking for Armored Train, if there is nothing, then we are not on the Reserve or Lighthouse.
+                        Locomotive locomotive = FindObjectOfType<Locomotive>();
+                        if (locomotive != null)
+                        {
+                            // The time won't change, if we already have replicated the time, don't override it again.
+                            FieldInfo departField = ReflectionHelpers.GetFieldFromType(typeof(MovingPlatform), "_depart");
+                            if (utcTime == (DateTime)departField.GetValue(locomotive))
+                                return;
+
+                            locomotive.Init(utcTime);
+                        }
+                    }
                 }
             }
         }
