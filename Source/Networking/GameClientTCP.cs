@@ -8,9 +8,14 @@ namespace StayInTarkov.Networking
 {
     public class GameClientTCP : GameClient
     {
+        public GameClientTCP(BepInEx.Configuration.ConfigFile config) 
+        { 
+        
+        }
+
         public override void SendDataToServer(byte[] data)
         {
-            base.SendDataToServer(data);
+            throw new NotImplementedException();
         }
     }
 }
