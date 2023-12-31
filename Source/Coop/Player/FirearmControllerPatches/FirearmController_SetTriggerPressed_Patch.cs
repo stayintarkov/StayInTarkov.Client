@@ -119,7 +119,10 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             Logger.LogInfo("Pressed:Replicated");
             if (!dict.ContainsKey("data"))
+            {
+                Logger.LogError($"{nameof(FirearmController_SetTriggerPressed_Patch)}:{nameof(Replicated)} data is missing");
                 return;
+            }
 
             tpp.DeserializePacketSIT(dict["data"].ToString());
 

@@ -215,47 +215,82 @@ namespace StayInTarkov.Networking
             if (e == null)
                 return;
 
+            if(DEBUGPACKETS)
+            {
+                Logger.LogDebug(e.Data);
+            }
+
             if (string.IsNullOrEmpty(e.Data))
                 return;
 
-            ProcessPacketBytes(e.RawData);
+            ProcessPacketBytes(e.RawData, e.Data);
             GC.RemoveMemoryPressure(e.RawData.Length);
 
         }
 
-        private void ProcessPacketBytes(byte[] data)
+        private void ProcessPacketBytes(byte[] data, string sData)
         {
             try
             {
                 if (data == null)
+                {
+                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Data is Null");
                     return;
+                }
 
                 if (data.Length == 0)
+                {
+                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Data is Empty");
                     return;
+                }
 
                 Dictionary<string, object> packet = null;
 
-                // Use StreamReader & JsonTextReader to improve memory / cpu usage
-                using (var streamReader = new StreamReader(new MemoryStream(data)))
+                // Is a dictionary from Spt-Aki
+                if (sData.StartsWith("{"))
                 {
-                    using (var reader = new JsonTextReader(streamReader))
+                    // Use StreamReader & JsonTextReader to improve memory / cpu usage
+                    using (var streamReader = new StreamReader(new MemoryStream(data)))
                     {
-                        var serializer = new JsonSerializer();
-                        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
+                        using (var reader = new JsonTextReader(streamReader))
+                        {
+                            var serializer = new JsonSerializer();
+                            packet = serializer.Deserialize<Dictionary<string, object>>(reader);
+                        }
                     }
+                }
+                // Is a RAW SIT Serialized packet
+                else
+                {
+                    
+                    //Logger.LogDebug(Encoding.UTF8.GetString(data));
+                    BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
+                    packet = basePlayerPacket.ToDictionary(data);
+
+                }
+
+                if (DEBUGPACKETS)
+                {
+                    Logger.LogInfo("GOT :" + sData);
                 }
 
                 var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
 
                 if (coopGameComponent == null)
+                {
+                    Logger.LogError($"{nameof(ProcessPacketBytes)}. coopGameComponent is Null");
                     return;
+                }
 
                 if (packet == null)
+                {
+                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Packet is Null");
                     return;
+                }
 
                 if (DEBUGPACKETS)
                 {
-                    Logger.LogInfo(packet.SITToJson());
+                    Logger.LogInfo("GOT :" + packet.SITToJson());
                 }
 
                 if (packet.ContainsKey("dataList"))
@@ -356,8 +391,11 @@ namespace StayInTarkov.Networking
                     bpp = null;
                 }
 
-                //Logger.LogInfo(" ==================SIT Packet============= ");
-                //Logger.LogInfo(packet.ToJson());
+                if (DEBUGPACKETS)
+                {
+                    Logger.LogInfo(" ==================SIT Packet============= ");
+                    Logger.LogInfo(packet.ToJson());
+                }
             }
         }
 
@@ -409,10 +447,11 @@ namespace StayInTarkov.Networking
             return Instance;
         }
 
-        public static bool DEBUGPACKETS { get; } = true;
+        public static bool DEBUGPACKETS { get; } = false;
 
         public bool HighPingMode { get; set; }
-        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
+
+        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new BlockingCollection<byte[]>();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
@@ -433,13 +472,16 @@ namespace StayInTarkov.Networking
 
         public void SendDataToPool(byte[] serializedData)
         {
-            Logger.LogDebug(nameof(SendDataToPool));
-            Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
 
-            if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
-                return;
+            if (DEBUGPACKETS)
+            {
+                Logger.LogDebug(nameof(SendDataToPool));
+                Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
+            }
+            //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
+            //    return;
 
-            _previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
+            //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
             PooledBytesToPost.Add(serializedData);
 
             //if (HighPingMode)
@@ -491,18 +533,37 @@ namespace StayInTarkov.Networking
                         continue;
                     }
 
-                    swPing.Restart();
-                    await Task.Delay(awaitPeriod);
+                    // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
+                    if
+                    (
+                        !PooledBytesToPost.Any()
+                        && !PooledDictionariesToPost.Any()
+                        && !PooledDictionaryCollectionToPost.Any()
+                        && !PooledJsonToPostToUrl.Any()
+                    )
+                    {
+                        swPing.Restart();
+                        await Task.Delay(awaitPeriod);
+                        continue;
+                    }
 
+                    // This would the most common delivery from the Client
+                    // Pooled up bytes will now send to the Web Socket
                     while (PooledBytesToPost.Any())
                     {
-                        await Task.Delay(awaitPeriod);
+                        //await Task.Delay(awaitPeriod);
                         if (WebSocket != null)
                         {
                             if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                             {
                                 while (PooledBytesToPost.TryTake(out var bytes))
                                 {
+                                    //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
+                                    if (DEBUGPACKETS)
+                                    {
+                                        Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
+                                    }
+
                                     WebSocket.Send(bytes);
                                 }
                             }

@@ -10,8 +10,9 @@ namespace StayInTarkov.Coop.Player
 {
 
     /// <summary>
+    /// TODO: This patch needs to go. This is a serious CPU and Network performance hog as it runs 100s of calls per second. Needs to be replaced with Lacy's PlayerState method!
     /// </summary>
-    internal class Player_Move_Patch : ModuleReplicationPatch
+    internal sealed class Player_Move_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Move";

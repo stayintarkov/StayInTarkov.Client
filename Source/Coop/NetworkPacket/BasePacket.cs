@@ -65,16 +65,34 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public virtual void WriteHeader(BinaryWriter writer)
         {
+            // Prefix SIT
             writer.WriteNonPrefixedString("SIT");
+            // 0.14 is 24 profile Id
             writer.WriteNonPrefixedString(ServerId);
             writer.Write(Method);
+            writer.WriteNonPrefixedString("?");
         }
 
         public virtual void ReadHeader(BinaryReader reader)
         {
-            reader.ReadBytes(3); // SIT
-            reader.ReadBytes(27); // Server Id
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+
+            var sitPrefix = reader.ReadBytes(3); // SIT
+            if (Encoding.UTF8.GetString(sitPrefix) != "SIT")
+            {
+                reader.BaseStream.Position = 0;
+                return;
+            }
+            //reader.ReadBytes(27); // Server Id
+            // 0.14 is 24 bytes profile Id
+            reader.ReadBytes(24); // Server Id
             Method = reader.ReadString();
+
+            // A check for the ?
+            var bQ = reader.ReadBytes(1) ; // ?
+            if (Encoding.UTF8.GetString(bQ) != "?")
+                reader.BaseStream.Position -= 1;
         }
 
         public byte[] AutoSerialize()
@@ -91,10 +109,6 @@ namespace StayInTarkov.Coop.NetworkPacket
 
             byte[] result = null;
             BinaryWriter binaryWriter = new(new MemoryStream());
-            //binaryWriter.WriteNonPrefixedString("SIT"); // 3
-            //binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
-            //binaryWriter.WriteNonPrefixedString(Method); // Unknown
-            //binaryWriter.WriteNonPrefixedString("?");
             WriteHeader(binaryWriter);
 
             var allPropsFiltered = GetPropertyInfos(this);
@@ -113,11 +127,6 @@ namespace StayInTarkov.Coop.NetworkPacket
                 var prop = allPropsFiltered[i];
                 var propValue = prop.GetValue(this);
                 //StayInTarkovHelperConstants.Logger.LogInfo($"{prop.Name} is {propValue}");
-
-                // write is not null
-                binaryWriter.Write(propValue != null);
-                if (propValue == null)
-                    continue;
 
                 // Process an Array type
                 if (prop.PropertyType.IsArray)
@@ -142,8 +151,6 @@ namespace StayInTarkov.Coop.NetworkPacket
                 // Process an ISITPacket
                 else if (prop.PropertyType.GetInterface(nameof(ISITPacket)) != null)
                 {
-                    //StayInTarkovHelperConstants.Logger.LogInfo(prop.PropertyType);
-                    //StayInTarkovHelperConstants.Logger.LogInfo(propValue.SITToJson());
                     binaryWriter.Write(prop.PropertyType.FullName);
                     var serializedSITPacket = ((ISITPacket)propValue).Serialize();
                     binaryWriter.Write(serializedSITPacket.Length);
@@ -155,12 +162,9 @@ namespace StayInTarkov.Coop.NetworkPacket
                 }
                 else
                 {
-                    //StayInTarkovHelperConstants.Logger.LogInfo($"Write {prop.Name} as (string){propValue}");
                     binaryWriter.Write(propValue.ToString());
                 }
 
-                //if (i != allPropsFiltered.Count() - 1)
-                //    binaryWriter.WriteNonPrefixedString(SerializerExtensions.SIT_SERIALIZATION_PACKET_SEPERATOR.ToString());
             }
 
             if (binaryWriter != null)
@@ -184,15 +188,23 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this.AutoDeserialize(bytes);
         }
 
-        public virtual ISITPacket AutoDeserialize(byte[] serializedPacket)
+        public virtual ISITPacket AutoDeserialize(byte[] data)
         {
-            BinaryReader reader = new BinaryReader(new MemoryStream(serializedPacket));
-            ReadHeader(reader);
-            var bodyPacketBytes = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position);
-            reader.Close();
-            reader.Dispose();
-            reader = null;
-            DeserializePacketIntoObj(bodyPacketBytes);
+            //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(AutoDeserialize)}:{Encoding.UTF8.GetString(data)}");
+
+            using BinaryReader reader = new BinaryReader(new MemoryStream(data));
+            var headerExists = Encoding.UTF8.GetString(reader.ReadBytes(3)) == "SIT";
+            reader.BaseStream.Position = 0;
+            if (headerExists)
+                ReadHeader(reader);
+
+            //StayInTarkovHelperConstants.Logger.LogInfo(nameof(AutoDeserialize));
+            //StayInTarkovHelperConstants.Logger.LogInfo($"headerExists:{headerExists}");
+            //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Position:{reader.BaseStream.Position}");
+            //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Length:{reader.BaseStream.Length}");
+            //StayInTarkovHelperConstants.Logger.LogInfo(this.ToJson());
+
+            DeserializePacketIntoObj(reader);
 
             //StayInTarkovHelperConstants.Logger.LogInfo(obj.ToJson());
 
@@ -205,39 +217,43 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        private void DeserializePacketIntoObj(byte[] bodyPacketBytes)
+        public ISITPacket DeserializePacketSIT(byte[] data)
         {
-            var binaryReader = new BinaryReader(new MemoryStream(bodyPacketBytes));
+            AutoDeserialize(data);
+            return this;
+        }
+
+        private void DeserializePacketIntoObj(BinaryReader reader)
+        {
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+
+            if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                return;
 
             try
             {
+                var allPropsFiltered = GetPropertyInfos(this);
+                if (allPropsFiltered == null)
+                    return;
 
-                foreach (var prop in BasePacket.GetPropertyInfos(this.GetType()))
+                foreach (var prop in allPropsFiltered)
                 {
-                    if (binaryReader.BaseStream.Position >= binaryReader.BaseStream.Length)
-                    {
-                        //ConsoleScreen.LogError($"{nameof(DeserializePacketSIT)} stream cannot be read beyond the length. Failed on property {prop.Name}");
-                        //StayInTarkovHelperConstants.Logger.LogError($"{nameof(DeserializePacketSIT)} stream cannot be read beyond the length. Failed on property {prop.Name}");
-                        continue;
-                    }
+                    if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                        return;
 
-                    //StayInTarkovHelperConstants.Logger.LogDebug($"PropName:{prop.Name}");
-                    //StayInTarkovHelperConstants.Logger.LogDebug($"Pos:{binaryReader.BaseStream.Position}");
-                    //StayInTarkovHelperConstants.Logger.LogDebug($"ExpectedType:{prop.PropertyType.Name}");
+                    //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(DeserializePacketIntoObj)}");
+                    //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Position:{reader.BaseStream.Position}");
+                    //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Length:{reader.BaseStream.Length}");
+                    //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Reading Prop:{prop.Name}");
 
-                    var isNotNull = binaryReader.ReadBoolean();
-                    if (!isNotNull)
-                    {
-                        StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name} is NULL");
-                        continue;
-                    }
 
                     // Is an array
                     if (prop.PropertyType.IsArray)
                     {
                         //StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name} is Array");
-                        var arrayType = binaryReader.ReadString().Replace("[", "").Replace("]", "");
-                        var arrayCount = binaryReader.ReadInt32();
+                        var arrayType = reader.ReadString().Replace("[", "").Replace("]", "");
+                        var arrayCount = reader.ReadInt32();
                         //StayInTarkovHelperConstants.Logger.LogDebug($"{arrayType}");
 
                         // Find Array Type to Instantiate
@@ -262,10 +278,10 @@ namespace StayInTarkov.Coop.NetworkPacket
                         {
                             if (arrayTypeToInstantiate.GetInterface(nameof(ISITPacket)) != null)
                             {
-                                var packetType = binaryReader.ReadString();
-                                var packetByteLength = binaryReader.ReadInt32();
+                                var packetType = reader.ReadString();
+                                var packetByteLength = reader.ReadInt32();
                                 StayInTarkovHelperConstants.Logger.LogDebug($"{packetByteLength}");
-                                var packetBytes = binaryReader.ReadBytes(packetByteLength);
+                                var packetBytes = reader.ReadBytes(packetByteLength);
 
                                 //StayInTarkovHelperConstants.Logger.LogDebug($"{arrayTypeToInstantiate}");
                                 //StayInTarkovHelperConstants.Logger.LogDebug($"{Encoding.UTF8.GetString(packetBytes)}");
@@ -289,11 +305,11 @@ namespace StayInTarkov.Coop.NetworkPacket
                     {
                         //StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name} is SIT Packet");
 
-                        var packetType = binaryReader.ReadString();
+                        var packetType = reader.ReadString();
                         //StayInTarkovHelperConstants.Logger.LogDebug($"{packetType}");
-                        var packetByteLength = binaryReader.ReadInt32();
+                        var packetByteLength = reader.ReadInt32();
                         //StayInTarkovHelperConstants.Logger.LogDebug($"{packetByteLength}");
-                        var packetBytes = binaryReader.ReadBytes(packetByteLength);
+                        var packetBytes = reader.ReadBytes(packetByteLength);
 
                         var typeToInstantiate = StayInTarkovHelperConstants.SITTypes.FirstOrDefault(x => x.FullName == packetType);
                         if (typeToInstantiate != null)
@@ -309,13 +325,13 @@ namespace StayInTarkov.Coop.NetworkPacket
                     }
                     else if (prop.PropertyType == typeof(bool))
                     {
-                        prop.SetValue(this, binaryReader.ReadBoolean());
+                        prop.SetValue(this, reader.ReadBoolean());
                         continue;
                     }
 
 
                     //StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name}");
-                    var readString = binaryReader.ReadString();
+                    var readString = reader.ReadString();
                     //StayInTarkovHelperConstants.Logger.LogDebug($"{prop.Name} to {readString}");
 
                     switch (prop.PropertyType.Name)
@@ -363,15 +379,37 @@ namespace StayInTarkov.Coop.NetworkPacket
             }
             finally
             {
-                binaryReader.Close();
-                binaryReader.Dispose();
-                binaryReader = null;
+                reader.Close();
+                reader.Dispose();
+                reader = null;
             }
 
         }
 
 
 
+        public Dictionary<string, object> ToDictionary(byte[] data)
+        {
+            Deserialize(data);
+
+            // create a json obj from this obj
+            var obj = JObject.FromObject(this);
+
+            // read the header to discover SIT/ServerId/Method
+            using BinaryReader reader = new BinaryReader(new MemoryStream(data));
+            var headerExists = Encoding.UTF8.GetString(reader.ReadBytes(3)) == "SIT";
+            reader.BaseStream.Position = 0;
+            if (headerExists)
+                ReadHeader(reader);
+
+            if (!obj.ContainsKey("data"))
+                obj.Add("data", data);
+
+            if (!obj.ContainsKey("m"))
+                obj.Add("m", Method);
+
+            return JsonConvert.DeserializeObject<Dictionary<string, object>>(obj.SITToJson());
+        }
 
         public override string ToString()
         {

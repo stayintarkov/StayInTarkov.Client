@@ -233,10 +233,17 @@ namespace StayInTarkov.Coop.Components
             if (packet == null)
                 return true;
 
-            if (!packet.ContainsKey("profileId"))
-                return false;
 
-            var profileId = packet["profileId"].ToString();
+            var profileId = "";
+            
+            if (packet.ContainsKey("profileId"))
+                profileId = packet["profileId"].ToString();
+
+            if (packet.ContainsKey("ProfileId"))
+                profileId = packet["profileId"].ToString();
+
+            if (string.IsNullOrEmpty(profileId))
+                return false;
 
             if (Players == null)
             {

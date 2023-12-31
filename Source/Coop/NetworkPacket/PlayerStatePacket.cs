@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerStatePacket : BasePlayerPacket
+    public sealed class PlayerStatePacket : BasePlayerPacket
     {
         public float PositionX { get; set; }
         public float PositionY { get; set; }
