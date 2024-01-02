@@ -158,12 +158,17 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         void INetSerializable.Serialize(NetDataWriter writer)
         {
-            writer.Put(Serialize());
+            var serializedSIT = Serialize();
+            writer.Put(serializedSIT.Length);
+            writer.Put(serializedSIT);
         }
 
         void INetSerializable.Deserialize(NetDataReader reader)
         {
-            Deserialize(reader.GetBytesWithLength());
+            var length = reader.GetInt();
+            byte[] bytes = new byte[length];
+            reader.GetBytes(bytes, length);
+            Deserialize(bytes);
         }
     }
 }

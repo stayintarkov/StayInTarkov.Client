@@ -135,39 +135,6 @@ namespace StayInTarkov.Coop.Player
                     ));
             playerMovePacket.Dispose();
             playerMovePacket = null;
-
-            //if (playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
-            //{
-            //    //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
-            //    var ReplicatedPosition = new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ);
-            //    var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
-            //    if (replicationDistance >= 3)
-            //    {
-            //        player.Teleport(ReplicatedPosition, true);
-            //    }
-            //    else
-            //    {
-            //        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
-            //    }
-            //}
-
-            //UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
-            //float spd = playerMovePacket.spd;
-
-            //playerReplicatedComponent.ReplicatedMovementSpeed = spd;
-            //playerReplicatedComponent.ReplicatedDirection = null;
-
-            //player.InputDirection = direction;
-            //player.MovementContext.MovementDirection = direction;
-
-            //player.MovementContext.CharacterMovementSpeed = spd;
-
-            ////player.CurrentManagedState.Move(direction);
-
-            //playerReplicatedComponent.ReplicatedDirection = direction;
-
-            //playerReplicatedComponent = null;
-
         }
 
         public void ReplicatedMove(EFT.Player player, ReceivedPlayerMoveStruct playerMoveStruct)
@@ -188,7 +155,8 @@ namespace StayInTarkov.Coop.Player
                 if (replicationDistance >= 3)
                 {
                     Logger.LogDebug($"{player.Profile.Nickname} replication distance {replicationDistance} is further than 3, Teleporting");
-                    player.Teleport(ReplicatedPosition, true);
+                    //player.Teleport(ReplicatedPosition, false);
+                    player.Position = ReplicatedPosition;
                 }
                 else
                 {
@@ -205,8 +173,7 @@ namespace StayInTarkov.Coop.Player
 
             //playerReplicatedComponent.ReplicatedMovementSpeed = spd;
             //player.MovementContext.CharacterMovementSpeed = spd;
-
-            player.CurrentManagedState.Move(direction);
+            //player.CurrentManagedState.Move(direction);
 
             playerReplicatedComponent = null;
         }

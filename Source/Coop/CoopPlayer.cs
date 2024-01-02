@@ -399,15 +399,6 @@ namespace StayInTarkov.Coop
             prc.ReplicatedPlayerStatePacket = playerStatePacket;
         }
 
-        public override void UpdateTick()
-        {
-            base.UpdateTick();
-
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
-
-            prc.UpdateTick();
-        }
+        
     }
 }

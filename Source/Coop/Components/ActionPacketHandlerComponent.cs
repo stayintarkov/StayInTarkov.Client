@@ -247,7 +247,7 @@ namespace StayInTarkov.Coop.Components
                 profileId = packet["profileId"].ToString();
 
             if (packet.ContainsKey("ProfileId"))
-                profileId = packet["profileId"].ToString();
+                profileId = packet["ProfileId"].ToString();
 
             if (string.IsNullOrEmpty(profileId))
                 return false;

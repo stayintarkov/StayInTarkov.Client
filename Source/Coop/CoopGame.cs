@@ -505,8 +505,8 @@ namespace StayInTarkov.Coop
         public static void SendOrReceiveSpawnPoint(EFT.Player player)
         {
             Logger.LogDebug(player.ProfileId + " " + player.Profile.Nickname);
-            if (!player.ProfileId.StartsWith("pmc"))
-                return;
+            //if (!player.ProfileId.StartsWith("pmc"))
+            //    return;
 
             var position = player.Transform.position;
             if (!MatchmakerAcceptPatches.IsClient)
@@ -723,7 +723,7 @@ namespace StayInTarkov.Coop
                         },
                         {
                         "isAI",
-                            player.IsAI
+                            player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
                         },
                         {
                             "profileId",

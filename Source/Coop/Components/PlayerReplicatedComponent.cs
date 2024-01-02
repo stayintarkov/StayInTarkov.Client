@@ -196,11 +196,19 @@ namespace StayInTarkov.Core.Player
 
         private void Update_ClientDrone()
         {
+
             if (!IsClientDrone)
+            {
                 return;
+            }
+
+            //Logger.LogDebug($"{nameof(Update_ClientDrone)}:IsClientDrone:{IsClientDrone}");
 
             if (ReplicatedPlayerStatePacket == null)
+            {
+                //Logger.LogError($"{nameof(Update_ClientDrone)}:ReplicatedPlayerStatePacket is Null");
                 return;
+            }
 
 
             // Head Rotation
@@ -224,7 +232,7 @@ namespace StayInTarkov.Core.Player
             if (!ShouldSprint && ReplicatedPosition.HasValue && Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
             {
                 if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 3)
-                    player.Teleport(ReplicatedPosition.Value);   
+                    player.Position = ReplicatedPosition.Value;
                 //else
                 //    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
             }

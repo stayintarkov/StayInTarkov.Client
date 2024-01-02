@@ -80,7 +80,10 @@ namespace StayInTarkov.Coop
                 if (LocalGameInstance is CoopGame coopGame)
                 {
                     if (MatchmakerAcceptPatches.IsClient || coopGame.Bots.Count == 0)
-                        return Players.Values.Where(x => !x.ProfileId.StartsWith("pmc")).ToArray();
+                        return Players
+                            .Values
+                            .Where(x => ProfileIdsAI.Contains(x.ProfileId) && x.ActiveHealthController.IsAlive)
+                            .ToArray();
 
                     return coopGame.Bots.Values.ToArray();
                 }
@@ -238,7 +241,7 @@ namespace StayInTarkov.Coop
             CoopPatches.EnableDisablePatches();
 
             // Send My Player to Aki, so that other clients know about me
-            Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            CoopGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
         }
 
@@ -615,7 +618,7 @@ namespace StayInTarkov.Coop
 
                 playerStates.Add("dataList", playerStateArray);
                 //Logger.LogDebug(playerStates.SITToJson());
-                RequestingObj.SendDataToPool(playerStates.SITToJson());
+                //RequestingObj.SendDataToPool(playerStates.SITToJson());
 
                 LastPlayerStateSent = DateTime.Now;
             }
@@ -762,14 +765,16 @@ namespace StayInTarkov.Coop
                                 if (!PlayersToSpawn.ContainsKey(profileId))
                                     PlayersToSpawn.TryAdd(profileId, ESpawnState.None);
 
+                                if (queuedPacket.ContainsKey("isAI"))
+                                    Logger.LogDebug($"{nameof(ReadFromServerCharacters)}:isAI:{queuedPacket["isAI"]}");
 
-                                if (queuedPacket.ContainsKey("IsAI") && queuedPacket["IsAI"].ToString() == "true" && !ProfileIdsAI.Contains(profileId))
+                                if (queuedPacket.ContainsKey("isAI") && queuedPacket["isAI"].ToString() == "True" && !ProfileIdsAI.Contains(profileId))
                                 {
                                     ProfileIdsAI.Add(profileId);
                                     Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
                                 }
 
-                                if (queuedPacket.ContainsKey("IsAI") && queuedPacket["IsAI"].ToString() == "false" && !ProfileIdsUser.Contains(profileId))
+                                if (queuedPacket.ContainsKey("isAI") && queuedPacket["isAI"].ToString() == "False" && !ProfileIdsUser.Contains(profileId))
                                 {
                                     ProfileIdsUser.Add(profileId);
                                     Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
@@ -1072,6 +1077,7 @@ namespace StayInTarkov.Coop
                 Players.TryAdd(profile.ProfileId, (CoopPlayer)otherPlayer);
 
             PlayerClients.Add((CoopPlayerClient)otherPlayer);
+
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);

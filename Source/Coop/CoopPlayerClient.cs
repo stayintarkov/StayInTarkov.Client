@@ -1,8 +1,10 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using StayInTarkov.Core.Player;
 using UnityEngine;
 using static EFT.ClientPlayer;
+using static EFT.UI.CharacterSelectionStartScreen;
 
 namespace StayInTarkov.Coop
 {
@@ -19,9 +21,15 @@ namespace StayInTarkov.Coop
             //base.Move(direction);
         }
 
-        new void Update()
+        void Update()
         {
             //BepInLogger.LogDebug("Update");
+
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            prc.UpdateTick();
         }
 
         new void LateUpdate()
@@ -46,6 +54,23 @@ namespace StayInTarkov.Coop
                 PropUpdate();
             }
             ComplexLateUpdate(EUpdateQueue.Update, DeltaTime);
+
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            prc.UpdateTick();
+        }
+
+        public override void UpdateTick()
+        {
+            base.UpdateTick();
+
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc == null || !prc.IsClientDrone)
+                return;
+
+            prc.UpdateTick();
         }
     }
 }

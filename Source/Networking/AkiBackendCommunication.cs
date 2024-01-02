@@ -410,6 +410,8 @@ namespace StayInTarkov.Networking
 
             JArray dataList = JArray.FromObject(packet["dataList"]);
 
+            Logger.LogDebug(packet.ToJson());   
+
             foreach (var d in dataList)
             {
                 // TODO: This needs to be a little more dynamic but for now. This switch will do.
@@ -429,6 +431,8 @@ namespace StayInTarkov.Networking
                         var serverPing = (int)(DateTime.UtcNow - new DateTime(long.Parse(packet["t"].ToString()))).TotalMilliseconds;
                         coopGC.ServerPingSmooth.Enqueue(serverPing);
 
+                        break;
+                    case "Multiple":
                         break;
                 }
 
