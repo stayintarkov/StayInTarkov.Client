@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.Networking;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -82,7 +83,7 @@ namespace StayInTarkov
                     var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
                     try
                     {
-                        var data = AkiBackendCommunication.Instance.GetData(path, true);
+                        var data = AkiBackendCommunication.Instance.GetData(Uri.EscapeUriString(path), true);
                         if (data != null && data.Length == 0)
                         {
                             StayInTarkovHelperConstants.Logger.LogInfo("Bundle received is 0 bytes. WTF!");
