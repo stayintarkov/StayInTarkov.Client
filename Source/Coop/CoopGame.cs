@@ -6,6 +6,7 @@ using EFT.Bots;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
+using EFT.MovingPlatforms;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
@@ -21,6 +22,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -203,6 +205,7 @@ namespace StayInTarkov.Coop
                 //StartCoroutine(HostPinger());
                 StartCoroutine(GameTimerSync());
                 StartCoroutine(TimeAndWeatherSync());
+                StartCoroutine(ArmoredTrainTimeSync());
             }
 
             StartCoroutine(ClientLoadingPinger());
@@ -292,7 +295,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        public IEnumerator TimeAndWeatherSync()
+        private IEnumerator TimeAndWeatherSync()
         {
             var waitSeconds = new WaitForSeconds(15f);
 
@@ -334,6 +337,39 @@ namespace StayInTarkov.Coop
                     string packet = timeAndWeatherDict.ToJson();
                     Logger.LogDebug(packet);
                     AkiBackendCommunication.Instance.SendDataToPool(packet);
+                }
+            }
+        }
+
+        private IEnumerator ArmoredTrainTimeSync()
+        {
+            var waitSeconds = new WaitForSeconds(30f);
+
+            while (true)
+            {
+                yield return waitSeconds;
+
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    yield break;
+
+                // Make sure packet is only sent after the raid begins.
+                if (GameTimer.StartDateTime.HasValue && GameTimer.SessionTime.HasValue)
+                {
+                    // Looking for Armored Train, if there is nothing, then we are not on the Reserve or Lighthouse.
+                    Locomotive locomotive = FindObjectOfType<Locomotive>();
+                    if (locomotive == null)
+                        yield break;
+
+                    // Utc time where the train will start moving.
+                    FieldInfo departField = ReflectionHelpers.GetFieldFromType(typeof(MovingPlatform), "_depart");
+
+                    Dictionary<string, object> dict = new()
+                    {
+                        { "serverId", coopGameComponent.ServerId },
+                        { "m", "ArmoredTrainTime" },
+                        { "utcTime", ((DateTime)departField.GetValue(locomotive)).Ticks },
+                    };
+                    AkiBackendCommunication.Instance.SendDataToPool(dict.ToJson());
                 }
             }
         }
