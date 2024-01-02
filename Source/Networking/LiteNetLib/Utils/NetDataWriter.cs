@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -6,6 +7,12 @@ using System.Threading;
 
 namespace LiteNetLib.Utils
 {
+    /// <summary>
+    /// Paulov. I am becoming a code scumbag here but I really don't like this class. What is the point? Might as well have used BinaryWriter...
+    /// The term "Put" is incorrect. Use WRITE as you are writing.
+    /// Essentially this is BinaryWriter but with some custom code...
+    /// </summary>
+    [Obsolete]
     public class NetDataWriter
     {
         protected byte[] _data;

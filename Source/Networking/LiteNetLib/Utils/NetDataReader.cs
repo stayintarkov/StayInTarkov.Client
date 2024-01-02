@@ -7,10 +7,10 @@ namespace LiteNetLib.Utils
 {
 
     /// <summary>
-    /// Reads bytes from a data source
-    /// Paulov: Added inherited class BinaryReader ( it should have done this anyway... :/ )
+    /// Paulov. Code scumbag moment again. This should be at least inheriting BinaryReader as it does almost the same thing but adds some helpers.
+    /// TODO: I think we should customize this to properly inherit BinaryReader.
     /// </summary>
-    public class NetDataReader : BinaryReader
+    public class NetDataReader // : BinaryReader
     {
         protected byte[] _data;
         protected int _position;
@@ -92,22 +92,22 @@ namespace LiteNetLib.Utils
             _dataSize = maxSize;
         }
 
-        public NetDataReader() : base(new MemoryStream())
+        public NetDataReader()
         {
 
         }
 
-        public NetDataReader(NetDataWriter writer) : base(new MemoryStream())
+        public NetDataReader(NetDataWriter writer)
         {
             SetSource(writer);
         }
 
-        public NetDataReader(byte[] source) : base(new MemoryStream(source))
+        public NetDataReader(byte[] source) 
         {
             SetSource(source);
         }
 
-        public NetDataReader(byte[] source, int offset, int maxSize) : base(new MemoryStream(source))
+        public NetDataReader(byte[] source, int offset, int maxSize)
         {
             SetSource(source, offset, maxSize);
         }
