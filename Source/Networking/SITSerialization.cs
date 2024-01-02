@@ -15,6 +15,10 @@ using UnityEngine.Profiling;
 
 namespace StayInTarkov.Networking
 {
+    /// <summary>
+    /// Written by Lacyway
+    /// Paulov: TODO: We need to remap a few classes, I have commented them out and added TODO to them to easily find them.
+    /// </summary>
     public class SITSerialization
     {
         public class Vector3Utils
