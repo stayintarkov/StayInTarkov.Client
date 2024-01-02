@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Networking
 {
-    public class GameClient : IGameClient
+    public abstract class GameClient : IGameClient
     {
         public virtual void SendDataToServer(byte[] data)
         {

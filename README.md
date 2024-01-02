@@ -175,11 +175,13 @@ SPT-Aki DLLs are written specifically for SPT-Aki own Deobfuscation technique an
 - [Paulov](https://github.com/paulov-t) (original creator of Stay in Tarkov)
 - SPT-Aki team (Credits provided on each code file used and much love to their Dev team for their support)
 - SPT-Aki Modding Community
-- DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/) ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
 - SIT team and the original contributors of Paulov's SIT.Core
+- [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 ## License
-- DrakiaXYZ projects contain the MIT License
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License
 - 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
-- Paulov's work is unlicensed. Unlicensed does not entitle you to use it at will
+- Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
 - SIT team's work is MIT licensed
+- [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed
