@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiteNetLib.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public sealed class PlayerStatePacket : BasePlayerPacket
+    public sealed class PlayerStatePacket : BasePlayerPacket, INetSerializable
     {
         public float PositionX { get; set; }
         public float PositionY { get; set; }
@@ -143,10 +144,26 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
+        /// <summary>
+        /// DO NOT AUTODESERIALIZE
+        /// </summary>
+        /// <param name="serializedPacket"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public override ISITPacket AutoDeserialize(byte[] serializedPacket)
         {
             //return base.DeserializePacketSIT(serializedPacket);
             throw new NotImplementedException();    
+        }
+
+        void INetSerializable.Serialize(NetDataWriter writer)
+        {
+            writer.Put(Serialize());
+        }
+
+        void INetSerializable.Deserialize(NetDataReader reader)
+        {
+            Deserialize(reader.GetBytesWithLength());
         }
     }
 }

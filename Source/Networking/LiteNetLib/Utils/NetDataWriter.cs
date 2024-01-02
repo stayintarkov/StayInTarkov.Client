@@ -12,7 +12,6 @@ namespace LiteNetLib.Utils
     /// The term "Put" is incorrect. Use WRITE as you are writing.
     /// Essentially this is BinaryWriter but with some custom code...
     /// </summary>
-    [Obsolete]
     public class NetDataWriter
     {
         protected byte[] _data;
