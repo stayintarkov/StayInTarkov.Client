@@ -1,10 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 
 namespace LiteNetLib.Utils
 {
-    public class NetDataReader
+
+    /// <summary>
+    /// Reads bytes from a data source
+    /// Paulov: Added inherited class BinaryReader ( it should have done this anyway... :/ )
+    /// </summary>
+    public class NetDataReader : BinaryReader
     {
         protected byte[] _data;
         protected int _position;
@@ -86,22 +92,22 @@ namespace LiteNetLib.Utils
             _dataSize = maxSize;
         }
 
-        public NetDataReader()
+        public NetDataReader() : base(new MemoryStream())
         {
 
         }
 
-        public NetDataReader(NetDataWriter writer)
+        public NetDataReader(NetDataWriter writer) : base(new MemoryStream())
         {
             SetSource(writer);
         }
 
-        public NetDataReader(byte[] source)
+        public NetDataReader(byte[] source) : base(new MemoryStream(source))
         {
             SetSource(source);
         }
 
-        public NetDataReader(byte[] source, int offset, int maxSize)
+        public NetDataReader(byte[] source, int offset, int maxSize) : base(new MemoryStream(source))
         {
             SetSource(source, offset, maxSize);
         }
