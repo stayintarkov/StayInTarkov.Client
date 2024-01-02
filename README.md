@@ -44,6 +44,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 ## Support
 
 * Pull Requests are encouraged. Thanks to all contributors!
+* Code contributions have a strict NO GCLASSXXX policy. If your code has a GCLASS that is neccessary to it working please provide the Pull Request with the list so that they can be remapped before merging.
 * [SIT Discord](https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI Requirement
