@@ -110,7 +110,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             ReadHeader(reader);
             ProfileId = reader.ReadString();
 
-            if (reader.BaseStream.Position < reader.BaseStream.Length)
+            if (reader.BaseStream.Position >= reader.BaseStream.Length)
                 return this;
 
             PositionX = reader.ReadSingle();

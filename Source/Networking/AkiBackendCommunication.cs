@@ -410,7 +410,7 @@ namespace StayInTarkov.Networking
 
             JArray dataList = JArray.FromObject(packet["dataList"]);
 
-            Logger.LogDebug(packet.ToJson());   
+            //Logger.LogDebug(packet.ToJson());   
 
             foreach (var d in dataList)
             {

@@ -148,7 +148,7 @@ namespace StayInTarkov.Coop.Player
             if (!playerReplicatedComponent.IsClientDrone)
                 return;
 
-            if (playerMoveStruct.pX != 0 && playerMoveStruct.pY != 0 && playerMoveStruct.pZ != 0)
+            //if (playerMoveStruct.pX != 0 && playerMoveStruct.pY != 0 && playerMoveStruct.pZ != 0)
             {
                 var ReplicatedPosition = new Vector3(playerMoveStruct.pX, playerMoveStruct.pY, playerMoveStruct.pZ);
                 var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
@@ -156,7 +156,9 @@ namespace StayInTarkov.Coop.Player
                 {
                     Logger.LogDebug($"{player.Profile.Nickname} replication distance {replicationDistance} is further than 3, Teleporting");
                     //player.Teleport(ReplicatedPosition, false);
+                    player.Transform.position = ReplicatedPosition;
                     player.Position = ReplicatedPosition;
+                    player.MovementContext.TransformPosition = ReplicatedPosition;
                 }
                 else
                 {
@@ -173,7 +175,7 @@ namespace StayInTarkov.Coop.Player
 
             //playerReplicatedComponent.ReplicatedMovementSpeed = spd;
             //player.MovementContext.CharacterMovementSpeed = spd;
-            //player.CurrentManagedState.Move(direction);
+            player.CurrentManagedState.Move(direction);
 
             playerReplicatedComponent = null;
         }

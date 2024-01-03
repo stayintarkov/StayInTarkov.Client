@@ -223,19 +223,19 @@ namespace StayInTarkov.Core.Player
 
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue)
+            if (ReplicatedRotation.HasValue && Vector2.Dot(player.Rotation, ReplicatedDirection.Value) < 0.9)
             {
                 var r = Vector2.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
                 player.Rotate((r - player.Rotation).normalized, true);
             }
 
-            if (!ShouldSprint && ReplicatedPosition.HasValue && Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
-            {
-                if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 3)
-                    player.Position = ReplicatedPosition.Value;
-                //else
-                //    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
-            }
+            //if (!ShouldSprint && ReplicatedPosition.HasValue && Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
+            //{
+            //    if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 3)
+            //        player.Position = ReplicatedPosition.Value;
+            //    //else
+            //    //    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
+            //}
             //else if (ReplicatedPlayerStatePacket != null)
             //{
             //    //player.CurrentManagedState.Move(new Vector2(ReplicatedPlayerStatePacket.InputDirectionX, ReplicatedPlayerStatePacket.InputDirectionY));
@@ -255,8 +255,11 @@ namespace StayInTarkov.Core.Player
             //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
             if (!ShouldSprint)
             {
-                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
-                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+                if (PoseLevelDesired.HasValue)
+                {
+                    PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired.Value, Time.deltaTime);
+                    player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+                }
             }
             else
             {
@@ -365,7 +368,7 @@ namespace StayInTarkov.Core.Player
         public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? new Vector3(ReplicatedPlayerStatePacket.HeadRotationX, ReplicatedPlayerStatePacket.HeadRotationY, ReplicatedPlayerStatePacket.HeadRotationZ) : null;
         public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
         public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
-        private float PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : 1;
+        private float? PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : null;
         public PlayerHealthPacket ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PlayerHealth : null;
 
         public bool IsSprinting

@@ -190,10 +190,10 @@ namespace StayInTarkov.Coop
             Logger.LogDebug("CoopGameComponent:Start");
 
             // Get Reference to own Player
-            OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
+            //OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
-            // Add own Player to Players list
-            Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
+            //// Add own Player to Players list
+            //Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
 
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -618,7 +618,7 @@ namespace StayInTarkov.Coop
 
                 playerStates.Add("dataList", playerStateArray);
                 //Logger.LogDebug(playerStates.SITToJson());
-                //RequestingObj.SendDataToPool(playerStates.SITToJson());
+                RequestingObj.SendDataToPool(playerStates.SITToJson());
 
                 LastPlayerStateSent = DateTime.Now;
             }
@@ -777,7 +777,7 @@ namespace StayInTarkov.Coop
                                 if (queuedPacket.ContainsKey("isAI") && queuedPacket["isAI"].ToString() == "False" && !ProfileIdsUser.Contains(profileId))
                                 {
                                     ProfileIdsUser.Add(profileId);
-                                    Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
+                                    Logger.LogDebug($"Added User Character {profileId} to {nameof(ProfileIdsUser)}");
                                 }
 
                             }
@@ -1034,7 +1034,7 @@ namespace StayInTarkov.Coop
             // If this is an actual PLAYER player that we're creating a drone for, when we set
             // aiControl to true then they'll automatically run voice lines (eg when throwing
             // a grenade) so we need to make sure it's set to FALSE for the drone version of them.
-            var useAiControl = !profile.Id.StartsWith("pmc");
+            var useAiControl = ProfileIdsAI.Contains(profile.Id);
 
             // For actual bots, we can gain SIGNIFICANT clientside performance on the
             // non-host client by ENABLING aiControl for the bot. This has zero consequences
@@ -1057,8 +1057,8 @@ namespace StayInTarkov.Coop
                , EFT.Player.EUpdateMode.Manual
                , EFT.Player.EUpdateMode.Auto
                // Cant use ObservedPlayerMode, it causes the player to fall through the floor and die
-               //, BackendConfigManager.Config.CharacterController.ObservedPlayerMode
-               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+               , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
+               //, BackendConfigManager.Config.CharacterController.ClientPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                , FilterCustomizationClass.Default

@@ -51,10 +51,17 @@ namespace StayInTarkov.Coop.Components
             ActionPacketsMovement = new();
         }
 
-        void Update()
+        //void Update()
+        //{
+        //    ProcessActionPackets();
+        //}
+
+        void LateUpdate()
         {
             ProcessActionPackets();
         }
+
+        
 
 
         public static ActionPacketHandlerComponent GetThisComponent()

@@ -25,23 +25,24 @@ namespace StayInTarkov.Coop
         {
             //BepInLogger.LogDebug("Update");
 
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
+            //var prc = GetComponent<PlayerReplicatedComponent>();
+            //if (prc == null || !prc.IsClientDrone)
+            //    return;
 
-            prc.UpdateTick();
+            //prc.UpdateTick();
         }
 
         new void LateUpdate()
         {
             //base.LateUpdate();
             //BepInLogger.LogDebug("LateUpdate");
-            MovementContext?.AnimatorStatesLateUpdate();
-            DistanceDirty = true;
-            OcclusionDirty = true;
+
+            //MovementContext?.AnimatorStatesLateUpdate();
+            //DistanceDirty = true;
+            //OcclusionDirty = true;
             if (HealthController != null && HealthController.IsAlive)
             {
-                Physical.LateUpdate();
+                //Physical.LateUpdate();
                 VisualPass();
                 _armsupdated = false;
                 _bodyupdated = false;
@@ -55,11 +56,11 @@ namespace StayInTarkov.Coop
             }
             ComplexLateUpdate(EUpdateQueue.Update, DeltaTime);
 
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
+            //var prc = GetComponent<PlayerReplicatedComponent>();
+            //if (prc == null || !prc.IsClientDrone)
+            //    return;
 
-            prc.UpdateTick();
+            //prc.UpdateTick();
         }
 
         public override void UpdateTick()

@@ -491,7 +491,6 @@ namespace StayInTarkov.Coop.Components
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
 
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
                 FixesHideoutMusclePain();
                 DestroyThis();
@@ -630,27 +629,31 @@ namespace StayInTarkov.Coop.Components
             // Start button
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
-                FixesHideoutMusclePain();
-                RaidSettings.BotSettings.BotAmount = (EBotAmount)botAmountInput;
-                RaidSettings.WavesSettings.BotAmount = (EBotAmount)botAmountInput;
-
-                RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
-
-                RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
-
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
-                OriginalAcceptButton.OnClick.Invoke();
-
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-
-                JObject joinPacket = new();
-                joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
-                joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
-                joinPacket.Add("m", "JoinMatch");
-                AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
-
-                DestroyThis();
+                HostRaidAndJoin();
             }
+        }
+
+        private void HostRaidAndJoin()
+        {
+            FixesHideoutMusclePain();
+            RaidSettings.BotSettings.BotAmount = (EBotAmount)botAmountInput;
+            RaidSettings.WavesSettings.BotAmount = (EBotAmount)botAmountInput;
+
+            RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
+
+            RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
+
+            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
+            OriginalAcceptButton.OnClick.Invoke();
+
+
+            JObject joinPacket = new();
+            joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("m", "JoinMatch");
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+
+            DestroyThis();
         }
 
         void FixesHideoutMusclePain()
