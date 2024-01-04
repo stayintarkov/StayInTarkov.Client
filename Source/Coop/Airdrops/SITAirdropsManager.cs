@@ -2,11 +2,8 @@
 using Aki.Custom.Airdrops.Utils;
 using BepInEx.Logging;
 using Comfort.Common;
-using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using StayInTarkov;
-using StayInTarkov.AI.PMCLogic.Roaming;
-using StayInTarkov.AI.PMCLogic.RushAirdrop;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.AkiSupport.Airdrops.Utils;
@@ -101,7 +98,6 @@ namespace Aki.Custom.Airdrops
 
             StartCoroutine(SendParamsToClients());
 
-            BrainManager.AddCustomLayer(typeof(RushAirdropLayer), new List<string>() { "Assault", "PMC", "sptUsec" }, 2);
         }
 
         public IEnumerator SendParamsToClients()

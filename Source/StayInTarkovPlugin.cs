@@ -4,13 +4,10 @@ using Aki.Custom.Patches;
 using BepInEx;
 using BepInEx.Bootstrap;
 using Comfort.Common;
-using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
-using StayInTarkov.AI.PMCLogic.Roaming;
-using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
@@ -400,15 +397,6 @@ namespace StayInTarkov
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             new LocationLootCacheBustingPatch().Enable();
-
-            var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
-            if (!enabled.Value)
-                return;
-
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC", "sptUsec" }, 2);
-            //BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
-
-
         }
 
         private void EnableCoopPatches()
