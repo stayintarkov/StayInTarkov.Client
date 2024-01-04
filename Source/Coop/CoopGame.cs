@@ -164,8 +164,27 @@ namespace StayInTarkov.Coop
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
-            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+            if (PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
+               || PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.TCP
+               )
+            {
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+            }
 
+            // Udp Instanciate
+            if (PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
+                || PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.UDP
+                )
+            {
+                if (MatchmakerAcceptPatches.IsClient)
+                {
+                    coopGame.Client = coopGame.GetOrAddComponent<GameClientUDP>();
+                }
+                else
+                {
+                    coopGame.Server = coopGame.GetOrAddComponent<GameServerUDP>();
+                }
+            }
 
             return coopGame;
         }
@@ -1062,6 +1081,8 @@ namespace StayInTarkov.Coop
         public string MyExitLocation { get; set; } = null;
         public ISpawnSystem SpawnSystem { get; set; }
         public int MaxBotCount { get; private set; }
+        public GameClientUDP Client { get; private set; }
+        public GameServerUDP Server { get; private set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
         {
