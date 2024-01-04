@@ -1319,36 +1319,7 @@ namespace StayInTarkov.Coop
             }
 
             var rect = new UnityEngine.Rect(GuiX, 5, GuiWidth, 100);
-
-            rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
-            rect.y += 15;
-
-            // PING ------
-            GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"RTT:{(ServerPing)}");
-            rect.y += 15;
-            GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
-            rect.y += 15;
-            GUI.contentColor = Color.white;
-
-            if (PerformanceCheck_ActionPackets)
-            {
-                GUI.contentColor = Color.red;
-                GUI.Label(rect, $"BAD PERFORMANCE!");
-                GUI.contentColor = Color.white;
-                rect.y += 15;
-            }
-
-            if (AkiBackendCommunication.Instance.HighPingMode)
-            {
-                GUI.contentColor = Color.red;
-                GUI.Label(rect, $"!HIGH PING MODE!");
-                GUI.contentColor = Color.white;
-                rect.y += 15;
-            }
-
+            rect = DrawPing(rect);
 
             GUIStyle style = GUI.skin.label;
             style.alignment = TextAnchor.MiddleCenter;
@@ -1415,6 +1386,43 @@ namespace StayInTarkov.Coop
             OnGUI_DrawPlayerFriendlyTags(rect);
             //OnGUI_DrawPlayerEnemyTags(rect);
 
+        }
+
+        private Rect DrawPing(Rect rect)
+        {
+            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
+                return rect;
+
+            rect.y = 5;
+            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
+            rect.y += 15;
+
+            // PING ------
+            GUI.contentColor = Color.white;
+            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
+            GUI.Label(rect, $"RTT:{(ServerPing)}");
+            rect.y += 15;
+            GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
+            rect.y += 15;
+            GUI.contentColor = Color.white;
+
+            if (PerformanceCheck_ActionPackets)
+            {
+                GUI.contentColor = Color.red;
+                GUI.Label(rect, $"BAD PERFORMANCE!");
+                GUI.contentColor = Color.white;
+                rect.y += 15;
+            }
+
+            if (AkiBackendCommunication.Instance.HighPingMode)
+            {
+                GUI.contentColor = Color.red;
+                GUI.Label(rect, $"!HIGH PING MODE!");
+                GUI.contentColor = Color.white;
+                rect.y += 15;
+            }
+
+            return rect;
         }
 
         private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
