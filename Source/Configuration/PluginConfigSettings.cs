@@ -148,9 +148,6 @@ namespace StayInTarkov.Configuration
                 ForceHighPingMode = StayInTarkovPlugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
 
-                RunThroughOnServerStop = StayInTarkovPlugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
-                        , new ConfigDescription("Controls whether clients still in-raid when server dies will receive a Run Through (true) or Survived (false).")).Value;
-
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;
 
@@ -164,7 +161,6 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
-                Logger.LogDebug($"RunThroughOnServerStop: {RunThroughOnServerStop}");
 
                 if (ArenaMode)
                 {
