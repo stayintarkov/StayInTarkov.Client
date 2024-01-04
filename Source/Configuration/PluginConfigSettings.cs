@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using BepInEx.Logging;
 using System;
+using System.Net;
 
 namespace StayInTarkov.Configuration
 {
@@ -101,6 +102,7 @@ namespace StayInTarkov.Configuration
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
+            public HostProtocol SITHostProtocol { get; private set; }
             public int SITWebSocketPort { get; set; } = 6970;
             public int SITUDPPort { get; set; } = 6971;
 
@@ -120,6 +122,9 @@ namespace StayInTarkov.Configuration
                 }
             }
 
+            public string SITUDPHostIPV4 { get; set; }
+            public string SITUDPHostIPV6 { get; set; }
+
             public void GetSettings()
             {
                 SETTING_DEBUGSpawnDronesOnServer = StayInTarkovPlugin.Instance.Config.Bind
@@ -135,8 +140,6 @@ namespace StayInTarkov.Configuration
                 SETTING_ShowFeed = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
 
-                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
-                SITUDPPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPPort", 6971, new ConfigDescription("SIT UDP Port DEFAULT = 6971")).Value;
 
                 AllPlayersSpawnTogether = StayInTarkovPlugin.Instance.Config.Bind
                ("Coop", "AllPlayersSpawnTogether", true, new ConfigDescription("Whether to spawn all players in the same place")).Value;
@@ -159,10 +162,17 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"SETTING_HeadshotsAlwaysKill: {SETTING_HeadshotsAlwaysKill}");
                 Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowFeed}");
                 Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowSITStatistics}");
-                Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
+
+                SITHostProtocol = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITHostProtocol", HostProtocol.TCP, new ConfigDescription("SIT Host Protocol. TCP only, UDP only, Both. Options: TCP,UDP,Both")).Value;
+                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port DEFAULT = 6970")).Value;
+                SITUDPPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPPort", 6971, new ConfigDescription("SIT UDP Port DEFAULT = 6971")).Value;
+                SITUDPHostIPV4 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV4", "127.0.0.1", new ConfigDescription("The IPv4 to use when hosting a UDP Coop Session")).Value;
+                SITUDPHostIPV6 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", new ConfigDescription("The IPv6 to use when hosting a UDP Coop Session")).Value;
+
+                Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
 
                 if (ArenaMode)
                 {
@@ -170,6 +180,13 @@ namespace StayInTarkov.Configuration
                     AllPlayersSpawnTogether = false;
                     EnableAISpawnWaveSystem = false;
                 }
+            }
+
+            public enum HostProtocol
+            {
+                TCP,
+                UDP, 
+                Both
             }
         }
 
