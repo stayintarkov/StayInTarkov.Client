@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.Weather;
 using LiteNetLib;
@@ -40,6 +41,14 @@ namespace StayInTarkov.Networking
             }
         }
 
+        private ManualLogSource Logger { get; set; }
+
+        void Awake()
+        {
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
+        }
+
         public void Start()
         {
             NetDebug.Logger = this;
@@ -68,11 +77,15 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = true
             };
 
-            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUDPPort);
+            _netServer.Start(
+                PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4
+                , PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV6
+                , PluginConfigSettings.Instance.CoopSettings.SITUDPPort);
 
-            EFT.UI.ConsoleScreen.Log("Started SITServer");
-            NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
-                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+            Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
+            EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
+            //NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
+            //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
@@ -251,11 +264,6 @@ namespace StayInTarkov.Networking
         //        playerToApply.NewState = packet;
         //    }
         //}
-
-        public void Awake()
-        {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
-        }
 
         void Update()
         {
