@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Networking
 {
-    internal class GameServerTCP
+    public class GameServerTCP : MonoBehaviour
     {
     }
 }
