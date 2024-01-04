@@ -110,8 +110,6 @@ namespace StayInTarkov.Configuration
             public bool ForceHighPingMode { get; set; } = false;
             public bool RunThroughOnServerStop { get; set; } = true;
 
-            public bool BotWavesDisableStopper { get; set; } = false;
-
             public int BlackScreenOnDeathTime
             {
                 get
@@ -152,9 +150,6 @@ namespace StayInTarkov.Configuration
 
                 RunThroughOnServerStop = StayInTarkovPlugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
                         , new ConfigDescription("Controls whether clients still in-raid when server dies will receive a Run Through (true) or Survived (false).")).Value;
-
-                BotWavesDisableStopper = StayInTarkovPlugin.Instance.Config.Bind("Coop", "BotWavesDisableStopper", false
-                        , new ConfigDescription("Disable the function StopBotSpawningAfterTimer, so not gonna disable bot spawning after 180 sec")).Value;
 
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;

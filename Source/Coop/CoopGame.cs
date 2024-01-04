@@ -924,7 +924,6 @@ namespace StayInTarkov.Coop
                     this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
                 }
 
-                StartCoroutine(StopBotSpawningAfterTimer());
             }
             else
             {
@@ -971,44 +970,6 @@ namespace StayInTarkov.Coop
             yield break;
         }
 
-        private DateTime? StopBotSpawningAfterTimerStarted;
-
-        private IEnumerator StopBotSpawningAfterTimer()
-        {
-            if (!StopBotSpawningAfterTimerStarted.HasValue)
-                StopBotSpawningAfterTimerStarted = DateTime.Now;
-
-            // We wait
-            while (DateTime.Now - StopBotSpawningAfterTimerStarted.Value < TimeSpan.FromMinutes(3))
-            {
-                yield return new WaitForSeconds(1);
-            }
-
-            //  If this true we skip the stopping!
-            if (PluginConfigSettings.Instance.CoopSettings.BotWavesDisableStopper || Location_0.Name.ToLower().Contains("factory"))
-            {
-                Logger.LogInfo("BotWavesDisableStopper is enabled or its factory. Skipping the Stop of Bot Spawns");
-                yield break;
-            }
-
-            if (this.wavesSpawnScenario_0 != null)
-            {
-                this.wavesSpawnScenario_0.Stop();
-            }
-
-            if (this.nonWavesSpawnScenario_0 != null)
-            {
-                this.nonWavesSpawnScenario_0.Stop();
-            }
-
-            if (this.BossWaveManager != null)
-                this.BossWaveManager.Stop();
-        }
-
-        //public override void vmethod_5()
-        //{
-        //    return;
-        //}
         /// <summary>
         /// Died event handler
         /// </summary>
