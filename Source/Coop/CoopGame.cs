@@ -1009,7 +1009,7 @@ namespace StayInTarkov.Coop
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            if (player.IsAI)
+            if (!player.IsYourPlayer)
                 return;
 
             Logger.LogDebug("ExfiltrationPoint_OnCancelExtraction");
@@ -1023,7 +1023,7 @@ namespace StayInTarkov.Coop
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            if (player.IsAI)
+            if (!player.IsYourPlayer)
                 return;
 
             Logger.LogDebug("ExfiltrationPoint_OnStartExtraction");
@@ -1034,7 +1034,10 @@ namespace StayInTarkov.Coop
             bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
             //if (playerHasMetRequirements && !ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
+            {
                 ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
+                Logger.LogDebug($"Added {player.ProfileId} to {nameof(ExtractingPlayers)}");
+            }
             //player.SwitchRenderer(false);
 
             MyExitLocation = point.Settings.Name;

@@ -225,7 +225,7 @@ namespace StayInTarkov.Coop
             StartCoroutine(ProcessServerCharacters());
 
             // Run any methods you wish every second
-            //StartCoroutine(EverySecondCoroutine());
+            StartCoroutine(EverySecondCoroutine());
 
             // Start the SIT Garbage Collector
             //if (PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
@@ -309,15 +309,17 @@ namespace StayInTarkov.Coop
         private IEnumerator EverySecondCoroutine()
         {
             var waitSeconds = new WaitForSeconds(1.0f);
-            var coopGame = LocalGameInstance as CoopGame;
-            if (coopGame == null)
-                yield return null;
 
             while (RunAsyncTasks)
             {
                 yield return waitSeconds;
 
-                var playersToExtract = new List<string>();
+                if (!Singleton<ISITGame>.Instantiated)
+                    continue;
+
+                var coopGame = Singleton<ISITGame>.Instance;
+
+                var playersToExtract = new HashSet<string>();
                 foreach (var exfilPlayer in coopGame.ExtractingPlayers)
                 {
                     var exfilTime = new TimeSpan(0, 0, (int)exfilPlayer.Value.Item1);
