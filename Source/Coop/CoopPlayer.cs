@@ -101,14 +101,16 @@ namespace StayInTarkov.Coop
             if (achievementsController == null && isYourPlayer)
             {
                 // TODO: Requires Remap
-                //achievementsController = new GClass3207(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession);
+                // achievementsController = new GClass3207(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession);
+                // achievementsController.Init();
+                // achievementsController.Run();
                 // Reflect to get type
                 var achievementsControllerType = ReflectionHelpers
                     .EftTypes.FirstOrDefault(x => x.IsSealed && ReflectionHelpers.GetMethodForType(x, "FinishAchievement") != null);
-                Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
+                var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
+                ReflectionHelpers.GetMethodForType(achievementsControllerType, "Init").Invoke(aController, new object[0]);
+                ReflectionHelpers.GetMethodForType(achievementsControllerType, "Run").Invoke(aController, new object[0]);
 
-                achievementsController.Init();
-                achievementsController.Run();
             }
 
             await player
