@@ -82,16 +82,38 @@ namespace StayInTarkov.Coop
                 ? new CoopInventoryController(player, profile, true)
                 : new CoopInventoryControllerForClientDrone(player, profile, true);
 
+            // Quest Controller from 0.13
+            //if (questController == null && isYourPlayer)
+            //{
+            //    questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
+            //    questController.Run();
+            //}
+
+            // Quest Controller instantiate
             if (questController == null && isYourPlayer)
             {
                 questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
+                questController.Init();
                 questController.Run();
+            }
+
+            // Achievement Controller instantiate
+            if (achievementsController == null && isYourPlayer)
+            {
+                // TODO: Requires Remap
+                //achievementsController = new GClass3207(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession);
+                // Reflect to get type
+                var achievementsControllerType = ReflectionHelpers
+                    .EftTypes.FirstOrDefault(x => x.IsSealed && ReflectionHelpers.GetMethodForType(x, "FinishAchievement") != null);
+                Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
+
+                achievementsController.Init();
+                achievementsController.Run();
             }
 
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
-                //, isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
                 , isYourPlayer ? new StatisticsManager() : new NullStatisticsManager()
                 , questController
                 , achievementsController
