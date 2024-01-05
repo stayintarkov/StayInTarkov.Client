@@ -77,6 +77,7 @@ namespace StayInTarkov.Coop
                     , aiControl);
             }
             player.IsYourPlayer = isYourPlayer;
+            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone
                 ? new CoopInventoryController(player, profile, true)
@@ -90,15 +91,19 @@ namespace StayInTarkov.Coop
             //}
 
             // Quest Controller instantiate
-            if (questController == null && isYourPlayer)
+            //if (questController == null && isYourPlayer)
+            if (isYourPlayer)
             {
-                questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
+                //questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
+                questController = new QuestController(profile, inventoryController, null, false);
                 questController.Init();
                 questController.Run();
+                player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
             }
 
             // Achievement Controller instantiate
-            if (achievementsController == null && isYourPlayer)
+            //if (achievementsController == null && isYourPlayer)
+            if (isYourPlayer)
             {
                 // TODO: Requires Remap
                 // achievementsController = new GClass3207(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession);
@@ -107,22 +112,31 @@ namespace StayInTarkov.Coop
                 // Reflect to get type
                 var achievementsControllerType = ReflectionHelpers
                     .EftTypes.FirstOrDefault(x => x.IsSealed && ReflectionHelpers.GetMethodForType(x, "FinishAchievement") != null);
-                var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
-                ReflectionHelpers.GetMethodForType(achievementsControllerType, "Init").Invoke(aController, new object[0]);
-                ReflectionHelpers.GetMethodForType(achievementsControllerType, "Run").Invoke(aController, new object[0]);
-
+                //var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
+                var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, null, false });
+                if (aController != null)
+                {
+                    ReflectionHelpers.GetMethodForType(achievementsControllerType, "Init").Invoke(aController, new object[0]);
+                    ReflectionHelpers.GetMethodForType(achievementsControllerType, "Run").Invoke(aController, new object[0]);
+                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
+                }
             }
+
+            //IStatisticsManager statsManager = isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager();
+            //player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
 
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
-                , isYourPlayer ? new StatisticsManager() : new NullStatisticsManager()
+                , new AbstractStatisticsManager1()
                 , questController
                 , achievementsController
                 , filter
                 , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
                 , async: false);
+
+            //statsManager.Init(player);
 
             player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
             player._handsController.Spawn(1f, delegate
@@ -131,7 +145,6 @@ namespace StayInTarkov.Coop
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
-            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
             if (!player.IsYourPlayer)
             {
                 player._armsUpdateQueue = EUpdateQueue.Update;
