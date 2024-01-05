@@ -520,9 +520,9 @@ namespace StayInTarkov.Coop
 
         public string InfiltrationPoint;
 
-        public override void vmethod_0()
-        {
-        }
+        //public override void vmethod_0()
+        //{
+        //}
 
         /// <summary>
         /// Matchmaker countdown
@@ -970,9 +970,7 @@ namespace StayInTarkov.Coop
             for (int i = 0; i < magazines.Count(); i++)
                 Profile_0.CheckMagazines(magazines[i].Id, 2);
 
-            // Add FreeCamController to GameWorld GameObject
-            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
-            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
+           
 
             // ------------------------------------------------------------------------
             // Setup Winter
@@ -988,7 +986,21 @@ namespace StayInTarkov.Coop
 
                 Logger.LogDebug($"Running Wave Scenarios");
             }
-            yield break;
+
+            yield return new WaitForEndOfFrame();
+
+            // Add FreeCamController to GameWorld GameObject
+            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
+
+            runCallback.Succeed();
+
+        }
+
+        public override void vmethod_5()
+        {
+            Logger.LogDebug(nameof(vmethod_5));
+            base.vmethod_5();
         }
 
         /// <summary>
@@ -999,9 +1011,7 @@ namespace StayInTarkov.Coop
             Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
 
             base.GameTimer.Start();
-            //base.vmethod_5();
             gparam_0.vmethod_0();
-            //gparam_0.Player.ActiveHealthController.DiedEvent += HealthController_DiedEvent;
             gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
 
             InfiltrationPoint = spawnPoint.Infiltration;
