@@ -55,10 +55,14 @@ namespace StayInTarkov.Coop.Session
             {
                 var result = AkiBackendCommunication.Instance.PostJson($"/coop/location/getLoot", JsonConvert.SerializeObject(objectToSend));
                 result.TrySITParseJson(out LocationDataRequest locationDataRequest);
-                return locationDataRequest.Data;
+                if (locationDataRequest != null)
+                    return locationDataRequest.Data;
+
+                return null;
             });
 
-            return false;
+            // Protection. If the __result is null, then run the original method
+            return __result == null;
         }
     }
 }
