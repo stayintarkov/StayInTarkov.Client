@@ -458,6 +458,7 @@ namespace StayInTarkov.Coop
                     , () => 1f
                     , () => 1f
                     , FilterCustomizationClass1.Default
+                    
                     )
                   );
                 localPlayer.Location = base.Location_0.Id;
@@ -647,7 +648,8 @@ namespace StayInTarkov.Coop
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                , new FilterCustomizationClass()
-               , questController
+               , null // Let the CoopPlayer Create handle this
+               , null // Let the CoopPlayer Create handle this
                , isYourPlayer: true);
             profile.SetSpawnedInSession(value: false);
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
