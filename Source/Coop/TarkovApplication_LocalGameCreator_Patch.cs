@@ -103,7 +103,7 @@ namespace StayInTarkov.Coop
 
             profile.Inventory.Stash = null;
             profile.Inventory.QuestStashItems = null;
-            profile.Inventory.DiscardLimits = new System.Collections.Generic.Dictionary<string, int>();  // Singleton<ItemFactory>.Instance.GetDiscardLimits();
+            profile.Inventory.DiscardLimits = Singleton<ItemFactory>.Instance.GetDiscardLimits();
             ____raidSettings.RaidMode = ERaidMode.Online;
 
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix: Attempt to set Raid Settings");
