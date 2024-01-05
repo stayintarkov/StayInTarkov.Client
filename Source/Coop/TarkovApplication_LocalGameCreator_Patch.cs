@@ -163,23 +163,28 @@ namespace StayInTarkov.Coop
             Singleton<AbstractGame>.Create(localGame);
             timeHasComeScreenController.ChangeStatus("Created Coop Game");
 
-            await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+
+            GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("Wait for localGame method 4");
+
+            var m4task = localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
-
                 using (TokenStarter.StartWithToken("LoadingScreen.LoadComplete"))
                 {
+                    GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("LoadComplete");
+                    
                     UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
                     MainMenuController mmc =
                             (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
                     mmc.Unsubscribe();
+                    
                     Singleton<GameWorld>.Instance.OnGameStarted();
+                    GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("OnGameStarted");
                 }
 
             }));
 
-            //__result = Task.Run(() => { });
-            __result = Task.CompletedTask;
+            __result = Task.WhenAll(m4task);
         }
     }
 }
