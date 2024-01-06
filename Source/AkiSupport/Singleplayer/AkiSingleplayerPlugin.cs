@@ -25,6 +25,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 //new OfflineSpawnPointPatch().Enable();
                 new ExperienceGainPatch().Enable();
                 new MidRaidQuestChangePatch().Enable();
+                new MidRaidAchievementChangePatch().Enable();
                 //new ScavExperienceGainPatch().Enable();
                 //new MainMenuControllerPatch().Enable();
                 //new PlayerPatch().Enable();
