@@ -54,7 +54,7 @@ namespace Aki.Custom.Airdrops
             }
 
             string location = gameWorld.MainPlayer.Location;
-            if (location.StartsWith("factory") || location == "laboratory")
+            if (location.StartsWith("factory") || location == "laboratory" || location == "Sandbox")
             {
                 Destroy(this);
                 return;
