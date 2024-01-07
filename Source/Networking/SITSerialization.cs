@@ -34,6 +34,18 @@ namespace StayInTarkov.Networking
             {
                 return new Vector3(reader.GetFloat(), reader.GetFloat(), reader.GetFloat());
             }
+
+            public static void Serialize(BinaryWriter writer, Vector3 vector)
+            {
+                writer.Write(vector.x);
+                writer.Write(vector.y);
+                writer.Write(vector.z);
+            }
+
+            public static Vector3 Deserialize(BinaryReader reader)
+            {
+                return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            }
         }
 
         public class Vector2Utils
@@ -47,6 +59,17 @@ namespace StayInTarkov.Networking
             public static Vector2 Deserialize(NetDataReader reader)
             {
                 return new Vector2(reader.GetFloat(), reader.GetFloat());
+            }
+
+            public static void Serialize(BinaryWriter writer, Vector3 vector)
+            {
+                writer.Write(vector.x);
+                writer.Write(vector.y);
+            }
+
+            public static Vector2 Deserialize(BinaryReader reader)
+            {
+                return new Vector2(reader.ReadSingle(), reader.ReadSingle());
             }
         }
 
