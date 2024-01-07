@@ -1,4 +1,5 @@
 ﻿using EFT;
+using StayInTarkov.Networking;
 using System.Collections.Generic;
 
 namespace StayInTarkov.Coop
@@ -14,6 +15,8 @@ namespace StayInTarkov.Coop
         string MyExitLocation { get; set; }
 
         public void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f);
+
+        public IGameClient GameClient { get; }
 
         //GameStatus Status { get; }
     }

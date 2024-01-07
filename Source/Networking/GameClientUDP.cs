@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Sirenix.Utilities;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Matchmaker;
@@ -24,7 +25,7 @@ using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Networking
 {
-    public class GameClientUDP : MonoBehaviour, INetEventListener
+    public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
         private LiteNetLib.NetManager _netClient;
         private NetDataWriter _dataWriter = new();
@@ -70,7 +71,7 @@ namespace StayInTarkov.Networking
             };
 
             _netClient.Start();
-            _netClient.Connect("78.105.157.146", PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
+            _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
         }
 
         //private void OnAirdropLootPacketReceived(AirdropLootPacket packet, NetPeer peer)
@@ -355,6 +356,9 @@ namespace StayInTarkov.Networking
             _netClient.FirstPeer.Send(writer, deliveryMethod);
         }
 
+        
+
+
         public void OnPeerConnected(NetPeer peer)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
@@ -394,6 +398,11 @@ namespace StayInTarkov.Networking
         public void OnPeerDisconnected(NetPeer peer, LiteNetLib.DisconnectInfo disconnectInfo)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We disconnected because " + disconnectInfo.Reason);
+        }
+
+        public void SendDataToServer(byte[] data)
+        {
+            throw new NotImplementedException();
         }
     }
 }
