@@ -18,9 +18,19 @@ namespace StayInTarkov.Coop.Players
             return questController;
         }
 
-        public static IStatisticsManager GetStatisticsManager(EFT.Profile profile, InventoryController inventoryController)
+        public static IStatisticsManager GetStatisticsManager(EFT.Player player)
         {
-            return new CoopPlayerStatisticsManager(profile);
+            IStatisticsManager statsManager = null;
+            if (player.IsYourPlayer)
+            {
+                statsManager = new CoopPlayerStatisticsManager(player.Profile);
+                statsManager.Init(player);
+            }
+            else
+            {
+                statsManager = new NullStatisticsManager();
+            }
+            return statsManager;
         }
 
         public static AchievementControllerClass GetAchievementController(EFT.Profile profile, InventoryController inventoryController)

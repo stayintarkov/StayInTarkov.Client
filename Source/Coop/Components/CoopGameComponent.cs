@@ -240,9 +240,17 @@ namespace StayInTarkov.Coop
             // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
 
-            // Send My Player to Aki, so that other clients know about me
-            CoopGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;
+        }
 
+        private void GameWorld_AfterGameStarted()
+        {
+            Logger.LogDebug(nameof(GameWorld_AfterGameStarted));
+            if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
+            {
+                // Send My Player to Aki, so that other clients know about me
+                CoopGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            }
         }
 
         /// <summary>

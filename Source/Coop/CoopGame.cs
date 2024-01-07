@@ -94,8 +94,6 @@ namespace StayInTarkov.Coop
 
         private static ManualLogSource Logger;
 
-
-        // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
         internal static CoopGame Create(
             InputTree inputTree
             , Profile profile
@@ -189,8 +187,6 @@ namespace StayInTarkov.Coop
             return coopGame;
         }
 
-        //BossLocationSpawn[] bossSpawnAdjustments;
-
         public void CreateCoopGameComponent()
         {
             var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
@@ -256,7 +252,7 @@ namespace StayInTarkov.Coop
                     yield return waitSeconds;
 
                 // Send a message of nothing to keep the Socket Alive whilst loading
-                AkiBackendCommunication.Instance.PostDownWebSocketImmediately("");
+                AkiBackendCommunication.Instance.PostDownWebSocketImmediately("CLIENT_LOADING_KEEP_ALIVE");
 
                 yield return waitSeconds;
 
@@ -1080,13 +1076,26 @@ namespace StayInTarkov.Coop
         {
             UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
             Logger.LogDebug("ExfiltrationPoint_OnStatusChanged");
-            Logger.LogDebug(prevStatus);
-
             EExfiltrationStatus curStatus = point.Status;
+            Logger.LogDebug($"{nameof(prevStatus)}:{prevStatus}.{nameof(curStatus)}:{curStatus}");
 
             // Fixes player cannot extract with The Lab elevator and Armored Train
             if (prevStatus == EExfiltrationStatus.AwaitsManualActivation && curStatus == EExfiltrationStatus.Countdown)
                 point.ExternalSetStatus(EExfiltrationStatus.RegularMode);
+
+            // Fixes player cannot extract with Car on Ground Zero
+            if (prevStatus == EExfiltrationStatus.UncompleteRequirements && curStatus == EExfiltrationStatus.Countdown)
+            {
+                foreach (var player in point.Entered)
+                {
+                    if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
+                    {
+                        ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
+                        Logger.LogDebug($"Added {player.ProfileId} to {nameof(ExtractingPlayers)}");
+                    }
+                }
+                point.ExternalSetStatus(EExfiltrationStatus.RegularMode);
+            }
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;

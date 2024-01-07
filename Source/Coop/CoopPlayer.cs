@@ -8,6 +8,7 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using System;
@@ -91,44 +92,29 @@ namespace StayInTarkov.Coop
             //}
 
             // Quest Controller instantiate
-            //if (questController == null && isYourPlayer)
             if (isYourPlayer)
             {
-                //questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
-                questController = new QuestController(profile, inventoryController, null, false);
-                questController.Init();
-                questController.Run();
+                questController = PlayerFactory.GetQuestController(profile, inventoryController);
                 player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
             }
 
+           
+
             // Achievement Controller instantiate
-            //if (achievementsController == null && isYourPlayer)
             if (isYourPlayer)
             {
-                // TODO: Requires Remap
-                // achievementsController = new GClass3207(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession);
-                // achievementsController.Init();
-                // achievementsController.Run();
-                // Reflect to get type
-                var achievementsControllerType = ReflectionHelpers
-                    .EftTypes.FirstOrDefault(x => x.IsSealed && ReflectionHelpers.GetMethodForType(x, "FinishAchievement") != null);
-                //var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true });
-                var aController = Activator.CreateInstance(achievementsControllerType, new object[] { profile, inventoryController, null, false });
-                if (aController != null)
-                {
-                    ReflectionHelpers.GetMethodForType(achievementsControllerType, "Init").Invoke(aController, new object[0]);
-                    ReflectionHelpers.GetMethodForType(achievementsControllerType, "Run").Invoke(aController, new object[0]);
-                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
-                }
+                achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);   
+                player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
             }
 
-            //IStatisticsManager statsManager = isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager();
-            //player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
+            IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();
+            player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
 
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
-                , new AbstractStatisticsManager1()
+                //, new AbstractStatisticsManager1()
+                , statsManager
                 , questController
                 , achievementsController
                 , filter
