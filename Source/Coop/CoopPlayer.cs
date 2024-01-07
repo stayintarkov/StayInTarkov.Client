@@ -98,12 +98,12 @@ namespace StayInTarkov.Coop
                 player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
             }
 
-           
+
 
             // Achievement Controller instantiate
             if (isYourPlayer)
             {
-                achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);   
+                achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);
                 player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
             }
 
@@ -367,7 +367,7 @@ namespace StayInTarkov.Coop
         public override void Move(Vector2 direction)
         {
             var prc = GetComponent<PlayerReplicatedComponent>();
-            if(prc == null)
+            if (prc == null)
                 return;
 
             base.Move(direction);
@@ -390,10 +390,10 @@ namespace StayInTarkov.Coop
                     { "index", clip.NetId },
                     { "m", "Say" }
                 };
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet); 
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
             }
         }
-        
+
         public void ReceiveSay(EPhraseTrigger trigger, int index)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
@@ -422,6 +422,9 @@ namespace StayInTarkov.Coop
             prc.ReplicatedPlayerStatePacket = playerStatePacket;
         }
 
-        
+        protected virtual void Interpolate()
+        {
+
+        }
     }
 }
