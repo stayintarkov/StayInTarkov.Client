@@ -168,64 +168,56 @@ namespace StayInTarkov.Coop.Players
             * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License
             */
 
+            Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
+            HeadRotation = Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio);
+            ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetDiscreteDirection(BSGDirectionalHelpers.ConvertToMovementDirection(NewState.MovementDirection));
 
+            EPlayerState name = MovementContext.CurrentState.Name;
+            EPlayerState eplayerState = NewState.State;
+            if (eplayerState == EPlayerState.Jump)
+            {
+                Jump();
+            }
+            if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
+            {
+                MovementContext.PlayerAnimatorEnableJump(false);
+                MovementContext.PlayerAnimatorEnableLanding(true);
+            }
+            if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
+            {
+                MovementContext.IsInPronePose = false;
+            }
+            if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
+            {
+                MovementContext.IsInPronePose = true;
+            }
 
+            Physical.SerializationStruct = NewState.Stamina;
+            MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
+            CurrentManagedState.SetStep(NewState.Step);
+            MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
+            MovementContext.EnableSprint(NewState.IsSprinting);
 
-            //    if (!IsYourPlayer)
-            //    {
+            MovementContext.IsInPronePose = NewState.IsProne;
+            MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
 
-            //        Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
+            MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
+            MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
-            //        HeadRotation = Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio);
-            //        ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
-            //        MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
-            //        MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
+            MovementContext.SetBlindFire(NewState.Blindfire);
 
-            //        EPlayerState name = MovementContext.CurrentState.Name;
-            //        EPlayerState eplayerState = NewState.State;
-            //        if (eplayerState == EPlayerState.Jump)
-            //        {
-            //            Jump();
-            //        }
-            //        if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
-            //        {
-            //            MovementContext.PlayerAnimatorEnableJump(false);
-            //            MovementContext.PlayerAnimatorEnableLanding(true);
-            //        }
-            //        if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
-            //        {
-            //            MovementContext.IsInPronePose = false;
-            //        }
-            //        if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
-            //        {
-            //            MovementContext.IsInPronePose = true;
-            //        }
+            if (!IsInventoryOpened && NewState.LinearSpeed > 0.25)
+            {
+                Move(NewState.InputDirection);
+            }
+            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
+            CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
 
-            //        Physical.SerializationStruct = NewState.Stamina;
-            //        MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
-            //        CurrentManagedState.SetStep(NewState.Step);
-            //        MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
-            //        MovementContext.EnableSprint(NewState.IsSprinting);
-
-            //        MovementContext.IsInPronePose = NewState.IsProne;
-            //        MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
-
-            //        MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
-            //        MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
-            //        MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
-
-            //        MovementContext.SetBlindFire(NewState.Blindfire);
-
-            //        if (!IsInventoryOpened && NewState.LinearSpeed > 0.25)
-            //        {
-            //            Move(NewState.InputDirection);
-            //        }
-            //        Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, InterpolationRatio);
-            //        CharacterController.Move(a - MovementContext.TransformPosition, InterpolationRatio);
-
-            //        LastState = NewState;
-            //    }
+            LastState = NewState;
         }
 
         //protected override IEnumerator SendStatePacket()
