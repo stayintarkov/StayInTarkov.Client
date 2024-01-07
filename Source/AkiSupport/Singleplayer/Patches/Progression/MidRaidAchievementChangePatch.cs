@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using AchievementsController = GClass3207;
 
 
 /// <summary>
@@ -24,7 +23,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
     {
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(AchievementsController).GetConstructors()[0];
+            return typeof(AchievementControllerClass).GetConstructors()[0];
         }
 
         [PatchPrefix]
