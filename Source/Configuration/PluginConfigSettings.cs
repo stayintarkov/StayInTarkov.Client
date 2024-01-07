@@ -166,7 +166,7 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
 
-                SITHostProtocol = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITHostProtocol", HostProtocol.TCP, new ConfigDescription("SIT Host Protocol. TCP only, UDP only, Both. Options: TCP,UDP,Both")).Value;
+                SITHostProtocol = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITHostProtocol", HostProtocol.TCP, new ConfigDescription("SIT Host Protocol.")).Value;
                 SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port DEFAULT = 6970")).Value;
                 SITUDPPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPPort", 6971, new ConfigDescription("SIT UDP Port DEFAULT = 6971")).Value;
                 SITUDPHostIPV4 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV4", "127.0.0.1", new ConfigDescription("The IPv4 to use when hosting a UDP Coop Session")).Value;
@@ -186,7 +186,7 @@ namespace StayInTarkov.Configuration
             {
                 TCP,
                 UDP, 
-                Both
+                //Both
             }
         }
 
