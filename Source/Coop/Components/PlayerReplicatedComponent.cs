@@ -212,12 +212,12 @@ namespace StayInTarkov.Core.Player
 
 
             // Head Rotation
-            var newHeadRotation = new Vector3(ReplicatedPlayerStatePacket.HeadRotationX, ReplicatedPlayerStatePacket.HeadRotationY, ReplicatedPlayerStatePacket.HeadRotationZ);
+            var newHeadRotation = ReplicatedPlayerStatePacket.HeadRotation;
             player.HeadRotation = Vector3.Lerp(player.HeadRotation, newHeadRotation, Time.deltaTime * 4);
             player.ProceduralWeaponAnimation.SetHeadRotation(player.HeadRotation);
 
-            var lastMoveDir = new Vector2(LastReplicatedPlayerStatePacket.MovementDirectionX, LastReplicatedPlayerStatePacket.MovementDirectionY);
-            var newMoveDir = new Vector2(ReplicatedPlayerStatePacket.MovementDirectionX, ReplicatedPlayerStatePacket.MovementDirectionY);
+            var lastMoveDir = LastReplicatedPlayerStatePacket.MovementDirection;
+            var newMoveDir = ReplicatedPlayerStatePacket.MovementDirection;
             player.MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastMoveDir, newMoveDir, Time.deltaTime * 2));
             //player.MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
 
@@ -269,12 +269,12 @@ namespace StayInTarkov.Core.Player
 
             if (ReplicatedHeadRotation.HasValue)
             {
-                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 7);
+                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 6);
             }
 
             if (ReplicatedTilt.HasValue)
             {
-                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 7), true);
+                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 6), true);
             }
 
             // Process Prone
@@ -362,10 +362,10 @@ namespace StayInTarkov.Core.Player
 
         Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-        public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? new Vector2(ReplicatedPlayerStatePacket.MovementDirectionX, ReplicatedPlayerStatePacket.MovementDirectionY) : null;
-        public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? new Vector2(ReplicatedPlayerStatePacket.RotationX, ReplicatedPlayerStatePacket.RotationY) : null;
-        public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? new Vector3(ReplicatedPlayerStatePacket.PositionX, ReplicatedPlayerStatePacket.PositionY, ReplicatedPlayerStatePacket.PositionZ) : null;
-        public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? new Vector3(ReplicatedPlayerStatePacket.HeadRotationX, ReplicatedPlayerStatePacket.HeadRotationY, ReplicatedPlayerStatePacket.HeadRotationZ) : null;
+        public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.MovementDirection : null;
+        public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Rotation : null;
+        public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Position : null;
+        public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.HeadRotation : null;
         public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
         public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
         private float? PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : null;

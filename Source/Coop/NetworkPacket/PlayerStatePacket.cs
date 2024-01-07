@@ -6,21 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
     public sealed class PlayerStatePacket : BasePlayerPacket, INetSerializable
     {
-        public float PositionX { get; set; }
-        public float PositionY { get; set; }
-        public float PositionZ { get; private set; }
-        public float RotationX { get; set; }
-        public float RotationY { get; set; }
-        public float HeadRotationX { get; set; }
-        public float HeadRotationY { get; set; }
-        public float HeadRotationZ { get; set; }
-        public float MovementDirectionX { get; set; }
-        public float MovementDirectionY { get; set; }
+        //public float PositionX { get; set; }
+        //public float PositionY { get; set; }
+        //public float PositionZ { get; private set; }
+        //public float RotationX { get; set; }
+        //public float RotationY { get; set; }
+        //public float HeadRotationX { get; set; }
+        //public float HeadRotationY { get; set; }
+        //public float HeadRotationZ { get; set; }
+        //public float MovementDirectionX { get; set; }
+        //public float MovementDirectionY { get; set; }
         public EPlayerState State { get; set; }
         public float Tilt { get; set; }
         public int Step { get; set; }
@@ -34,6 +35,15 @@ namespace StayInTarkov.Coop.NetworkPacket
         public bool StaminaExhausted { get; set; }
         public float InputDirectionX { get; set; }
         public float InputDirectionY { get; set; }
+        public Vector3 Position { get; set; }
+        public Vector2 Rotation { get; set; }
+        public Vector3 HeadRotation { get; set; }
+        public Vector2 MovementDirection { get; set; }
+        public Physical.PhysicalStamina Stamina { get; set; }
+        public Vector2 InputDirection { get; set; }
+        public int Blindfire { get; set; }
+        public float LinearSpeed { get; set; }
+
         public PlayerHealthPacket PlayerHealth { get; set; }
 
         public PlayerStatePacket() { }
@@ -44,15 +54,19 @@ namespace StayInTarkov.Coop.NetworkPacket
             float energy, float hydration, PlayerHealthPacket playerHealth)
             : base(new string(profileId.ToCharArray()), "PlayerState")
         {
-            PositionX = position.x;
-            PositionY = position.y;
-            PositionZ = position.z;
-            RotationX = rotation.x;
-            RotationY = rotation.y;
-            HeadRotationX = headRotation.x;
-            HeadRotationY = headRotation.y;
-            MovementDirectionX = movementDirection.x;
-            MovementDirectionY = movementDirection.y;
+            //PositionX = position.x;
+            //PositionY = position.y;
+            //PositionZ = position.z;
+            //RotationX = rotation.x;
+            //RotationY = rotation.y;
+            //HeadRotationX = headRotation.x;
+            //HeadRotationY = headRotation.y;
+            //MovementDirectionX = movementDirection.x;
+            //MovementDirectionY = movementDirection.y;
+            Position = position;
+            Rotation = rotation;
+            HeadRotation = headRotation;
+            MovementDirection = movementDirection;
             State = state;
             Tilt = tilt;
             Step = step;
@@ -72,20 +86,24 @@ namespace StayInTarkov.Coop.NetworkPacket
             using BinaryWriter writer = new BinaryWriter(ms);
             WriteHeader(writer);
             writer.Write(ProfileId);
-            writer.Write(PositionX);
-            writer.Write(PositionY);
-            writer.Write(PositionZ);
-            writer.Write(RotationX);
-            writer.Write(RotationY);
-            writer.Write(HeadRotationX);
-            writer.Write(HeadRotationY);
-            writer.Write(MovementDirectionX);
-            writer.Write(MovementDirectionY);
+            //writer.Write(PositionX);
+            //writer.Write(PositionY);
+            //writer.Write(PositionZ);
+            //writer.Write(RotationX);
+            //writer.Write(RotationY);
+            //writer.Write(HeadRotationX);
+            //writer.Write(HeadRotationY);
+            //writer.Write(MovementDirectionX);
+            //writer.Write(MovementDirectionY);
+            Vector3Utils.Serialize(writer, Position);
+            Vector2Utils.Serialize(writer, Rotation);
+            Vector2Utils.Serialize(writer, HeadRotation);
+            Vector2Utils.Serialize(writer, MovementDirection);
             writer.Write(State.ToString());
-            writer.Write(Tilt);
+            writer.Write(BSGNetworkConversionHelpers.ScaleFloatToByte(Tilt, -5f, 5f));
             writer.Write(Step);
             writer.Write(AnimatorStateIndex);
-            writer.Write(CharacterMovementSpeed);
+            writer.Write(BSGNetworkConversionHelpers.ScaleFloatToByte(CharacterMovementSpeed, 0f, 1f));
             writer.Write(IsProne);
             writer.Write(PoseLevel);
             writer.Write(IsSprinting);
@@ -113,20 +131,24 @@ namespace StayInTarkov.Coop.NetworkPacket
             if (reader.BaseStream.Position >= reader.BaseStream.Length)
                 return this;
 
-            PositionX = reader.ReadSingle();
-            PositionY = reader.ReadSingle();
-            PositionZ = reader.ReadSingle();
-            RotationX = reader.ReadSingle();
-            RotationY = reader.ReadSingle();
-            HeadRotationX = reader.ReadSingle();
-            HeadRotationY = reader.ReadSingle();
-            MovementDirectionX = reader.ReadSingle();
-            MovementDirectionY = reader.ReadSingle();
+            //PositionX = reader.ReadSingle();
+            //PositionY = reader.ReadSingle();
+            //PositionZ = reader.ReadSingle();
+            //RotationX = reader.ReadSingle();
+            //RotationY = reader.ReadSingle();
+            //HeadRotationX = reader.ReadSingle();
+            //HeadRotationY = reader.ReadSingle();
+            //MovementDirectionX = reader.ReadSingle();
+            //MovementDirectionY = reader.ReadSingle();
+            Position = Vector3Utils.Deserialize(reader);
+            Rotation = Vector2Utils.Deserialize(reader);
+            HeadRotation = Vector2Utils.Deserialize(reader);
+            MovementDirection = Vector2Utils.Deserialize(reader);
             State = (EPlayerState)Enum.Parse(typeof(EPlayerState), reader.ReadString());
-            Tilt = reader.ReadSingle();
+            Tilt = BSGNetworkConversionHelpers.ScaleByteToFloat(reader.ReadByte(), -5f, 5f);
             Step = reader.ReadInt32();
             AnimatorStateIndex = reader.ReadInt32();
-            CharacterMovementSpeed = reader.ReadSingle();
+            CharacterMovementSpeed = BSGNetworkConversionHelpers.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
             IsProne = reader.ReadBoolean();
             PoseLevel = reader.ReadSingle();
             IsSprinting = reader.ReadBoolean();
