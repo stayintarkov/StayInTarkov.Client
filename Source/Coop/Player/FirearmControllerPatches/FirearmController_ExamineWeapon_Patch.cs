@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
+            GameClient.SendDataToServer(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

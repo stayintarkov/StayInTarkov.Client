@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(____player.ProfileId, "KnifeController_ExamineWeapon").Serialize());
+            GameClient.SendDataToServer(new BasePlayerPacket(____player.ProfileId, "KnifeController_ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

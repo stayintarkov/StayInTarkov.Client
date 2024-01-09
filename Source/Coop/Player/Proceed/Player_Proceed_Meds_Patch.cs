@@ -54,7 +54,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 }
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedMedsPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedMedsPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

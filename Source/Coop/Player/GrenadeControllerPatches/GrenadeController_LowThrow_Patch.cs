@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "LowThrow").Serialize());
+            GameClient.SendDataToServer(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "LowThrow").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

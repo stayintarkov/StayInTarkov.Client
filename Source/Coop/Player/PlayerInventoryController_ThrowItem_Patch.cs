@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player
             }
 
             ItemPlayerPacket itemPacket = new(___profile_0.ProfileId, item.Id, item.TemplateId, "ThrowItem");
-            AkiBackendCommunication.Instance.SendDataToPool(itemPacket.Serialize());
+            GameClient.SendDataToServer(itemPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

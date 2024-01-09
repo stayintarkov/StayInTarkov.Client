@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(____player.ProfileId, "GrenadeController_ExamineWeapon").Serialize());
+            GameClient.SendDataToServer(new BasePlayerPacket(____player.ProfileId, "GrenadeController_ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

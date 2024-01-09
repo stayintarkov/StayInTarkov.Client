@@ -57,7 +57,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             var checkAmmo = new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize();
             //Logger.LogInfo(Encoding.UTF8.GetString(checkAmmo));
-            AkiBackendCommunication.Instance.SendDataToPool(checkAmmo);
+            GameClient.SendDataToServer(checkAmmo);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

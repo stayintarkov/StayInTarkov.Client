@@ -42,7 +42,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, item.Id, item.TemplateId, scheduled, "TryProceed");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

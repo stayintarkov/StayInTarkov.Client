@@ -39,7 +39,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(__instance.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedFoodDrinkPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

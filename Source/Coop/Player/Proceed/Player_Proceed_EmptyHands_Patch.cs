@@ -39,7 +39,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(__instance.ProfileId, withNetwork, scheduled, "ProceedEmptyHands");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedEmptyHandsPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedEmptyHandsPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

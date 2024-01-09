@@ -26,8 +26,7 @@ namespace StayInTarkov.Networking
                 return;
             }
 
-
-
+            Singleton<ISITGame>.Instance.GameClient.SendDataToServer(data);
         }
     }
 }

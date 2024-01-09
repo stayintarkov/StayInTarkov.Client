@@ -40,7 +40,7 @@ namespace StayInTarkov.Coop.Player
 
             BasePlayerPacket playerPacket = new(player.ProfileId, "Jump");
             var serialized = playerPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
             playerPacket = null;
             //AkiBackendCommunication.Instance.PostDownWebSocketImmediately( serialized );
 

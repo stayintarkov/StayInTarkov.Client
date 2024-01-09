@@ -53,7 +53,7 @@ namespace StayInTarkov.Coop.Controllers
 
             //AlreadySent.Add(serialized);
 
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
             result = base.UnloadMagazine(magazine);
             ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
             return result;
