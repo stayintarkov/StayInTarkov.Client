@@ -14,7 +14,7 @@ namespace StayInTarkov.Coop.Players
     public class CoopPlayerClient : CoopPlayer
     {
         private float InterpolationRatio { get; set; } = 0.03f;
-        public PlayerStatePacket LastState { get; set; }
+        public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
 
         //public override void InitVoip(EVoipState voipState)
@@ -109,10 +109,10 @@ namespace StayInTarkov.Coop.Players
 
             Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
-            //HeadRotation = Vector3.Lerp(HeadRotation, NewState.HeadRotation, InterpolationRatio);
-            //ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
-            //MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
-            //MovementContext.PlayerAnimatorSetDiscreteDirection(BSGDirectionalHelpers.ConvertToMovementDirection(NewState.MovementDirection));
+            HeadRotation = Vector3.Lerp(HeadRotation, NewState.HeadRotation, InterpolationRatio);
+            ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetDiscreteDirection(BSGDirectionalHelpers.ConvertToMovementDirection(NewState.MovementDirection));
 
             EPlayerState name = MovementContext.CurrentState.Name;
             EPlayerState eplayerState = NewState.State;
@@ -135,28 +135,26 @@ namespace StayInTarkov.Coop.Players
             }
 
             Physical.SerializationStruct = NewState.Stamina;
-            //MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
-            //CurrentManagedState.SetStep(NewState.Step);
-            //MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
-            //MovementContext.EnableSprint(NewState.IsSprinting);
+            MovementContext.SetTilt(Mathf.Round(NewState.Tilt)); // Round the float due to byte converting error...
+            CurrentManagedState.SetStep(NewState.Step);
+            MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
+            MovementContext.EnableSprint(NewState.IsSprinting);
 
-            //MovementContext.IsInPronePose = NewState.IsProne;
-            //MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
+            MovementContext.IsInPronePose = NewState.IsProne;
+            MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
 
-            //MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
-            //MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
-            //MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+            MovementContext.SetCurrentClientAnimatorStateIndex(NewState.AnimatorStateIndex);
+            MovementContext.SetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetCharacterMovementSpeed(Mathf.Lerp(LastState.CharacterMovementSpeed, NewState.CharacterMovementSpeed, InterpolationRatio));
 
-            //MovementContext.SetBlindFire(NewState.Blindfire);
+            MovementContext.SetBlindFire(NewState.Blindfire);
 
-            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime);
+            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 2);
             CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
             if (!IsInventoryOpened)// && NewState.LinearSpeed > 0.25)
             {
-                CurrentManagedState.Move(NewState.InputDirection);
+                Move(NewState.InputDirection);
             }
-            a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime);
-            CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
 
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))} to fully process.");
             LastState = NewState;
@@ -169,10 +167,10 @@ namespace StayInTarkov.Coop.Players
 
             Interpolate();
 
-            if (LastState == null)
-                return;
+            //if (LastState == null)
+            //    return;
 
-            Move(LastState.InputDirection);
+            //Move(LastState.InputDirection);
 
         }
     }
