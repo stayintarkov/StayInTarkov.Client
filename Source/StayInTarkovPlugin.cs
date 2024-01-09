@@ -4,13 +4,10 @@ using Aki.Custom.Patches;
 using BepInEx;
 using BepInEx.Bootstrap;
 using Comfort.Common;
-using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
-using StayInTarkov.AI.PMCLogic.Roaming;
-using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
@@ -41,7 +38,7 @@ namespace StayInTarkov
     /// Written by: Paulov
     /// Used template by BepInEx
     /// </summary>
-    [BepInPlugin("com.sit.core", "SIT.Core", "1.9.0")]
+    [BepInPlugin("com.sit.core", "StayInTarkov", "1.10.0")]
     [BepInProcess("EscapeFromTarkov.exe")]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
@@ -265,14 +262,12 @@ namespace StayInTarkov
                     if (EFTVersionMajor.Split('.').Length > 4)
                     {
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
-                        var majorN2 = EFTVersionMajor.Split('.')[1]; // 13
-                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 1
-                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
+                        var majorN2 = EFTVersionMajor.Split('.')[1]; // 14
+                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 0
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 0
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        // 0.13.5.2.26282
-                        // 0.13.9.0.26921
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "9" || majorN4 != "1")
+                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "0" || majorN4 != "0")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -402,15 +397,6 @@ namespace StayInTarkov
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             new LocationLootCacheBustingPatch().Enable();
-
-            var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
-            if (!enabled.Value)
-                return;
-
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC", "sptUsec" }, 2);
-            //BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
-
-
         }
 
         private void EnableCoopPatches()

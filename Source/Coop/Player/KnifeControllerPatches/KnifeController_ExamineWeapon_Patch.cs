@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(____player.ProfileId, "KnifeController_ExamineWeapon").Serialize());
+            GameClient.SendDataToServer(new BasePlayerPacket(____player.ProfileId, "KnifeController_ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -46,8 +46,8 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
             if (!dict.ContainsKey("data"))
                 return;
 
-            BasePlayerPacket examineWeaponPacket = new();
-            examineWeaponPacket = examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
+            BasePlayerPacket examineWeaponPacket = new(player.ProfileId, "");
+            examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, examineWeaponPacket))
                 return;

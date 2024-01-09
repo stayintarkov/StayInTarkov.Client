@@ -3,6 +3,7 @@ using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -125,8 +126,9 @@ namespace StayInTarkov.Coop.Player
                     shotId = new ShotId(dict["ammoid"].ToString(), 1);
                 }
 
-                CallLocally.Add(player.ProfileId);
-                player.ApplyShot(damageInfo, bodyPartType, shotId);
+
+                //CallLocally.Add(player.ProfileId);
+                //player.ApplyShot(damageInfo, bodyPartType, shotId);
             }
             catch (Exception e)
             {

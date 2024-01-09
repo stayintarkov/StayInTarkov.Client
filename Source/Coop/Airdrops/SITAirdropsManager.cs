@@ -2,15 +2,12 @@
 using Aki.Custom.Airdrops.Utils;
 using BepInEx.Logging;
 using Comfort.Common;
-using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using StayInTarkov;
-using StayInTarkov.AI.PMCLogic.Roaming;
-using StayInTarkov.AI.PMCLogic.RushAirdrop;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.AkiSupport.Airdrops.Utils;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Web;
@@ -57,7 +54,7 @@ namespace Aki.Custom.Airdrops
             }
 
             string location = gameWorld.MainPlayer.Location;
-            if (location.StartsWith("factory") || location == "laboratory")
+            if (location.StartsWith("factory") || location == "laboratory" || location == "Sandbox")
             {
                 Destroy(this);
                 return;
@@ -101,7 +98,6 @@ namespace Aki.Custom.Airdrops
 
             StartCoroutine(SendParamsToClients());
 
-            BrainManager.AddCustomLayer(typeof(RushAirdropLayer), new List<string>() { "Assault", "PMC", "sptUsec" }, 2);
         }
 
         public IEnumerator SendParamsToClients()

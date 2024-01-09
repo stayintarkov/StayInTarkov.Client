@@ -44,6 +44,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 ## Support
 
 * Pull Requests are encouraged. Thanks to all contributors!
+* Code contributions have a strict NO GCLASSXXX policy. If your code has a GCLASS that is neccessary to it working please provide the Pull Request with the list so that they can be remapped before merging.
 * [SIT Discord](https://discord.gg/f4CN4n3nP2) is available. The community have teamed to help each other out and create community servers.
 
 ## SPT-AKI Requirement
@@ -175,11 +176,13 @@ SPT-Aki DLLs are written specifically for SPT-Aki own Deobfuscation technique an
 - [Paulov](https://github.com/paulov-t) (original creator of Stay in Tarkov)
 - SPT-Aki team (Credits provided on each code file used and much love to their Dev team for their support)
 - SPT-Aki Modding Community
-- DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/) ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
 - SIT team and the original contributors of Paulov's SIT.Core
+- [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 ## License
-- DrakiaXYZ projects contain the MIT License
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License
 - 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
-- Paulov's work is unlicensed. Unlicensed does not entitle you to use it at will
+- Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
 - SIT team's work is MIT licensed
+- [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed

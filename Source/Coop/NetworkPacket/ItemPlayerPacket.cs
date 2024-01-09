@@ -7,7 +7,7 @@
         public string TemplateId { get; set; }
 
         public ItemPlayerPacket(string profileId, string itemId, string templateId, string method)
-            : base(profileId, method)
+            : base(new string(profileId.ToCharArray()), method)
         {
             ItemId = itemId;
             TemplateId = templateId;

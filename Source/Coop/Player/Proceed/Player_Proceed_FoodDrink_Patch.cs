@@ -39,7 +39,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(__instance.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedFoodDrinkPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -47,8 +47,8 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (!dict.ContainsKey("data"))
                 return;
 
-            PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(null, null, null, 0, 0, true, null);
-            playerProceedFoodDrinkPacket = playerProceedFoodDrinkPacket.DeserializePacketSIT(dict["data"].ToString());
+            PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(player.ProfileId, null, null, 0, 0, true, null);
+            playerProceedFoodDrinkPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedFoodDrinkPacket))
                 return;

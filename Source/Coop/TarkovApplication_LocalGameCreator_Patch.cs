@@ -103,7 +103,7 @@ namespace StayInTarkov.Coop
 
             profile.Inventory.Stash = null;
             profile.Inventory.QuestStashItems = null;
-            profile.Inventory.DiscardLimits = new System.Collections.Generic.Dictionary<string, int>();  // Singleton<ItemFactory>.Instance.GetDiscardLimits();
+            profile.Inventory.DiscardLimits = Singleton<ItemFactory>.Instance.GetDiscardLimits();
             ____raidSettings.RaidMode = ERaidMode.Online;
 
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix: Attempt to set Raid Settings");
@@ -161,23 +161,30 @@ namespace StayInTarkov.Coop
             //}
             );
             Singleton<AbstractGame>.Create(localGame);
-            await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            timeHasComeScreenController.ChangeStatus("Created Coop Game");
+
+
+            GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("Wait for localGame method 4");
+
+            var m4task = localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
-
-                //using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
-                //{
-                UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
-                MainMenuController mmc =
-                        (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
-                mmc.Unsubscribe();
-                Singleton<GameWorld>.Instance.OnGameStarted();
-                //}
+                using (TokenStarter.StartWithToken("LoadingScreen.LoadComplete"))
+                {
+                    GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("LoadComplete");
+                    
+                    UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
+                    MainMenuController mmc =
+                            (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
+                    mmc.Unsubscribe();
+                    
+                    Singleton<GameWorld>.Instance.OnGameStarted();
+                    GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("OnGameStarted");
+                }
 
             }));
 
-            //__result = Task.Run(() => { });
-            __result = Task.CompletedTask;
+            __result = Task.WhenAll(m4task);
         }
     }
 }

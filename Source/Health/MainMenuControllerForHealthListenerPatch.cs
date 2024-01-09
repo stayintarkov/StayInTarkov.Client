@@ -1,5 +1,5 @@
 using EFT.HealthSystem;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.Players;
 using System.Reflection;
 using UnityEngine;
 

@@ -1,24 +1,28 @@
-﻿using System;
+﻿using LiteNetLib.Utils;
+using StayInTarkov.ThirdParty;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerStatePacket : BasePlayerPacket
+    public sealed class PlayerStatePacket : BasePlayerPacket, INetSerializable
     {
-        public float PositionX { get; set; }
-        public float PositionY { get; set; }
-        public float PositionZ { get; private set; }
-        public float RotationX { get; set; }
-        public float RotationY { get; set; }
-        public float HeadRotationX { get; set; }
-        public float HeadRotationY { get; set; }
-        public float HeadRotationZ { get; set; }
-        public float MovementDirectionX { get; set; }
-        public float MovementDirectionY { get; set; }
+        //public float PositionX { get; set; }
+        //public float PositionY { get; set; }
+        //public float PositionZ { get; private set; }
+        //public float RotationX { get; set; }
+        //public float RotationY { get; set; }
+        //public float HeadRotationX { get; set; }
+        //public float HeadRotationY { get; set; }
+        //public float HeadRotationZ { get; set; }
+        //public float MovementDirectionX { get; set; }
+        //public float MovementDirectionY { get; set; }
         public EPlayerState State { get; set; }
         public float Tilt { get; set; }
         public int Step { get; set; }
@@ -30,30 +34,38 @@ namespace StayInTarkov.Coop.NetworkPacket
         public bool HandsExhausted { get; set; }
         public bool OxygenExhausted { get; set; }
         public bool StaminaExhausted { get; set; }
-        public float InputDirectionX { get; set; }
-        public float InputDirectionY { get; set; }
-        public float Energy { get; set; }
-        public float Hydration { get; set; }
-        public string PlayerHealthSerialized { get; set; }
+        public Vector3 Position { get; set; }
+        public Vector2 Rotation { get; set; }
+        public Vector3 HeadRotation { get; set; }
+        public Vector2 MovementDirection { get; set; }
+        public Physical.PhysicalStamina Stamina { get; set; }
+        public Vector2 InputDirection { get; set; }
+        public int Blindfire { get; set; }
+        public float LinearSpeed { get; set; }
+
+        public PlayerHealthPacket PlayerHealth { get; set; }
 
         public PlayerStatePacket() { }
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, 
-            float energy, float hydration, string playerHealthSerialized)
-            : base(profileId, "PlayerState")
+            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection
+            , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
+            : base(new string(profileId.ToCharArray()), "PlayerState")
         {
-            ProfileId = profileId;
-            PositionX = position.x;
-            PositionY = position.y;
-            PositionZ = position.z;
-            RotationX = rotation.x;
-            RotationY = rotation.y;
-            HeadRotationX = headRotation.x;
-            HeadRotationY = headRotation.y;
-            MovementDirectionX = movementDirection.x;
-            MovementDirectionY = movementDirection.y;
+            //PositionX = position.x;
+            //PositionY = position.y;
+            //PositionZ = position.z;
+            //RotationX = rotation.x;
+            //RotationY = rotation.y;
+            //HeadRotationX = headRotation.x;
+            //HeadRotationY = headRotation.y;
+            //MovementDirectionX = movementDirection.x;
+            //MovementDirectionY = movementDirection.y;
+            Position = position;
+            Rotation = rotation;
+            HeadRotation = headRotation;
+            MovementDirection = movementDirection;
             State = state;
             Tilt = tilt;
             Step = step;
@@ -62,11 +74,133 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsProne = isProne;
             PoseLevel = poseLevel;
             IsSprinting = isSprinting;
-            InputDirectionX = inputDirection.x; 
-            InputDirectionY = inputDirection.y;
-            Energy = energy;
-            Hydration = hydration;
-            PlayerHealthSerialized = playerHealthSerialized;
+            InputDirection = inputDirection;
+            PlayerHealth = playerHealth;
+            Stamina = stamina;
+            Blindfire = blindFire;
+            LinearSpeed = linearSpeed;
+        }
+
+        public override byte[] Serialize()
+        {
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+            //writer.Write(PositionX);
+            //writer.Write(PositionY);
+            //writer.Write(PositionZ);
+            //writer.Write(RotationX);
+            //writer.Write(RotationY);
+            //writer.Write(HeadRotationX);
+            //writer.Write(HeadRotationY);
+            //writer.Write(MovementDirectionX);
+            //writer.Write(MovementDirectionY);
+            Vector3Utils.Serialize(writer, Position);
+            Vector2Utils.Serialize(writer, Rotation);
+            Vector2Utils.Serialize(writer, HeadRotation);
+            Vector2Utils.Serialize(writer, MovementDirection);
+            writer.Write(State.ToString());
+            writer.Write(BSGNetworkConversionHelpers.ScaleFloatToByte(Tilt, -5f, 5f));
+            writer.Write(Step);
+            writer.Write(AnimatorStateIndex);
+            writer.Write(BSGNetworkConversionHelpers.ScaleFloatToByte(CharacterMovementSpeed, 0f, 1f));
+            writer.Write(IsProne);
+            writer.Write(PoseLevel);
+            writer.Write(IsSprinting);
+            PhysicalUtils.Serialize(writer, Stamina);
+            Vector2Utils.Serialize(writer, InputDirection);
+            writer.Write(Blindfire);
+            writer.Write(LinearSpeed);
+            writer.Write(TimeSerializedBetter);
+
+            // Has PlayerHealth packet
+            writer.Write(PlayerHealth != null);
+            if (PlayerHealth != null)
+                writer.WriteLengthPrefixedBytes(PlayerHealth.Serialize());
+
+            //return Zlib.Compress(ms.ToArray());
+            return ms.ToArray();
+
+        }
+
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            if (bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+
+            //bytes = Zlib.DecompressToBytes(bytes);
+
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+
+            if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                return this;
+
+            //PositionX = reader.ReadSingle();
+            //PositionY = reader.ReadSingle();
+            //PositionZ = reader.ReadSingle();
+            //RotationX = reader.ReadSingle();
+            //RotationY = reader.ReadSingle();
+            //HeadRotationX = reader.ReadSingle();
+            //HeadRotationY = reader.ReadSingle();
+            //MovementDirectionX = reader.ReadSingle();
+            //MovementDirectionY = reader.ReadSingle();
+            Position = Vector3Utils.Deserialize(reader);
+            Rotation = Vector2Utils.Deserialize(reader);
+            HeadRotation = Vector2Utils.Deserialize(reader);
+            MovementDirection = Vector2Utils.Deserialize(reader);
+            State = (EPlayerState)Enum.Parse(typeof(EPlayerState), reader.ReadString());
+            Tilt = BSGNetworkConversionHelpers.ScaleByteToFloat(reader.ReadByte(), -5f, 5f);
+            Step = reader.ReadInt32();
+            AnimatorStateIndex = reader.ReadInt32();
+            CharacterMovementSpeed = BSGNetworkConversionHelpers.ScaleByteToFloat(reader.ReadByte(), 0f, 1f);
+            IsProne = reader.ReadBoolean();
+            PoseLevel = reader.ReadSingle();
+            IsSprinting = reader.ReadBoolean();
+            Stamina = PhysicalUtils.Deserialize(reader);
+            InputDirection = Vector2Utils.Deserialize(reader);
+            Blindfire = reader.ReadInt32();
+            LinearSpeed = reader.ReadSingle();
+            TimeSerializedBetter = reader.ReadString();
+
+            // If has a PlayerHealth packet
+            if (reader.ReadBoolean())
+            {
+                PlayerHealth = new PlayerHealthPacket(ProfileId);
+                PlayerHealth = (PlayerHealthPacket)PlayerHealth.Deserialize(reader.ReadLengthPrefixedBytes());
+            }
+
+            //StayInTarkovHelperConstants.Logger.LogInfo(this.SITToJson());
+            return this;
+        }
+
+        /// <summary>
+        /// DO NOT AUTODESERIALIZE
+        /// </summary>
+        /// <param name="serializedPacket"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override ISITPacket AutoDeserialize(byte[] serializedPacket)
+        {
+            //return base.DeserializePacketSIT(serializedPacket);
+            throw new NotImplementedException();    
+        }
+
+        void INetSerializable.Serialize(NetDataWriter writer)
+        {
+            var serializedSIT = Serialize();
+            writer.Put(serializedSIT.Length);
+            writer.Put(serializedSIT);
+        }
+
+        void INetSerializable.Deserialize(NetDataReader reader)
+        {
+            var length = reader.GetInt();
+            byte[] bytes = new byte[length];
+            reader.GetBytes(bytes, length);
+            Deserialize(bytes);
         }
     }
 }

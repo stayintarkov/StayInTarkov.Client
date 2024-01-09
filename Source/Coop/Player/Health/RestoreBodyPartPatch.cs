@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.Player.Health
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
             //var json = restoreBodyPartPacket.ToJson();
             //Logger.LogInfo(json);
-            AkiBackendCommunication.Instance.SendDataToPool(restoreBodyPartPacket.Serialize());
+            GameClient.SendDataToServer(restoreBodyPartPacket.Serialize());
         }
 
 

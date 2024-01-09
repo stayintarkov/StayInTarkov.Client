@@ -89,6 +89,12 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
                 return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
 
             var allAirdropPoints = LocationScene.GetAll<AirdropPoint>().ToList();
+            if (gameWorld == null)
+                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
+
+            if (gameWorld.RegisteredPlayers == null || !gameWorld.RegisteredPlayers.Any())
+                return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
+
             var playerPosition = gameWorld.RegisteredPlayers[0].Position;
             var flareAirdropPoints = new List<AirdropPoint>();
             var dropChance = ChanceToSpawn(gameWorld, serverConfig, isFlare);

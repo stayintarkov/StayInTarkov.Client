@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "PullRingForLowThrow").Serialize());
+            GameClient.SendDataToServer(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "PullRingForLowThrow").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -45,7 +45,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
 
             GrenadeThrowPacket grenadeThrowPacket = new(null, Vector2.zero, null);
-            grenadeThrowPacket = grenadeThrowPacket.DeserializePacketSIT(dict["data"].ToString());
+            grenadeThrowPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, grenadeThrowPacket))
                 return;

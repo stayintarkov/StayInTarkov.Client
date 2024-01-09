@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player
             }
 
             ItemPlayerPacket itemPacket = new(___profile_0.ProfileId, item.Id, item.TemplateId, "ThrowItem");
-            AkiBackendCommunication.Instance.SendDataToPool(itemPacket.Serialize());
+            GameClient.SendDataToServer(itemPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -46,8 +46,8 @@ namespace StayInTarkov.Coop.Player
             if (!dict.ContainsKey("data"))
                 return;
 
-            ItemPlayerPacket itemPacket = new(null, null, null, null);
-            itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
+            ItemPlayerPacket itemPacket = new(player.ProfileId, null, null, dict["m"].ToString());
+            itemPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, itemPacket))
                 return;

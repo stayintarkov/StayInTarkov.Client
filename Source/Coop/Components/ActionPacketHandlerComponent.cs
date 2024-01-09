@@ -6,7 +6,9 @@ using EFT;
 using EFT.MovingPlatforms;
 using EFT.UI.BattleTimer;
 using StayInTarkov.AkiSupport.Airdrops.Models;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.World;
 using StayInTarkov.Core.Player;
 using System;
@@ -51,10 +53,17 @@ namespace StayInTarkov.Coop.Components
             ActionPacketsMovement = new();
         }
 
-        void Update()
+        //void Update()
+        //{
+        //    ProcessActionPackets();
+        //}
+
+        void LateUpdate()
         {
             ProcessActionPackets();
         }
+
+        
 
 
         public static ActionPacketHandlerComponent GetThisComponent()
@@ -240,10 +249,17 @@ namespace StayInTarkov.Coop.Components
             if (packet == null)
                 return true;
 
-            if (!packet.ContainsKey("profileId"))
-                return false;
 
-            var profileId = packet["profileId"].ToString();
+            var profileId = "";
+            
+            if (packet.ContainsKey("profileId"))
+                profileId = packet["profileId"].ToString();
+
+            if (packet.ContainsKey("ProfileId"))
+                profileId = packet["ProfileId"].ToString();
+
+            if (string.IsNullOrEmpty(profileId))
+                return false;
 
             if (Players == null)
             {

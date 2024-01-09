@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Player
 
             ItemPlayerPacket itemPacket = new(___profile_0.ProfileId, togglable.Item.Id, togglable.Item.TemplateId, "PlayerInventoryController_ToggleItem");
             var serialized = itemPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -44,8 +44,8 @@ namespace StayInTarkov.Coop.Player
             if (!dict.ContainsKey("data"))
                 return;
 
-            ItemPlayerPacket itemPacket = new(null, null, null, "");
-            itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
+            ItemPlayerPacket itemPacket = new(player.ProfileId, null, null, dict["m"].ToString());
+            itemPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, itemPacket))
                 return;

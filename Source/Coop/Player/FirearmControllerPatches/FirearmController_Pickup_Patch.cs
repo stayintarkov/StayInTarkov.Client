@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pickupPicket = new(player.ProfileId, p);
-            AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
+            GameClient.SendDataToServer(pickupPicket.Serialize());
 
 
 
@@ -81,7 +82,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pp = new(null, false);
-            pp = pp.DeserializePacketSIT(dict["data"].ToString());
+            pp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, pp))
                 return;

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 
 namespace StayInTarkov.Coop
 {
@@ -39,12 +40,8 @@ namespace StayInTarkov.Coop
             Logger.LogInfo("Stay in Tarkov - Enabling Coop Patches");
 
             new TarkovApplication_LocalGameCreator_Patch().Enable();
-            new LocalGameStartingPatch(m_Config).Enable();
-            //new LocalGameEndingPatch(m_Config).Enable();
-            //new LocalGameSpawnAICoroutinePatch().Enable(); // No longer needed. Handled by CoopGame
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
-            new LocalGame_Weather_Patch().Enable();
             new LoadLocationLootPatch().Enable();
 
 

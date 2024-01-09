@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.IO;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
@@ -13,7 +14,49 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public BasePlayerPacket(string profileId, string method) : base(method)
         {
-            ProfileId = profileId;
+            if(profileId != null)
+                ProfileId = new string(profileId.ToCharArray());
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                ProfileId.Clear();
+                ProfileId = null;
+            }
+            //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
+        }
+
+
+        // -------------------------------------------------------------------------------------
+        // Do not override here. This will break any AutoDeserialization on anything inheriting.
+        // If you want to Serialize differently. Do so in the inherited class
+
+        //public override ISITPacket Deserialize(byte[] bytes)
+        //{
+        //    using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+        //    ReadHeader(reader);
+
+        //    // This is not a BasePlayerPacket?
+        //    if (reader.BaseStream.Position >= reader.BaseStream.Length)
+        //        return this;
+
+        //    ProfileId = reader.ReadString();
+        //    TimeSerializedBetter = reader.ReadString();
+        //    return this;
+        //}
+
+        //public override byte[] Serialize()
+        //{
+        //    var ms = new MemoryStream();
+        //    using BinaryWriter writer = new BinaryWriter(ms);
+        //    WriteHeader(writer);
+        //    writer.Write(ProfileId);
+        //    writer.Write(TimeSerializedBetter);
+        //    return ms.ToArray();
+        //}
     }
 }

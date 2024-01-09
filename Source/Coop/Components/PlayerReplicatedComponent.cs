@@ -3,20 +3,16 @@ using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
-using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Web;
-using StayInTarkov.Health;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
@@ -34,7 +30,7 @@ namespace StayInTarkov.Core.Player
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
-        public float ReplicatedMovementSpeed { get; set; }
+        //public float ReplicatedMovementSpeed { get; set; }
         private float PoseLevelSmoothed { get; set; } = 1;
 
         private HashSet<IPlayerPacketHandlerComponent> PacketHandlerComponents { get; } = new();
@@ -151,159 +147,198 @@ namespace StayInTarkov.Core.Player
 
         
 
-        private void ShouldTeleport(Vector3 desiredPosition)
-        {
-            var direction = (player.Position - desiredPosition).normalized;
-            Ray ray = new(player.Position, direction);
-            LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
-        }
+        //private void ShouldTeleport(Vector3 desiredPosition)
+        //{
+        //    var direction = (player.Position - desiredPosition).normalized;
+        //    Ray ray = new(player.Position, direction);
+        //    LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
+        //}
 
-        void Update()
-        {
-            Update_ClientDrone();
+        //void Update()
+        //{
+        //    //Update_ClientDrone();
 
             
 
-            if (IsClientDrone)
-                return;
+        //    if (IsClientDrone)
+        //        return;
 
-            if (player.ActiveHealthController.IsAlive)
-            {
-                var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
-                if (bodyPartHealth.AtMinimum)
-                {
-                    var packet = new Dictionary<string, object>();
-                    packet.Add("dmt", EDamageType.Undefined.ToString());
-                    packet.Add("m", "Kill");
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
-                }
-            }
-        }
+        //    if (player.ActiveHealthController.IsAlive)
+        //    {
+        //        var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
+        //        if (bodyPartHealth.AtMinimum)
+        //        {
+        //            var packet = new Dictionary<string, object>();
+        //            packet.Add("dmt", EDamageType.Undefined.ToString());
+        //            packet.Add("m", "Kill");
+        //            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+        //        }
+        //    }
+        //}
 
-        void LateUpdate()
-        {
-            if (!IsClientDrone)
-                return;
+        //void LateUpdate()
+        //{
+        //    if (!IsClientDrone)
+        //        return;
 
-            // This must exist in Update AND LateUpdate to function correctly.
-            //player.MovementContext.EnableSprint(ShouldSprint);
-            player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
-            if (ShouldSprint)
-            {
-                player.Rotation = ReplicatedRotation.Value;
-                player.MovementContext.Rotation = ReplicatedRotation.Value;
-                player.MovementContext.PlayerAnimator.SetMovementDirection(ReplicatedDirection.HasValue ? ReplicatedDirection.Value : player.InputDirection);
-            }
+        //    //Update_ClientDrone();
 
-        }
+        //    // This must exist in Update AND LateUpdate to function correctly.
+        //    //player.MovementContext.EnableSprint(ShouldSprint);
+        //    //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+        //    //if (ShouldSprint)
+        //    //{
+        //    //    player.Rotation = ReplicatedRotation.Value;
+        //    //    player.MovementContext.Rotation = ReplicatedRotation.Value;
+        //    //    player.MovementContext.PlayerAnimator.SetMovementDirection(ReplicatedDirection.HasValue ? ReplicatedDirection.Value : player.InputDirection);
+        //    //}
 
-        private void Update_ClientDrone()
-        {
-            if (!IsClientDrone)
-                return;
+        //}
 
-            // Replicate Rotation.
-            // Smooth Lerp to the Desired Rotation
-            if (ReplicatedRotation.HasValue && !IsSprinting && !ShouldSprint)
-            {
-                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 2);
-            }
+        //private void Update_ClientDrone()
+        //{
 
-            //if (ReplicatedDirection.HasValue)
-            //{
-            //    if (_playerMovePatch == null)
-            //        _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
+        //    if (!IsClientDrone)
+        //    {
+        //        return;
+        //    }
 
-            //    _playerMovePatch?.ReplicatedMove(player,
-            //        new ReceivedPlayerMoveStruct(0, 0, 0, ReplicatedDirection.Value.x, ReplicatedDirection.Value.y, ReplicatedMovementSpeed));
-            //}
+        //    //Logger.LogDebug($"{nameof(Update_ClientDrone)}:IsClientDrone:{IsClientDrone}");
 
-            player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
-            if (!ShouldSprint)
-            {
-                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
-                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
-            }
-            else
-            {
-                // This must exist in Update AND LateUpdate to function correctly.
-                player.Rotation = ReplicatedRotation.Value;
-                if (ReplicatedDirection.HasValue)
-                    player.MovementContext.PlayerAnimatorSetMovementDirection(ReplicatedDirection.Value);
-            }
+        //    if (ReplicatedPlayerStatePacket == null)
+        //    {
+        //        //Logger.LogError($"{nameof(Update_ClientDrone)}:ReplicatedPlayerStatePacket is Null");
+        //        return;
+        //    }
 
-            if (ReplicatedHeadRotation.HasValue)
-            {
-                player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 20);
-            }
 
-            if (ReplicatedTilt.HasValue)
-            {
-                player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 10), true);
-            }
+        //    // Head Rotation
+        //    var newHeadRotation = ReplicatedPlayerStatePacket.HeadRotation;
+        //    player.HeadRotation = Vector3.Lerp(player.HeadRotation, newHeadRotation, Time.deltaTime * 4);
+        //    player.ProceduralWeaponAnimation.SetHeadRotation(player.HeadRotation);
 
-            // Process Prone
-            if (ReplicatedPlayerStatePacket != null)
-            {
-                bool prone = ReplicatedPlayerStatePacket.IsProne;
-                if (!player.IsInPronePose)
-                {
-                    if (prone)
-                    {
-                        player.CurrentManagedState.Prone();
-                    }
-                }
-                else
-                {
-                    if (!prone)
-                    {
-                        player.ToggleProne();
-                        player.MovementContext.UpdatePoseAfterProne();
-                    }
-                }
+        //    var lastMoveDir = LastReplicatedPlayerStatePacket.MovementDirection;
+        //    var newMoveDir = ReplicatedPlayerStatePacket.MovementDirection;
+        //    player.MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(lastMoveDir, newMoveDir, Time.deltaTime * 2));
+        //    //player.MovementContext.PlayerAnimatorSetDiscreteDirection(GClass1595.ConvertToMovementDirection(NewState.MovementDirection));
 
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Energy, "Current", ReplicatedPlayerStatePacket.Energy);
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController.Hydration, "Current", ReplicatedPlayerStatePacket.Hydration);
+        //    // Replicate Rotation.
+        //    // Smooth Lerp to the Desired Rotation
+        //    if (ReplicatedRotation.HasValue && Vector2.Dot(player.Rotation, ReplicatedDirection.Value) < 0.9)
+        //    {
+        //        var r = Vector2.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
+        //        player.Rotate((r - player.Rotation).normalized, true);
+        //    }
 
-                //Logger.LogDebug(ReplicatedPlayerStatePacket.PlayerHealthSerialized);
-                if (ReplicatedPlayerHealth != null)
-                {
-                    //Logger.LogDebug($"{ReplicatedPlayerHealth.ToJson()}");
+        //    //if (!ShouldSprint && ReplicatedPosition.HasValue && Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
+        //    //{
+        //    //    if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 3)
+        //    //        player.Position = ReplicatedPosition.Value;
+        //    //    //else
+        //    //    //    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
+        //    //}
+        //    //else if (ReplicatedPlayerStatePacket != null)
+        //    //{
+        //    //    //player.CurrentManagedState.Move(new Vector2(ReplicatedPlayerStatePacket.InputDirectionX, ReplicatedPlayerStatePacket.InputDirectionY));
+        //    //}
 
-                    //if (ReplicatedPlayerHealth.ContainsKey("Chest"))
-                    {
-                        var dictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.ActiveHealthController, "Dictionary_0", false);
-                        if (dictionary != null)
-                        {
-                            foreach (EBodyPart bodyPart in BodyPartEnumValues)
-                            {
-                                if (
-                                    ReplicatedPlayerHealth.ContainsKey($"{bodyPart}c")
-                                    && ReplicatedPlayerHealth.ContainsKey($"{bodyPart}m")
-                                    )
-                                {
-                                    BodyPartState bodyPartState = dictionary[bodyPart];
-                                    if (bodyPartState != null)
-                                    {
-                                        bodyPartState.Health = new(float.Parse(ReplicatedPlayerHealth[$"{bodyPart}c"].ToString()), float.Parse(ReplicatedPlayerHealth[$"{bodyPart}m"].ToString()));
-                                        //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPart} health to {ReplicatedPlayerHealth[$"{bodyPart}c"]}");
-                                    }
-                                }
-                            }
-                        }
+        //    //if (!player.IsInventoryOpened)
+        //    //{
+        //    //    var inputDir = new Vector2(ReplicatedPlayerStatePacket.InputDirectionX, ReplicatedPlayerStatePacket.InputDirectionY);
+        //    //    player.CurrentManagedState.Move(inputDir);
 
-                        HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_0", false);
-                        if (energy != null)
-                            energy.Current = ReplicatedPlayerStatePacket.Energy;
+        //    //    if(Vector3.Distance(ReplicatedPosition.Value, player.Position) > 1)
+        //    //    {
+        //    //        player.CurrentManagedState.Move((ReplicatedPosition.Value - player.Position).normalized);
+        //    //    }
+        //    //}
 
-                        HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.ActiveHealthController, "healthValue_1", false);
-                        if (hydration != null)
-                            hydration.Current = ReplicatedPlayerStatePacket.Hydration;
-                    }
-                }
-            }
-        }
+        //    //player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+        //    if (!ShouldSprint)
+        //    {
+        //        if (PoseLevelDesired.HasValue)
+        //        {
+        //            PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired.Value, Time.deltaTime);
+        //            player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        player.MovementContext.PlayerAnimator.EnableSprint(ShouldSprint);
+        //        player.EnableSprint(ShouldSprint);
+        //    }
 
+        //    if (ReplicatedHeadRotation.HasValue)
+        //    {
+        //        player.HeadRotation = Vector3.Lerp(player.HeadRotation, ReplicatedHeadRotation.Value, Time.deltaTime * 6);
+        //    }
+
+        //    if (ReplicatedTilt.HasValue)
+        //    {
+        //        player.MovementContext.SetTilt(Mathf.Lerp(player.MovementContext.Tilt, ReplicatedTilt.Value, Time.deltaTime * 6), true);
+        //    }
+
+        //    // Process Prone
+        //    if (ReplicatedPlayerStatePacket != null)
+        //    {
+        //        bool prone = ReplicatedPlayerStatePacket.IsProne;
+        //        if (!player.IsInPronePose)
+        //        {
+        //            if (prone)
+        //            {
+        //                player.CurrentManagedState.Prone();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (!prone)
+        //            {
+        //                player.ToggleProne();
+        //                player.MovementContext.UpdatePoseAfterProne();
+        //            }
+        //        }
+
+        //        if (ReplicatedPlayerHealth != null)
+        //        {
+        //            //Logger.LogDebug($"{nameof(ReplicatedPlayerHealth)} found");
+
+        //            if (_healthDictionary == null)
+        //                _healthDictionary = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>(player.HealthController, "dictionary_0", false);
+
+        //            if (_healthDictionary != null && ReplicatedPlayerHealth.BodyParts != null)
+        //            {
+        //                //Logger.LogDebug($"{nameof(_healthDictionary)} found");
+
+        //                foreach (PlayerBodyPartHealthPacket bodyPartHP in ReplicatedPlayerHealth.BodyParts)
+        //                {
+        //                    if (_healthDictionary.ContainsKey(bodyPartHP.BodyPart))
+        //                    {
+        //                        BodyPartState bodyPartState = _healthDictionary[bodyPartHP.BodyPart];
+        //                        if (bodyPartState != null)
+        //                        {
+        //                            bodyPartState.Health = new HealthValue(bodyPartHP.Current, bodyPartHP.Maximum);
+        //                            //Logger.LogDebug($"Set {player.Profile.Nickname} {bodyPartHP.BodyPart} health to {bodyPartHP.Current}/{bodyPartHP.Maximum}");
+        //                        }
+        //                    }
+        //                }
+
+        //                //ReflectionHelpers.SetFieldOrPropertyFromInstance(player.ActiveHealthController, "Dictionary_0", _healthDictionary);
+        //            }
+
+        //            HealthValue energy = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_0", false);
+        //            if (energy != null)
+        //                energy.Current = ReplicatedPlayerStatePacket.PlayerHealth.Energy;
+
+        //            HealthValue hydration = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(player.HealthController, "healthValue_1", false);
+        //            if (hydration != null)
+        //                hydration.Current = ReplicatedPlayerStatePacket.PlayerHealth.Hydration;
+        //        }
+        //    }
+
+        //    LastReplicatedPlayerStatePacket = ReplicatedPlayerStatePacket;
+        //}
+
+        private Dictionary<EBodyPart, BodyPartState> _healthDictionary;
         private static Array BodyPartEnumValues => Enum.GetValues(typeof(EBodyPart));
 
         //private void ProcessPlayerStateProne(Dictionary<string, object> packet)
@@ -326,22 +361,23 @@ namespace StayInTarkov.Core.Player
         //    }
         //}
 
-        Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
+        //Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-        public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? new Vector2(ReplicatedPlayerStatePacket.MovementDirectionX, ReplicatedPlayerStatePacket.MovementDirectionY) : null;
-        public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? new Vector2(ReplicatedPlayerStatePacket.RotationX, ReplicatedPlayerStatePacket.RotationY) : null;
-        public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? new Vector3(ReplicatedPlayerStatePacket.PositionX, ReplicatedPlayerStatePacket.PositionY, ReplicatedPlayerStatePacket.PositionZ) : null;
-        public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? new Vector3(ReplicatedPlayerStatePacket.HeadRotationX, ReplicatedPlayerStatePacket.HeadRotationY, ReplicatedPlayerStatePacket.HeadRotationZ) : null;
+        public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.MovementDirection : null;
+        public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Rotation : null;
+        public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Position : null;
+        public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.HeadRotation : null;
         public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
         public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
-        private float PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : 1;
-        public JObject ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? JObject.Parse(ReplicatedPlayerStatePacket.PlayerHealthSerialized) : null;
+        private float? PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : null;
+        public PlayerHealthPacket ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PlayerHealth : null;
 
         public bool IsSprinting
         {
             get { return player.IsSprintEnabled; }
         }
-        public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; }
+        public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; } = new();
+        public PlayerStatePacket LastReplicatedPlayerStatePacket { get; internal set; } = new();
 
         public ManualLogSource Logger { get; private set; }
 
@@ -368,5 +404,10 @@ namespace StayInTarkov.Core.Player
         {
             return player.Profile.Id.StartsWith("pmc") && !IsClientDrone;
         }
+
+        //internal void UpdateTick()
+        //{
+        //    Update_ClientDrone();
+        //}
     }
 }

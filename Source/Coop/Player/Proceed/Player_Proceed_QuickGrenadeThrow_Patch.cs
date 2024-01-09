@@ -43,7 +43,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, throwWeap.Id, throwWeap.TemplateId, scheduled, "ProceedQuickGrenadeThrow");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -51,8 +51,8 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (!dict.ContainsKey("data"))
                 return;
 
-            PlayerProceedPacket playerProceedPacket = new(null, null, null, true, null);
-            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+            PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
+            playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;

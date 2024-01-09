@@ -84,7 +84,7 @@ namespace StayInTarkov.Coop.Player
             //    return;
 
             //AlreadySent.Add(serialized);
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -98,7 +98,7 @@ namespace StayInTarkov.Coop.Player
 
             if (dict.ContainsKey("data"))
             {
-                itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
+                itemPacket.DeserializePacketSIT(dict["data"].ToString());
             }
             else
             {

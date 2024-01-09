@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             //if (knife.Item is Knife knife0)
             {
                 PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife.Item.Id, knife.Item.TemplateId, scheduled, "ProceedQuickKnifeKick");
-                AkiBackendCommunication.Instance.SendDataToPool(playerProceedPacket.Serialize());
+                GameClient.SendDataToServer(playerProceedPacket.Serialize());
             }
         }
 
@@ -55,8 +55,8 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (!dict.ContainsKey("data"))
                 return;
 
-            PlayerProceedPacket playerProceedPacket = new(null, null, null, true, null);
-            playerProceedPacket = playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+            PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
+            playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;

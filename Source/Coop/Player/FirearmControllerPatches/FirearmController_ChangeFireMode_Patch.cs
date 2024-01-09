@@ -63,7 +63,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
 
             FireModePacket fireModePacket = new(____player.ProfileId, fireMode);
-            AkiBackendCommunication.Instance.SendDataToPool(fireModePacket.Serialize());
+            GameClient.SendDataToServer(fireModePacket.Serialize());
 
         }
 
@@ -75,7 +75,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
 
             if (dict.ContainsKey("data"))
-                fmp = fmp.DeserializePacketSIT(dict["data"].ToString());
+                fmp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, fmp))
                 return;

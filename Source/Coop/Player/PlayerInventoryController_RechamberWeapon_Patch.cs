@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player
 
             ItemPlayerPacket itemPacket = new(__instance.Profile.ProfileId, weapon.Id, weapon.TemplateId, "RechamberWeapon");
             var serialized = itemPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
         }
 
         public override async void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -56,8 +56,8 @@ namespace StayInTarkov.Coop.Player
             if (!dict.ContainsKey("data"))
                 return;
 
-            ItemPlayerPacket itemPacket = new(null, null, null, "");
-            itemPacket = itemPacket.DeserializePacketSIT(dict["data"].ToString());
+            ItemPlayerPacket itemPacket = new(player.ProfileId, null, null, dict["m"].ToString());
+            itemPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, itemPacket))
                 return;

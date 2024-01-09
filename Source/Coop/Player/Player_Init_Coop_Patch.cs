@@ -1,10 +1,14 @@
 ﻿using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +73,13 @@ namespace StayInTarkov.Coop.Player
                 return;
             }
 
-            SendPlayerDataToServer(player);
+            CoopGame.SendPlayerDataToServer(player);
+
+            JObject joinPacket = new();
+            joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("m", "JoinMatch");
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
 
             //if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
             //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
@@ -83,70 +93,60 @@ namespace StayInTarkov.Coop.Player
 
         }
 
-        public static void SendPlayerDataToServer(EFT.LocalPlayer player)
-        {
-            var profileJson = player.Profile.SITToJson();
+        //public static void SendPlayerDataToServer(EFT.LocalPlayer player)
+        //{
+        //    var profileJson = player.Profile.SITToJson();
 
 
-            Dictionary<string, object> packet = new()
-            {
-                        {
-                            "serverId",
-                            MatchmakerAcceptPatches.GetGroupId()
-                        },
-                        {
-                        "isAI",
-                            player.IsAI || !player.Profile.Id.StartsWith("pmc")
-                        },
-                        //{
-                        //    "accountId",
-                        //    //player.Profile.AccountId
-                        //    player.ProfileId
-                        //},
-                        {
-                            "profileId",
-                            player.ProfileId
-                        },
-                        {
-                            "groupId",
-                            Matchmaker.MatchmakerAcceptPatches.GetGroupId()
-                        },
-                        {
-                            "sPx",
-                            player.Transform.position.x
-                        },
-                        {
-                            "sPy",
-                            player.Transform.position.y
-                        },
-                        {
-                            "sPz",
-                            player.Transform.position.z
-                        },
-                        {
-                            "profileJson",
-                            profileJson
-                        },
-                        { "m", "PlayerSpawn" },
-                    };
+        //    Dictionary<string, object> packet = new()
+        //    {
+        //                {
+        //                    "serverId",
+        //                    MatchmakerAcceptPatches.GetGroupId()
+        //                },
+        //                {
+        //                "isAI",
+        //                    player.IsAI || !player.Profile.Id.StartsWith("pmc")
+        //                },
+        //                //{
+        //                //    "accountId",
+        //                //    //player.Profile.AccountId
+        //                //    player.ProfileId
+        //                //},
+        //                {
+        //                    "profileId",
+        //                    player.ProfileId
+        //                },
+        //                {
+        //                    "groupId",
+        //                    Matchmaker.MatchmakerAcceptPatches.GetGroupId()
+        //                },
+        //                {
+        //                    "sPx",
+        //                    player.Transform.position.x
+        //                },
+        //                {
+        //                    "sPy",
+        //                    player.Transform.position.y
+        //                },
+        //                {
+        //                    "sPz",
+        //                    player.Transform.position.z
+        //                },
+        //                {
+        //                    "profileJson",
+        //                    profileJson
+        //                },
+        //                { "m", "PlayerSpawn" },
+        //            };
 
 
-            //Logger.LogDebug(packet.ToJson());
+        //    //Logger.LogDebug(packet.ToJson());
 
-            var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            prc.player = player;
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+        //    var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+        //    prc.player = player;
+        //    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
 
-
-
-            // ==================== TEST ==========================
-            // TODO: Replace with Unit Tests
-            var pJson = player.Profile.SITToJson();
-            //Logger.LogDebug(pJson);
-            var pProfile = pJson.SITParseJson<Profile>();
-            Assert.AreEqual<Profile>(player.Profile, pProfile);
-
-
-        }
+        //}
     }
 }

@@ -1,5 +1,6 @@
 using ComponentAce.Compression.Libs.zlib;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.ThirdParty
@@ -65,27 +66,27 @@ namespace StayInTarkov.ThirdParty
         /// Deflate data.
         /// </summary>
 
-        public static byte[] Compress(string data)
-        {
-            return SimpleZlib.CompressToBytes(data, 6);
-        }
-
         public static byte[] Compress(byte[] data, ZlibCompression level = ZlibCompression.Normal)
         {
-            var ms = new MemoryStream();
-            using (var zs = (level > ZlibCompression.Store)
-                    ? new ZOutputStream(ms, (int)level)
-                    : new ZOutputStream(ms))
-                {
-                    zs.Write(data, 0, data.Length);
-                }
-
-            var result = ms.ToArray();
-            ms.Close();
-            ms.Dispose();
-            ms = null;
-            return result;
+            return SimpleZlib.CompressToBytes(Encoding.UTF8.GetString(data), 6, Encoding.UTF8);
         }
+
+        //public static byte[] Compress(byte[] data, ZlibCompression level = ZlibCompression.Normal)
+        //{
+        //    var ms = new MemoryStream();
+        //    using (var zs = (level > ZlibCompression.Store)
+        //            ? new ZOutputStream(ms, (int)level)
+        //            : new ZOutputStream(ms))
+        //        {
+        //            zs.Write(data, 0, data.Length);
+        //        }
+
+        //    var result = ms.ToArray();
+        //    ms.Close();
+        //    ms.Dispose();
+        //    ms = null;
+        //    return result;
+        //}
 
         /// <summary>
         /// Inflate data.
@@ -93,6 +94,11 @@ namespace StayInTarkov.ThirdParty
         public static string Decompress(byte[] data)
         {
             return SimpleZlib.Decompress(data);
+        }
+
+        public static byte[] DecompressToBytes(byte[] data)
+        {
+            return SimpleZlib.DecompressToBytes(data);
         }
     }
 }

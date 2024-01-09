@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -95,7 +96,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             triggerPressedPacket.rX = player.Rotation.x;
             triggerPressedPacket.rY = player.Rotation.y;
             var serialized = triggerPressedPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            GameClient.SendDataToServer(serialized);
         }
 
 
@@ -115,17 +116,16 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 }
                 return;
             }
-
-            //var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            //taskScheduler.Do((s) =>
-            //{
             TriggerPressedPacket tpp = new(player.ProfileId);
 
             //Logger.LogInfo("Pressed:Replicated");
             if (!dict.ContainsKey("data"))
+            {
+                Logger.LogError($"{nameof(FirearmController_SetTriggerPressed_Patch)}:{nameof(Replicated)} data is missing");
                 return;
+            }
 
-            tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
+            tpp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, tpp))
                 return;
@@ -178,17 +178,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             yield break;
         }
 
-        public class TriggerPressedPacket : BasePlayerPacket
-        {
-            public bool pr { get; set; }
-            public float rX { get; set; }
-            public float rY { get; set; }
-
-            public TriggerPressedPacket(string profileId) : base(profileId, "SetTriggerPressed")
-            {
-            }
-
-        }
+        
 
 
 

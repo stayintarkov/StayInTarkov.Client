@@ -39,7 +39,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(__instance.ProfileId, withNetwork, scheduled, "ProceedEmptyHands");
-            AkiBackendCommunication.Instance.SendDataToPool(playerProceedEmptyHandsPacket.Serialize());
+            GameClient.SendDataToServer(playerProceedEmptyHandsPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -51,8 +51,8 @@ namespace StayInTarkov.Coop.Player.Proceed
             if (!dict.ContainsKey("data"))
                 return;
 
-            PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(null, true, true, null);
-            playerProceedEmptyHandsPacket = playerProceedEmptyHandsPacket.DeserializePacketSIT(dict["data"].ToString());
+            PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(player.ProfileId, true, true, null);
+            playerProceedEmptyHandsPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, playerProceedEmptyHandsPacket))
                 return;
