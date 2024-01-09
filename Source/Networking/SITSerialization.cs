@@ -82,9 +82,21 @@ namespace StayInTarkov.Networking
                 writer.Put(physicalStamina.HandsExhausted);
             }
 
+            public static void Serialize(BinaryWriter writer, Physical.PhysicalStamina physicalStamina)
+            {
+                writer.Write(physicalStamina.StaminaExhausted);
+                writer.Write(physicalStamina.OxygenExhausted);
+                writer.Write(physicalStamina.HandsExhausted);
+            }
+
             public static Physical.PhysicalStamina Deserialize(NetDataReader reader)
             {
                 return new Physical.PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
+            }
+
+            public static Physical.PhysicalStamina Deserialize(BinaryReader reader)
+            {
+                return new Physical.PhysicalStamina() { StaminaExhausted = reader.ReadBoolean(), OxygenExhausted = reader.ReadBoolean(), HandsExhausted = reader.ReadBoolean() };
             }
         }
 
