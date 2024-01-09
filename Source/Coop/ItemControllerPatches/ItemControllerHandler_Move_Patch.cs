@@ -2,6 +2,7 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;

@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.ThirdParty;

@@ -1,4 +1,5 @@
 ﻿using LiteNetLib.Utils;
+using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,8 +34,6 @@ namespace StayInTarkov.Coop.NetworkPacket
         public bool HandsExhausted { get; set; }
         public bool OxygenExhausted { get; set; }
         public bool StaminaExhausted { get; set; }
-        public float InputDirectionX { get; set; }
-        public float InputDirectionY { get; set; }
         public Vector3 Position { get; set; }
         public Vector2 Rotation { get; set; }
         public Vector3 HeadRotation { get; set; }
@@ -50,8 +49,8 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, 
-            float energy, float hydration, PlayerHealthPacket playerHealth)
+            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection
+            , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
             : base(new string(profileId.ToCharArray()), "PlayerState")
         {
             //PositionX = position.x;
@@ -75,9 +74,11 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsProne = isProne;
             PoseLevel = poseLevel;
             IsSprinting = isSprinting;
-            InputDirectionX = inputDirection.x; 
-            InputDirectionY = inputDirection.y;
+            InputDirection = inputDirection;
             PlayerHealth = playerHealth;
+            Stamina = stamina;
+            Blindfire = blindFire;
+            LinearSpeed = linearSpeed;
         }
 
         public override byte[] Serialize()
@@ -107,14 +108,18 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(IsProne);
             writer.Write(PoseLevel);
             writer.Write(IsSprinting);
-            writer.Write(InputDirectionX);
-            writer.Write(InputDirectionY);
+            PhysicalUtils.Serialize(writer, Stamina);
+            Vector2Utils.Serialize(writer, InputDirection);
+            writer.Write(Blindfire);
+            writer.Write(LinearSpeed);
+            writer.Write(TimeSerializedBetter);
 
             // Has PlayerHealth packet
             writer.Write(PlayerHealth != null);
             if (PlayerHealth != null)
                 writer.WriteLengthPrefixedBytes(PlayerHealth.Serialize());
 
+            //return Zlib.Compress(ms.ToArray());
             return ms.ToArray();
 
         }
@@ -123,6 +128,8 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
+
+            //bytes = Zlib.DecompressToBytes(bytes);
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeader(reader);
@@ -152,8 +159,11 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsProne = reader.ReadBoolean();
             PoseLevel = reader.ReadSingle();
             IsSprinting = reader.ReadBoolean();
-            InputDirectionX = reader.ReadSingle();
-            InputDirectionY = reader.ReadSingle();
+            Stamina = PhysicalUtils.Deserialize(reader);
+            InputDirection = Vector2Utils.Deserialize(reader);
+            Blindfire = reader.ReadInt32();
+            LinearSpeed = reader.ReadSingle();
+            TimeSerializedBetter = reader.ReadString();
 
             // If has a PlayerHealth packet
             if (reader.ReadBoolean())

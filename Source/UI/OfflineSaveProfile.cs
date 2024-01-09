@@ -1,7 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using StayInTarkov.AkiSupport.Singleplayer.Models.Healing;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Health;
 using StayInTarkov.Networking;
 using System;

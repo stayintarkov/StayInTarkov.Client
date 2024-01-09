@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Networking;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 

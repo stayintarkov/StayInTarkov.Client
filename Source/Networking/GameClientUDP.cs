@@ -6,8 +6,11 @@ using LiteNetLib.Utils;
 using Sirenix.Utilities;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Players;
+
 //using StayInTarkov.Coop.Players;
 //using StayInTarkov.Networking.Packets;
 using System;

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.NetworkPacket;
 using System;
 using System.Collections.Generic;

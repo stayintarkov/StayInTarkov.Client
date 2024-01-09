@@ -4,6 +4,7 @@ using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
 using StayInTarkov.Configuration;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using UnityEngine;
 using UnityStandardAssets.ImageEffects;

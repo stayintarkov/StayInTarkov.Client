@@ -95,5 +95,10 @@ namespace StayInTarkov.ThirdParty
         {
             return SimpleZlib.Decompress(data);
         }
+
+        public static byte[] DecompressToBytes(byte[] data)
+        {
+            return SimpleZlib.DecompressToBytes(data);
+        }
     }
 }

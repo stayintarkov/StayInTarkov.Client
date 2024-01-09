@@ -1,4 +1,5 @@
 ﻿using EFT;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;

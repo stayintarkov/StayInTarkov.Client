@@ -6,7 +6,10 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Players;
+
 //using StayInTarkov.Coop.Players;
 //using StayInTarkov.Networking.Packets;
 using System.Collections.Concurrent;

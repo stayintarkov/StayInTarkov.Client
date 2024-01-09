@@ -3,6 +3,7 @@ using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

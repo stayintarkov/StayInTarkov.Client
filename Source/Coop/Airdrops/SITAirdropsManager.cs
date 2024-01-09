@@ -7,7 +7,7 @@ using StayInTarkov;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.AkiSupport.Airdrops.Utils;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Web;

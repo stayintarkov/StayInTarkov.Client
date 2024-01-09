@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.Collections.Generic;
 using System.Linq;

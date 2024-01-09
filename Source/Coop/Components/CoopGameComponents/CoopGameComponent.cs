@@ -9,6 +9,7 @@ using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.EssentialPatches;
@@ -27,7 +28,7 @@ using UnityEngine;
 
 using Rect = UnityEngine.Rect;
 
-namespace StayInTarkov.Coop
+namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
     /// <summary>
     /// Coop Game Component is the User 1-2-1 communication to the Server. This can be seen as an extension component to CoopGame.
@@ -106,7 +107,7 @@ namespace StayInTarkov.Coop
         public HashSet<string> ProfileIdsAI { get; } = new();
         public HashSet<string> ProfileIdsUser { get; } = new();
 
-        public List<EFT.LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
+        public List<LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
 
         public BlockingCollection<Dictionary<string, object>> ActionPackets => ActionPacketHandler.ActionPackets;
 
@@ -163,6 +164,8 @@ namespace StayInTarkov.Coop
             // Create a BepInEx Logger for CoopGameComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
+
+            gameObject.AddComponent<CoopGameGUIComponent>();
 
             SITCheck();
         }
@@ -227,6 +230,8 @@ namespace StayInTarkov.Coop
             // Run any methods you wish every second
             StartCoroutine(EverySecondCoroutine());
 
+            StartCoroutine(SendPlayerStatePacket());
+
             // Start the SIT Garbage Collector
             //if (PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
             //    InvokeRepeating(nameof(PeriodicEnableDisableGC), 1.0f, 60.0f);
@@ -241,6 +246,44 @@ namespace StayInTarkov.Coop
             CoopPatches.EnableDisablePatches();
 
             Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;
+        }
+
+        private IEnumerator SendPlayerStatePacket()
+        {
+            JObject playerStates = new();
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
+            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
+            playerStates.Add("t", DateTime.UtcNow.Ticks);
+
+            JArray playerStateArray = new JArray();
+            foreach (var player in Players.Values)
+            {
+                if (player == null)
+                    continue;
+
+                if (!player.TryGetComponent(out PlayerReplicatedComponent prc))
+                    continue;
+
+                if (prc.IsClientDrone)
+                    continue;
+
+                if (!player.enabled)
+                    continue;
+
+                if (!player.isActiveAndEnabled)
+                    continue;
+
+                CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
+            }
+
+            playerStates.Add("dataList", playerStateArray);
+            //Logger.LogDebug(playerStates.SITToJson());
+            RequestingObj.SendDataToPool(playerStates.SITToJson());
+
+            LastPlayerStateSent = DateTime.Now;
+
+            yield return new WaitForSeconds(PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS / 1000f);
+            StartCoroutine(SendPlayerStatePacket());
         }
 
         private void GameWorld_AfterGameStarted()
@@ -275,7 +318,7 @@ namespace StayInTarkov.Coop
 
             long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
 
-            if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + (memoryThreshold * 1024 * 1024))
+            if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + memoryThreshold * 1024 * 1024)
             {
                 _SITGCLastMemory = memory;
 #if DEBUG
@@ -297,7 +340,7 @@ namespace StayInTarkov.Coop
 
 #if DEBUG
                 var freedMemory = GC.GetTotalMemory(false);
-                Logger.LogDebug($"Freed {(freedMemory > 0 ? (freedMemory / 1024 / 1024) : 0)}mb in memory");
+                Logger.LogDebug($"Freed {(freedMemory > 0 ? freedMemory / 1024 / 1024 : 0)}mb in memory");
                 Logger.LogDebug($"Garbage Collection took {sw.ElapsedMilliseconds}ms");
                 sw.Stop();
                 sw = null;
@@ -382,15 +425,15 @@ namespace StayInTarkov.Coop
                             player.SwitchRenderer(false);
 
                             // TODO: Currently. Destroying your own Player just breaks the game and it appears to be "frozen". Need to learn a new way to do a FreeCam!
-                            if(Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
-                                GameObject.Destroy(player);
+                            if (Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
+                                Destroy(player);
                         }
                     }
                 }
             }
         }
 
-        private HashSet<string> ExtractedProfilesSent = new();  
+        private HashSet<string> ExtractedProfilesSent = new();
 
         void OnDestroy()
         {
@@ -405,7 +448,7 @@ namespace StayInTarkov.Coop
 
                     if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
-                        GameObject.DestroyImmediate(prc);
+                        DestroyImmediate(prc);
                     }
                 }
             }
@@ -502,7 +545,7 @@ namespace StayInTarkov.Coop
 
             // If there are any players alive. Number of players Alive Equals Numbers of players Extracted
             // OR Number of Players Equals Number of players Extracted 
-            if ((numberOfPlayersAlive > 0 && numberOfPlayersAlive == numberOfPlayersExtracted) || PlayerUsers.Count() == numberOfPlayersExtracted)
+            if (numberOfPlayersAlive > 0 && numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
@@ -529,7 +572,7 @@ namespace StayInTarkov.Coop
                 if (MatchmakerAcceptPatches.IsServer)
                 {
                     // A host needs to wait for the team to extract or die!
-                    if((PlayerUsers.Count() > 1) && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
+                    if (PlayerUsers.Count() > 1 && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
                     {
                         NotificationManagerClass.DisplayWarningNotification("HOSTING: You cannot exit the game until all clients have escaped or dead");
                         RequestQuitGame = false;
@@ -595,48 +638,14 @@ namespace StayInTarkov.Coop
             if (RequestingObj == null)
                 return;
 
-            
 
-            var timeForPlayerStateTick = PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS;
-            if (DateTime.Now > LastPlayerStateSent.AddMilliseconds(timeForPlayerStateTick))
-            {
-                JObject playerStates = new();
-                playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-                playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-                playerStates.Add("t", DateTime.UtcNow.Ticks);
 
-                JArray playerStateArray = new JArray();
-                foreach (var player in Players.Values)
-                {
-                    if (player == null)
-                        continue;
 
-                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
-                        continue;
-
-                    if (prc.IsClientDrone)
-                        continue;
-
-                    if (!player.enabled)
-                        continue;
-
-                    if (!player.isActiveAndEnabled)
-                        continue;
-
-                    CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
-                }
-
-                playerStates.Add("dataList", playerStateArray);
-                //Logger.LogDebug(playerStates.SITToJson());
-                RequestingObj.SendDataToPool(playerStates.SITToJson());
-
-                LastPlayerStateSent = DateTime.Now;
-            }
 
             if (SpawnedPlayersToFinalize == null)
                 return;
 
-            List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new();
+            List<LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new();
             foreach (var p in SpawnedPlayersToFinalize)
             {
                 SetWeaponInHandsOfNewPlayer(p, () =>
@@ -729,7 +738,7 @@ namespace StayInTarkov.Coop
                     // Game is broken and doesn't exist!
                     if (LocalGameInstance != null)
                     {
-                        this.ServerHasStopped = true;
+                        ServerHasStopped = true;
                     }
                     return;
                 }
@@ -1106,7 +1115,7 @@ namespace StayInTarkov.Coop
                 {
                     if (LocalGameInstance != null)
                     {
-                        var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(this.LocalGameInstance);
+                        var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(LocalGameInstance);
                         if (botController != null)
                         {
                             Logger.LogDebug("Adding Client Player to Enemy list");
@@ -1268,9 +1277,10 @@ namespace StayInTarkov.Coop
                 , player.MovementContext.PoseLevel
                 , player.MovementContext.IsSprintEnabled
                 , player.InputDirection
-                , player.ActiveHealthController != null ? player.ActiveHealthController.Energy.Current : 0
-                , player.ActiveHealthController != null ? player.ActiveHealthController.Hydration.Current : 0
                 , playerHealth
+                , player.Physical.SerializationStruct
+                , player.MovementContext.BlindFire
+                , player.MovementContext.ActualLinearVelocity
                 );
             ;
 
@@ -1305,98 +1315,98 @@ namespace StayInTarkov.Coop
         GUIStyle middleLargeLabelStyle;
         GUIStyle normalLabelStyle;
 
-        void OnGUI()
-        {
+        //void OnGUI()
+        //{
 
 
-            if (normalLabelStyle == null)
-            {
-                normalLabelStyle = new GUIStyle(GUI.skin.label);
-                normalLabelStyle.fontSize = 16;
-                normalLabelStyle.fontStyle = FontStyle.Bold;
-            }
-            if (middleLabelStyle == null)
-            {
-                middleLabelStyle = new GUIStyle(GUI.skin.label);
-                middleLabelStyle.fontSize = 18;
-                middleLabelStyle.fontStyle = FontStyle.Bold;
-                middleLabelStyle.alignment = TextAnchor.MiddleCenter;
-            }
-            if (middleLargeLabelStyle == null)
-            {
-                middleLargeLabelStyle = new GUIStyle(middleLabelStyle);
-                middleLargeLabelStyle.fontSize = 24;
-            }
+        //    if (normalLabelStyle == null)
+        //    {
+        //        normalLabelStyle = new GUIStyle(GUI.skin.label);
+        //        normalLabelStyle.fontSize = 16;
+        //        normalLabelStyle.fontStyle = FontStyle.Bold;
+        //    }
+        //    if (middleLabelStyle == null)
+        //    {
+        //        middleLabelStyle = new GUIStyle(GUI.skin.label);
+        //        middleLabelStyle.fontSize = 18;
+        //        middleLabelStyle.fontStyle = FontStyle.Bold;
+        //        middleLabelStyle.alignment = TextAnchor.MiddleCenter;
+        //    }
+        //    if (middleLargeLabelStyle == null)
+        //    {
+        //        middleLargeLabelStyle = new GUIStyle(middleLabelStyle);
+        //        middleLargeLabelStyle.fontSize = 24;
+        //    }
 
-            var rect = new UnityEngine.Rect(GuiX, 5, GuiWidth, 100);
-            rect = DrawPing(rect);
+        //    var rect = new Rect(GuiX, 5, GuiWidth, 100);
+        //    rect = DrawPing(rect);
 
-            GUIStyle style = GUI.skin.label;
-            style.alignment = TextAnchor.MiddleCenter;
-            style.fontSize = 13;
+        //    GUIStyle style = GUI.skin.label;
+        //    style.alignment = TextAnchor.MiddleCenter;
+        //    style.fontSize = 13;
 
-            var w = 0.5f; // proportional width (0..1)
-            var h = 0.2f; // proportional height (0..1)
-            var rectEndOfGameMessage = UnityEngine.Rect.zero;
-            rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
-            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + (Screen.height / 3);
-            rectEndOfGameMessage.width = Screen.width * w;
-            rectEndOfGameMessage.height = Screen.height * h;
+        //    var w = 0.5f; // proportional width (0..1)
+        //    var h = 0.2f; // proportional height (0..1)
+        //    var rectEndOfGameMessage = Rect.zero;
+        //    rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
+        //    rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + Screen.height / 3;
+        //    rectEndOfGameMessage.width = Screen.width * w;
+        //    rectEndOfGameMessage.height = Screen.height * h;
 
-            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-
-
-            if (LocalGameInstance == null)
-                return;
-
-            var coopGame = LocalGameInstance as CoopGame;
-            if (coopGame == null)
-                return;
-
-            rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
-
-            var quitState = GetQuitState();
-            switch (quitState)
-            {
-                case EQuitState.YourTeamIsDead:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YouAreDeadAsHost:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YouAreDeadAsClient:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YourTeamHasExtracted:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
-                    break;
-                case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"], middleLargeLabelStyle);
-                    break;
-            }
-
-            //if(quitState != EQuitState.NONE)
-            //{
-            //    var rectEndOfGameButton = new Rect(rectEndOfGameMessage);
-            //    rectEndOfGameButton.y += 15;
-            //    if(GUI.Button(rectEndOfGameButton, "End Raid"))
-            //    {
-
-            //    }
-            //}
+        //    var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
 
 
-            //OnGUI_DrawPlayerList(rect);
-            OnGUI_DrawPlayerFriendlyTags(rect);
-            //OnGUI_DrawPlayerEnemyTags(rect);
+        //    if (LocalGameInstance == null)
+        //        return;
 
-        }
+        //    var coopGame = LocalGameInstance as CoopGame;
+        //    if (coopGame == null)
+        //        return;
+
+        //    rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
+
+        //    var quitState = GetQuitState();
+        //    switch (quitState)
+        //    {
+        //        case EQuitState.YourTeamIsDead:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YouAreDead:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YouAreDeadAsHost:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YouAreDeadAsClient:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YourTeamHasExtracted:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YouHaveExtractedOnlyAsHost:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
+        //            break;
+        //        case EQuitState.YouHaveExtractedOnlyAsClient:
+        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"], middleLargeLabelStyle);
+        //            break;
+        //    }
+
+        //    //if(quitState != EQuitState.NONE)
+        //    //{
+        //    //    var rectEndOfGameButton = new Rect(rectEndOfGameMessage);
+        //    //    rectEndOfGameButton.y += 15;
+        //    //    if(GUI.Button(rectEndOfGameButton, "End Raid"))
+        //    //    {
+
+        //    //    }
+        //    //}
+
+
+        //    //OnGUI_DrawPlayerList(rect);
+        //    OnGUI_DrawPlayerFriendlyTags(rect);
+        //    //OnGUI_DrawPlayerEnemyTags(rect);
+
+        //}
 
         private Rect DrawPing(Rect rect)
         {
@@ -1410,9 +1420,9 @@ namespace StayInTarkov.Coop
             // PING ------
             GUI.contentColor = Color.white;
             GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"RTT:{(ServerPing)}");
+            GUI.Label(rect, $"RTT:{ServerPing}");
             rect.y += 15;
-            GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
+            GUI.Label(rect, $"Host RTT:{ServerPing + AkiBackendCommunication.Instance.HostPing}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 
@@ -1454,7 +1464,7 @@ namespace StayInTarkov.Coop
             return rect;
         }
 
-        private void OnGUI_DrawPlayerFriendlyTags(UnityEngine.Rect rect)
+        private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
         {
             if (SITConfig == null)
             {
@@ -1484,7 +1494,7 @@ namespace StayInTarkov.Coop
 
 
             if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
             var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
             if (ownPlayer == null)
@@ -1501,18 +1511,18 @@ namespace StayInTarkov.Coop
                 if (pl.IsYourPlayer && pl.HealthController.IsAlive)
                     continue;
 
-                Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + (Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f));
+                Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f);
                 Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
                 if (screenPos.z > 0)
                 {
-                    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                    rect.y = Screen.height - ((screenPos.y + rect.height / 2) * screenScale);
+                    rect.x = screenPos.x * screenScale - rect.width / 2;
+                    rect.y = Screen.height - (screenPos.y + rect.height / 2) * screenScale;
 
                     GUIStyle labelStyle = middleLabelStyle;
                     labelStyle.fontSize = 14;
                     float labelOpacity = 1;
                     float distanceToCenter = Vector3.Distance(screenPos, new Vector3(Screen.width, Screen.height, 0) / 2);
-                    
+
                     if (distanceToCenter < 100)
                     {
                         labelOpacity = distanceToCenter / 100;
@@ -1540,7 +1550,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        private void OnGUI_DrawPlayerEnemyTags(UnityEngine.Rect rect)
+        private void OnGUI_DrawPlayerEnemyTags(Rect rect)
         {
             if (SITConfig == null)
             {
@@ -1570,7 +1580,7 @@ namespace StayInTarkov.Coop
 
 
             if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
             var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
             if (ownPlayer == null)
@@ -1587,12 +1597,12 @@ namespace StayInTarkov.Coop
                 if (!pl.HealthController.IsAlive)
                     continue;
 
-                Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
+                Vector3 aboveBotHeadPos = pl.Position + Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f);
                 Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
                 if (screenPos.z > 0)
                 {
-                    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                    rect.y = Screen.height - (screenPos.y * screenScale) - 15;
+                    rect.x = screenPos.x * screenScale - rect.width / 2;
+                    rect.y = Screen.height - screenPos.y * screenScale - 15;
 
                     var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
                     GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
@@ -1602,7 +1612,7 @@ namespace StayInTarkov.Coop
             }
         }
 
-        private void OnGUI_DrawPlayerList(UnityEngine.Rect rect)
+        private void OnGUI_DrawPlayerList(Rect rect)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGShowPlayerList)
                 return;

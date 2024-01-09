@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System.Collections.Concurrent;

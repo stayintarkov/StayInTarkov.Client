@@ -1,5 +1,6 @@
 ﻿using EFT;
 using EFT.Interactive;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Concurrent;

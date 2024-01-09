@@ -4,6 +4,7 @@ using EFT.UI;
 using Mono.Cecil;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
