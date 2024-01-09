@@ -26,7 +26,7 @@ namespace StayInTarkov.Coop
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
             this.Player = player;
-            if (profile.ProfileId.StartsWith("pmc") && !IsDiscardLimitsFine(DiscardLimits))
+            if (player.Side != EPlayerSide.Savage && !IsDiscardLimitsFine(base.DiscardLimits))
                 base.ResetDiscardLimits();
         }
 

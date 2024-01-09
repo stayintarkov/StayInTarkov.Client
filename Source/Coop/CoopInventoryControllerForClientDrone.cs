@@ -19,7 +19,7 @@ namespace StayInTarkov.Coop
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerForClientDrone));
 
-            if (profile.ProfileId.StartsWith("pmc") && !CoopInventoryController.IsDiscardLimitsFine(DiscardLimits))
+            if (player.Side != EPlayerSide.Savage && !CoopInventoryController.IsDiscardLimitsFine(base.DiscardLimits))
                 base.ResetDiscardLimits();
         }
 

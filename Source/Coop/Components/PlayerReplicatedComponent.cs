@@ -53,40 +53,37 @@ namespace StayInTarkov.Core.Player
                 StayInTarkovHelperConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
             }
 
-            if (player.ProfileId.StartsWith("pmc"))
+            if (player.Side != EPlayerSide.Savage && ReflectionHelpers.GetDogtagItem(player) == null)
             {
-                if (ReflectionHelpers.GetDogtagItem(player) == null)
+                if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+                    return;
+
+                Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
+                if (dogtagSlot == null)
+                    return;
+
+                string itemId = new MongoID(true);
+                Logger.LogInfo($"New Dogtag Id: {itemId}");
+                //using (SHA256 sha256 = SHA256.Create())
+                //{
+                //    StringBuilder sb = new();
+
+                //    byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
+                //    for (int i = 0; i < hashes.Length; i++)
+                //        sb.Append(hashes[i].ToString("x2"));
+
+                //    itemId = sb.ToString().Substring(0, 24);
+                //}
+
+                Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+
+                if (dogtag != null)
                 {
-                    if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+                    if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
                         return;
 
-                    Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
-                    if (dogtagSlot == null)
-                        return;
-
-                    string itemId = new MongoID(true);
-                    Logger.LogInfo($"New Dogtag Id: {itemId}");
-                    //using (SHA256 sha256 = SHA256.Create())
-                    //{
-                    //    StringBuilder sb = new();
-
-                    //    byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
-                    //    for (int i = 0; i < hashes.Length; i++)
-                    //        sb.Append(hashes[i].ToString("x2"));
-
-                    //    itemId = sb.ToString().Substring(0, 24);
-                    //}
-
-                    Item dogtag = Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
-
-                    if (dogtag != null)
-                    {
-                        if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
-                            return;
-
-                        dogtagComponent.GroupId = player.Profile.Info.GroupId;
-                        dogtagSlot.AddWithoutRestrictions(dogtag);
-                    }
+                    dogtagComponent.GroupId = player.Profile.Info.GroupId;
+                    dogtagSlot.AddWithoutRestrictions(dogtag);
                 }
             }
 
