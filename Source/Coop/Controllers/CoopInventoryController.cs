@@ -9,7 +9,7 @@ using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop
+namespace StayInTarkov.Coop.Controllers
 {
     internal sealed class CoopInventoryController
         // At this point in time. PlayerOwnerInventoryController is required to fix Malfunction and Discard errors. This class needs to be replaced with PlayerInventoryController.
@@ -25,9 +25,9 @@ namespace StayInTarkov.Coop
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
-            this.Player = player;
+            Player = player;
             if (profile.ProfileId.StartsWith("pmc") && !IsDiscardLimitsFine(DiscardLimits))
-                base.ResetDiscardLimits();
+                ResetDiscardLimits();
         }
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)

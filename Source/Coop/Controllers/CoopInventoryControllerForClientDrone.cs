@@ -7,7 +7,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop
+namespace StayInTarkov.Coop.Controllers
 {
     internal sealed class CoopInventoryControllerForClientDrone
         : EFT.Player.PlayerInventoryController, ICoopInventoryController
@@ -20,7 +20,7 @@ namespace StayInTarkov.Coop
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerForClientDrone));
 
             if (profile.ProfileId.StartsWith("pmc") && !CoopInventoryController.IsDiscardLimitsFine(DiscardLimits))
-                base.ResetDiscardLimits();
+                ResetDiscardLimits();
         }
 
         //public override void Execute(SearchContentOperation operation, Callback callback)
