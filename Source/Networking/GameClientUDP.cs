@@ -10,7 +10,6 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Players;
-
 //using StayInTarkov.Coop.Players;
 //using StayInTarkov.Networking.Packets;
 using System;
@@ -19,6 +18,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using UnityStandardAssets.Water;
 using static StayInTarkov.Networking.SITSerialization;
 
 /* 
@@ -405,7 +405,7 @@ namespace StayInTarkov.Networking
 
         public void SendDataToServer(byte[] data)
         {
-            throw new NotImplementedException();
+            _netClient.FirstPeer.Send(data, LiteNetLib.DeliveryMethod.ReliableOrdered);
         }
     }
 }
