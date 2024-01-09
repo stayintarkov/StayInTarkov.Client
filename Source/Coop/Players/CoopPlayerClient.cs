@@ -89,7 +89,13 @@ namespace StayInTarkov.Coop.Players
 
             //prc.UpdateTick();
 
+            if (LastState == null)
+                return;
 
+            if (LastState.LinearSpeed > 0.25)
+            {
+                Move(LastState.InputDirection);
+            }
         }
 
         protected override void Interpolate()
@@ -149,16 +155,20 @@ namespace StayInTarkov.Coop.Players
 
             MovementContext.SetBlindFire(NewState.Blindfire);
 
-            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 2);
-            CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
-            if (!IsInventoryOpened)// && NewState.LinearSpeed > 0.25)
+
+            if (!IsInventoryOpened && NewState.LinearSpeed > 0.25)
             {
                 Move(NewState.InputDirection);
             }
+            //else
+            //{
+            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 2);
+            CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
+            //}
 
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))} to fully process.");
             LastState = NewState;
-            BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
+            //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
         }
 
         public override void UpdateTick()
@@ -167,10 +177,13 @@ namespace StayInTarkov.Coop.Players
 
             Interpolate();
 
-            //if (LastState == null)
-            //    return;
+            if (LastState == null)
+                return;
 
-            //Move(LastState.InputDirection);
+            if (LastState.LinearSpeed > 0.25)
+            {
+                Move(LastState.InputDirection);
+            }
 
         }
     }
