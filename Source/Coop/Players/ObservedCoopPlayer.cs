@@ -177,6 +177,12 @@ namespace StayInTarkov.Coop.Players
 
             EPlayerState name = MovementContext.CurrentState.Name;
             EPlayerState eplayerState = NewState.State;
+
+            if (eplayerState == EPlayerState.ClimbUp || eplayerState == EPlayerState.ClimbOver || eplayerState == EPlayerState.VaultingLanding || eplayerState == EPlayerState.VaultingFallDown)
+            {
+                Vaulting();
+            }
+
             if (eplayerState == EPlayerState.Jump)
             {
                 Jump();
