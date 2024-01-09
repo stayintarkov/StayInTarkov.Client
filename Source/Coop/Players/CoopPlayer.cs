@@ -4,11 +4,12 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
-using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using System;
@@ -19,7 +20,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace StayInTarkov.Coop
+namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayer : LocalPlayer
     {
@@ -64,7 +65,7 @@ namespace StayInTarkov.Coop
             }
             else
             {
-                player = EFT.Player.Create<CoopPlayer>(
+                player = Create<CoopPlayer>(
                     ResourceBundleConstants.PLAYER_BUNDLE_NAME
                     , playerId
                     , position
@@ -271,7 +272,7 @@ namespace StayInTarkov.Coop
                 if (FPSCamera.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
                 {
                     fastBlur.enabled = true;
-                    fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : (bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3));
+                    fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3);
                 }
             }
 
@@ -336,17 +337,17 @@ namespace StayInTarkov.Coop
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
             if (
-                (FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
-                && LastRotationSent != this.Rotation
+                FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(ProfileId)
+                && FirearmController_SetTriggerPressed_Patch.LastPress[ProfileId] == true
+                && LastRotationSent != Rotation
                 )
             {
                 Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
                 rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", this.Rotation.x);
-                rotationPacket.Add("y", this.Rotation.y);
+                rotationPacket.Add("x", Rotation.x);
+                rotationPacket.Add("y", Rotation.y);
                 AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
-                LastRotationSent = this.Rotation;
+                LastRotationSent = Rotation;
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
@@ -354,29 +355,29 @@ namespace StayInTarkov.Coop
 
         public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
         {
-            var prc = this.GetComponent<PlayerReplicatedComponent>();
+            var prc = GetComponent<PlayerReplicatedComponent>();
             if (prc == null || !prc.IsClientDrone)
                 return;
 
-            this.Rotation = rotation;
+            Rotation = rotation;
             //prc.ReplicatedRotation = rotation; 
 
         }
 
 
-        public override void Move(Vector2 direction)
-        {
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null)
-                return;
+        //public override void Move(Vector2 direction)
+        //{
+        //    var prc = GetComponent<PlayerReplicatedComponent>();
+        //    if (prc == null)
+        //        return;
 
-            base.Move(direction);
+        //    base.Move(direction);
 
-            if (prc.IsClientDrone)
-                return;
+        //    if (prc.IsClientDrone)
+        //        return;
 
 
-        }
+        //}
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
@@ -420,11 +421,18 @@ namespace StayInTarkov.Coop
                 return;
 
             prc.ReplicatedPlayerStatePacket = playerStatePacket;
+
+
         }
 
         protected virtual void Interpolate()
         {
 
+        }
+
+        public override void UpdateTick()
+        {
+            base.UpdateTick();
         }
     }
 }
