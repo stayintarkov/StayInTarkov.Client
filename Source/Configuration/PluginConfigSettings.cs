@@ -131,8 +131,8 @@ namespace StayInTarkov.Configuration
                 ("Coop", "ShowDronesOnServer", false, new ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
 
                 SETTING_PlayerStateTickRateInMS = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "PlayerStateTickRateInMS", 333, new ConfigDescription("The rate at which Player States will be synchronized. Min: 150ms, Max 2s")).Value;
-                SETTING_PlayerStateTickRateInMS = Math.Min(2 * 1000, Math.Max(150, SETTING_PlayerStateTickRateInMS));
+                  ("Coop", "PlayerStateTickRateInMS", 333, new ConfigDescription("TCP Only: The rate at which Player States will attempt to be synchronized. Min: 150ms, Max 666ms")).Value;
+                SETTING_PlayerStateTickRateInMS = Math.Min(666, Math.Max(150, SETTING_PlayerStateTickRateInMS));
 
                 SETTING_HeadshotsAlwaysKill = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", false, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
