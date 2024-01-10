@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LiteNetLib.Utils;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
 using System;
 using System.Collections.Generic;
@@ -108,7 +109,7 @@ namespace StayInTarkov.Networking
 
         public void Connect()
         {
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:6971/{MatchmakerAcceptPatches.Profile.ProfileId}?";
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITP2PHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
 
             WebSocket = new WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);

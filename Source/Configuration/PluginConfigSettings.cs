@@ -103,7 +103,10 @@ namespace StayInTarkov.Configuration
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
             //public HostProtocol SITHostProtocol { get; private set; }
-            //public int SITWebSocketPort { get; set; } = 6970;
+            public int SITWebSocketPort { get; set; } = 6970;
+            public int SITP2PHelperPort { get; set; } = 6971;
+            public int SITUdpPort { get; set; } = 6972;
+            public string SITServerType { get; set; } = "relay";
             //public int SITUDPPort { get; set; } = 6971;
 
             public bool AllPlayersSpawnTogether { get; set; } = true;
@@ -167,8 +170,10 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
 
                 //SITHostProtocol = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITHostProtocol", HostProtocol.TCP, new ConfigDescription("SIT Host Protocol.")).Value;
-                //SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port DEFAULT = 6970")).Value;
-                //SITUDPPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPPort", 6971, new ConfigDescription("SIT UDP Port DEFAULT = 6971")).Value;
+                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port. DEFAULT = 6970")).Value;
+                SITP2PHelperPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITP2PHelperPort", 6971, new ConfigDescription("SIT P2P Connection Helper Port (for P2P only). DEFAULT = 6971")).Value;
+                SITUdpPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUdpPort", 6972, new ConfigDescription("SIT UDP port for P2P connection. DEFAULT = 6972")).Value;
+                SITServerType = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITServerType", "relay", new ConfigDescription("SIT Server Type (when hosting a match). Possible values: relay, p2p. DEFAULT = relay")).Value;
                 //SITUDPHostIPV4 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV4", "127.0.0.1", new ConfigDescription("The IPv4 to use when hosting a UDP Coop Session")).Value;
                 //SITUDPHostIPV6 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", new ConfigDescription("The IPv6 to use when hosting a UDP Coop Session")).Value;
 

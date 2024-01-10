@@ -39,6 +39,7 @@ namespace StayInTarkov.Networking
         public NetPacketProcessor _packetProcessor = new();
         public int Ping = 0;
         public int ConnectedClients = 0;
+        public IPEndPoint endPointToConnect;
 
         private ManualLogSource Logger { get; set; }
 
@@ -86,11 +87,11 @@ namespace StayInTarkov.Networking
         private async void Connect()
         {
             NatTraversalRequest natTraversalRequest = new NatTraversalRequest(_p2pConnectionHelper);
-            var endPoint = await natTraversalRequest.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+            endPointToConnect = await natTraversalRequest.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
 
-            if(endPoint != null) 
+            if(endPointToConnect != null) 
             {
-                _netClient.Connect(endPoint, "sit.core");
+                _netClient.Connect(endPointToConnect, "sit.core");
             }
         }
 
@@ -360,7 +361,7 @@ namespace StayInTarkov.Networking
             }
             else
             {
-                _netClient.SendBroadcast([1], MatchmakerAcceptPatches.ServerPort);
+                _netClient.SendBroadcast([1], PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
             }
         }
 

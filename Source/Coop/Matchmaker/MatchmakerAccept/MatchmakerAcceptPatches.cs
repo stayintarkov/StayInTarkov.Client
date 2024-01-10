@@ -2,6 +2,7 @@
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.Configuration;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -232,6 +233,8 @@ namespace StayInTarkov.Coop.Matchmaker
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId }
+                , { "serverType", PluginConfigSettings.Instance.CoopSettings.SITServerType }
+                , { "serverUdpPort", PluginConfigSettings.Instance.CoopSettings.SITUdpPort }
                 , { "timestamp", timestamp }
                 , { "settings", rs }
                 , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
@@ -251,8 +254,8 @@ namespace StayInTarkov.Coop.Matchmaker
 
                 StayInTarkovHelperConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
                 SetGroupId(profileId);
-                ServerType = outJObject["serverType"].ToString();
-                ServerPort = int.Parse(outJObject["serverPort"].ToString());
+                ServerType = PluginConfigSettings.Instance.CoopSettings.SITServerType;
+                ServerPort = PluginConfigSettings.Instance.CoopSettings.SITUdpPort;
                 SetTimestamp(timestamp);
                 MatchingType = EMatchmakerType.GroupLeader;
                 return;

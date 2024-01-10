@@ -139,7 +139,7 @@ namespace StayInTarkov.Networking
 
             Logger.LogDebug("Request Instance is connecting to WebSocket");
 
-            var webSocketPort = MatchmakerAcceptPatches.ServerPort;
+            var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
             var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
             Logger.LogDebug(webSocketPort);
             Logger.LogDebug(StayInTarkovHelperConstants.GetREALWSURL());
