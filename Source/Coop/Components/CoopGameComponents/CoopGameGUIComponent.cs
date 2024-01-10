@@ -89,9 +89,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             rectEndOfGameMessage.width = Screen.width * w;
             rectEndOfGameMessage.height = Screen.height * h;
 
-            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-
-
             if (LocalGameInstance == null)
                 return;
 
@@ -99,7 +96,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (coopGame == null)
                 return;
 
-            rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
+            rect = DrawSITStats(rect, coopGame);
 
             var quitState = CoopGameComponent.GetQuitState();
             switch (quitState)
@@ -162,12 +159,13 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             return rect;
         }
 
-        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
+        private Rect DrawSITStats(Rect rect, CoopGame coopGame)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;
 
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
             // gathering extracted
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
             GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
@@ -225,7 +223,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (pl.HealthController == null)
                     continue;
 
-                if (pl.IsYourPlayer && pl.HealthController.IsAlive)
+                if (pl.IsYourPlayer && pl.HealthController.IsAlive && pl.PointOfView == EPointOfView.FirstPerson)
                     continue;
 
                 Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f);
