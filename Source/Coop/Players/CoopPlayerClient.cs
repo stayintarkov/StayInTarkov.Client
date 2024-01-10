@@ -13,7 +13,6 @@ namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayerClient : CoopPlayer
     {
-        private float InterpolationRatio { get; set; } = 0.03f;
         public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
 
@@ -108,6 +107,7 @@ namespace StayInTarkov.Coop.Players
                 return;
             }
 
+            var InterpolationRatio = Time.deltaTime * 5;
             /* 
             * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
             * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License
