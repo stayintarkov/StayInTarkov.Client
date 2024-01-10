@@ -118,7 +118,7 @@ namespace StayInTarkov.Configuration
                 get
                 {
                     return StayInTarkovPlugin.Instance.Config.Bind
-                       ("Coop", "BlackScreenOnDeathTime", 333, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
+                       ("Coop", "BlackScreenOnDeathTime", 500, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
                 }
             }
 
