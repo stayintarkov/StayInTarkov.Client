@@ -139,7 +139,7 @@ namespace StayInTarkov.Networking
 
             Logger.LogDebug("Request Instance is connecting to WebSocket");
 
-            var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
+            var webSocketPort = MatchmakerAcceptPatches.ServerPort;
             var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
             Logger.LogDebug(webSocketPort);
             Logger.LogDebug(StayInTarkovHelperConstants.GetREALWSURL());
@@ -200,7 +200,7 @@ namespace StayInTarkov.Networking
 
         private void WebSocket_OnError()
         {
-            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
+            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {MatchmakerAcceptPatches.ServerPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
             if (Singleton<ISITGame>.Instantiated)
             {
                 Singleton<ISITGame>.Instance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation);

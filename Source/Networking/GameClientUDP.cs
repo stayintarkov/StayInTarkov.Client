@@ -31,6 +31,7 @@ namespace StayInTarkov.Networking
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
         private LiteNetLib.NetManager _netClient;
+        private P2PConnectionHelper _p2pConnectionHelper;
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer { get; set; }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
@@ -73,8 +74,24 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false
             };
 
-            _netClient.Start();
-            _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
+            _p2pConnectionHelper = new P2PConnectionHelper(_netClient);
+            _p2pConnectionHelper.Connect();
+
+            //_netClient.Start();
+            //_netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
+
+            Connect();
+        }
+
+        private async void Connect()
+        {
+            NatTraversalRequest natTraversalRequest = new NatTraversalRequest(_p2pConnectionHelper);
+            var endPoint = await natTraversalRequest.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+
+            if(endPoint != null) 
+            {
+                _netClient.Connect(endPoint, "sit.core");
+            }
         }
 
         //private void OnAirdropLootPacketReceived(AirdropLootPacket packet, NetPeer peer)
@@ -343,7 +360,7 @@ namespace StayInTarkov.Networking
             }
             else
             {
-                //_netClient.SendBroadcast([1], PluginConfigSettings.Instance.CoopSettings.SITGamePlayPort);
+                _netClient.SendBroadcast([1], MatchmakerAcceptPatches.ServerPort);
             }
         }
 
@@ -358,9 +375,6 @@ namespace StayInTarkov.Networking
             _packetProcessor.WriteNetSerializable(writer, ref packet);
             _netClient.FirstPeer.Send(writer, deliveryMethod);
         }
-
-        
-
 
         public void OnPeerConnected(NetPeer peer)
         {

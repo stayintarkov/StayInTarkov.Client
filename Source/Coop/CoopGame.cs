@@ -164,21 +164,13 @@ namespace StayInTarkov.Coop
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
-            if (
-               // PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
-               //|| 
-               PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.TCP
-               )
+            if (MatchmakerAcceptPatches.ServerType == "relay")
             {
                 coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCP>();
             }
 
             // Udp Instanciate
-            if (
-                //PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
-                //|| 
-                PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.UDP
-                )
+            if (MatchmakerAcceptPatches.ServerType == "p2p")
             {
                 if (MatchmakerAcceptPatches.IsClient)
                 {

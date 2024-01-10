@@ -7,6 +7,7 @@ using LiteNetLib.Utils;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Players;
 
@@ -30,6 +31,7 @@ namespace StayInTarkov.Networking
     public class GameServerUDP : MonoBehaviour, INetEventListener, INetLogger
     {
         private LiteNetLib.NetManager _netServer;
+        public P2PConnectionHelper _p2pConnectionHelper;
         public NetPacketProcessor _packetProcessor = new();
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
@@ -77,16 +79,25 @@ namespace StayInTarkov.Networking
                 AutoRecycle = true,
                 IPv6Enabled = false,
                 EnableStatistics = true,
-                NatPunchEnabled = true
+                NatPunchEnabled = false
             };
 
+            _p2pConnectionHelper = new P2PConnectionHelper(_netServer);
+            _p2pConnectionHelper.Connect();
+
+            /*
             _netServer.Start(
                 PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4
                 , PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV6
                 , PluginConfigSettings.Instance.CoopSettings.SITUDPPort);
+            */
 
-            Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
-            EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
+
+
+            //_netServer.Start(MatchmakerAcceptPatches.ServerPort);
+
+            //Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
+            //EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
             //NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
             //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }

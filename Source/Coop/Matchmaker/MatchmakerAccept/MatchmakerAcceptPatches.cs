@@ -31,6 +31,8 @@ namespace StayInTarkov.Coop.Matchmaker
     {
         #region Fields/Properties
         public static EFT.UI.Matchmaker.MatchMakerAcceptScreen MatchMakerAcceptScreenInstance { get; set; }
+        public static string ServerType { get; set; }
+        public static int ServerPort { get; set; }
         public static Profile Profile { get; set; }
         public static EMatchmakerType MatchingType { get; set; } = EMatchmakerType.Single;
         public static bool IsServer => MatchingType == EMatchmakerType.GroupLeader;
@@ -240,15 +242,19 @@ namespace StayInTarkov.Coop.Matchmaker
             if (password != null)
                 objectToSend.Add("password", password);
 
-            string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
+            string result = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 objectToSend));
 
-            if (!string.IsNullOrEmpty(text))
+            if (!string.IsNullOrEmpty(result))
             {
+                JObject outJObject = JObject.Parse(result);
+
                 StayInTarkovHelperConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
                 SetGroupId(profileId);
+                ServerType = outJObject["serverType"].ToString();
+                ServerPort = int.Parse(outJObject["serverPort"].ToString());
                 SetTimestamp(timestamp);
-                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
+                MatchingType = EMatchmakerType.GroupLeader;
                 return;
             }
 
