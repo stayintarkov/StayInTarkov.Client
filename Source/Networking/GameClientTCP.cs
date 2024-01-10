@@ -1,5 +1,6 @@
 ﻿using StayInTarkov.Coop.Matchmaker;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,11 +11,7 @@ namespace StayInTarkov.Networking
 {
     public class GameClientTCP : MonoBehaviour, IGameClient
     {
-        public GameClientTCP(BepInEx.Configuration.ConfigFile config) 
-        { 
-        
-        }
-        //WebSocketSharp.WebSocket WebSocket { get; set; }
+        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new BlockingCollection<byte[]>();
 
         void Awake()
         {
@@ -24,17 +21,29 @@ namespace StayInTarkov.Networking
 
         void Start()
         {
-
         }
 
         void Update()
         {
 
+            if (PooledBytesToPost != null)
+            {
+                while (PooledBytesToPost.Any())
+                {
+                    while (PooledBytesToPost.TryTake(out var bytes))
+                    {
+                        AkiBackendCommunication.Instance.PostDownWebSocketImmediately(bytes);
+                    }
+                }
+            }
         }
 
         public void SendDataToServer(byte[] data)
         {
-            AkiBackendCommunication.Instance.SendDataToPool(data);
+            if (data == null)
+                return;
+
+            PooledBytesToPost.Add(data);
         }
 
        
