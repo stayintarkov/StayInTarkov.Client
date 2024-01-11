@@ -56,7 +56,7 @@ namespace StayInTarkov.Networking
 
                 var endPoint = new IPEndPoint(IPAddress.Parse(serverIp), int.Parse(serverPort));
 
-                P2PConnectionHelper.NetManager.Start(MatchmakerAcceptPatches.ServerPort);
+                P2PConnectionHelper.NetManager.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
                 P2PConnectionHelper.PunchNat(endPoint);
 
                 NatTraversalCompletionSource.SetResult(endPoint);
@@ -68,7 +68,7 @@ namespace StayInTarkov.Networking
             NatTraversalCompletionSource = new TaskCompletionSource<IPEndPoint>();
 
             // perform STUN query to open a public endpoint and punch it later.
-            var stunEndPoint = STUNHelper.OpenPublicEndpoint(MatchmakerAcceptPatches.ServerPort);
+            var stunEndPoint = STUNHelper.OpenPublicEndpoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             if (stunEndPoint != null)
             {
@@ -151,13 +151,13 @@ namespace StayInTarkov.Networking
 
                 if(PublicEndPoint == null)
                 {
-                    PublicEndPoint = STUNHelper.OpenPublicEndpoint(MatchmakerAcceptPatches.ServerPort);
+                    PublicEndPoint = STUNHelper.OpenPublicEndpoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
                 }
 
                 string punchResponsePacket = $"punch_response:{profileId}:{PublicEndPoint.Address}:{PublicEndPoint.Port}";
                 WebSocket.Send(punchResponsePacket);
 
-                NetManager.Start(MatchmakerAcceptPatches.ServerPort);
+                NetManager.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
                 PunchNat(new IPEndPoint(IPAddress.Parse(ipToPunch), int.Parse(portToPunch)));
             }
