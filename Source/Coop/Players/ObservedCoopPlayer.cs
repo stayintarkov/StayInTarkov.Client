@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityStandardAssets.Water;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Controllers.CoopInventory;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).

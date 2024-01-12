@@ -3,13 +3,15 @@ using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
+using JetBrains.Annotations;
 using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.Controllers
+namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     internal sealed class CoopInventoryController
         // At this point in time. PlayerOwnerInventoryController is required to fix Malfunction and Discard errors. This class needs to be replaced with PlayerInventoryController.
@@ -20,6 +22,26 @@ namespace StayInTarkov.Coop.Controllers
         public HashSet<string> AlreadySent = new();
 
         private EFT.Player Player { get; set; }
+
+        public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
+        {
+            base.Execute(operation, callback);
+
+            using MemoryStream memoryStream = new();
+            using (BinaryWriter binaryWriter = new(memoryStream))
+            {
+                binaryWriter.WritePolymorph(OperationToDescriptorHelpers.FromInventoryOperation(operation, false, false));
+                var opBytes = memoryStream.ToArray();
+                //player.InventoryPacket.ItemControllerExecutePacket = new()
+                //{
+                //    CallbackId = operation.Id,
+                //    OperationBytesLength = opBytes.Length,
+                //    OperationBytes = opBytes,
+                //    InventoryId = this.ID
+                //};
+                EFT.UI.ConsoleScreen.Log($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
+            }
+        }
 
 
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
@@ -114,8 +136,5 @@ namespace StayInTarkov.Coop.Controllers
         }
     }
 
-    public interface ICoopInventoryController
-    {
-        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket);
-    }
+
 }

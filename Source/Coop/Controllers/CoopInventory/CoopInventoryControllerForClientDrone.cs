@@ -7,10 +7,11 @@ using StayInTarkov.Coop.NetworkPacket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.Controllers
+namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     internal sealed class CoopInventoryControllerForClientDrone
-        : EFT.Player.PlayerInventoryController, ICoopInventoryController
+        // At this point in time. PlayerOwnerInventoryController is required to fix Malfunction and Discard errors. This class needs to be replaced with PlayerInventoryController.
+        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
