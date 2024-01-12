@@ -16,6 +16,9 @@ namespace StayInTarkov.AkiSupport.Custom
 
         public static void Enable()
         {
+            if (!Directory.Exists(_sptPath))
+                Directory.CreateDirectory(_sptPath);
+
             // Screenshot
             FieldInfo DocumentsSettings = ReflectionHelpers.GetFieldFromType(typeof(SettingsManager), "string_0");
 
