@@ -69,10 +69,10 @@ namespace StayInTarkov.Networking
                 var ipToPunch = messageSplit[2];
                 var portToPunch = messageSplit[3];
 
+                PunchNat(new IPEndPoint(IPAddress.Parse(ipToPunch), int.Parse(portToPunch)));
+
                 string punchResponsePacket = $"punch_response:{profileId}:{PublicEndPoint.Address}:{PublicEndPoint.Port}";
                 WebSocket.Send(punchResponsePacket);
-
-                PunchNat(new IPEndPoint(IPAddress.Parse(ipToPunch), int.Parse(portToPunch)));
             }
 
             if (messageSplit[0] == "punch_response")
