@@ -77,17 +77,16 @@ namespace StayInTarkov.Networking
 
             _p2pConnectionHelper = new P2PConnectionHelper(_netClient);
             _p2pConnectionHelper.Connect();
+            _p2pConnectionHelper.OpenPublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-            //_netClient.Start();
-            //_netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
+            _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             Connect();
         }
 
         private async void Connect()
         {
-            NatTraversalRequest natTraversalRequest = new NatTraversalRequest(_p2pConnectionHelper);
-            endPointToConnect = await natTraversalRequest.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+            endPointToConnect = await _p2pConnectionHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
 
             if(endPointToConnect != null) 
             {

@@ -42,16 +42,5 @@ namespace StayInTarkov.Networking
 
             return true;
         }
-
-        public static IPEndPoint OpenPublicEndpoint(int port)
-        {
-            // we dont need to use SITUDPPort as the local port, but this works for now.
-            if (Query(port, out STUNQueryResult stunQueryResult))
-            {
-                return stunQueryResult.PublicEndPoint;
-            }
-
-            return null;
-        }
     }
 }

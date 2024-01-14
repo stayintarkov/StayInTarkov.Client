@@ -82,24 +82,17 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
+            
             _p2pConnectionHelper = new P2PConnectionHelper(_netServer);
             _p2pConnectionHelper.Connect();
+            _p2pConnectionHelper.OpenPublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-            /*
-            _netServer.Start(
-                PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4
-                , PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV6
-                , PluginConfigSettings.Instance.CoopSettings.SITUDPPort);
-            */
+            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-
-
-            //_netServer.Start(MatchmakerAcceptPatches.ServerPort);
-
-            //Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
-            //EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
-            //NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
-            //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+            Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
+            EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
+            NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
+            EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
