@@ -16,12 +16,13 @@ using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.UIElements;
 using UnityStandardAssets.Water;
 using WebSocketSharp;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public abstract class BasePacket : ISITPacket, IDisposable
+    public class BasePacket : ISITPacket, IDisposable
     {
         [JsonProperty(PropertyName = "serverId")]
         public string ServerId { get; set; }
@@ -212,17 +213,17 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public ISITPacket DeserializePacketSIT(string serializedPacket)
-        {
-            AutoDeserialize(Encoding.UTF8.GetBytes(serializedPacket));
-            return this;
-        }
+        //public ISITPacket DeserializePacketSIT(string serializedPacket)
+        //{
+        //    AutoDeserialize(Encoding.UTF8.GetBytes(serializedPacket));
+        //    return this;
+        //}
 
-        public ISITPacket DeserializePacketSIT(byte[] data)
-        {
-            AutoDeserialize(data);
-            return this;
-        }
+        //public ISITPacket DeserializePacketSIT(byte[] data)
+        //{
+        //    AutoDeserialize(data);
+        //    return this;
+        //}
 
         private void DeserializePacketIntoObj(BinaryReader reader)
         {
@@ -504,14 +505,23 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static void WriteLengthPrefixedBytes(this BinaryWriter binaryWriter, byte[] value)
         {
-            binaryWriter.Write(value.Length);
+            binaryWriter.Write((ushort)value.Length);
+
+            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
+
             binaryWriter.Write(value);
         }
 
         public static byte[] ReadLengthPrefixedBytes(this BinaryReader binaryReader)
         {
-            var length = binaryReader.ReadInt32();
-           return binaryReader.ReadBytes(length);
+           var length = binaryReader.ReadUInt16();
+
+            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
+
+            if(length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
+                return binaryReader.ReadBytes(length);
+            else
+                return null;
         }
 
 

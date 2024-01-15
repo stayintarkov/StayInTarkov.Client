@@ -43,7 +43,7 @@ namespace StayInTarkov.Coop.Player
 
             if (dict.ContainsKey("data"))
             {
-                itemPacket.DeserializePacketSIT(dict["data"].ToString());
+                itemPacket.Deserialize((byte[])dict["data"]);
             }
             else
             {

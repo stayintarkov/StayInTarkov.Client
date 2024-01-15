@@ -63,9 +63,22 @@ namespace StayInTarkov.Coop.Players
                     , getAimingSensitivity
                     , prefix
                     , aiControl);
+                player.name = profile.Nickname;
             }
             else
             {
+                // Aki won't allow this to happen here :(
+                //var oldEquipmentId = profile.Inventory.Equipment.Id.ToCharArray().ToString();
+                //var newEquipmentId = new MongoID(true);
+                //profile.Inventory.Equipment.Id = newEquipmentId;
+                //foreach (var eq in profile.Inventory.GetAllEquipmentItems())
+                //{
+                //    if (eq.Parent != null && eq.Parent.Item != null && eq.Parent.Item.Id == oldEquipmentId)
+                //    {
+                //        eq.Parent.Item.Id = newEquipmentId;
+                //    }
+                //}
+
                 player = Create<CoopPlayer>(
                     ResourceBundleConstants.PLAYER_BUNDLE_NAME
                     , playerId
@@ -78,6 +91,7 @@ namespace StayInTarkov.Coop.Players
                     , getAimingSensitivity
                     , prefix
                     , aiControl);
+               
             }
             player.IsYourPlayer = isYourPlayer;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");

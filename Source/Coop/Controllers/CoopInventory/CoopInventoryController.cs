@@ -4,16 +4,17 @@ using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using JetBrains.Annotations;
-using StayInTarkov.Coop.ItemControllerPatches;
+//using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
-    internal sealed class CoopInventoryController
+    public class CoopInventoryController
         // At this point in time. PlayerOwnerInventoryController is required to fix Malfunction and Discard errors. This class needs to be replaced with PlayerInventoryController.
         : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
     {
@@ -23,25 +24,154 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         private EFT.Player Player { get; set; }
 
+        private HashSet<AbstractInventoryOperation> InventoryOperations { get; } = new();
+
         public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
-            base.Execute(operation, callback);
+            // If operation created via this player, then play out that operation
+            if (InventoryOperations.Any(x => x.Id == operation.Id))
+            {
+                base.Execute(InventoryOperations.First(x => x.Id == operation.Id), callback);
+                return;
+            }
+            //base.Execute(operation, callback);
+            //RaiseInvEvents(operation, CommandStatus.Begin);
 
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
             {
-                binaryWriter.WritePolymorph(OperationToDescriptorHelpers.FromInventoryOperation(operation, false, false));
+                var desc = OperationToDescriptorHelpers.FromInventoryOperation(operation, false, false);
+                binaryWriter.WritePolymorph(desc);
                 var opBytes = memoryStream.ToArray();
-                //player.InventoryPacket.ItemControllerExecutePacket = new()
-                //{
-                //    CallbackId = operation.Id,
-                //    OperationBytesLength = opBytes.Length,
-                //    OperationBytes = opBytes,
-                //    InventoryId = this.ID
-                //};
+
+                var itemId = "";
+                var templateId = "";
+                if (operation is MoveInternalOperation moveOperation) 
+                {
+                    itemId = moveOperation.Item.Id;
+                    templateId = moveOperation.Item.TemplateId;
+                }
+                if (operation is MoveInternalOperation1 otherOperation)
+                {
+                    itemId = otherOperation.Item.Id;
+                    templateId = otherOperation.Item.TemplateId;
+                }
+                if (operation is MoveInternalOperation2 throwOperation)
+                {
+                    itemId = throwOperation.Item.Id;
+                    templateId = throwOperation.Item.TemplateId;
+                }
+
+                ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(Player.ProfileId, itemId, templateId, "PolymorphInventoryOperation");
+                itemPlayerPacket.OperationBytes = opBytes;
+                itemPlayerPacket.CallbackId = operation.Id;
+                itemPlayerPacket.InventoryId = this.ID;
+
+                BepInLogger.LogInfo($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
                 EFT.UI.ConsoleScreen.Log($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
+
+                BepInLogger.LogInfo(itemPlayerPacket);
+                var s = itemPlayerPacket.Serialize();
+                GameClient.SendDataToServer(s);
+                InventoryOperations.Add(operation);
             }
         }
+
+        public void ReceiveExecute(AbstractInventoryOperation operation, string packetJson)
+        {
+            BepInLogger.LogInfo($"ReceiveExecute");
+            //BepInLogger.LogInfo($"{packetJson}");
+
+            if (operation == null)
+                return;
+
+            BepInLogger.LogInfo($"{operation}");
+
+            var cachedOperation = InventoryOperations.FirstOrDefault(x => x.Id == operation.Id);
+            // Operation created via this player
+            if (cachedOperation != null)
+            {
+                cachedOperation.vmethod_0((executeResult) =>
+                {
+
+                    BepInLogger.LogInfo($"operation.vmethod_0 : {executeResult}");
+                    if (executeResult.Succeed)
+                    {
+                        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Succeed);
+                        RaiseInvEvents(cachedOperation, CommandStatus.Succeed);
+                        cachedOperation.Dispose();
+                    }
+                    else
+                    {
+                        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Failed);
+                    }
+                    cachedOperation.Dispose();
+
+
+                }, false);
+            }
+            // Operation created by another player
+            else
+            {
+                base.Execute(operation, (result) => { });
+            }
+
+
+            //base.Execute(operation, (IResult) => {
+
+            //    RaiseInvEvents(operation, CommandStatus.Succeed);
+
+            //});
+
+            //ReceivedOperationPacket = operation;
+            //ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Begin);
+            //if (OperationCallbacks.ContainsKey(packetJson))
+            //{
+            //    BepInLogger.LogInfo($"Using OperationCallbacks!");
+
+            //    //OperationCallbacks[packetJson].Item1.vmethod_0(delegate (IResult result)
+            //    //{
+            //    //    //ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(OperationCallbacks[packetJson].Item1, "commandStatus_0", CommandStatus.Succeed);
+            //    //});
+            //    RaiseInvEvents(operation, CommandStatus.Succeed);
+            //    RaiseInvEvents(OperationCallbacks[packetJson].Item1, CommandStatus.Succeed);
+            //    OperationCallbacks[packetJson].Item2();
+            //    //OperationCallbacks[packetJson].Item1.vmethod_0((IResult result) => { RaiseInvEvents(operation, CommandStatus.Succeed); }, true);
+            //    OperationCallbacks.Remove(packetJson);
+            //}
+            //else
+            //{
+            //    operation.vmethod_0(delegate (IResult result)
+            //    {
+            //        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Succeed);
+            //    });
+
+            //}
+        }
+
+        void RaiseInvEvents(object operation, CommandStatus status)
+        {
+            if (operation == null)
+                return;
+
+            ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", status);
+        }
+
+        public void CancelExecute(uint id)
+        {
+            BepInLogger.LogError($"CancelExecute");
+            BepInLogger.LogInfo($"{id}");
+            // If operation created via this player, then cancel that operation
+            var operation = InventoryOperations.FirstOrDefault(x => x.Id == id);
+            if(operation != null)
+            {
+                operation.vmethod_0(delegate (IResult result)
+                {
+                    ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Succeed);
+                });
+            }
+        }
+
 
 
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
@@ -61,7 +191,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
             Task<IResult> result;
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
 
             BepInLogger.LogInfo("UnloadMagazine");
             ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
@@ -70,14 +200,14 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             //if (AlreadySent.Contains(serialized))
             {
                 result = base.UnloadMagazine(magazine);
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
+                //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
             }
 
             //AlreadySent.Add(serialized);
 
             GameClient.SendDataToServer(serialized);
             result = base.UnloadMagazine(magazine);
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
             return result;
         }
 
@@ -91,9 +221,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
             if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
             {
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
+                //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
                 base.UnloadMagazine((MagazineClass)magazine);
-                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
+                //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
 
             }
         }

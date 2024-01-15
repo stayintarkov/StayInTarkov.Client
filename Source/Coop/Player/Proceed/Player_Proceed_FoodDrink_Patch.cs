@@ -48,7 +48,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(player.ProfileId, null, null, 0, 0, true, null);
-            playerProceedFoodDrinkPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedFoodDrinkPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedFoodDrinkPacket))
                 return;

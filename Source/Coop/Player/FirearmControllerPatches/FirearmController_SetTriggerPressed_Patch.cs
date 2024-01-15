@@ -125,7 +125,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            tpp.DeserializePacketSIT(dict["data"].ToString());
+            tpp.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, tpp))
                 return;

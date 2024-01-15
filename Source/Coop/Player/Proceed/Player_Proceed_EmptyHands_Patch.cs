@@ -52,7 +52,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(player.ProfileId, true, true, null);
-            playerProceedEmptyHandsPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedEmptyHandsPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedEmptyHandsPacket))
                 return;
