@@ -11,7 +11,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     public interface ICoopInventoryController
     {
-        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket);
         public void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback);
 
     }

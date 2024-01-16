@@ -11,8 +11,10 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
+using StayInTarkov.Coop.Player.Proceed;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -393,6 +395,17 @@ namespace StayInTarkov.Coop.Players
 
 
         //}
+
+        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+
+            //PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
+            //GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
+
+            //BepInLogger.LogInfo($"{nameof(Proceed)} FoodDrink");
+            //BepInLogger.LogInfo($"{playerProceedFoodDrinkPacket.ToJson()}");
+        }
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {

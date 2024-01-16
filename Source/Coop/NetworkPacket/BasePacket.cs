@@ -507,7 +507,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             binaryWriter.Write((ushort)value.Length);
 
-            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
 
             binaryWriter.Write(value);
         }
@@ -516,7 +516,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
            var length = binaryReader.ReadUInt16();
 
-            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
 
             if(length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
                 return binaryReader.ReadBytes(length);

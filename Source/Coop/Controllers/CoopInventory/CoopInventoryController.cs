@@ -34,9 +34,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 base.Execute(InventoryOperations.First(x => x.Id == operation.Id), callback);
                 return;
             }
-            //base.Execute(operation, callback);
-            //RaiseInvEvents(operation, CommandStatus.Begin);
 
+            // Debug the operation
+            // 
+            BepInLogger.LogDebug($"{operation}");
+
+            // Create the packet to send to the Server
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
             {
@@ -67,10 +70,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 itemPlayerPacket.CallbackId = operation.Id;
                 itemPlayerPacket.InventoryId = this.ID;
 
-                BepInLogger.LogInfo($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
-                EFT.UI.ConsoleScreen.Log($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
+                BepInLogger.LogDebug($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
 
-                BepInLogger.LogInfo(itemPlayerPacket);
                 var s = itemPlayerPacket.Serialize();
                 GameClient.SendDataToServer(s);
                 InventoryOperations.Add(operation);
@@ -79,13 +80,13 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public void ReceiveExecute(AbstractInventoryOperation operation, string packetJson)
         {
-            BepInLogger.LogInfo($"ReceiveExecute");
+            //BepInLogger.LogInfo($"ReceiveExecute");
             //BepInLogger.LogInfo($"{packetJson}");
 
             if (operation == null)
                 return;
 
-            BepInLogger.LogInfo($"{operation}");
+            BepInLogger.LogDebug($"{operation}");
 
             var cachedOperation = InventoryOperations.FirstOrDefault(x => x.Id == operation.Id);
             // Operation created via this player
@@ -94,12 +95,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 cachedOperation.vmethod_0((executeResult) =>
                 {
 
-                    BepInLogger.LogInfo($"operation.vmethod_0 : {executeResult}");
+                    //BepInLogger.LogInfo($"operation.vmethod_0 : {executeResult}");
                     if (executeResult.Succeed)
                     {
                         ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Succeed);
                         RaiseInvEvents(cachedOperation, CommandStatus.Succeed);
-                        cachedOperation.Dispose();
+                        //cachedOperation.Dispose();
                     }
                     else
                     {
@@ -115,38 +116,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             {
                 base.Execute(operation, (result) => { });
             }
-
-
-            //base.Execute(operation, (IResult) => {
-
-            //    RaiseInvEvents(operation, CommandStatus.Succeed);
-
-            //});
-
-            //ReceivedOperationPacket = operation;
-            //ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Begin);
-            //if (OperationCallbacks.ContainsKey(packetJson))
-            //{
-            //    BepInLogger.LogInfo($"Using OperationCallbacks!");
-
-            //    //OperationCallbacks[packetJson].Item1.vmethod_0(delegate (IResult result)
-            //    //{
-            //    //    //ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(OperationCallbacks[packetJson].Item1, "commandStatus_0", CommandStatus.Succeed);
-            //    //});
-            //    RaiseInvEvents(operation, CommandStatus.Succeed);
-            //    RaiseInvEvents(OperationCallbacks[packetJson].Item1, CommandStatus.Succeed);
-            //    OperationCallbacks[packetJson].Item2();
-            //    //OperationCallbacks[packetJson].Item1.vmethod_0((IResult result) => { RaiseInvEvents(operation, CommandStatus.Succeed); }, true);
-            //    OperationCallbacks.Remove(packetJson);
-            //}
-            //else
-            //{
-            //    operation.vmethod_0(delegate (IResult result)
-            //    {
-            //        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Succeed);
-            //    });
-
-            //}
+            
         }
 
         void RaiseInvEvents(object operation, CommandStatus status)
@@ -188,44 +158,32 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
         }
 
-        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
-        {
-            Task<IResult> result;
-            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
+        //public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        //{
+        //    Task<IResult> result;
 
-            BepInLogger.LogInfo("UnloadMagazine");
-            ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
-            var serialized = unloadMagazinePacket.Serialize();
+        //    BepInLogger.LogDebug("UnloadMagazine");
+        //    ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
+        //    var serialized = unloadMagazinePacket.Serialize();
 
-            //if (AlreadySent.Contains(serialized))
-            {
-                result = base.UnloadMagazine(magazine);
-                //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
-            }
+        //    GameClient.SendDataToServer(serialized);
+        //    result = base.UnloadMagazine(magazine);
+        //    return result;
+        //}
 
-            //AlreadySent.Add(serialized);
+        //public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
+        //{
+        //    BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
+        //    if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
+        //    {
+        //        base.UnloadMagazine((MagazineClass)magazine);
 
-            GameClient.SendDataToServer(serialized);
-            result = base.UnloadMagazine(magazine);
-            //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
-            return result;
-        }
+        //    }
+        //}
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
         {
             base.ThrowItem(item, destroyedItems, callback, downDirection);
-        }
-
-        public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
-        {
-            BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
-            if (ItemFinder.TryFindItem(unloadMagazinePacket.ItemId, out Item magazine))
-            {
-                //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
-                base.UnloadMagazine((MagazineClass)magazine);
-                //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
-
-            }
         }
 
         public static bool IsDiscardLimitsFine(Dictionary<string, int> DiscardLimits)

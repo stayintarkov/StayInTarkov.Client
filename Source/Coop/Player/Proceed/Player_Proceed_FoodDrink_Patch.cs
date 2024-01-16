@@ -5,6 +5,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ namespace StayInTarkov.Coop.Player.Proceed
 
         public override string MethodName => "ProceedFoodDrink";
 
-        public static List<string> CallLocally = new();
+        public static HashSet<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -105,6 +106,41 @@ namespace StayInTarkov.Coop.Player.Proceed
         {
             Amount = amount;
             AnimationVariant = animationVariant;
+        }
+
+        public override byte[] Serialize()
+        {
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(PlayerProceedFoodDrinkPacket)}:{nameof(Serialize)}"); 
+
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+            writer.Write(ItemId);
+            writer.Write(TemplateId);
+            writer.Write(Scheduled);
+            writer.Write(Amount);
+            writer.Write(AnimationVariant);
+            writer.Write(TimeSerializedBetter);
+
+            return ms.ToArray();
+        }
+
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(PlayerProceedFoodDrinkPacket)}:{nameof(Deserialize)}");
+
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+            ItemId = reader.ReadString();
+            TemplateId = reader.ReadString();
+            Scheduled = reader.ReadBoolean();
+            Amount = reader.ReadSingle();
+            AnimationVariant = reader.ReadInt32();
+            TimeSerializedBetter = reader.ReadString();
+
+            return this;
         }
     }
 }
