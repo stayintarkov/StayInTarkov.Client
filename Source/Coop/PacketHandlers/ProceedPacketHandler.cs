@@ -1,31 +1,33 @@
-﻿using StayInTarkov.Coop.Components;
+﻿using SIT.Core.Coop.PacketHandlers;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Players;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.PacketHandlers
 {
-    /// <summary>
-    /// Created by Paulov
-    /// Description: Here is an example of how to use IPlayerPacketHandler. You contract the interface and then use ProcessPacket to do the work.
-    /// </summary>
-    internal class ExamplePlayerPacketHandler : IPlayerPacketHandler
+    internal class ProceedPacketHandler : IPlayerPacketHandler
     {
         private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
 
         private BepInEx.Logging.ManualLogSource Logger { get; set; }
 
-        public ExamplePlayerPacketHandler()
+        private HashSet<string> _processedPackets { get; } = new HashSet<string>();
+
+        public ProceedPacketHandler()
         {
-            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(ExamplePlayerPacketHandler));
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(ProceedPacketHandler));
         }
 
         public void ProcessPacket(Dictionary<string, object> packet)
         {
             string profileId = null;
-            string method = null;
 
             if (!packet.ContainsKey("profileId"))
                 return;
@@ -35,17 +37,17 @@ namespace StayInTarkov.Coop.PacketHandlers
             if (!packet.ContainsKey("m"))
                 return;
 
-            method = packet["m"].ToString();
+            //var packetJson = packet.ToJson();
+            //if (_processedPackets.Contains(packetJson))
+            //    return;
 
-            // Now Process dependant on the Packet
-            // e.g. if (packet["m"].ToString() == "MoveOperation")
+            //_processedPackets.Add(packetJson);
 
-            //Logger.LogInfo(packet.SITToJson());
+            //Logger.LogInfo(packetJson.ToString());
         }
 
         public void ProcessPacket(byte[] packet)
         {
-            throw new System.NotImplementedException();
         }
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace StayInTarkov.Coop.Player.Proceed
 {
@@ -49,7 +50,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
-            playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;

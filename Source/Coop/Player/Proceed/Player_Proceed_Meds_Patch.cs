@@ -5,6 +5,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -46,11 +47,11 @@ namespace StayInTarkov.Coop.Player.Proceed
                 if (botOwner != null)
                 {
                     if (botOwner.Medecine.FirstAid.Using)
-                        playerProceedMedsPacket.AIMedecineType = "FirstAid";
+                        playerProceedMedsPacket.AIMedicineType = "FirstAid";
                     else if (botOwner.Medecine.SurgicalKit.Using)
-                        playerProceedMedsPacket.AIMedecineType = "SurgicalKit";
+                        playerProceedMedsPacket.AIMedicineType = "SurgicalKit";
                     else if (botOwner.Medecine.Stimulators.Using)
-                        playerProceedMedsPacket.AIMedecineType = "Stimulators";
+                        playerProceedMedsPacket.AIMedicineType = "Stimulators";
                 }
             }
 
@@ -63,13 +64,16 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedMedsPacket playerProceedMedsPacket = new(player.ProfileId, null, null, 0, 0, true, null);
-            playerProceedMedsPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedMedsPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedMedsPacket))
                 return;
 
-            if (ItemFinder.TryFindItem(playerProceedMedsPacket.ItemId, out Item item))
+            if (!ItemFinder.TryFindItem(playerProceedMedsPacket.ItemId, out Item item))
             {
+                Logger.LogError($"Unable to find Item {playerProceedMedsPacket.ItemId}");
+                return;
+            }
                 if (item is Meds meds)
                 {
                     CallLocally.Add(player.ProfileId);
@@ -88,7 +92,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                                     {
                                         botOwner.WeaponManager.Selector.TakePrevWeapon();
 
-                                        if (playerProceedMedsPacket.AIMedecineType == "FirstAid")
+                                        if (playerProceedMedsPacket.AIMedicineType == "FirstAid")
                                         {
                                             FirstAid firstAid = botOwner.Medecine.FirstAid;
                                             firstAid.Using = false;
@@ -96,7 +100,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                                             firstAid.Refresh();
                                             ReflectionHelpers.InvokeMethodForObject(firstAid, "FirstAidApplied");
                                         }
-                                        else if (playerProceedMedsPacket.AIMedecineType == "SurgicalKit")
+                                        else if (playerProceedMedsPacket.AIMedicineType == "SurgicalKit")
                                         {
                                             SurgicalKit surgicalKit = botOwner.Medecine.SurgicalKit;
                                             surgicalKit.Using = false;
@@ -105,7 +109,7 @@ namespace StayInTarkov.Coop.Player.Proceed
 
                                             botOwner.Medecine.FirstAid.CheckParts();
                                         }
-                                        else if (playerProceedMedsPacket.AIMedecineType == "Stimulators")
+                                        else if (playerProceedMedsPacket.AIMedicineType == "Stimulators")
                                         {
                                             Stimulators stimulators = botOwner.Medecine.Stimulators;
                                             stimulators.Using = false;
@@ -123,11 +127,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 {
                     Logger.LogError($"Player_Proceed_Meds_Patch:Replicated. Item {playerProceedMedsPacket.ItemId} is not a Meds0!");
                 }
-            }
-            else
-            {
-                Logger.LogError($"Player_Proceed_Meds_Patch:Replicated. Cannot found item {playerProceedMedsPacket.ItemId}!");
-            }
+          
         }
     }
 
@@ -137,14 +137,47 @@ namespace StayInTarkov.Coop.Player.Proceed
 
         public int AnimationVariant { get; set; }
 
-        public string AIMedecineType { get; set; }
+        public string AIMedicineType { get; set; }
 
         public PlayerProceedMedsPacket(string profileId, string itemId, string templateId, EBodyPart bodyPart, int animationVariant, bool scheduled, string method) : base(profileId, itemId, templateId, scheduled, method)
         {
             BodyPart = bodyPart;
             AnimationVariant = animationVariant;
 
-            AIMedecineType = "";
+            AIMedicineType = "";
+        }
+
+        public override byte[] Serialize()
+        {
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+            writer.Write(ItemId);
+            writer.Write(TemplateId);
+            writer.Write(Scheduled);
+            writer.Write(BodyPart.ToString());
+            writer.Write(AnimationVariant);
+            writer.Write(TimeSerializedBetter);
+            writer.Write(AIMedicineType);
+
+            return ms.ToArray();
+        }
+
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+            ItemId = reader.ReadString();
+            TemplateId = reader.ReadString();
+            Scheduled = reader.ReadBoolean();
+            BodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), reader.ReadString());
+            AnimationVariant = reader.ReadInt32();
+            TimeSerializedBetter = reader.ReadString();
+            AIMedicineType = reader.ReadString();
+
+            return this;
         }
     }
 }

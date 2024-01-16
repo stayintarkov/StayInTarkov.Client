@@ -2,7 +2,7 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using StayInTarkov.Coop.ItemControllerPatches;
+//using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
@@ -26,7 +26,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         private ManualLogSource GetLogger()
         {
-            return GetLogger(typeof(ItemControllerHandler_Move_Patch));
+            return GetLogger(typeof(FirearmController_ReloadMag_Patch));
         }
 
 
@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         public static void Prefix(
            EFT.Player ____player)
         {
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(____player.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(____player.ProfileId);
         }
 
         [PatchPostfix]
@@ -84,7 +84,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             //HasProcessed(typeof(FirearmController_ReloadMag_Patch), player, dictionary);
             //}
 
-            ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
 
         }
 
@@ -125,7 +125,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                         catch
                         {
                             GetLogger().LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                            ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
+                            //ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
 
                         }
                     }
@@ -133,7 +133,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 catch (Exception e)
                 {
                     GetLogger().LogError(e);
-                    ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
+                    //ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
 
                 }
             }
@@ -141,7 +141,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             {
                 GetLogger().LogError("FirearmController_ReloadMag_Patch:Replicated. HandsController is not a Firearm Controller?!");
                 GetLogger().LogError(player.HandsController.GetType());
-                ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
+                //ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
 
             }
         }
@@ -160,20 +160,20 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
             ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine
 
                 , () =>
                 {
                     GetLogger().LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
                     firearmCont.StopCoroutine(nameof(ReloadCR));
                 }
                 , () =>
                 {
                     GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
                     firearmCont.StopCoroutine(nameof(ReloadCR));
                     //if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
                     //{

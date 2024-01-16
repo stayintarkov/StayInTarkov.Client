@@ -2,6 +2,7 @@
 using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Controllers.CoopInventory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,9 +73,9 @@ namespace StayInTarkov.Coop
             return itemComponent;
         }
 
-        public static EFT.Player.PlayerInventoryController GetPlayerInventoryController(EFT.Player player)
+        public static CoopInventoryController GetPlayerInventoryController(EFT.Player player)
         {
-            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as EFT.Player.PlayerInventoryController;
+            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as CoopInventoryController;
             return inventoryController;
         }
 

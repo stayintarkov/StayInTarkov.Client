@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace StayInTarkov.Networking
 {
@@ -227,9 +228,6 @@ namespace StayInTarkov.Networking
                 Logger.LogDebug(e.Data);
             }
 
-            if (string.IsNullOrEmpty(e.Data))
-                return;
-
             ProcessPacketBytes(e.RawData, e.Data);
             GC.RemoveMemoryPressure(e.RawData.Length);
 
@@ -254,7 +252,7 @@ namespace StayInTarkov.Networking
                 Dictionary<string, object> packet = null;
 
                 // Is a dictionary from Spt-Aki
-                if (sData.StartsWith("{"))
+                if (!string.IsNullOrEmpty(sData) && sData.StartsWith("{"))
                 {
                     // Use StreamReader & JsonTextReader to improve memory / cpu usage
                     using (var streamReader = new StreamReader(new MemoryStream(data)))
@@ -269,10 +267,11 @@ namespace StayInTarkov.Networking
                 // Is a RAW SIT Serialized packet
                 else
                 {
-                    
+
                     //Logger.LogDebug(Encoding.UTF8.GetString(data));
-                    BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
-                    packet = basePlayerPacket.ToDictionary(data);
+                    //BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
+                    //packet = basePlayerPacket.ToDictionary(data);
+                    ProcessSITPacket(data, ref packet);
 
                 }
 
@@ -357,7 +356,6 @@ namespace StayInTarkov.Networking
                 if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
 
-                ProcessSITPacket(ref packet);
 
                 if (packet.ContainsKey(PACKET_TAG_METHOD)
                     && packet[PACKET_TAG_METHOD].ToString() == "Move")
@@ -377,14 +375,52 @@ namespace StayInTarkov.Networking
             }
         }
 
-        private void ProcessSITPacket(ref Dictionary<string, object> packet)
+        private void ProcessSITPacket(byte[] data, ref Dictionary<string, object> packet)
         {
-            // If this is a SIT serialization packet
-            if (packet.ContainsKey(PACKET_TAG_DATA) && packet.ContainsKey(PACKET_TAG_METHOD))
+            var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            if (coopGameComponent == null)
             {
-                var data = packet[PACKET_TAG_DATA];
-                if (data == null)
-                    return;
+                Logger.LogError($"{nameof(ProcessSITPacket)}. coopGameComponent is Null");
+                return;
+            }
+
+            // If the data is empty. Return;
+            if (data == null || data.Length == 0)
+            {
+                Logger.LogError($"{nameof(ProcessSITPacket)}. {nameof(data)} is null");
+            }
+
+            var stringData = Encoding.UTF8.GetString(data);
+            // If the string Data isn't a SIT serialized string. Return;
+            if (!stringData.StartsWith("SIT"))
+            {
+                Logger.LogError($"{nameof(ProcessSITPacket)}. {stringData} does not start with SIT");
+                return;
+            }
+
+            var serverId = stringData.Substring(3, 24);
+            // If the serverId is not the same as the one we are connected to. Return;
+            if (serverId != coopGameComponent.ServerId)
+            {
+                Logger.LogError($"{nameof(ProcessSITPacket)}. {serverId} does not equal {coopGameComponent.ServerId}");
+                return;
+            }
+
+            var bp = new BasePacket("");
+            using (var br = new BinaryReader(new MemoryStream(data)))
+                bp.ReadHeader(br);
+
+            packet = new Dictionary<string, object>();
+            packet[PACKET_TAG_DATA] = data;
+            packet[PACKET_TAG_METHOD] = bp.Method;
+
+            //if(bp.Method == "PolymorphInventoryOperation")
+            //{
+            //    File.WriteAllBytes($"DEBUG_{nameof(ProcessSITPacket)}_{nameof(data)}.bin", data);
+            //}
+
+            //if (packet.ContainsKey(PACKET_TAG_DATA) && packet.ContainsKey(PACKET_TAG_METHOD))
+            //{
                 //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
                 //Logger.LogInfo(" ==================SIT Packet============= ");
                 //Logger.LogInfo(packet.ToJson());
@@ -392,7 +428,7 @@ namespace StayInTarkov.Networking
                 if (!packet.ContainsKey("profileId"))
                 {
                     var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
-                    bpp.Deserialize(Encoding.UTF8.GetBytes(data.ToString()));
+                    bpp.Deserialize(data);
                     packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
                     bpp.Dispose();
                     bpp = null;
@@ -403,7 +439,7 @@ namespace StayInTarkov.Networking
                     Logger.LogInfo(" ==================SIT Packet============= ");
                     Logger.LogInfo(packet.ToJson());
                 }
-            }
+            //}
         }
 
         private bool ProcessDataListPacket(ref Dictionary<string, object> packet)

@@ -45,7 +45,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
 
             BasePlayerPacket examineWeaponPacket = new();
-            examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
+            examineWeaponPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, examineWeaponPacket))
                 return;

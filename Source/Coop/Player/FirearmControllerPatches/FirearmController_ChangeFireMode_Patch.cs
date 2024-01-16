@@ -75,7 +75,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
 
             if (dict.ContainsKey("data"))
-                fmp.DeserializePacketSIT(dict["data"].ToString());
+                fmp.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, fmp))
                 return;

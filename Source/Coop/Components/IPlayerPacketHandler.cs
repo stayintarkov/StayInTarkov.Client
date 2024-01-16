@@ -2,8 +2,9 @@
 
 namespace StayInTarkov.Coop.Components
 {
-    internal interface IPlayerPacketHandlerComponent
+    internal interface IPlayerPacketHandler
     {
         public void ProcessPacket(Dictionary<string, object> packet);
+        public void ProcessPacket(byte[] packet);
     }
 }

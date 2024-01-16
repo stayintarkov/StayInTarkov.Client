@@ -63,7 +63,7 @@ namespace StayInTarkov.Coop.Player.Health
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             RestoreBodyPartPacket restoreBodyPartPacket = new();
-            restoreBodyPartPacket.DeserializePacketSIT(dict["data"].ToString());
+            restoreBodyPartPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, restoreBodyPartPacket))
                 return;

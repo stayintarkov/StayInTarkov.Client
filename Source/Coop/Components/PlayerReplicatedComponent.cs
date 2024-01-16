@@ -33,7 +33,7 @@ namespace StayInTarkov.Core.Player
         //public float ReplicatedMovementSpeed { get; set; }
         private float PoseLevelSmoothed { get; set; } = 1;
 
-        private HashSet<IPlayerPacketHandlerComponent> PacketHandlerComponents { get; } = new();
+        private HashSet<IPlayerPacketHandler> PacketHandlerComponents { get; } = new();
 
         void Awake()
         {
@@ -95,21 +95,21 @@ namespace StayInTarkov.Core.Player
 
             // TODO: Add PacketHandlerComponents here. Possibly via Reflection?
             //PacketHandlerComponents.Add(new MoveOperationPlayerPacketHandler());
-            var packetHandlers = Assembly.GetAssembly(typeof(IPlayerPacketHandlerComponent))
+            var packetHandlers = Assembly.GetAssembly(typeof(IPlayerPacketHandler))
                .GetTypes()
-               .Where(x => x.GetInterface(nameof(IPlayerPacketHandlerComponent)) != null);
+               .Where(x => x.GetInterface(nameof(IPlayerPacketHandler)) != null);
             foreach (var handler in packetHandlers)
             {
                 if (handler.IsAbstract
-                    || handler == typeof(IPlayerPacketHandlerComponent)
-                    || handler.Name == nameof(IPlayerPacketHandlerComponent)
+                    || handler == typeof(IPlayerPacketHandler)
+                    || handler.Name == nameof(IPlayerPacketHandler)
                     )
                     continue;
 
                 if (PacketHandlerComponents.Any(x => x.GetType().Name == handler.Name))
                     continue;
 
-                PacketHandlerComponents.Add((IPlayerPacketHandlerComponent)Activator.CreateInstance(handler));
+                PacketHandlerComponents.Add((IPlayerPacketHandler)Activator.CreateInstance(handler));
                 Logger.LogDebug($"Added {handler.Name} to {nameof(PacketHandlerComponents)}");
             }
         }

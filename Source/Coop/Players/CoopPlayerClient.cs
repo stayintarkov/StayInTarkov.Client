@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using System;
@@ -32,6 +33,12 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
+            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent)) 
+            {
+                var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
+                coopGameComponent.ServerPingSmooth.Enqueue(ms);
+            }
 
             //BepInLogger.LogInfo(NewState.ToJson());
 
@@ -172,7 +179,6 @@ namespace StayInTarkov.Coop.Players
             CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
             //}
 
-            //BepInLogger.LogInfo($"{nameof(Interpolate)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))} to fully process.");
             LastState = NewState;
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
         }
