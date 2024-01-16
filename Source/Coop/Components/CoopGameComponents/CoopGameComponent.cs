@@ -165,7 +165,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            gameObject.AddComponent<CoopGameGUIComponent>();
+            //gameObject.AddComponent<CoopGameGUIComponent>();
 
             SITCheck();
         }
