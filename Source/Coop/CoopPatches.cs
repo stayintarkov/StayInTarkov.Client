@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using StayInTarkov.Coop.Session;
 using UnityEngine;
 
 namespace StayInTarkov.Coop
@@ -44,7 +45,9 @@ namespace StayInTarkov.Coop
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();
-
+            
+            // ------ SESSION -------------------------
+            new ExitStatusPatch().Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();

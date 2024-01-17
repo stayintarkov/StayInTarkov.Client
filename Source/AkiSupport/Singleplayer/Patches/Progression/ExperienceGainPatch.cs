@@ -33,9 +33,16 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         }
 
         [PatchPrefix]
-        private static void PatchPrefix(ref Profile profile, ref bool isOnline)
+        private static void PatchPrefix(ref Profile profile, ref bool isOnline, ref ExitStatus exitStatus)
         {
-            Logger.LogInfo("PatchPrefix");
+            Logger.LogInfo("PatchPrefix");            
+            // If extracted alive subtract 300 from session experience to account for extract bonus, if below 200 it's a run through
+            if (exitStatus == ExitStatus.Survived)
+            {
+                var xpGained = profile.EftStats.TotalSessionExperience;
+                if (xpGained > 300) xpGained -= 300;
+                if (xpGained < 200) exitStatus = ExitStatus.Runner;
+            }
             //profile = CoopPlayerStatisticsManager.Profile;
             isOnline = true;
         }
