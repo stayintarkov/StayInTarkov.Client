@@ -1,7 +1,9 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using EFT.InventoryLogic;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -52,7 +54,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(player.ProfileId, true, true, null);
-            playerProceedEmptyHandsPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedEmptyHandsPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedEmptyHandsPacket))
                 return;
@@ -72,6 +74,31 @@ namespace StayInTarkov.Coop.Player.Proceed
         {
             WithNetwork = withNetwork;
             Scheduled = scheduled;
+        }
+
+        public override byte[] Serialize()
+        {
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+            writer.Write(Scheduled);
+            writer.Write(WithNetwork);
+            writer.Write(TimeSerializedBetter);
+
+            return ms.ToArray();
+        }
+
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+            Scheduled = reader.ReadBoolean();
+            WithNetwork = reader.ReadBoolean();
+            TimeSerializedBetter = reader.ReadString();
+
+            return this;
         }
     }
 }

@@ -45,7 +45,7 @@ namespace StayInTarkov.Coop.Player
                 return;
 
             ItemPlayerPacket itemPacket = new(player.ProfileId, null, null, dict["m"].ToString());
-            itemPacket.DeserializePacketSIT(dict["data"].ToString());
+            itemPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, itemPacket))
                 return;

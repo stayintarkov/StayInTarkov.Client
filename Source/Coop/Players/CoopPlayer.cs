@@ -6,12 +6,15 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
+using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
+using StayInTarkov.Coop.Player.Proceed;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
+using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,9 +65,22 @@ namespace StayInTarkov.Coop.Players
                     , getAimingSensitivity
                     , prefix
                     , aiControl);
+                player.name = profile.Nickname;
             }
             else
             {
+                // Aki won't allow this to happen here :(
+                //var oldEquipmentId = profile.Inventory.Equipment.Id.ToCharArray().ToString();
+                //var newEquipmentId = new MongoID(true);
+                //profile.Inventory.Equipment.Id = newEquipmentId;
+                //foreach (var eq in profile.Inventory.GetAllEquipmentItems())
+                //{
+                //    if (eq.Parent != null && eq.Parent.Item != null && eq.Parent.Item.Id == oldEquipmentId)
+                //    {
+                //        eq.Parent.Item.Id = newEquipmentId;
+                //    }
+                //}
+
                 player = Create<CoopPlayer>(
                     ResourceBundleConstants.PLAYER_BUNDLE_NAME
                     , playerId
@@ -77,6 +93,7 @@ namespace StayInTarkov.Coop.Players
                     , getAimingSensitivity
                     , prefix
                     , aiControl);
+               
             }
             player.IsYourPlayer = isYourPlayer;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
@@ -378,6 +395,17 @@ namespace StayInTarkov.Coop.Players
 
 
         //}
+
+        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+
+            //PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
+            //GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
+
+            //BepInLogger.LogInfo($"{nameof(Proceed)} FoodDrink");
+            //BepInLogger.LogInfo($"{playerProceedFoodDrinkPacket.ToJson()}");
+        }
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {

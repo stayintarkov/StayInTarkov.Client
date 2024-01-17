@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityStandardAssets.Water;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Controllers.CoopInventory;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
@@ -177,6 +178,12 @@ namespace StayInTarkov.Coop.Players
 
             EPlayerState name = MovementContext.CurrentState.Name;
             EPlayerState eplayerState = NewState.State;
+
+            if (eplayerState == EPlayerState.ClimbUp || eplayerState == EPlayerState.ClimbOver || eplayerState == EPlayerState.VaultingLanding || eplayerState == EPlayerState.VaultingFallDown)
+            {
+                Vaulting();
+            }
+
             if (eplayerState == EPlayerState.Jump)
             {
                 Jump();

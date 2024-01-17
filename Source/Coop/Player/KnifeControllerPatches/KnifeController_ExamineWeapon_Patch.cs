@@ -47,7 +47,7 @@ namespace StayInTarkov.Coop.Player.KnifeControllerPatches
                 return;
 
             BasePlayerPacket examineWeaponPacket = new(player.ProfileId, "");
-            examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
+            examineWeaponPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, examineWeaponPacket))
                 return;

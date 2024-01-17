@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             BasePlayerPacket checkChamberPacket = new();
 
             if (dict.ContainsKey("data"))
-                checkChamberPacket.DeserializePacketSIT(dict["data"].ToString());
+                checkChamberPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, checkChamberPacket))
                 return;
