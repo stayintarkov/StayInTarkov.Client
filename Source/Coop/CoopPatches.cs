@@ -43,8 +43,10 @@ namespace StayInTarkov.Coop
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LoadLocationLootPatch().Enable();
-
-
+            
+            // ------ SESSION -------------------------
+            new ExitStatusPatch().Enable();
+            
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
