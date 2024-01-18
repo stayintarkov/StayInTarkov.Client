@@ -598,6 +598,26 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return;
             }
         }
+        
+        /// <summary>
+        /// Handles a player going MissingInAction by staying in the game too long.
+        /// </summary>
+        void ProcessMissingInAction()
+        {
+            var gameTime = Singleton<AbstractGame>.Instance?.GameTimer.EscapeDateTime;
+            if (gameTime != null)
+            {
+                var remainingTime = (float)(gameTime.Value - GClass1293.UtcNow).TotalSeconds;
+                if (remainingTime <= 0.5f)
+                {
+                    Singleton<ISITGame>.Instance.Stop(
+                        Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                        , ExitStatus.MissingInAction
+                        , Singleton<ISITGame>.Instance.MyExitLocation
+                        , 0);
+                }
+            }
+        }
 
         /// <summary>
         /// This handles the possibility the server has stopped / disconnected and exits your player out of the game
@@ -625,6 +645,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             ProcessQuitting();
             //ProcessServerHasStopped();
+            ProcessMissingInAction();
 
             if (ActionPackets == null)
                 return;
