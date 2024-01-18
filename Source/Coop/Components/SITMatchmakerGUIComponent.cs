@@ -487,8 +487,6 @@ namespace StayInTarkov.Coop.Components
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
                 MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
-                MatchmakerAcceptPatches.ServerType = result["serverType"].ToString();
-                MatchmakerAcceptPatches.ServerPort = int.Parse(result["serverPort"].ToString());
                 MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());

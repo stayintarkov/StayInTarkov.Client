@@ -28,9 +28,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using static LocationSettings;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov.Coop
-{
+{   
     public sealed class FriendlyAIPMCSystem
     {
         /// <summary>
@@ -50,12 +52,13 @@ namespace StayInTarkov.Coop
     /// </summary>
     internal sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-
         public new bool InRaid { get { return true; } }
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
         public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
+
+        public Dictionary<string, string> ServerConnectionInfo { get; set; }
 
         BotsController IBotGame.BotsController
         {
@@ -164,19 +167,31 @@ namespace StayInTarkov.Coop
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
-            if (MatchmakerAcceptPatches.ServerType == "relay")
-            {
-                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCP>();
-            }
 
-            // Udp Instanciate
-            if (MatchmakerAcceptPatches.ServerType == "p2p")
+            if (MatchmakerAcceptPatches.IsClient)
             {
-                if (MatchmakerAcceptPatches.IsClient)
+                var result = AkiBackendCommunication.Instance.GetJson($"/coop/server/connectionInfo/{MatchmakerAcceptPatches.GetGroupId()}");
+
+                coopGame.ServerConnectionInfo = result.ParseJsonTo<Dictionary<string, string>>();
+
+                if (coopGame.ServerConnectionInfo["serverType"] == "relay")
+                {
+                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCP>();
+                }
+
+                if (coopGame.ServerConnectionInfo["serverType"] == "p2p")
                 {
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
                 }
-                else
+            }
+
+            if (MatchmakerAcceptPatches.IsServer)
+            {
+                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == "relay")
+                {
+                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCP>();
+                }
+                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == "p2p")
                 {
                     coopGame.Server = coopGame.GetOrAddComponent<GameServerUDP>();
                 }

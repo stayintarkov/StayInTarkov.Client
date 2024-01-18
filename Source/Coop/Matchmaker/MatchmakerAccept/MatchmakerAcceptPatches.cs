@@ -4,8 +4,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Networking;
+using STUN;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using UnityEngine;
 
@@ -32,8 +34,6 @@ namespace StayInTarkov.Coop.Matchmaker
     {
         #region Fields/Properties
         public static EFT.UI.Matchmaker.MatchMakerAcceptScreen MatchMakerAcceptScreenInstance { get; set; }
-        public static string ServerType { get; set; }
-        public static int ServerPort { get; set; }
         public static Profile Profile { get; set; }
         public static EMatchmakerType MatchingType { get; set; } = EMatchmakerType.Single;
         public static bool IsServer => MatchingType == EMatchmakerType.GroupLeader;
@@ -225,16 +225,13 @@ namespace StayInTarkov.Coop.Matchmaker
             return false;
         }
 
-        //public static void CreateMatch(string accountId, RaidSettings rs)
         public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
-        {
+        {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
 
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId }
-                , { "serverType", PluginConfigSettings.Instance.CoopSettings.SITServerType }
-                , { "serverUdpPort", PluginConfigSettings.Instance.CoopSettings.SITUdpPort }
                 , { "timestamp", timestamp }
                 , { "settings", rs }
                 , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
@@ -250,12 +247,8 @@ namespace StayInTarkov.Coop.Matchmaker
 
             if (!string.IsNullOrEmpty(result))
             {
-                JObject outJObject = JObject.Parse(result);
-
                 StayInTarkovHelperConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
                 SetGroupId(profileId);
-                ServerType = PluginConfigSettings.Instance.CoopSettings.SITServerType;
-                ServerPort = PluginConfigSettings.Instance.CoopSettings.SITUdpPort;
                 SetTimestamp(timestamp);
                 MatchingType = EMatchmakerType.GroupLeader;
                 return;

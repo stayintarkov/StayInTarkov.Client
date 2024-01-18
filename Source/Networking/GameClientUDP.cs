@@ -1,6 +1,7 @@
 ﻿using Aki.Custom.Airdrops;
 using BepInEx.Logging;
 using Comfort.Common;
+using EFT;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using Sirenix.Utilities;
@@ -18,6 +19,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityStandardAssets.Water;
 using static StayInTarkov.Networking.SITSerialization;
 
@@ -31,7 +33,7 @@ namespace StayInTarkov.Networking
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
         private LiteNetLib.NetManager _netClient;
-        private P2PConnectionHelper _p2pConnectionHelper;
+        private NatPunchHelper _natPunchHelper;
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer { get; set; }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
@@ -75,22 +77,40 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false
             };
 
-            _p2pConnectionHelper = new P2PConnectionHelper(_netClient);
-            _p2pConnectionHelper.Connect();
-            _p2pConnectionHelper.OpenPublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-            _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
             Connect();
         }
 
         private async void Connect()
         {
-            endPointToConnect = await _p2pConnectionHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
-
-            if(endPointToConnect != null) 
+            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                _netClient.Connect(endPointToConnect, "sit.core");
+                var coopGame = coopGameComponent.LocalGameInstance as CoopGame;
+
+                var serverConnectionInfo = coopGame.ServerConnectionInfo;
+
+                if (serverConnectionInfo["serverNat"] == "upnp" || serverConnectionInfo["serverNat"] == "portforward")
+                {
+                    _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                    endPointToConnect = new IPEndPoint(IPAddress.Parse(serverConnectionInfo["serverIp"]), int.Parse(serverConnectionInfo["serverPort"]));
+
+                    _netClient.Connect(endPointToConnect, "sit.core");
+                }
+
+                if(serverConnectionInfo["serverNat"] == "natpunch")
+                {
+                    _natPunchHelper = new NatPunchHelper(_netClient);
+                    _natPunchHelper.Connect();
+                    _natPunchHelper.CreatePublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                    _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                    endPointToConnect = await _natPunchHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+
+                    _natPunchHelper.Close();
+
+                    _netClient.Connect(endPointToConnect, "sit.core");
+                }
             }
         }
 

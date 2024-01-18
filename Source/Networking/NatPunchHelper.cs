@@ -7,13 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using WebSocketSharp;
 
 namespace StayInTarkov.Networking
 {
-    public class P2PConnectionHelper
+    public class NatPunchHelper
     {
         public LiteNetLib.NetManager NetManager;
         public WebSocket WebSocket { get; set; }
@@ -22,14 +23,14 @@ namespace StayInTarkov.Networking
 
         private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("P2P Connection Helper");
 
-        public P2PConnectionHelper(LiteNetLib.NetManager netManager)
+        public NatPunchHelper(LiteNetLib.NetManager netManager)
         {
             NetManager = netManager;
         }
 
         public void Connect()
         {
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITP2PHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatPunchHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
 
             WebSocket = new WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
@@ -38,6 +39,11 @@ namespace StayInTarkov.Networking
 
             WebSocket.OnError += WebSocket_OnError;
             WebSocket.OnMessage += WebSocket_OnMessage;
+        }
+
+        public void Close() 
+        {
+            WebSocket.Close();
         }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
@@ -61,13 +67,13 @@ namespace StayInTarkov.Networking
         {
             Logger.LogInfo("received message: " + message);
 
-            var messageSplit = message.Split(':');
+            var msgSplit = message.Split(':');
 
-            if (messageSplit[0] == "punch_request")
+            if (msgSplit[0] == "punch_request")
             {
-                var profileId = messageSplit[1];
-                var ipToPunch = messageSplit[2];
-                var portToPunch = messageSplit[3];
+                var profileId = msgSplit[1];
+                var ipToPunch = msgSplit[2];
+                var portToPunch = msgSplit[3];
 
                 PunchNat(new IPEndPoint(IPAddress.Parse(ipToPunch), int.Parse(portToPunch)));
 
@@ -75,10 +81,10 @@ namespace StayInTarkov.Networking
                 WebSocket.Send(punchResponsePacket);
             }
 
-            if (messageSplit[0] == "punch_response")
+            if (msgSplit[0] == "punch_response")
             {
-                var serverIp = messageSplit[1];
-                var serverPort = messageSplit[2];
+                var serverIp = msgSplit[1];
+                var serverPort = msgSplit[2];
 
                 var endPoint = new IPEndPoint(IPAddress.Parse(serverIp), int.Parse(serverPort));
 
@@ -88,7 +94,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public bool OpenPublicEndPoint(int localPort)
+        public bool CreatePublicEndPoint(int localPort)
         {
             if (STUNHelper.Query(localPort, out STUNQueryResult stunQueryResult))
             {

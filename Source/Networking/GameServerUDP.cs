@@ -4,6 +4,7 @@ using EFT;
 using EFT.Weather;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Newtonsoft.Json;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -18,8 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
@@ -31,7 +34,7 @@ namespace StayInTarkov.Networking
     public class GameServerUDP : MonoBehaviour, INetEventListener, INetLogger
     {
         private LiteNetLib.NetManager _netServer;
-        public P2PConnectionHelper _p2pConnectionHelper;
+        public NatPunchHelper _natPunchHelper;
         public NetPacketProcessor _packetProcessor = new();
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
@@ -82,10 +85,28 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
-            
-            _p2pConnectionHelper = new P2PConnectionHelper(_netServer);
-            _p2pConnectionHelper.Connect();
-            _p2pConnectionHelper.OpenPublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "upnp")
+            {
+                // get external ip + upnp port
+                
+                // SendConnectionInfo(...)
+            }
+
+            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "portforward")
+            {
+                // get external ip + port
+
+                // SendConnectionInfo(...)
+            }
+
+            if (PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "natpunch")
+            {
+                _natPunchHelper = new NatPunchHelper(_netServer);
+                _natPunchHelper.Connect();
+                _natPunchHelper.CreatePublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                SendConnectionInfo();
+            }
 
             _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
@@ -93,6 +114,27 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
             EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+        }
+
+        private void SendConnectionInfo(IPEndPoint endPoint = null)
+        {
+            var serverConnectionInfoPacket = new Dictionary<string, object>
+            {
+                { "serverId", MatchmakerAcceptPatches.GetGroupId() },
+                { "serverType", PluginConfigSettings.Instance.CoopSettings.SITServerType},
+                { "serverNat", PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod}
+            };
+
+            if(endPoint != null)
+            {
+                serverConnectionInfoPacket.AddRange(new Dictionary<string, object>
+                {
+                    { "serverIp", endPoint.Address.ToString() },
+                    { "serverPort", endPoint.Port }
+                });
+            }
+
+            var result = AkiBackendCommunication.Instance.PostJson($"/coop/server/connectionInfo", JsonConvert.SerializeObject(serverConnectionInfoPacket));
         }
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
@@ -282,6 +324,11 @@ namespace StayInTarkov.Networking
             NetDebug.Logger = null;
             if (_netServer != null)
                 _netServer.Stop();
+
+            if(_natPunchHelper != null)
+            {
+                _natPunchHelper.Close();
+            }
         }
 
         public void SendDataToAll<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod, NetPeer peer = null) where T : INetSerializable

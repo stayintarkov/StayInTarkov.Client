@@ -200,7 +200,7 @@ namespace StayInTarkov.Networking
 
         private void WebSocket_OnError()
         {
-            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {MatchmakerAcceptPatches.ServerPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
+            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
             if (Singleton<ISITGame>.Instantiated)
             {
                 Singleton<ISITGame>.Instance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation);
