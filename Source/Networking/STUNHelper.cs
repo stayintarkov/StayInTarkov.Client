@@ -25,7 +25,7 @@ namespace StayInTarkov.Networking
 
             try
             {
-                IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com:19302").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
+                IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
                 int stunPort = 19302;
 
                 var stunEndPoint = new IPEndPoint(stunIp, stunPort);
