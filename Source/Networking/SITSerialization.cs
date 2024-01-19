@@ -4,10 +4,12 @@ using EFT;
 using EFT.InventoryLogic;
 using LiteNetLib.Utils;
 using Newtonsoft.Json;
+using StayInTarkov.Coop.NetworkPacket;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Xml;
 using UnityEngine;
@@ -107,7 +109,21 @@ namespace StayInTarkov.Networking
                 SerializeLocationInGrid(writer, gridItemAddressDescriptor.LocationInGrid);
             }
 
+            public static void SerializeGridItemAddressDescriptor(BinaryWriter writer, GridItemAddressDescriptor gridItemAddressDescriptor)
+            {
+                SerializeLocationInGrid(writer, gridItemAddressDescriptor.LocationInGrid);
+            }
+
             public static GridItemAddressDescriptor DeserializeGridItemAddressDescriptor(NetDataReader reader)
+            {
+                return new GridItemAddressDescriptor()
+                {
+                    LocationInGrid = DeserializeLocationInGrid(reader),
+                    Container = DeserializeContainerDescriptor(reader)
+                };
+            }
+
+            public static GridItemAddressDescriptor DeserializeGridItemAddressDescriptor(BinaryReader reader)
             {
                 return new GridItemAddressDescriptor()
                 {
@@ -122,7 +138,22 @@ namespace StayInTarkov.Networking
                 writer.Put(containerDescriptor.ContainerId);
             }
 
+            public static void SerializeContainerDescriptor(BinaryWriter writer, ContainerDescriptor containerDescriptor)
+            {
+                writer.Write(containerDescriptor.ParentId);
+                writer.Write(containerDescriptor.ContainerId);
+            }
+
             public static ContainerDescriptor DeserializeContainerDescriptor(NetDataReader reader)
+            {
+                return new ContainerDescriptor()
+                {
+                    ParentId = reader.GetString(),
+                    ContainerId = reader.GetString(),
+                };
+            }
+
+            public static ContainerDescriptor DeserializeContainerDescriptor(BinaryReader reader)
             {
                 return new ContainerDescriptor()
                 {
@@ -157,7 +188,26 @@ namespace StayInTarkov.Networking
                 writer.Put(locationInGrid.isSearched);
             }
 
+            public static void SerializeLocationInGrid(BinaryWriter writer, LocationInGrid locationInGrid)
+            {
+                writer.Put(locationInGrid.x);
+                writer.Put(locationInGrid.y);
+                writer.Put((int)locationInGrid.r);
+                writer.Put(locationInGrid.isSearched);
+            }
+
             public static LocationInGrid DeserializeLocationInGrid(NetDataReader reader)
+            {
+                return new LocationInGrid()
+                {
+                    x = reader.GetInt(),
+                    y = reader.GetInt(),
+                    r = (ItemRotation)reader.GetInt(),
+                    isSearched = reader.GetBool()
+                };
+            }
+
+            public static LocationInGrid DeserializeLocationInGrid(BinaryReader reader)
             {
                 return new LocationInGrid()
                 {
@@ -999,49 +1049,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public struct WorldInteractionPacket
-        {
-            public string InteractiveId { get; set; }
-            public EInteractionType InteractionType { get; set; }
-            public bool IsStart { get; set; }
-            public bool HasKey { get; set; }
-            public string KeyItemId { get; set; }
-            public string KeyItemTemplateId { get; set; }
-            public GridItemAddressDescriptor GridItemAddressDescriptor { get; set; }
-            public bool KeySuccess { get; set; }
-
-            public static WorldInteractionPacket Deserialize(NetDataReader reader)
-            {
-                WorldInteractionPacket packet = new();
-                packet.InteractiveId = reader.GetString();
-                packet.InteractionType = (EInteractionType)reader.GetInt();
-                packet.IsStart = reader.GetBool();
-                packet.HasKey = reader.GetBool();
-                if (packet.HasKey)
-                {
-                    packet.KeyItemId = reader.GetString();
-                    packet.KeyItemTemplateId = reader.GetString();
-                    packet.GridItemAddressDescriptor = AddressUtils.DeserializeGridItemAddressDescriptor(reader);
-                    packet.KeySuccess = reader.GetBool();
-                }
-                return packet;
-            }
-
-            public static void Serialize(NetDataWriter writer, WorldInteractionPacket packet)
-            {
-                writer.Put(packet.InteractiveId);
-                writer.Put((int)packet.InteractionType);
-                writer.Put(packet.IsStart);
-                writer.Put(packet.HasKey);
-                if (packet.HasKey)
-                {
-                    writer.Put(packet.KeyItemId);
-                    writer.Put(packet.KeyItemTemplateId);
-                    AddressUtils.SerializeGridItemAddressDescriptor(writer, packet.GridItemAddressDescriptor);
-                    writer.Put(packet.KeySuccess);
-                }
-            }
-        }
+       
 
         public struct ContainerInteractionPacket
         {
@@ -1202,6 +1210,8 @@ namespace StayInTarkov.Networking
                 writer.Put(packet.AmmoTemplate);
             }
         }
+
+       
 
         public enum EProceedType
         {

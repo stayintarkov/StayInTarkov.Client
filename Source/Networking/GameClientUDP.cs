@@ -53,7 +53,7 @@ namespace StayInTarkov.Networking
             _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
             _packetProcessor.RegisterNestedType(PhysicalUtils.Serialize, PhysicalUtils.Deserialize);
 
-            //_packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
+            _packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
             //_packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnFirearmControllerPacketReceived);
@@ -319,17 +319,17 @@ namespace StayInTarkov.Networking
         //    }
         //}
 
-        //private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
-        //{
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
+        private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
+        {
+            if (!Players.ContainsKey(packet.ProfileId))
+                return;
 
-        //    var playerToApply = Players[packet.ProfileId];
-        //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
-        //    {
-        //        playerToApply.NewState = packet;
-        //    }
-        //}
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
+            if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
+            {
+                playerToApply.NewState = packet;
+            }
+        }
 
         void Update()
         {

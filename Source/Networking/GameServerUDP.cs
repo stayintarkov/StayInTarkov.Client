@@ -166,7 +166,7 @@ namespace StayInTarkov.Networking
             _dataWriter.Reset();
             SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-            var playerToApply = Players[packet.ProfileId] as ObservedCoopPlayer;
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
             if (playerToApply != default && playerToApply != null)
             {
                 //playerToApply.CommonPlayerPackets.Enqueue(packet);
@@ -180,7 +180,7 @@ namespace StayInTarkov.Networking
             _dataWriter.Reset();
             SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-            var playerToApply = Players[packet.ProfileId] as ObservedCoopPlayer;
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
             if (playerToApply != default && playerToApply != null)
             {
                 //playerToApply.InventoryPackets.Enqueue(packet);
@@ -194,7 +194,7 @@ namespace StayInTarkov.Networking
             _dataWriter.Reset();
             SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-            var playerToApply = Players[packet.ProfileId] as ObservedCoopPlayer;
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
             if (playerToApply != default && playerToApply != null)
             {
                 //playerToApply.HealthPackets.Enqueue(packet);
@@ -208,7 +208,7 @@ namespace StayInTarkov.Networking
             _dataWriter.Reset();
             SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-            var playerToApply = Players[packet.ProfileId] as ObservedCoopPlayer;
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
             if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
                 //playerToApply.FirearmPackets.Enqueue(packet);
@@ -269,7 +269,7 @@ namespace StayInTarkov.Networking
             _dataWriter.Reset();
             SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-            var playerToApply = Players[packet.ProfileId] as ObservedCoopPlayer;
+            var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
             if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
             {
                 playerToApply.NewState = packet;

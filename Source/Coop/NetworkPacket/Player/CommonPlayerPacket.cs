@@ -1,13 +1,14 @@
 ﻿using LiteNetLib.Utils;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.GameWorld;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
 {
-    public struct CommonPlayerPacket : INetSerializable
+    public class CommonPlayerPacket : BasePlayerPacket, INetSerializable
     {
         public bool ShouldSend { get; private set; } = false;
-        public string ProfileId { get; set; }
+        //public string ProfileId { get; set; }
         public EPhraseTrigger Phrase { get; set; } = EPhraseTrigger.PhraseNone;
         public int PhraseIndex { get; set; }
         public bool HasWorldInteractionPacket { get; set; }
@@ -45,7 +46,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 PhraseIndex = reader.GetInt();
             HasWorldInteractionPacket = reader.GetBool();
             if (HasWorldInteractionPacket)
-                WorldInteractionPacket = WorldInteractionPacket.Deserialize(reader);
+                WorldInteractionPacket = new WorldInteractionPacket().Deserialize(reader);
             HasContainerInteractionPacket = reader.GetBool();
             if (HasContainerInteractionPacket)
                 ContainerInteractionPacket = ContainerInteractionPacket.Deserialize(reader);

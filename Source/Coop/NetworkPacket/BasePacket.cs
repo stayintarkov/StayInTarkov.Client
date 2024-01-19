@@ -542,9 +542,49 @@ namespace StayInTarkov.Coop.NetworkPacket
         }
 
 
+        // INetSerializable Extensions
+
+
+        public static void Put(this BinaryWriter binaryWriter, int value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, string value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, bool value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, byte[] value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static int GetInt(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadInt32();
+        }
+
+        public static string GetString(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadString();
+        }
+
+        public static bool GetBool(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadBoolean();
+        }
+
+
         public static Stopwatch swDeserializerDebug = new Stopwatch();
 
         
     }
+
 
 }
