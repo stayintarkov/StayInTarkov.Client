@@ -23,12 +23,13 @@ namespace StayInTarkov.Networking
             var stunUdpClient = new UdpClient(AddressFamily.InterNetwork);
             stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, localPort));
 
-            // Google's STUN server should be pretty safe to use in the long term.
-            if (!STUNUtils.TryParseHostAndPort("stun.l.google.com:19302", out IPEndPoint stunEndPoint))
-                throw new Exception("Failed to resolve STUN server address!");
-
             try
             {
+                IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com:19302").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
+                int stunPort = 19302;
+
+                var stunEndPoint = new IPEndPoint(stunIp, stunPort);
+
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
                 //var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
             }
