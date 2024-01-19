@@ -20,7 +20,7 @@ namespace StayInTarkov.Networking
         {
             queryResult = new STUNQueryResult();
 
-            var stunUdpClient = new UdpClient();
+            var stunUdpClient = new UdpClient(AddressFamily.InterNetwork);
             stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, localPort));
 
             // Google's STUN server should be pretty safe to use in the long term.
