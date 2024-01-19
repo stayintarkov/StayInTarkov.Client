@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using Comfort.Common;
 using EFT;
 using EFT.UI.SessionEnd;
 
@@ -29,12 +30,12 @@ namespace StayInTarkov.Coop.Session
         private static void PatchPrefix(ref Profile activeProfile, ref ExitStatus exitStatus)
         {
             Logger.LogInfo("PatchPrefix");
-            // If extracted alive subtract 300 from session experience to account for extract bonus, if below 200 it's a run through
             if (exitStatus == ExitStatus.Survived)
             {
+                var matchEnd = Singleton<Config4>.Instance.Experience.MatchEnd;
                 var xpGained = activeProfile.EftStats.TotalSessionExperience;
-                if (xpGained > 300) xpGained -= 300;
-                if (xpGained < 200) exitStatus = ExitStatus.Runner;
+                if (xpGained > matchEnd.SurvivedReward) xpGained -= matchEnd.SurvivedReward;
+                if (xpGained < matchEnd.SurvivedExpRequirement) exitStatus = ExitStatus.Runner;
             }
         }
     }

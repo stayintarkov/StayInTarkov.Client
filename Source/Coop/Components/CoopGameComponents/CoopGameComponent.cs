@@ -604,17 +604,24 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// </summary>
         void ProcessMissingInAction()
         {
-            var gameTime = Singleton<AbstractGame>.Instance?.GameTimer.EscapeDateTime;
-            if (gameTime != null)
+            EFT.Player player = Singleton<GameWorld>.Instance.MainPlayer;
+            var coopGame = Singleton<ISITGame>.Instance;
+            bool isAlive = player.HealthController.IsAlive;
+            bool isExtracted = coopGame.ExtractedPlayers.Contains(player.ProfileId);
+            if (isAlive && !isExtracted)
             {
-                var remainingTime = (float)(gameTime.Value - GClass1293.UtcNow).TotalSeconds;
-                if (remainingTime <= 0.5f)
+                var gameTime = LocalGameInstance.GameTimer.EscapeDateTime;
+                if (gameTime != null)
                 {
-                    Singleton<ISITGame>.Instance.Stop(
-                        Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                        , ExitStatus.MissingInAction
-                        , Singleton<ISITGame>.Instance.MyExitLocation
-                        , 0);
+                    var remainingTime = (float)(gameTime.Value - DateTime.UtcNow).TotalSeconds;
+                    if (remainingTime <= 0.5f)
+                    {
+                        coopGame.Stop(
+                            player.ProfileId
+                            , ExitStatus.MissingInAction
+                            , coopGame.MyExitLocation
+                            , 0);
+                    }
                 }
             }
         }
