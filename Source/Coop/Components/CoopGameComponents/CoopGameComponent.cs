@@ -1410,7 +1410,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private Rect DrawPing(Rect rect)
         {
-            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
+            if (!PluginConfigSettings.Instance.CoopSettings.ShowPing)
                 return rect;
 
             rect.y = 5;
