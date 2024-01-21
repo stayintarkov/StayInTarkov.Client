@@ -62,8 +62,8 @@ namespace StayInTarkov.Networking
             //_packetProcessor.SubscribeNetSerializable<CommonPlayerPacket, NetPeer>(OnCommonPlayerPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<AllCharacterRequestPacket, NetPeer>(OnAllCharacterRequestPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<InformationPacket, NetPeer>(OnInformationPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<AirdropPacket, NetPeer>(OnAirdropPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<AirdropLootPacket, NetPeer>(OnAirdropLootPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<AirdropPacket, NetPeer>(OnAirdropPacketReceived);
+            _packetProcessor.SubscribeNetSerializable<AirdropLootPacket, NetPeer>(OnAirdropLootPacketReceived);
 
             _netClient = new LiteNetLib.NetManager(this)
             {
@@ -77,42 +77,48 @@ namespace StayInTarkov.Networking
             _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
         }
 
-        //private void OnAirdropLootPacketReceived(AirdropLootPacket packet, NetPeer peer)
-        //{
-        //    if (!Singleton<SITAirdropsManager>.Instantiated)
-        //    {
-        //        EFT.UI.ConsoleScreen.LogError("OnAirdropLootPacketReceived: Received loot package but manager is not instantiated!");
-        //        return;
-        //    }
-        //    Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(packet.Loot, packet.Config);
-        //}
+        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
+        {
+                EFT.UI.ConsoleScreen.Log("OnNetworkReceive");
 
-        //private void OnAirdropPacketReceived(AirdropPacket packet, NetPeer peer)
-        //{
-        //    if (Singleton<SITAirdropsManager>.Instantiated)
-        //    {
-        //        Singleton<SITAirdropsManager>.Instance.AirdropParameters = new()
-        //        {
-        //            Config = packet.Config,
-        //            AirdropAvailable = packet.AirdropAvailable,
-        //            PlaneSpawned = packet.PlaneSpawned,
-        //            BoxSpawned = packet.BoxSpawned,
-        //            DistanceTraveled = packet.DistanceTraveled,
-        //            DistanceToTravel = packet.DistanceToTravel,
-        //            DistanceToDrop = packet.DistanceToDrop,
-        //            Timer = packet.Timer,
-        //            DropHeight = packet.DropHeight,
-        //            TimeToStart = packet.TimeToStart,
-        //            RandomAirdropPoint = packet.BoxPoint,
-        //            SpawnPoint = packet.SpawnPoint,
-        //            LookPoint = packet.LookPoint
-        //        };
-        //    }
-        //    else
-        //    {
-        //        EFT.UI.ConsoleScreen.LogError("OnAirdropPacketReceived: Received package but manager is not instantiated!");
-        //    }
-        //}
+        }
+
+        private void OnAirdropLootPacketReceived(AirdropLootPacket packet, NetPeer peer)
+        {
+            if (!Singleton<SITAirdropsManager>.Instantiated)
+            {
+                EFT.UI.ConsoleScreen.LogError("OnAirdropLootPacketReceived: Received loot package but manager is not instantiated!");
+                return;
+            }
+            //Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(packet.Loot, packet.Config);
+        }
+
+        private void OnAirdropPacketReceived(AirdropPacket packet, NetPeer peer)
+        {
+            //if (Singleton<SITAirdropsManager>.Instantiated)
+            //{
+            //    Singleton<SITAirdropsManager>.Instance.AirdropParameters = new()
+            //    {
+            //        Config = packet.Config,
+            //        AirdropAvailable = packet.AirdropAvailable,
+            //        PlaneSpawned = packet.PlaneSpawned,
+            //        BoxSpawned = packet.BoxSpawned,
+            //        DistanceTraveled = packet.DistanceTraveled,
+            //        DistanceToTravel = packet.DistanceToTravel,
+            //        DistanceToDrop = packet.DistanceToDrop,
+            //        Timer = packet.Timer,
+            //        DropHeight = packet.DropHeight,
+            //        TimeToStart = packet.TimeToStart,
+            //        RandomAirdropPoint = packet.BoxPoint,
+            //        SpawnPoint = packet.SpawnPoint,
+            //        LookPoint = packet.LookPoint
+            //    };
+            //}
+            //else
+            //{
+            //    EFT.UI.ConsoleScreen.LogError("OnAirdropPacketReceived: Received package but manager is not instantiated!");
+            //}
+        }
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
         //{
@@ -405,6 +411,12 @@ namespace StayInTarkov.Networking
 
         public void SendDataToServer(byte[] data)
         {
+            if (_netClient.FirstPeer == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("[CLIENT] First Peer is Null");
+                return;
+            }
+
             _netClient.FirstPeer.Send(data, LiteNetLib.DeliveryMethod.ReliableOrdered);
         }
     }

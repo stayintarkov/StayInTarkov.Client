@@ -97,6 +97,13 @@ namespace StayInTarkov.Networking
             //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
+        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
+        {
+            EFT.UI.ConsoleScreen.Log("OnNetworkReceive");
+            Logger.LogInfo("OnNetworkReceive");
+        }
+
+
         private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
         {
             InformationPacket respondPackage = new(false)
