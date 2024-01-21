@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, weapon.Id, weapon.TemplateId, scheduled, "ProceedWeapon");
-            GameClient.SendDataToServer(playerProceedPacket.Serialize());
+            GameClient.SendData(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

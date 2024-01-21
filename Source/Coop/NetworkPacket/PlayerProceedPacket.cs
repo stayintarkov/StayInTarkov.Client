@@ -7,6 +7,11 @@ namespace StayInTarkov.Coop.NetworkPacket
     {
         public bool Scheduled { get; set; }
 
+        public PlayerProceedPacket() : base("","","","")
+        {
+
+        }
+
         public PlayerProceedPacket(string profileId, string itemId, string templateId, bool scheduled, string method) 
             : base(profileId, itemId, templateId, method)
         {

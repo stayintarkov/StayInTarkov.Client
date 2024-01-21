@@ -170,7 +170,7 @@ namespace StayInTarkov.Coop
                PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.TCP
                )
             {
-                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCP>();
+                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
             }
 
             // Udp Instanciate
@@ -180,14 +180,10 @@ namespace StayInTarkov.Coop
                 PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.UDP
                 )
             {
-                if (MatchmakerAcceptPatches.IsClient)
-                {
-                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
-                }
-                else
-                {
-                    coopGame.Server = coopGame.GetOrAddComponent<GameServerUDP>();
-                }
+                if(MatchmakerAcceptPatches.IsServer)
+                    coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
+
+                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
             }
 
             return coopGame;
@@ -807,17 +803,6 @@ namespace StayInTarkov.Coop
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
-
-
-
-            // ==================== TEST ==========================
-            // TODO: Replace with Unit Tests
-            var pJson = player.Profile.SITToJson();
-            //Logger.LogDebug(pJson);
-            var pProfile = pJson.SITParseJson<Profile>();
-            Assert.AreEqual<Profile>(player.Profile, pProfile);
-
-
         }
 
         /// <summary>
@@ -1109,7 +1094,7 @@ namespace StayInTarkov.Coop
         public ISpawnSystem SpawnSystem { get; set; }
         public int MaxBotCount { get; private set; }
         public IGameClient GameClient { get; private set; }
-        public GameServerUDP Server { get; private set; }
+        public GameServerUDP GameServer { get; private set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
         {

@@ -27,7 +27,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            return CallLocally.Contains(__instance.ProfileId) || IsHighPingOrAI(__instance);
+            return true;
         }
 
         [PatchPostfix]
@@ -40,11 +40,14 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(__instance.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
-            GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
+            GameClient.SendData(playerProceedFoodDrinkPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            if (IsHighPingOwnPlayerOrAI(player))
+                return;
+
             if (!dict.ContainsKey("data"))
                 return;
 

@@ -32,7 +32,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            return CallLocally.Contains(__instance.ProfileId);
+            return true;
         }
 
         [PatchPostfix]
@@ -47,12 +47,15 @@ namespace StayInTarkov.Coop.Player.Proceed
             //if (knife.Item is Knife knife0)
             {
                 PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, knife.Item.Id, knife.Item.TemplateId, scheduled, "ProceedQuickKnifeKick");
-                GameClient.SendDataToServer(playerProceedPacket.Serialize());
+                GameClient.SendData(playerProceedPacket.Serialize());
             }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            if (IsHighPingOwnPlayerOrAI(player))
+                return;
+
             if (!dict.ContainsKey("data"))
                 return;
 

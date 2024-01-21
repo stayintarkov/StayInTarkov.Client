@@ -278,7 +278,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             playerStates.Add("dataList", playerStateArray);
             //Logger.LogDebug(playerStates.SITToJson());
-            RequestingObj.SendDataToPool(playerStates.SITToJson());
+            GameClient.SendData(Encoding.UTF8.GetBytes(playerStates.SITToJson()));
 
             LastPlayerStateSent = DateTime.Now;
 

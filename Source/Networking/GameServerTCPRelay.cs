@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StayInTarkov.Coop.NetworkPacket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,13 @@ namespace StayInTarkov.Networking
     /// <summary>
     /// This is unused. TCP Mode is PRP (Peer->Relay->Peer via the Web Server)
     /// </summary>
-    public class GameServerTCP : MonoBehaviour, IGameClient
+    public class GameServerTCPRelay : MonoBehaviour, IGameClient
     {
-        public void SendDataToServer(byte[] data)
+        public void SendData<T>(ref T packet) where T : BasePacket
+        {
+        }
+
+        public void SendData(byte[] data)
         {
             AkiBackendCommunication.Instance.SendDataToPool(data);
         }
