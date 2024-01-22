@@ -23,6 +23,7 @@ using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -97,7 +98,7 @@ namespace StayInTarkov
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
-            StartCoroutine(GetExternalIPAddress());
+            GetExternalIPAddress();
 
             ReadInLanguageDictionary();
 
@@ -120,18 +121,19 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
-        private IEnumerator GetExternalIPAddress()
+        private async void GetExternalIPAddress()
         {
             int attempts = 0;
-            while (string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4) && attempts++ < 25)
+            while (string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4) && attempts++ < 10)
             {
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
+                    client.Timeout = new TimeSpan(0,0,0,0,1000);
                     Logger.LogInfo($"{nameof(GetExternalIPAddress)}:Attempt:{attempts}");
                     string result = "";
                     try
                     {
-                        result = client.DownloadString("http://wtfismyip.com/text");
+                        result = await client.GetStringAsync("http://wtfismyip.com/text");
                         SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
                     }
                     catch (WebException e)
@@ -141,7 +143,7 @@ namespace StayInTarkov
 
                     try
                     {
-                        result = client.DownloadString("https://api.ipify.org/");
+                        result = await client.GetStringAsync("https://api.ipify.org/");
                         SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
                     }
                     catch (WebException e)
@@ -151,7 +153,7 @@ namespace StayInTarkov
 
                     // if we got here, all the websites are down, which is unlikely
                 }
-                yield return new WaitForSeconds(5);
+                await Task.Delay(1000);
             }
 
             Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV4);
