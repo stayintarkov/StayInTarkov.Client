@@ -6,6 +6,7 @@ using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
+using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -94,6 +95,10 @@ namespace StayInTarkov.Coop.Components
             // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
+
+            TMPManager = new PaulovTMPManager();
+            DrawIPAddresses();
+            DrawSITButtons();
             //// Get Canvas
             //Canvas = GameObject.FindObjectOfType<Canvas>();
             //if (Canvas != null)
@@ -155,6 +160,17 @@ namespace StayInTarkov.Coop.Components
             }
         }
 
+        private void DrawIPAddresses()
+        {
+            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
+        }
+
+        private void DrawSITButtons()
+        {
+            //TMPManager.InstantiateTarkovButton("test_btn", "Test", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+        }
+
         void OnDestroy()
         {
             if (m_cancellationTokenSource != null)
@@ -162,6 +178,8 @@ namespace StayInTarkov.Coop.Components
 
 
             StopAllTasks = true;
+
+            
         }
 
         void Update()
@@ -285,37 +303,9 @@ namespace StayInTarkov.Coop.Components
                 windowInnerRect = GUI.Window(0, windowRect, DrawPasswordRequiredWindow, "Password required");
             }
 
-            DrawIPAddresses();
         }
 
-        private void DrawIPAddresses()
-        {
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
-            if (GOIPv4_Text == null)
-            {
-                var canvas = GameObject.FindObjectOfType<Canvas>();
-
-                GOIPv4_Text = new GameObject("GOIPv4_Text");
-                GOIPv4_Text.GetOrAddComponent<RectTransform>();
-                GOIPv4_Text.transform.parent = canvas.transform;
-                GOIPv4_Text.AddComponent<CustomTextMeshProUGUI>();
-                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().text = $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}";
-                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSize = 18;
-                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 20;
-                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMin = 16;
-                GOIPv4_Text.transform.localPosition = new Vector3(0, (Screen.height / 2) - 100, 0);
-
-                GOIPv6_Text = new GameObject("GOIPv6_Text");
-                GOIPv6_Text.GetOrAddComponent<RectTransform>();
-                GOIPv6_Text.transform.parent = GOIPv4_Text.transform;
-                GOIPv6_Text.AddComponent<CustomTextMeshProUGUI>();
-                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().text = $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}";
-                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSize = 18;
-                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 20;
-                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMin = 16;
-                GOIPv6_Text.transform.localPosition = new Vector3(0, -30, 0);
-            }
-        }
+        
 
         #endregion
 
@@ -367,6 +357,7 @@ namespace StayInTarkov.Coop.Components
         }
 
         string ErrorMessage { get; set; }
+        public PaulovTMPManager TMPManager { get; private set; }
 
         /// <summary>
         /// TODO: Finish this on Error Window
@@ -727,6 +718,8 @@ namespace StayInTarkov.Coop.Components
         void DestroyThis()
         {
             StopAllTasks = true;
+
+            TMPManager.DestroyObjects();
 
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);
