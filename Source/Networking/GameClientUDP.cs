@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 using UnityStandardAssets.Water;
 using static StayInTarkov.Networking.SITSerialization;
@@ -77,6 +78,24 @@ namespace StayInTarkov.Networking
             _netClient.Connect(PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4, PluginConfigSettings.Instance.CoopSettings.SITUDPPort, "sit.core");
         }
 
+        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
+        {
+            //EFT.UI.ConsoleScreen.Log("[CLIENT] OnNetworkReceive");
+            //Logger.LogInfo("[CLIENT] OnNetworkReceive");
+
+            // Due to this trying to match data to its Subscribed Packet Processors, this will error if anything is not found!
+            try
+            {
+                _packetProcessor.ReadAllPackets(reader, peer);
+            }
+            catch
+            {
+
+            }
+            var bytes = reader.GetRemainingBytes();
+            SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
+        }
+
         //private void OnAirdropLootPacketReceived(AirdropLootPacket packet, NetPeer peer)
         //{
         //    if (!Singleton<SITAirdropsManager>.Instantiated)
@@ -84,34 +103,34 @@ namespace StayInTarkov.Networking
         //        EFT.UI.ConsoleScreen.LogError("OnAirdropLootPacketReceived: Received loot package but manager is not instantiated!");
         //        return;
         //    }
-        //    Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(packet.Loot, packet.Config);
+        //    //Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(packet.Loot, packet.Config);
         //}
 
         //private void OnAirdropPacketReceived(AirdropPacket packet, NetPeer peer)
         //{
-        //    if (Singleton<SITAirdropsManager>.Instantiated)
-        //    {
-        //        Singleton<SITAirdropsManager>.Instance.AirdropParameters = new()
-        //        {
-        //            Config = packet.Config,
-        //            AirdropAvailable = packet.AirdropAvailable,
-        //            PlaneSpawned = packet.PlaneSpawned,
-        //            BoxSpawned = packet.BoxSpawned,
-        //            DistanceTraveled = packet.DistanceTraveled,
-        //            DistanceToTravel = packet.DistanceToTravel,
-        //            DistanceToDrop = packet.DistanceToDrop,
-        //            Timer = packet.Timer,
-        //            DropHeight = packet.DropHeight,
-        //            TimeToStart = packet.TimeToStart,
-        //            RandomAirdropPoint = packet.BoxPoint,
-        //            SpawnPoint = packet.SpawnPoint,
-        //            LookPoint = packet.LookPoint
-        //        };
-        //    }
-        //    else
-        //    {
-        //        EFT.UI.ConsoleScreen.LogError("OnAirdropPacketReceived: Received package but manager is not instantiated!");
-        //    }
+        //    //if (Singleton<SITAirdropsManager>.Instantiated)
+        //    //{
+        //    //    Singleton<SITAirdropsManager>.Instance.AirdropParameters = new()
+        //    //    {
+        //    //        Config = packet.Config,
+        //    //        AirdropAvailable = packet.AirdropAvailable,
+        //    //        PlaneSpawned = packet.PlaneSpawned,
+        //    //        BoxSpawned = packet.BoxSpawned,
+        //    //        DistanceTraveled = packet.DistanceTraveled,
+        //    //        DistanceToTravel = packet.DistanceToTravel,
+        //    //        DistanceToDrop = packet.DistanceToDrop,
+        //    //        Timer = packet.Timer,
+        //    //        DropHeight = packet.DropHeight,
+        //    //        TimeToStart = packet.TimeToStart,
+        //    //        RandomAirdropPoint = packet.BoxPoint,
+        //    //        SpawnPoint = packet.SpawnPoint,
+        //    //        LookPoint = packet.LookPoint
+        //    //    };
+        //    //}
+        //    //else
+        //    //{
+        //    //    EFT.UI.ConsoleScreen.LogError("OnAirdropPacketReceived: Received package but manager is not instantiated!");
+        //    //}
         //}
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
@@ -324,7 +343,7 @@ namespace StayInTarkov.Networking
         //    if (!Players.ContainsKey(packet.ProfileId))
         //        return;
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
         //    {
         //        playerToApply.NewState = packet;
@@ -353,15 +372,6 @@ namespace StayInTarkov.Networking
                 _netClient.Stop();
         }
 
-        public void SendData<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod) where T : INetSerializable
-        {
-            _packetProcessor.WriteNetSerializable(writer, ref packet);
-            _netClient.FirstPeer.Send(writer, deliveryMethod);
-        }
-
-        
-
-
         public void OnPeerConnected(NetPeer peer)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
@@ -374,10 +384,11 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[CLIENT] We received error " + socketErrorCode);
         }
 
-        public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
-        {
-            _packetProcessor.ReadAllPackets(reader, peer);
-        }
+        //public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
+        //{
+        //    Logger.LogInfo("[CLIENT] OnNetworkReceive");
+        //    _packetProcessor.ReadAllPackets(reader, peer);
+        //}
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
@@ -403,9 +414,43 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[CLIENT] We disconnected because " + disconnectInfo.Reason);
         }
 
-        public void SendDataToServer(byte[] data)
+        public void SendData(byte[] data)
         {
+            if (_netClient == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("[CLIENT] Net Client is Null");
+                return;
+            }
+
+            if (_netClient.FirstPeer == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("[CLIENT] First Peer is Null");
+                return;
+            }
+
             _netClient.FirstPeer.Send(data, LiteNetLib.DeliveryMethod.ReliableOrdered);
+        }
+
+        public void SendData<T>(ref T packet) where T : BasePacket
+        {
+            if (_netClient == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("[CLIENT] Net Client is Null");
+                return;
+            }
+
+            if (_netClient.FirstPeer == null)
+            {
+                EFT.UI.ConsoleScreen.LogError("[CLIENT] First Peer is Null");
+                return;
+            }
+
+            using NetDataWriter writer = new NetDataWriter();
+            _packetProcessor.WriteNetSerializable(writer, ref packet);
+            if (_netClient.FirstPeer != null)
+            {
+                _netClient.FirstPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+            }
         }
     }
 }

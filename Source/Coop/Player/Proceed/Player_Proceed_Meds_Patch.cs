@@ -55,7 +55,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 }
             }
 
-            GameClient.SendDataToServer(playerProceedMedsPacket.Serialize());
+            GameClient.SendData(playerProceedMedsPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

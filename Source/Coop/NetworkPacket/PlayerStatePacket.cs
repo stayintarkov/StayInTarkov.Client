@@ -13,16 +13,6 @@ namespace StayInTarkov.Coop.NetworkPacket
 {
     public sealed class PlayerStatePacket : BasePlayerPacket, INetSerializable
     {
-        //public float PositionX { get; set; }
-        //public float PositionY { get; set; }
-        //public float PositionZ { get; private set; }
-        //public float RotationX { get; set; }
-        //public float RotationY { get; set; }
-        //public float HeadRotationX { get; set; }
-        //public float HeadRotationY { get; set; }
-        //public float HeadRotationZ { get; set; }
-        //public float MovementDirectionX { get; set; }
-        //public float MovementDirectionY { get; set; }
         public EPlayerState State { get; set; }
         public float Tilt { get; set; }
         public int Step { get; set; }

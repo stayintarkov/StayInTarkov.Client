@@ -1,4 +1,5 @@
 ﻿using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace StayInTarkov.Networking
 {
-    public class GameClientTCP : MonoBehaviour, IGameClient
+    public class GameClientTCPRelay : MonoBehaviour, IGameClient
     {
         public BlockingCollection<byte[]> PooledBytesToPost { get; } = new BlockingCollection<byte[]>();
 
@@ -38,7 +39,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public void SendDataToServer(byte[] data)
+        public void SendData(byte[] data)
         {
             if (data == null)
                 return;
@@ -46,6 +47,9 @@ namespace StayInTarkov.Networking
             PooledBytesToPost.Add(data);
         }
 
-       
+        public void SendData<T>(ref T packet) where T : BasePacket
+        {
+            SendData(packet.Serialize());
+        }
     }
 }

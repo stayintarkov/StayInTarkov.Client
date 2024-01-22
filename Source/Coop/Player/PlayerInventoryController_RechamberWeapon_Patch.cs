@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player
 
             ItemPlayerPacket itemPacket = new(__instance.Profile.ProfileId, weapon.Id, weapon.TemplateId, "RechamberWeapon");
             var serialized = itemPacket.Serialize();
-            GameClient.SendDataToServer(serialized);
+            GameClient.SendData(serialized);
         }
 
         public override async void Replicated(EFT.Player player, Dictionary<string, object> dict)

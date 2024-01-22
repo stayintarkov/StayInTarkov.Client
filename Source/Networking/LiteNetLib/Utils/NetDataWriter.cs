@@ -12,7 +12,7 @@ namespace LiteNetLib.Utils
     /// The term "Put" is incorrect. Use WRITE as you are writing.
     /// Essentially this is BinaryWriter but with some custom code...
     /// </summary>
-    public class NetDataWriter
+    public class NetDataWriter : IDisposable
     {
         protected byte[] _data;
         protected int _position;
@@ -382,6 +382,11 @@ namespace LiteNetLib.Utils
         public void Put<T>(T obj) where T : INetSerializable
         {
             obj.Serialize(this);
+        }
+
+        public void Dispose()
+        {
+            _data = null;
         }
     }
 }

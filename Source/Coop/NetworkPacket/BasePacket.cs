@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
+using LiteNetLib.Utils;
 using Mono.Cecil;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,7 +23,7 @@ using WebSocketSharp;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class BasePacket : ISITPacket, IDisposable
+    public class BasePacket : ISITPacket, IDisposable, INetSerializable
     {
         [JsonProperty(PropertyName = "serverId")]
         public string ServerId { get; set; }
@@ -454,6 +455,21 @@ namespace StayInTarkov.Coop.NetworkPacket
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        void INetSerializable.Serialize(NetDataWriter writer)
+        {
+            var serializedSIT = Serialize();
+            writer.Put(serializedSIT.Length);
+            writer.Put(serializedSIT);
+        }
+
+        void INetSerializable.Deserialize(NetDataReader reader)
+        {
+            var length = reader.GetInt();
+            byte[] bytes = new byte[length];
+            reader.GetBytes(bytes, length);
+            Deserialize(bytes);
+        }
     }
 
     public interface ISITPacket
@@ -462,6 +478,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public string TimeSerializedBetter { get; set; }
         public string Method { get; set; }
         byte[] Serialize();
+        ISITPacket Deserialize(byte[] bytes);
 
     }
 
@@ -525,9 +542,49 @@ namespace StayInTarkov.Coop.NetworkPacket
         }
 
 
+        // INetSerializable Extensions
+
+
+        public static void Put(this BinaryWriter binaryWriter, int value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, string value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, bool value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, byte[] value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static int GetInt(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadInt32();
+        }
+
+        public static string GetString(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadString();
+        }
+
+        public static bool GetBool(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadBoolean();
+        }
+
+
         public static Stopwatch swDeserializerDebug = new Stopwatch();
 
         
     }
+
 
 }

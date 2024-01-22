@@ -73,7 +73,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 BepInLogger.LogDebug($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
 
                 var s = itemPlayerPacket.Serialize();
-                GameClient.SendDataToServer(s);
+                GameClient.SendData(s);
                 InventoryOperations.Add(operation);
             }
         }
