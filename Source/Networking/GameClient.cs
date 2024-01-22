@@ -61,5 +61,10 @@ namespace StayInTarkov.Networking
 
             Singleton<ISITGame>.Instance.GameClient.SendData(ref packet);
         }
+
+        public static void SendData(string data)
+        {
+            SendData(Encoding.UTF8.GetBytes(data));
+        }
     }
 }

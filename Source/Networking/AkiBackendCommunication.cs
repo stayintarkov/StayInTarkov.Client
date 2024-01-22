@@ -104,7 +104,7 @@ namespace StayInTarkov.Networking
             GetHeaders();
             ConnectToAkiBackend();
             PeriodicallySendPing();
-            PeriodicallySendPooledData();
+            //PeriodicallySendPooledData();
 
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
@@ -255,53 +255,53 @@ namespace StayInTarkov.Networking
 
         public BlockingCollection<KeyValuePair<string, string>> PooledJsonToPostToUrl { get; } = new();
 
-        public void SendDataToPool(string url, string serializedData)
-        {
-            PooledJsonToPostToUrl.Add(new(url, serializedData));
-        }
+        //public void SendDataToPool(string url, string serializedData)
+        //{
+        //    PooledJsonToPostToUrl.Add(new(url, serializedData));
+        //}
 
-        public void SendDataToPool(string serializedData)
-        {
-            if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                WebSocket.Send(serializedData);
-        }
+        //public void SendDataToPool(string serializedData)
+        //{
+        //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //        WebSocket.Send(serializedData);
+        //}
 
         private HashSet<string> _previousPooledData = new HashSet<string>();
 
-        public void SendDataToPool(byte[] serializedData)
-        {
+        //public void SendDataToPool(byte[] serializedData)
+        //{
 
-            if (DEBUGPACKETS)
-            {
-                Logger.LogDebug(nameof(SendDataToPool));
-                Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
-            }
-            //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
-            //    return;
+        //    if (DEBUGPACKETS)
+        //    {
+        //        Logger.LogDebug(nameof(SendDataToPool));
+        //        Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
+        //    }
+        //    //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
+        //    //    return;
 
-            //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
-            PooledBytesToPost.Add(serializedData);
+        //    //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
+        //    PooledBytesToPost.Add(serializedData);
 
-            //if (HighPingMode)
-            //{
-            //    PooledBytesToPost.Add(serializedData);
-            //}
-            //else
-            //{
-            //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-            //        WebSocket.Send(serializedData);
-            //}
-        }
+        //    //if (HighPingMode)
+        //    //{
+        //    //    PooledBytesToPost.Add(serializedData);
+        //    //}
+        //    //else
+        //    //{
+        //    //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //    //        WebSocket.Send(serializedData);
+        //    //}
+        //}
 
-        public void SendDataToPool(string url, Dictionary<string, object> data)
-        {
-            PooledDictionariesToPost.Add(new(url, data));
-        }
+        //public void SendDataToPool(string url, Dictionary<string, object> data)
+        //{
+        //    PooledDictionariesToPost.Add(new(url, data));
+        //}
 
-        public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
-        {
-            PooledDictionaryCollectionToPost.Add(data);
-        }
+        //public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
+        //{
+        //    PooledDictionaryCollectionToPost.Add(data);
+        //}
 
         public int HostPing { get; private set; } = 1;
         public int PostPing { get; private set; } = 1;
@@ -309,129 +309,129 @@ namespace StayInTarkov.Networking
 
         private Task PeriodicallySendPooledDataTask;
 
-        private void PeriodicallySendPooledData()
-        {
-            //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
+        //private void PeriodicallySendPooledData()
+        //{
+        //    //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
 
-            PeriodicallySendPooledDataTask = Task.Run(async () =>
-            {
-                int awaitPeriod = 1;
-                //GCHelpers.EnableGC();
-                //GCHelpers.ClearGarbage();
-                //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
+        //    PeriodicallySendPooledDataTask = Task.Run(async () =>
+        //    {
+        //        int awaitPeriod = 1;
+        //        //GCHelpers.EnableGC();
+        //        //GCHelpers.ClearGarbage();
+        //        //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
 
-                //while (m_Instance != null)
-                Stopwatch swPing = new();
+        //        //while (m_Instance != null)
+        //        Stopwatch swPing = new();
 
-                while (true)
-                {
-                    if (WebSocket == null)
-                    {
-                        await Task.Delay(awaitPeriod);
-                        continue;
-                    }
+        //        while (true)
+        //        {
+        //            if (WebSocket == null)
+        //            {
+        //                await Task.Delay(awaitPeriod);
+        //                continue;
+        //            }
 
-                    // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
-                    if
-                    (
-                        !PooledBytesToPost.Any()
-                        && !PooledDictionariesToPost.Any()
-                        && !PooledDictionaryCollectionToPost.Any()
-                        && !PooledJsonToPostToUrl.Any()
-                    )
-                    {
-                        swPing.Restart();
-                        await Task.Delay(awaitPeriod);
-                        continue;
-                    }
+        //            // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
+        //            if
+        //            (
+        //                !PooledBytesToPost.Any()
+        //                && !PooledDictionariesToPost.Any()
+        //                && !PooledDictionaryCollectionToPost.Any()
+        //                && !PooledJsonToPostToUrl.Any()
+        //            )
+        //            {
+        //                swPing.Restart();
+        //                await Task.Delay(awaitPeriod);
+        //                continue;
+        //            }
 
-                    // This would the most common delivery from the Client
-                    // Pooled up bytes will now send to the Web Socket
-                    while (PooledBytesToPost.Any())
-                    {
-                        //await Task.Delay(awaitPeriod);
-                        if (WebSocket != null)
-                        {
-                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                            {
-                                while (PooledBytesToPost.TryTake(out var bytes))
-                                {
-                                    //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
-                                    if (DEBUGPACKETS)
-                                    {
-                                        Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
-                                    }
+        //            // This would the most common delivery from the Client
+        //            // Pooled up bytes will now send to the Web Socket
+        //            while (PooledBytesToPost.Any())
+        //            {
+        //                //await Task.Delay(awaitPeriod);
+        //                if (WebSocket != null)
+        //                {
+        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                    {
+        //                        while (PooledBytesToPost.TryTake(out var bytes))
+        //                        {
+        //                            //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
+        //                            if (DEBUGPACKETS)
+        //                            {
+        //                                Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
+        //                            }
 
-                                    WebSocket.Send(bytes);
-                                }
-                            }
-                            else
-                            {
-                                WebSocket_OnError();
-                            }
-                        }
-                    }
-                    //await Task.Delay(100);
-                    while (PooledDictionariesToPost.Any())
-                    {
-                        await Task.Delay(awaitPeriod);
+        //                            WebSocket.Send(bytes);
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        WebSocket_OnError();
+        //                    }
+        //                }
+        //            }
+        //            //await Task.Delay(100);
+        //            while (PooledDictionariesToPost.Any())
+        //            {
+        //                await Task.Delay(awaitPeriod);
 
-                        KeyValuePair<string, Dictionary<string, object>> d;
-                        if (PooledDictionariesToPost.TryTake(out d))
-                        {
+        //                KeyValuePair<string, Dictionary<string, object>> d;
+        //                if (PooledDictionariesToPost.TryTake(out d))
+        //                {
 
-                            var url = d.Key;
-                            var json = JsonConvert.SerializeObject(d.Value);
-                            //var json = d.Value.ToJson();
-                            if (WebSocket != null)
-                            {
-                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                                {
-                                    WebSocket.Send(json);
-                                }
-                                else
-                                {
-                                    WebSocket_OnError();
-                                }
-                            }
-                        }
-                    }
+        //                    var url = d.Key;
+        //                    var json = JsonConvert.SerializeObject(d.Value);
+        //                    //var json = d.Value.ToJson();
+        //                    if (WebSocket != null)
+        //                    {
+        //                        if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                        {
+        //                            WebSocket.Send(json);
+        //                        }
+        //                        else
+        //                        {
+        //                            WebSocket_OnError();
+        //                        }
+        //                    }
+        //                }
+        //            }
 
-                    if (PooledDictionaryCollectionToPost.TryTake(out var d2))
-                    {
-                        var json = JsonConvert.SerializeObject(d2);
-                        if (WebSocket != null)
-                        {
-                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                            {
-                                WebSocket.Send(json);
-                            }
-                            else
-                            {
-                                StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
-                            }
-                        }
-                        json = null;
-                    }
+        //            if (PooledDictionaryCollectionToPost.TryTake(out var d2))
+        //            {
+        //                var json = JsonConvert.SerializeObject(d2);
+        //                if (WebSocket != null)
+        //                {
+        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                    {
+        //                        WebSocket.Send(json);
+        //                    }
+        //                    else
+        //                    {
+        //                        StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
+        //                    }
+        //                }
+        //                json = null;
+        //            }
 
-                    while (PooledJsonToPostToUrl.Any())
-                    {
-                        await Task.Delay(awaitPeriod);
+        //            while (PooledJsonToPostToUrl.Any())
+        //            {
+        //                await Task.Delay(awaitPeriod);
 
-                        if (PooledJsonToPostToUrl.TryTake(out var kvp))
-                        {
-                            _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
-                        }
-                    }
+        //                if (PooledJsonToPostToUrl.TryTake(out var kvp))
+        //                {
+        //                    _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
+        //                }
+        //            }
 
-                    if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
-                        PostPingSmooth.TryDequeue(out _);
+        //            if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
+        //                PostPingSmooth.TryDequeue(out _);
 
-                    PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
-                    PostPing = (int)Math.Round(PostPingSmooth.Average());
-                }
-            });
-        }
+        //            PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
+        //            PostPing = (int)Math.Round(PostPingSmooth.Average());
+        //        }
+        //    });
+        //}
 
         private Task PeriodicallySendPingTask { get; set; }
 
@@ -692,15 +692,7 @@ namespace StayInTarkov.Networking
 
         public void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
         {
-            SendDataToPool(url, data);
-            //try
-            //{
-            //    _ = Task.Run(() => PostJson(url, data, compress, timeout, debug));
-            //}
-            //catch (Exception ex)
-            //{
-            //    PatchConstants.Logger.LogError(ex);
-            //}
+            Task.Run(() => PostJson(url, data, compress, timeout, debug));
         }
 
 

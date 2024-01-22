@@ -88,7 +88,7 @@ namespace StayInTarkov.Networking
 
                 if (packet == null)
                 {
-                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Packet is Null");
+                    //Logger.LogError($"{nameof(ProcessPacketBytes)}. Packet is Null");
                     return;
                 }
 
@@ -192,7 +192,7 @@ namespace StayInTarkov.Networking
             // If the string Data isn't a SIT serialized string. Return;
             if (!stringData.StartsWith("SIT"))
             {
-                Logger.LogError($"{nameof(ProcessSITPacket)}. {stringData} does not start with SIT");
+                //Logger.LogError($"{nameof(ProcessSITPacket)}. {stringData} does not start with SIT");
                 return;
             }
 

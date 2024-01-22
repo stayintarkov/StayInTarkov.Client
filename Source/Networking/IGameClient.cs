@@ -21,5 +21,7 @@ namespace StayInTarkov.Networking
         /// <typeparam name="T"></typeparam>
         /// <param name="packet"></param>
         public void SendData<T>(ref T packet) where T : BasePacket;
+
+
     }
 }

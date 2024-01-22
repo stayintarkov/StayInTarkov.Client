@@ -296,7 +296,7 @@ namespace StayInTarkov.Coop
                 Dictionary<string, string> hostPingerPacket = new();
                 hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
                 hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
-                AkiBackendCommunication.Instance.SendDataToPool(hostPingerPacket.ToJson());
+                StayInTarkov.Networking.GameClient.SendData(hostPingerPacket.ToJson());
             }
         }
 
@@ -319,7 +319,7 @@ namespace StayInTarkov.Coop
                         { "m", "RaidTimer" },
                         { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
                     };
-                    AkiBackendCommunication.Instance.SendDataToPool(raidTimerDict.ToJson());
+                    StayInTarkov.Networking.GameClient.SendData(raidTimerDict.ToJson());
                 }
             }
         }
@@ -365,7 +365,7 @@ namespace StayInTarkov.Coop
 
                     string packet = timeAndWeatherDict.ToJson();
                     Logger.LogDebug(packet);
-                    AkiBackendCommunication.Instance.SendDataToPool(packet);
+                    StayInTarkov.Networking.GameClient.SendData(packet);
                 }
             }
         }
@@ -398,7 +398,7 @@ namespace StayInTarkov.Coop
                         { "m", "ArmoredTrainTime" },
                         { "utcTime", ((DateTime)departField.GetValue(locomotive)).Ticks },
                     };
-                    AkiBackendCommunication.Instance.SendDataToPool(dict.ToJson());
+                    StayInTarkov.Networking.GameClient.SendData(dict.ToJson());
                 }
             }
         }

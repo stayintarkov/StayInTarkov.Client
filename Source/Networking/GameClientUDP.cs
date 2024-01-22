@@ -81,8 +81,17 @@ namespace StayInTarkov.Networking
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             //EFT.UI.ConsoleScreen.Log("[CLIENT] OnNetworkReceive");
-            Logger.LogInfo("[CLIENT] OnNetworkReceive");
-            //_packetProcessor.ReadAllPackets(reader, peer);
+            //Logger.LogInfo("[CLIENT] OnNetworkReceive");
+
+            // Due to this trying to match data to its Subscribed Packet Processors, this will error if anything is not found!
+            //try
+            //{
+            //    _packetProcessor.ReadAllPackets(reader, peer);
+            //}
+            //catch
+            //{
+
+            //}
             var bytes = reader.GetRemainingBytes();
             SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
         }
