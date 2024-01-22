@@ -6,11 +6,13 @@ using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
@@ -66,6 +68,13 @@ namespace StayInTarkov.Coop.Components
         //public Canvas Canvas { get; set; }
         public Profile Profile { get; internal set; }
         public Rect hostGameWindowInnerRect { get; private set; }
+
+        #region TextMeshPro Game Objects 
+
+        private GameObject GOIPv4_Text { get; set; }    
+        private GameObject GOIPv6_Text { get; set; }
+
+        #endregion
 
         #region Window Determination
 
@@ -275,6 +284,37 @@ namespace StayInTarkov.Coop.Components
 
                 windowInnerRect = GUI.Window(0, windowRect, DrawPasswordRequiredWindow, "Password required");
             }
+
+            DrawIPAddresses();
+        }
+
+        private void DrawIPAddresses()
+        {
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            if (GOIPv4_Text == null)
+            {
+                var canvas = GameObject.FindObjectOfType<Canvas>();
+
+                GOIPv4_Text = new GameObject("GOIPv4_Text");
+                GOIPv4_Text.GetOrAddComponent<RectTransform>();
+                GOIPv4_Text.transform.parent = canvas.transform;
+                GOIPv4_Text.AddComponent<CustomTextMeshProUGUI>();
+                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().text = $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}";
+                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSize = 18;
+                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 20;
+                GOIPv4_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMin = 16;
+                GOIPv4_Text.transform.localPosition = new Vector3(0, (Screen.height / 2) - 100, 0);
+
+                GOIPv6_Text = new GameObject("GOIPv6_Text");
+                GOIPv6_Text.GetOrAddComponent<RectTransform>();
+                GOIPv6_Text.transform.parent = GOIPv4_Text.transform;
+                GOIPv6_Text.AddComponent<CustomTextMeshProUGUI>();
+                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().text = $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}";
+                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSize = 18;
+                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 20;
+                GOIPv6_Text.GetComponent<CustomTextMeshProUGUI>().fontSizeMin = 16;
+                GOIPv6_Text.transform.localPosition = new Vector3(0, -30, 0);
+            }
         }
 
         #endregion
@@ -395,6 +435,7 @@ namespace StayInTarkov.Coop.Components
             GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.padding = new RectOffset(6, 6, 6, 6);
+            //Font myFont = (Font)Resources.Load("Fonts/comic", typeof(Font));
 
             // Define the label style
             GUIStyle labelStyle = new(GUI.skin.label);
