@@ -48,6 +48,10 @@ namespace StayInTarkov.Coop.Matchmaker
 
             if (MatchmakerObject == null)
                 MatchmakerObject = new GameObject("MatchmakerObject");
+            
+            // Raid Mode needs to be local for Scav raids
+            if (raidSettings.Side == ESideType.Savage)
+                raidSettings.RaidMode = ERaidMode.Local;
 
             var sitMatchMaker = MatchmakerObject.GetOrAddComponent<SITMatchmakerGUIComponent>();
             sitMatchMaker.Profile = ___profile_0;

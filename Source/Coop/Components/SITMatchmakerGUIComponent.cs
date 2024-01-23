@@ -30,10 +30,7 @@ namespace StayInTarkov.Coop.Components
 
         private GUIStyle styleBrowserWindow { get; set; }
 
-        private GUIStyleState styleStateBrowserBigButtonsNormal { get; } = new GUIStyleState()
-        {
-            textColor = Color.white
-        };
+        private GUIStyleState styleStateBrowserBigButtonsNormal;
         private GUIStyle styleBrowserBigButtons { get; set; }
 
         public RaidSettings RaidSettings { get; internal set; }
@@ -110,6 +107,11 @@ namespace StayInTarkov.Coop.Components
             //    }
             //    //Canvas.GetComponent<UnityEngine.GUIText>();
             //}
+            
+            styleStateBrowserBigButtonsNormal = new GUIStyleState()
+            {
+                textColor = Color.white
+            };
 
             // Create background Texture
             Texture2D texture2D = new(128, 128);
