@@ -17,18 +17,23 @@ using StayInTarkov.EssentialPatches;
 using StayInTarkov.EssentialPatches.Web;
 using StayInTarkov.FileChecker;
 using StayInTarkov.Health;
+using StayInTarkov.Networking;
 using StayInTarkov.ThirdParty;
 using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov
 {
@@ -76,6 +81,8 @@ namespace StayInTarkov
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
+        public static SITIPAddresses SITIPAddresses { get; } = new SITIPAddresses();
+
         internal static string IllegalMessage { get; }
             = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
             ? LanguageDictionary["ILLEGAL_MESSAGE"]
@@ -91,6 +98,7 @@ namespace StayInTarkov
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
+            GetExternalIPAddress();
 
             ReadInLanguageDictionary();
 
@@ -112,6 +120,48 @@ namespace StayInTarkov
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
+
+        private async void GetExternalIPAddress()
+        {
+            int attempts = 0;
+            while (string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4) && attempts++ < 10)
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = new TimeSpan(0,0,0,0,1000);
+                    Logger.LogInfo($"{nameof(GetExternalIPAddress)}:Attempt:{attempts}");
+                    string result = "";
+                    try
+                    {
+                        result = await client.GetStringAsync("http://wtfismyip.com/text");
+                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
+                    }
+                    catch (WebException e)
+                    {
+                        // offline...
+                    }
+
+                    try
+                    {
+                        result = await client.GetStringAsync("https://api.ipify.org/");
+                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
+                    }
+                    catch (WebException e)
+                    {
+                        // offline too...
+                    }
+
+                    // if we got here, all the websites are down, which is unlikely
+                }
+                await Task.Delay(1000);
+            }
+
+            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV4);
+            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV6);
+
+        }
+
+       
 
         private void EnableBundlePatches()
         {

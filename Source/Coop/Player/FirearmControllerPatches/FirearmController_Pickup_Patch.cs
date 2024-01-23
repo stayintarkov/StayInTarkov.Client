@@ -65,7 +65,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pickupPicket = new(player.ProfileId, p);
-            GameClient.SendDataToServer(pickupPicket.Serialize());
+            GameClient.SendData(pickupPicket.Serialize());
 
 
 

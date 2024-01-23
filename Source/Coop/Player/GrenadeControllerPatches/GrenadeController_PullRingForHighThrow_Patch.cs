@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            GameClient.SendDataToServer(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "PullRingForHighThrow").Serialize());
+            GameClient.SendData(new GrenadeThrowPacket(____player.ProfileId, ____player.Rotation, "PullRingForHighThrow").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

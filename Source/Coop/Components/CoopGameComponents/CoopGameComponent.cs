@@ -165,7 +165,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            gameObject.AddComponent<CoopGameGUIComponent>();
+            //gameObject.AddComponent<CoopGameGUIComponent>();
 
             SITCheck();
         }
@@ -278,7 +278,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             playerStates.Add("dataList", playerStateArray);
             //Logger.LogDebug(playerStates.SITToJson());
-            RequestingObj.SendDataToPool(playerStates.SITToJson());
+            GameClient.SendData(Encoding.UTF8.GetBytes(playerStates.SITToJson()));
 
             LastPlayerStateSent = DateTime.Now;
 
@@ -1410,7 +1410,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private Rect DrawPing(Rect rect)
         {
-            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
+            if (!PluginConfigSettings.Instance.CoopSettings.ShowPing)
                 return rect;
 
             rect.y = 5;

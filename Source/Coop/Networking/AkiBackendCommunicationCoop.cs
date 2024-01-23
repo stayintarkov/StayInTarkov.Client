@@ -44,7 +44,8 @@ namespace StayInTarkov.Coop.Web
                 data.Add("profileId", player.ProfileId);
             }
             //AkiBackendCommunication.Instance.SendDataToPool("", data);
-            GameClient.SendDataToServer(Encoding.UTF8.GetBytes(data.ToJson()));
+            GameClient.SendData(Encoding.UTF8.GetBytes(data.ToJson()));
+            AkiBackendCommunication.Instance.PostJson("/coop/server/update", data.ToJson());
             generatedData = data;
         }
     }

@@ -41,13 +41,13 @@ namespace StayInTarkov.Coop.Player.Proceed
             }
 
             PlayerProceedEmptyHandsPacket playerProceedEmptyHandsPacket = new(__instance.ProfileId, withNetwork, scheduled, "ProceedEmptyHands");
-            GameClient.SendDataToServer(playerProceedEmptyHandsPacket.Serialize());
+            GameClient.SendData(playerProceedEmptyHandsPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             // The original function is always running, don't let it run again.
-            if (player.IsYourPlayer)
+            if (IsHighPingOwnPlayerOrAI(player))
                 return;
 
             if (!dict.ContainsKey("data"))

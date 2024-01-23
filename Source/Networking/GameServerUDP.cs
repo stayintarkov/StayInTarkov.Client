@@ -8,7 +8,15 @@ using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Backend;
+using StayInTarkov.Coop.NetworkPacket.Communication;
+using StayInTarkov.Coop.NetworkPacket.FirearmController;
+using StayInTarkov.Coop.NetworkPacket.GameWorld;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
+using System;
+
+
 
 //using StayInTarkov.Coop.Players;
 //using StayInTarkov.Networking.Packets;
@@ -17,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
@@ -69,6 +78,7 @@ namespace StayInTarkov.Networking
             //_packetProcessor.SubscribeNetSerializable<CommonPlayerPacket, NetPeer>(OnCommonPlayerPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<AllCharacterRequestPacket, NetPeer>(OnAllCharacterRequestPacketReceived);
             //_packetProcessor.SubscribeNetSerializable<InformationPacket, NetPeer>(OnInformationPacketReceived);
+            //_packetProcessor.SubscribeNetSerializable<PlayerProceedPacket, NetPeer>(OnPlayerProceedPacket);
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -91,6 +101,21 @@ namespace StayInTarkov.Networking
             //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
+        //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)
+        //{
+        //    Logger.LogInfo("[Server] OnPlayerProceedPacket");
+        //    Logger.LogInfo(packet.ToJson());
+        //}
+
+        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
+        {
+            //Logger.LogInfo("[Server] OnNetworkReceive");
+            var bytes = reader.GetRemainingBytes();
+            SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
+            _netServer.SendToAll(bytes, deliveryMethod);
+        }
+
+
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
         //{
         //    InformationPacket respondPackage = new(false)
@@ -101,6 +126,7 @@ namespace StayInTarkov.Networking
         //    _dataWriter.Reset();
         //    SendDataToPeer(peer, _dataWriter, ref respondPackage, DeliveryMethod.ReliableUnordered);
         //}
+
         //private void OnAllCharacterRequestPacketReceived(AllCharacterRequestPacket packet, NetPeer peer)
         //{
         //    // This method needs to be refined. For some reason the ping-pong has to be run twice for it to work on the host?
@@ -146,7 +172,7 @@ namespace StayInTarkov.Networking
         //            if (!CoopGameComponent.PlayersToSpawnProfiles.ContainsKey(packet.PlayerInfo.Profile.ProfileId))
         //                CoopGameComponent.PlayersToSpawnProfiles.Add(packet.PlayerInfo.Profile.ProfileId, packet.PlayerInfo.Profile);
 
-        //            CoopGameComponent.QueueProfile(packet.PlayerInfo.Profile, new Vector3(packet.Position.x, packet.Position.y + 0.5f, packet.Position.y), packet.IsAlive);
+        //            //CoopGameComponent.QueueProfile(packet.PlayerInfo.Profile, new Vector3(packet.Position.x, packet.Position.y + 0.5f, packet.Position.y), packet.IsAlive);
         //            PlayersMissing.Remove(packet.ProfileId);
         //        }
         //    }
@@ -159,13 +185,13 @@ namespace StayInTarkov.Networking
         //    _dataWriter.Reset();
         //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null)
         //    {
-        //        playerToApply.CommonPlayerPackets.Enqueue(packet);
+        //        //playerToApply.CommonPlayerPackets.Enqueue(packet);
         //    }
         //}
-        //private void OnInventoryPacketReceived(InventoryPacket packet, NetPeer peer)
+        //private void OnInventoryPacketReceived(ItemPlayerPacket packet, NetPeer peer)
         //{
         //    if (!Players.ContainsKey(packet.ProfileId))
         //        return;
@@ -173,10 +199,10 @@ namespace StayInTarkov.Networking
         //    _dataWriter.Reset();
         //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null)
         //    {
-        //        playerToApply.InventoryPackets.Enqueue(packet);
+        //        //playerToApply.InventoryPackets.Enqueue(packet);
         //    }
         //}
         //private void OnHealthPacketReceived(HealthPacket packet, NetPeer peer)
@@ -187,10 +213,10 @@ namespace StayInTarkov.Networking
         //    _dataWriter.Reset();
         //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null)
         //    {
-        //        playerToApply.HealthPackets.Enqueue(packet);
+        //        //playerToApply.HealthPackets.Enqueue(packet);
         //    }
         //}
         //private void OnWeaponPacketReceived(WeaponPacket packet, NetPeer peer)
@@ -201,10 +227,10 @@ namespace StayInTarkov.Networking
         //    _dataWriter.Reset();
         //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
         //    {
-        //        playerToApply.FirearmPackets.Enqueue(packet);
+        //        //playerToApply.FirearmPackets.Enqueue(packet);
         //    }
         //}
         //private void OnWeatherPacketReceived(WeatherPacket packet, NetPeer peer)
@@ -253,15 +279,19 @@ namespace StayInTarkov.Networking
         //        EFT.UI.ConsoleScreen.Log("OnGameTimerPacketReceived: Game was null!");
         //    }
         //}
+
         //private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
         //{
+
+        //    Logger.LogInfo($"{nameof(OnPlayerStatePacketReceived)}");
+
         //    if (!Players.ContainsKey(packet.ProfileId))
         //        return;
 
         //    _dataWriter.Reset();
         //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
 
-        //    var playerToApply = Players[packet.ProfileId];
+        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
         //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
         //    {
         //        playerToApply.NewState = packet;

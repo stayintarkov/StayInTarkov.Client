@@ -6,11 +6,14 @@ using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
+using StayInTarkov.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
@@ -67,6 +70,13 @@ namespace StayInTarkov.Coop.Components
         public Profile Profile { get; internal set; }
         public Rect hostGameWindowInnerRect { get; private set; }
 
+        #region TextMeshPro Game Objects 
+
+        private GameObject GOIPv4_Text { get; set; }    
+        private GameObject GOIPv6_Text { get; set; }
+
+        #endregion
+
         #region Window Determination
 
         private bool showHostGameWindow { get; set; }
@@ -85,6 +95,10 @@ namespace StayInTarkov.Coop.Components
             // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
+
+            TMPManager = new PaulovTMPManager();
+            DrawIPAddresses();
+            DrawSITButtons();
             //// Get Canvas
             //Canvas = GameObject.FindObjectOfType<Canvas>();
             //if (Canvas != null)
@@ -146,6 +160,17 @@ namespace StayInTarkov.Coop.Components
             }
         }
 
+        private void DrawIPAddresses()
+        {
+            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
+        }
+
+        private void DrawSITButtons()
+        {
+            //TMPManager.InstantiateTarkovButton("test_btn", "Test", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+        }
+
         void OnDestroy()
         {
             if (m_cancellationTokenSource != null)
@@ -153,6 +178,8 @@ namespace StayInTarkov.Coop.Components
 
 
             StopAllTasks = true;
+
+            
         }
 
         void Update()
@@ -275,7 +302,10 @@ namespace StayInTarkov.Coop.Components
 
                 windowInnerRect = GUI.Window(0, windowRect, DrawPasswordRequiredWindow, "Password required");
             }
+
         }
+
+        
 
         #endregion
 
@@ -327,6 +357,7 @@ namespace StayInTarkov.Coop.Components
         }
 
         string ErrorMessage { get; set; }
+        public PaulovTMPManager TMPManager { get; private set; }
 
         /// <summary>
         /// TODO: Finish this on Error Window
@@ -395,6 +426,7 @@ namespace StayInTarkov.Coop.Components
             GUIStyle buttonStyle = new(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.padding = new RectOffset(6, 6, 6, 6);
+            //Font myFont = (Font)Resources.Load("Fonts/comic", typeof(Font));
 
             // Define the label style
             GUIStyle labelStyle = new(GUI.skin.label);
@@ -686,6 +718,8 @@ namespace StayInTarkov.Coop.Components
         void DestroyThis()
         {
             StopAllTasks = true;
+
+            TMPManager.DestroyObjects();
 
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);

@@ -85,7 +85,7 @@ namespace StayInTarkov.Coop.Player.InteractionPatches
                 dict.Add("succeed", keyInteractionResult.Succeed);
             }
 
-            AkiBackendCommunication.Instance.SendDataToPool(dict.ToJson());
+            GameClient.SendData(dict.ToJson());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
