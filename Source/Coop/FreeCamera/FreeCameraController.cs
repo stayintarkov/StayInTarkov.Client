@@ -1,5 +1,4 @@
-﻿using BSG.CameraEffects;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using EFT.CameraControl;
 using EFT.UI;
@@ -66,6 +65,7 @@ namespace StayInTarkov.Coop.FreeCamera
 
         int DeadTime = 0;
 
+
         public void Update()
         {
             if (_gamePlayerOwner == null)
@@ -86,63 +86,117 @@ namespace StayInTarkov.Coop.FreeCamera
 
             var quitState = coopGC.GetQuitState();
 
-            if (_gamePlayerOwner.Player.PlayerHealthController.IsAlive
-                && (Input.GetKey(KeyCode.F9) || (quitState != CoopGameComponent.EQuitState.NONE && !_freeCamScript.IsActive))
-                && _lastTime < DateTime.Now.AddSeconds(-3))
+            if (
+                (
+                Input.GetKey(KeyCode.F9)
+                ||
+                ((quitState != CoopGameComponent.EQuitState.NONE) && !_freeCamScript.IsActive)
+                )
+                && _lastTime < DateTime.Now.AddSeconds(-3)
+            )
             {
                 _lastTime = DateTime.Now;
-                ToggleCamera();
-                ToggleUi();
-            }
 
-            if (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive)
-            {
-                // This is to make sure the screen effect remove code only get executed once, instead of running every frame.
-                if (DeadTime == -1)
-                    return;
-
-                if (DeadTime < PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime)
+                if (quitState != CoopGameComponent.EQuitState.YouAreDead)
                 {
-                    DeadTime++;
+                    ToggleCamera();
+                    ToggleUi();
                 }
-                else
+                else if (DeadTime > PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime && quitState == CoopGameComponent.EQuitState.YouAreDead)
                 {
-                    DeadTime = -1;
-
-                    var fpsCamInstance = FPSCamera.Instance;
-                    if (fpsCamInstance == null)
-                        return;
-
-                    // Reset FOV after died
-                    if (fpsCamInstance.Camera != null)
-                        fpsCamInstance.Camera.fieldOfView = Singleton<SettingsManager>.Instance.Game.Settings.FieldOfView;
-
-                    var effectsController = fpsCamInstance.EffectsController;
-                    if (effectsController == null)
-                        return;
-
-                    DisableAndDestroyEffect(effectsController.GetComponent<DeathFade>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<FastBlur>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<EyeBurn>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<TextureMask>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<CC_Wiggle>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<CC_RadialBlur>());
-                    DisableAndDestroyEffect(effectsController.GetComponent<MotionBlur>());
-
-                    var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
-                    if (ccBlends != null)
-                        foreach (var ccBlend in ccBlends)
-                            DisableAndDestroyEffect(ccBlend);
-
-                    DisableAndDestroyEffect(fpsCamInstance.VisorEffect);
-                    DisableAndDestroyEffect(fpsCamInstance.NightVision);
-                    DisableAndDestroyEffect(fpsCamInstance.ThermalVision);
-
-                    // Go to free camera mode
                     ToggleCamera();
                     ToggleUi();
                 }
             }
+
+            if (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive)
+            {
+                DeadTime++;
+            }
+
+            // Player is dead. Remove all effects!
+            if (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && _freeCamScript.IsActive)
+            {
+                var fpsCamInstance = FPSCamera.Instance;
+                if (fpsCamInstance == null)
+                    return;
+
+                if (fpsCamInstance.EffectsController == null)
+                    return;
+
+                // Death Fade (the blink to death). Don't show this as we want to continue playing after death!
+                var deathFade = fpsCamInstance.EffectsController.GetComponent<DeathFade>();
+                if (DeadTime > PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime)
+                {
+                    if (deathFade != null)
+                    {
+                        // Delete DeathFade
+                        deathFade.enabled = false;
+                        GameObject.Destroy(deathFade);
+
+                        // Toggle the Camera
+                        ToggleCamera();
+                        ToggleUi();
+                    }
+
+                    // Fast Blur. Don't show this as we want to continue playing after death!
+                    var fastBlur = fpsCamInstance.EffectsController.GetComponent<FastBlur>();
+                    if (fastBlur != null)
+                    {
+                        fastBlur.enabled = false;
+                    }
+
+                    var eyeBurn = fpsCamInstance.EffectsController.GetComponent<EyeBurn>();
+                    if (eyeBurn != null)
+                    {
+                        eyeBurn.enabled = false;
+                    }
+
+                    var ccWiggle = fpsCamInstance.EffectsController.GetComponent<CC_Wiggle>();
+                    if (ccWiggle != null)
+                    {
+                        ccWiggle.enabled = false;
+                    }
+
+                    var ccBlur = fpsCamInstance.EffectsController.GetComponent<CC_RadialBlur>();
+                    if (ccBlur != null)
+                    {
+                        ccBlur.enabled = false;
+                    }
+
+                    var mBlur = fpsCamInstance.EffectsController.GetComponent<MotionBlur>();
+                    if (mBlur != null)
+                    {
+                        mBlur.enabled = false;
+                    }
+
+                    var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
+                    if (ccBlends != null)
+                    {
+                        foreach (var b in ccBlends) 
+                        {
+                            b.enabled = false;
+                        }
+                    }
+
+                    var visor = fpsCamInstance.VisorEffect;
+                    if (fastBlur != null)
+                    {
+                        visor.enabled = false;
+                    }
+                    var night = fpsCamInstance.NightVision;
+                    if (night != null)
+                    {
+                        night.enabled = false;
+                    }
+                    var thermal = fpsCamInstance.ThermalVision;
+                    if (thermal != null)
+                    {
+                        thermal.enabled = false;
+                    }
+                }
+            }
+
         }
 
         //DateTime? _lastOcclusionCullCheck = null;
@@ -258,15 +312,6 @@ namespace StayInTarkov.Coop.FreeCamera
 
             // One of the RegisteredPlayers will have the IsYourPlayer flag set, which will be our own Player instance
             return gameWorld.MainPlayer;
-        }
-
-        public void DisableAndDestroyEffect(MonoBehaviour effect)
-        {
-            if (effect != null)
-            {
-                effect.enabled = false;
-                Destroy(effect);
-            }
         }
 
         public void OnDestroy()

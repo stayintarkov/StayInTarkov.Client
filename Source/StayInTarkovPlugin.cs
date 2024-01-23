@@ -389,9 +389,6 @@ namespace StayInTarkov
                 //// --------- Airdrop -----------------------
                 //new AirdropPatch().Enable();
 
-                //// --------- Settings -----------------------
-                SettingsLocationPatch.Enable();
-
                 //// --------- Screens ----------------
                 EnableSPPatches_Screens(Config);
 
@@ -403,6 +400,9 @@ namespace StayInTarkov
                 EnableSPPatches_Bots(Config);
 
                 new QTEPatch().Enable();
+
+               
+
             }
             catch (Exception ex)
             {
