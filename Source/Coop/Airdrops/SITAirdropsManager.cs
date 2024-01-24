@@ -112,7 +112,7 @@ namespace Aki.Custom.Airdrops
             packet.Add("serverId", CoopGameComponent.GetServerId());
             packet.Add("m", "AirdropPacket");
             packet.Add("model", AirdropParameters);
-            AkiBackendCommunication.Instance.SendDataToPool(packet.SITToJson());
+            GameClient.SendData(packet.SITToJson());
 
             yield break;
         }
@@ -230,7 +230,7 @@ namespace Aki.Custom.Airdrops
                 packet.Add("m", "AirdropLootPacket");
                 packet.Add("config", config);
                 packet.Add("result", lootData);
-                AkiBackendCommunication.Instance.SendDataToPool(packet.SITToJson());
+                GameClient.SendData(packet.SITToJson());
             }
 
             if (lootData == null)

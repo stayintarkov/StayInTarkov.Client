@@ -13,6 +13,7 @@ using StayInTarkov.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEngine.Assertions;
 
 namespace StayInTarkov.Coop.Player
@@ -79,7 +80,8 @@ namespace StayInTarkov.Coop.Player
             joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
             joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
             joinPacket.Add("m", "JoinMatch");
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+            //AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+            GameClient.SendData(Encoding.UTF8.GetBytes(joinPacket.ToString())); 
 
             //if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
             //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");

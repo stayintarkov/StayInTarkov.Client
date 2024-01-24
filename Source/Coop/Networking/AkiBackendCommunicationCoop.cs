@@ -2,6 +2,7 @@
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace StayInTarkov.Coop.Web
 {
@@ -42,7 +43,9 @@ namespace StayInTarkov.Coop.Web
             {
                 data.Add("profileId", player.ProfileId);
             }
-            AkiBackendCommunication.Instance.SendDataToPool("", data);
+            //AkiBackendCommunication.Instance.SendDataToPool("", data);
+            GameClient.SendData(Encoding.UTF8.GetBytes(data.ToJson()));
+            AkiBackendCommunication.Instance.PostJson("/coop/server/update", data.ToJson());
             generatedData = data;
         }
     }

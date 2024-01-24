@@ -56,14 +56,14 @@ namespace StayInTarkov.Coop.Player.Health
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
             //var json = restoreBodyPartPacket.ToJson();
             //Logger.LogInfo(json);
-            GameClient.SendDataToServer(restoreBodyPartPacket.Serialize());
+            GameClient.SendData(restoreBodyPartPacket.Serialize());
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             RestoreBodyPartPacket restoreBodyPartPacket = new();
-            restoreBodyPartPacket.DeserializePacketSIT(dict["data"].ToString());
+            restoreBodyPartPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, restoreBodyPartPacket))
                 return;

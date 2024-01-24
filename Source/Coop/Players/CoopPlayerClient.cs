@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using System;
@@ -13,7 +14,6 @@ namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayerClient : CoopPlayer
     {
-        private float InterpolationRatio { get; set; } = 0.03f;
         public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
 
@@ -33,6 +33,12 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
+            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent)) 
+            {
+                var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
+                coopGameComponent.ServerPingSmooth.Enqueue(ms);
+            }
 
             //BepInLogger.LogInfo(NewState.ToJson());
 
@@ -108,6 +114,7 @@ namespace StayInTarkov.Coop.Players
                 return;
             }
 
+            var InterpolationRatio = Time.deltaTime * 5;
             /* 
             * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
             * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License
@@ -122,6 +129,12 @@ namespace StayInTarkov.Coop.Players
 
             EPlayerState name = MovementContext.CurrentState.Name;
             EPlayerState eplayerState = NewState.State;
+
+            if (eplayerState == EPlayerState.ClimbUp || eplayerState == EPlayerState.ClimbOver || eplayerState == EPlayerState.VaultingLanding || eplayerState == EPlayerState.VaultingFallDown)
+            {
+                Vaulting();
+            }
+
             if (eplayerState == EPlayerState.Jump)
             {
                 Jump();
@@ -166,7 +179,6 @@ namespace StayInTarkov.Coop.Players
             CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
             //}
 
-            //BepInLogger.LogInfo($"{nameof(Interpolate)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))} to fully process.");
             LastState = NewState;
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
         }

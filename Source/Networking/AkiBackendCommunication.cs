@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace StayInTarkov.Networking
 {
@@ -79,7 +80,7 @@ namespace StayInTarkov.Networking
 
         protected ManualLogSource Logger;
 
-        WebSocketSharp.WebSocket WebSocket { get; set; }
+        public WebSocketSharp.WebSocket WebSocket { get; private set; }
 
         public static int PING_LIMIT_HIGH { get; } = 125;
         public static int PING_LIMIT_MID { get; } = 100;
@@ -103,7 +104,7 @@ namespace StayInTarkov.Networking
             GetHeaders();
             ConnectToAkiBackend();
             PeriodicallySendPing();
-            PeriodicallySendPooledData();
+            //PeriodicallySendPooledData();
 
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
@@ -189,6 +190,12 @@ namespace StayInTarkov.Networking
             });
         }
 
+        public void PostDownWebSocketImmediately(byte[] packet)
+        {
+            if (WebSocket != null)
+                WebSocket.SendAsync(packet, (b) => { });
+        }
+
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {Environment.NewLine}");
@@ -221,226 +228,12 @@ namespace StayInTarkov.Networking
                 Logger.LogDebug(e.Data);
             }
 
-            if (string.IsNullOrEmpty(e.Data))
-                return;
-
-            ProcessPacketBytes(e.RawData, e.Data);
+            SITGameServerClientDataProcessing.ProcessPacketBytes(e.RawData, e.Data);
             GC.RemoveMemoryPressure(e.RawData.Length);
 
         }
 
-        private void ProcessPacketBytes(byte[] data, string sData)
-        {
-            try
-            {
-                if (data == null)
-                {
-                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Data is Null");
-                    return;
-                }
-
-                if (data.Length == 0)
-                {
-                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Data is Empty");
-                    return;
-                }
-
-                Dictionary<string, object> packet = null;
-
-                // Is a dictionary from Spt-Aki
-                if (sData.StartsWith("{"))
-                {
-                    // Use StreamReader & JsonTextReader to improve memory / cpu usage
-                    using (var streamReader = new StreamReader(new MemoryStream(data)))
-                    {
-                        using (var reader = new JsonTextReader(streamReader))
-                        {
-                            var serializer = new JsonSerializer();
-                            packet = serializer.Deserialize<Dictionary<string, object>>(reader);
-                        }
-                    }
-                }
-                // Is a RAW SIT Serialized packet
-                else
-                {
-                    
-                    //Logger.LogDebug(Encoding.UTF8.GetString(data));
-                    BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
-                    packet = basePlayerPacket.ToDictionary(data);
-
-                }
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo("GOT :" + sData);
-                }
-
-                var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
-
-                if (coopGameComponent == null)
-                {
-                    Logger.LogError($"{nameof(ProcessPacketBytes)}. coopGameComponent is Null");
-                    return;
-                }
-
-                if (packet == null)
-                {
-                    Logger.LogError($"{nameof(ProcessPacketBytes)}. Packet is Null");
-                    return;
-                }
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo("GOT :" + packet.SITToJson());
-                }
-
-                if (packet.ContainsKey("dataList"))
-                {
-                    if (ProcessDataListPacket(ref packet))
-                        return;
-                }
-
-                //Logger.LogDebug($"Step.1. Packet exists. {packet.ToJson()}");
-
-                // If this is a pong packet, resolve and create a smooth ping
-                if (packet.ContainsKey("pong"))
-                {
-                    var pongRaw = long.Parse(packet["pong"].ToString());
-                    var dtPong = new DateTime(pongRaw);
-                    var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                    if (coopGameComponent.ServerPingSmooth.Count > 60)
-                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
-                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
-                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
-                    return;
-                }
-
-                if (packet.ContainsKey("HostPing"))
-                {
-                    var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
-                    var timeSpanOfHostToMe = DateTime.UtcNow - dtHP;
-                    HostPing = (int)Math.Round(timeSpanOfHostToMe.TotalMilliseconds);
-                    return;
-                }
-
-                // Receiving a Player Extracted packet. Process into ExtractedPlayers List
-                if (packet.ContainsKey("Extracted"))
-                {
-                    if (Singleton<ISITGame>.Instantiated && !Singleton<ISITGame>.Instance.ExtractedPlayers.Contains(packet["profileId"].ToString()))
-                    {
-                        Singleton<ISITGame>.Instance.ExtractedPlayers.Add(packet["profileId"].ToString());
-                    }
-                    return;
-                }
-
-                // If this is an endSession packet, end the session for the clients
-                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
-                {
-                    Logger.LogDebug("Received EndSession from Server. Ending Game.");
-                    if (coopGameComponent.LocalGameInstance == null)
-                        return;
-
-                    coopGameComponent.ServerHasStopped = true;
-                    return;
-                }
-
-
-
-                // -------------------------------------------------------
-                // Add to the Coop Game Component Action Packets
-                if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
-                    return;
-
-                ProcessSITPacket(ref packet);
-
-                if (packet.ContainsKey(PACKET_TAG_METHOD)
-                    && packet[PACKET_TAG_METHOD].ToString() == "Move")
-                    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
-                else if (packet.ContainsKey(PACKET_TAG_METHOD)
-                    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
-                {
-                    coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
-                }
-                else
-                    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex);
-            }
-        }
-
-        private void ProcessSITPacket(ref Dictionary<string, object> packet)
-        {
-            // If this is a SIT serialization packet
-            if (packet.ContainsKey(PACKET_TAG_DATA) && packet.ContainsKey(PACKET_TAG_METHOD))
-            {
-                var data = packet[PACKET_TAG_DATA];
-                if (data == null)
-                    return;
-                //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
-                //Logger.LogInfo(" ==================SIT Packet============= ");
-                //Logger.LogInfo(packet.ToJson());
-                //Logger.LogInfo(" ========================================= ");
-                if (!packet.ContainsKey("profileId"))
-                {
-                    var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
-                    bpp.Deserialize(Encoding.UTF8.GetBytes(data.ToString()));
-                    packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
-                    bpp.Dispose();
-                    bpp = null;
-                }
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo(" ==================SIT Packet============= ");
-                    Logger.LogInfo(packet.ToJson());
-                }
-            }
-        }
-
-        private bool ProcessDataListPacket(ref Dictionary<string, object> packet)
-        {
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
-                return false;
-
-            if (!packet.ContainsKey("dataList"))
-                return false;
-
-            JArray dataList = JArray.FromObject(packet["dataList"]);
-
-            //Logger.LogDebug(packet.ToJson());   
-
-            foreach (var d in dataList)
-            {
-                // TODO: This needs to be a little more dynamic but for now. This switch will do.
-                // Depending on the method defined, deserialize packet to defined type
-                switch (packet[PACKET_TAG_METHOD].ToString())
-                {
-                    case "PlayerStates":
-                        PlayerStatePacket playerStatePacket = new PlayerStatePacket();
-                        playerStatePacket = (PlayerStatePacket)playerStatePacket.Deserialize((byte[])d);
-                        if (playerStatePacket == null || string.IsNullOrEmpty(playerStatePacket.ProfileId))
-                            continue;
-
-                        if (coopGC.Players.ContainsKey(playerStatePacket.ProfileId))
-                            coopGC.Players[playerStatePacket.ProfileId].ReceivePlayerStatePacket(playerStatePacket);
-
-
-                        var serverPing = (int)(DateTime.UtcNow - new DateTime(long.Parse(packet["t"].ToString()))).TotalMilliseconds;
-                        coopGC.ServerPingSmooth.Enqueue(serverPing);
-
-                        break;
-                    case "Multiple":
-                        break;
-                }
-
-            }
-
-            return true;
-        }
+        
 
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
         {
@@ -462,53 +255,53 @@ namespace StayInTarkov.Networking
 
         public BlockingCollection<KeyValuePair<string, string>> PooledJsonToPostToUrl { get; } = new();
 
-        public void SendDataToPool(string url, string serializedData)
-        {
-            PooledJsonToPostToUrl.Add(new(url, serializedData));
-        }
+        //public void SendDataToPool(string url, string serializedData)
+        //{
+        //    PooledJsonToPostToUrl.Add(new(url, serializedData));
+        //}
 
-        public void SendDataToPool(string serializedData)
-        {
-            if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                WebSocket.Send(serializedData);
-        }
+        //public void SendDataToPool(string serializedData)
+        //{
+        //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //        WebSocket.Send(serializedData);
+        //}
 
         private HashSet<string> _previousPooledData = new HashSet<string>();
 
-        public void SendDataToPool(byte[] serializedData)
-        {
+        //public void SendDataToPool(byte[] serializedData)
+        //{
 
-            if (DEBUGPACKETS)
-            {
-                Logger.LogDebug(nameof(SendDataToPool));
-                Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
-            }
-            //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
-            //    return;
+        //    if (DEBUGPACKETS)
+        //    {
+        //        Logger.LogDebug(nameof(SendDataToPool));
+        //        Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
+        //    }
+        //    //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
+        //    //    return;
 
-            //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
-            PooledBytesToPost.Add(serializedData);
+        //    //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
+        //    PooledBytesToPost.Add(serializedData);
 
-            //if (HighPingMode)
-            //{
-            //    PooledBytesToPost.Add(serializedData);
-            //}
-            //else
-            //{
-            //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-            //        WebSocket.Send(serializedData);
-            //}
-        }
+        //    //if (HighPingMode)
+        //    //{
+        //    //    PooledBytesToPost.Add(serializedData);
+        //    //}
+        //    //else
+        //    //{
+        //    //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //    //        WebSocket.Send(serializedData);
+        //    //}
+        //}
 
-        public void SendDataToPool(string url, Dictionary<string, object> data)
-        {
-            PooledDictionariesToPost.Add(new(url, data));
-        }
+        //public void SendDataToPool(string url, Dictionary<string, object> data)
+        //{
+        //    PooledDictionariesToPost.Add(new(url, data));
+        //}
 
-        public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
-        {
-            PooledDictionaryCollectionToPost.Add(data);
-        }
+        //public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
+        //{
+        //    PooledDictionaryCollectionToPost.Add(data);
+        //}
 
         public int HostPing { get; private set; } = 1;
         public int PostPing { get; private set; } = 1;
@@ -516,129 +309,129 @@ namespace StayInTarkov.Networking
 
         private Task PeriodicallySendPooledDataTask;
 
-        private void PeriodicallySendPooledData()
-        {
-            //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
+        //private void PeriodicallySendPooledData()
+        //{
+        //    //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
 
-            PeriodicallySendPooledDataTask = Task.Run(async () =>
-            {
-                int awaitPeriod = 1;
-                //GCHelpers.EnableGC();
-                //GCHelpers.ClearGarbage();
-                //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
+        //    PeriodicallySendPooledDataTask = Task.Run(async () =>
+        //    {
+        //        int awaitPeriod = 1;
+        //        //GCHelpers.EnableGC();
+        //        //GCHelpers.ClearGarbage();
+        //        //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
 
-                //while (m_Instance != null)
-                Stopwatch swPing = new();
+        //        //while (m_Instance != null)
+        //        Stopwatch swPing = new();
 
-                while (true)
-                {
-                    if (WebSocket == null)
-                    {
-                        await Task.Delay(awaitPeriod);
-                        continue;
-                    }
+        //        while (true)
+        //        {
+        //            if (WebSocket == null)
+        //            {
+        //                await Task.Delay(awaitPeriod);
+        //                continue;
+        //            }
 
-                    // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
-                    if
-                    (
-                        !PooledBytesToPost.Any()
-                        && !PooledDictionariesToPost.Any()
-                        && !PooledDictionaryCollectionToPost.Any()
-                        && !PooledJsonToPostToUrl.Any()
-                    )
-                    {
-                        swPing.Restart();
-                        await Task.Delay(awaitPeriod);
-                        continue;
-                    }
+        //            // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
+        //            if
+        //            (
+        //                !PooledBytesToPost.Any()
+        //                && !PooledDictionariesToPost.Any()
+        //                && !PooledDictionaryCollectionToPost.Any()
+        //                && !PooledJsonToPostToUrl.Any()
+        //            )
+        //            {
+        //                swPing.Restart();
+        //                await Task.Delay(awaitPeriod);
+        //                continue;
+        //            }
 
-                    // This would the most common delivery from the Client
-                    // Pooled up bytes will now send to the Web Socket
-                    while (PooledBytesToPost.Any())
-                    {
-                        //await Task.Delay(awaitPeriod);
-                        if (WebSocket != null)
-                        {
-                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                            {
-                                while (PooledBytesToPost.TryTake(out var bytes))
-                                {
-                                    //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
-                                    if (DEBUGPACKETS)
-                                    {
-                                        Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
-                                    }
+        //            // This would the most common delivery from the Client
+        //            // Pooled up bytes will now send to the Web Socket
+        //            while (PooledBytesToPost.Any())
+        //            {
+        //                //await Task.Delay(awaitPeriod);
+        //                if (WebSocket != null)
+        //                {
+        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                    {
+        //                        while (PooledBytesToPost.TryTake(out var bytes))
+        //                        {
+        //                            //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
+        //                            if (DEBUGPACKETS)
+        //                            {
+        //                                Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
+        //                            }
 
-                                    WebSocket.Send(bytes);
-                                }
-                            }
-                            else
-                            {
-                                WebSocket_OnError();
-                            }
-                        }
-                    }
-                    //await Task.Delay(100);
-                    while (PooledDictionariesToPost.Any())
-                    {
-                        await Task.Delay(awaitPeriod);
+        //                            WebSocket.Send(bytes);
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        WebSocket_OnError();
+        //                    }
+        //                }
+        //            }
+        //            //await Task.Delay(100);
+        //            while (PooledDictionariesToPost.Any())
+        //            {
+        //                await Task.Delay(awaitPeriod);
 
-                        KeyValuePair<string, Dictionary<string, object>> d;
-                        if (PooledDictionariesToPost.TryTake(out d))
-                        {
+        //                KeyValuePair<string, Dictionary<string, object>> d;
+        //                if (PooledDictionariesToPost.TryTake(out d))
+        //                {
 
-                            var url = d.Key;
-                            var json = JsonConvert.SerializeObject(d.Value);
-                            //var json = d.Value.ToJson();
-                            if (WebSocket != null)
-                            {
-                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                                {
-                                    WebSocket.Send(json);
-                                }
-                                else
-                                {
-                                    WebSocket_OnError();
-                                }
-                            }
-                        }
-                    }
+        //                    var url = d.Key;
+        //                    var json = JsonConvert.SerializeObject(d.Value);
+        //                    //var json = d.Value.ToJson();
+        //                    if (WebSocket != null)
+        //                    {
+        //                        if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                        {
+        //                            WebSocket.Send(json);
+        //                        }
+        //                        else
+        //                        {
+        //                            WebSocket_OnError();
+        //                        }
+        //                    }
+        //                }
+        //            }
 
-                    if (PooledDictionaryCollectionToPost.TryTake(out var d2))
-                    {
-                        var json = JsonConvert.SerializeObject(d2);
-                        if (WebSocket != null)
-                        {
-                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                            {
-                                WebSocket.Send(json);
-                            }
-                            else
-                            {
-                                StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
-                            }
-                        }
-                        json = null;
-                    }
+        //            if (PooledDictionaryCollectionToPost.TryTake(out var d2))
+        //            {
+        //                var json = JsonConvert.SerializeObject(d2);
+        //                if (WebSocket != null)
+        //                {
+        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+        //                    {
+        //                        WebSocket.Send(json);
+        //                    }
+        //                    else
+        //                    {
+        //                        StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
+        //                    }
+        //                }
+        //                json = null;
+        //            }
 
-                    while (PooledJsonToPostToUrl.Any())
-                    {
-                        await Task.Delay(awaitPeriod);
+        //            while (PooledJsonToPostToUrl.Any())
+        //            {
+        //                await Task.Delay(awaitPeriod);
 
-                        if (PooledJsonToPostToUrl.TryTake(out var kvp))
-                        {
-                            _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
-                        }
-                    }
+        //                if (PooledJsonToPostToUrl.TryTake(out var kvp))
+        //                {
+        //                    _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
+        //                }
+        //            }
 
-                    if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
-                        PostPingSmooth.TryDequeue(out _);
+        //            if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
+        //                PostPingSmooth.TryDequeue(out _);
 
-                    PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
-                    PostPing = (int)Math.Round(PostPingSmooth.Average());
-                }
-            });
-        }
+        //            PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
+        //            PostPing = (int)Math.Round(PostPingSmooth.Average());
+        //        }
+        //    });
+        //}
 
         private Task PeriodicallySendPingTask { get; set; }
 
@@ -899,15 +692,7 @@ namespace StayInTarkov.Networking
 
         public void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
         {
-            SendDataToPool(url, data);
-            //try
-            //{
-            //    _ = Task.Run(() => PostJson(url, data, compress, timeout, debug));
-            //}
-            //catch (Exception ex)
-            //{
-            //    PatchConstants.Logger.LogError(ex);
-            //}
+            Task.Run(() => PostJson(url, data, compress, timeout, debug));
         }
 
 

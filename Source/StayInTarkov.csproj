@@ -137,4 +137,8 @@
     </Reference>
   </ItemGroup>
   
+  <ItemGroup>
+    <Folder Include="Networking\Packets\" />
+  </ItemGroup>
+  
 </Project>

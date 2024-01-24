@@ -55,7 +55,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             , EFT.Player ____player
             , bool p)
         {
-            GetLogger(typeof(FirearmController_Pickup_Patch)).LogInfo("PostPatch");
+            //GetLogger(typeof(FirearmController_Pickup_Patch)).LogDebug("PostPatch");
 
             var player = ____player;
             if (CallLocally.Contains(player.ProfileId))
@@ -65,7 +65,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pickupPicket = new(player.ProfileId, p);
-            GameClient.SendDataToServer(pickupPicket.Serialize());
+            GameClient.SendData(pickupPicket.Serialize());
 
 
 
@@ -73,7 +73,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("FirearmController_Pickup_Patch.Replicated");
+            //Logger.LogDebug("FirearmController_Pickup_Patch.Replicated");
 
             if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
             {
@@ -82,7 +82,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pp = new(null, false);
-            pp.DeserializePacketSIT(dict["data"].ToString());
+            pp.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, pp))
                 return;
@@ -102,6 +102,8 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             {
                 Pickup = pickup;
             }
+
+
         }
     }
 }

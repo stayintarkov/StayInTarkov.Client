@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            GameClient.SendDataToServer(new BasePlayerPacket(player.ProfileId, "CheckChamber").Serialize());
+            GameClient.SendData(new BasePlayerPacket(player.ProfileId, "CheckChamber").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             BasePlayerPacket checkChamberPacket = new();
 
             if (dict.ContainsKey("data"))
-                checkChamberPacket.DeserializePacketSIT(dict["data"].ToString());
+                checkChamberPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, checkChamberPacket))
                 return;

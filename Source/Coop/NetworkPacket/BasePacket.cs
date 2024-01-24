@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
+using LiteNetLib.Utils;
 using Mono.Cecil;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,12 +17,13 @@ using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.UIElements;
 using UnityStandardAssets.Water;
 using WebSocketSharp;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public abstract class BasePacket : ISITPacket, IDisposable
+    public class BasePacket : ISITPacket, IDisposable, INetSerializable
     {
         [JsonProperty(PropertyName = "serverId")]
         public string ServerId { get; set; }
@@ -212,17 +214,17 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public ISITPacket DeserializePacketSIT(string serializedPacket)
-        {
-            AutoDeserialize(Encoding.UTF8.GetBytes(serializedPacket));
-            return this;
-        }
+        //public ISITPacket DeserializePacketSIT(string serializedPacket)
+        //{
+        //    AutoDeserialize(Encoding.UTF8.GetBytes(serializedPacket));
+        //    return this;
+        //}
 
-        public ISITPacket DeserializePacketSIT(byte[] data)
-        {
-            AutoDeserialize(data);
-            return this;
-        }
+        //public ISITPacket DeserializePacketSIT(byte[] data)
+        //{
+        //    AutoDeserialize(data);
+        //    return this;
+        //}
 
         private void DeserializePacketIntoObj(BinaryReader reader)
         {
@@ -453,6 +455,21 @@ namespace StayInTarkov.Coop.NetworkPacket
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        void INetSerializable.Serialize(NetDataWriter writer)
+        {
+            var serializedSIT = Serialize();
+            writer.Put(serializedSIT.Length);
+            writer.Put(serializedSIT);
+        }
+
+        void INetSerializable.Deserialize(NetDataReader reader)
+        {
+            var length = reader.GetInt();
+            byte[] bytes = new byte[length];
+            reader.GetBytes(bytes, length);
+            Deserialize(bytes);
+        }
     }
 
     public interface ISITPacket
@@ -461,6 +478,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public string TimeSerializedBetter { get; set; }
         public string Method { get; set; }
         byte[] Serialize();
+        ISITPacket Deserialize(byte[] bytes);
 
     }
 
@@ -504,14 +522,62 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static void WriteLengthPrefixedBytes(this BinaryWriter binaryWriter, byte[] value)
         {
-            binaryWriter.Write(value.Length);
+            binaryWriter.Write((ushort)value.Length);
+
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
+
             binaryWriter.Write(value);
         }
 
         public static byte[] ReadLengthPrefixedBytes(this BinaryReader binaryReader)
         {
-            var length = binaryReader.ReadInt32();
-           return binaryReader.ReadBytes(length);
+           var length = binaryReader.ReadUInt16();
+
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
+
+            if(length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
+                return binaryReader.ReadBytes(length);
+            else
+                return null;
+        }
+
+
+        // INetSerializable Extensions
+
+
+        public static void Put(this BinaryWriter binaryWriter, int value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, string value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, bool value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static void Put(this BinaryWriter binaryWriter, byte[] value)
+        {
+            binaryWriter.Write(value);
+        }
+
+        public static int GetInt(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadInt32();
+        }
+
+        public static string GetString(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadString();
+        }
+
+        public static bool GetBool(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadBoolean();
         }
 
 
@@ -519,5 +585,6 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         
     }
+
 
 }

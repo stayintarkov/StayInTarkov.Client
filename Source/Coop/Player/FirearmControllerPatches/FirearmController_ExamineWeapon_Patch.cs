@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            GameClient.SendDataToServer(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
+            GameClient.SendData(new BasePlayerPacket(player.ProfileId, "ExamineWeapon").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             BasePlayerPacket examineWeaponPacket = new();
 
             if (dict.ContainsKey("data"))
-                examineWeaponPacket.DeserializePacketSIT(dict["data"].ToString());
+                examineWeaponPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, examineWeaponPacket))
                 return;

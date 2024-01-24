@@ -96,7 +96,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             triggerPressedPacket.rX = player.Rotation.x;
             triggerPressedPacket.rY = player.Rotation.y;
             var serialized = triggerPressedPacket.Serialize();
-            GameClient.SendDataToServer(serialized);
+            GameClient.SendData(serialized);
         }
 
 
@@ -125,7 +125,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            tpp.DeserializePacketSIT(dict["data"].ToString());
+            tpp.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, tpp))
                 return;

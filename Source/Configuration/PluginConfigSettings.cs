@@ -102,6 +102,7 @@ namespace StayInTarkov.Configuration
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
+            public bool ShowPing { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
             public int SITNatPunchHelperPort { get; set; } = 6971;
             public int SITUdpPort { get; set; } = 6972;
@@ -155,12 +156,16 @@ namespace StayInTarkov.Configuration
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;
 
+                ShowPing = StayInTarkovPlugin.Instance.Config.Bind
+                    ("Coop", "ShowPing", true, new ConfigDescription("Enables RTT display in the top left of the screen.")).Value;
+
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
                 Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
                 Logger.LogDebug($"SETTING_HeadshotsAlwaysKill: {SETTING_HeadshotsAlwaysKill}");
                 Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowFeed}");
-                Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowSITStatistics}");
+                Logger.LogDebug($"SETTING_ShowSITStatistics: {SETTING_ShowSITStatistics}");
+                Logger.LogDebug($"ShowPing: {ShowPing}");
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
@@ -177,13 +182,6 @@ namespace StayInTarkov.Configuration
                     AllPlayersSpawnTogether = false;
                     EnableAISpawnWaveSystem = false;
                 }
-            }
-
-            public enum HostProtocol
-            {
-                TCP,
-                UDP, 
-                //Both
             }
         }
 

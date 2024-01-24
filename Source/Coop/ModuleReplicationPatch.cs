@@ -135,7 +135,15 @@ namespace StayInTarkov.Coop
             if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
                 return true;
 
-            return player.IsAI;
+            return player.AIData != null && player.AIData.BotOwner != null;
+        }
+
+        public static bool IsHighPingOwnPlayerOrAI(EFT.Player player)
+        {
+            if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
+                return true;
+
+            return player.AIData != null && player.AIData.BotOwner != null;
         }
 
         public override void Enable()

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace StayInTarkov.Coop.Player.Proceed
 {
@@ -41,8 +42,10 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
             }
 
+            Logger.LogInfo("Sending TryProceed Packet");
             PlayerProceedPacket playerProceedPacket = new(__instance.ProfileId, item.Id, item.TemplateId, scheduled, "TryProceed");
-            GameClient.SendDataToServer(playerProceedPacket.Serialize());
+            //GameClient.SendData(ref playerProceedPacket);  
+            GameClient.SendData(playerProceedPacket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -51,7 +54,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 return;
 
             PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
-            playerProceedPacket.DeserializePacketSIT(dict["data"].ToString());
+            playerProceedPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, playerProceedPacket))
                 return;

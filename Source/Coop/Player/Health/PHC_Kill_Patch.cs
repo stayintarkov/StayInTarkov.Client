@@ -70,7 +70,7 @@ namespace StayInTarkov.Coop.Player.Health
             KillPacket killPacket = new(player.ProfileId);
             killPacket.DamageType = damageType;
             var json = killPacket.Serialize();
-            GameClient.SendDataToServer(json);
+            GameClient.SendData(json);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -79,7 +79,7 @@ namespace StayInTarkov.Coop.Player.Health
                 return;
 
             KillPacket killPacket = new(player.ProfileId);
-            killPacket.DeserializePacketSIT(dict["data"].ToString());
+            killPacket.Deserialize((byte[])dict["data"]);
 
             if (HasProcessed(GetType(), player, killPacket))
                 return;

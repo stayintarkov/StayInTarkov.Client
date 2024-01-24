@@ -14,7 +14,7 @@ namespace StayInTarkov.Coop.PacketHandlers
     /// <summary>
     /// Created by Paulov
     /// </summary>
-    internal class PlayerRotatePacketHandler : IPlayerPacketHandlerComponent
+    internal class PlayerRotatePacketHandler : IPlayerPacketHandler
     {
         private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
@@ -65,5 +65,8 @@ namespace StayInTarkov.Coop.PacketHandlers
             player.ReceiveRotate(rot, false);
         }
 
+        public void ProcessPacket(byte[] packet)
+        {
+        }
     }
 }

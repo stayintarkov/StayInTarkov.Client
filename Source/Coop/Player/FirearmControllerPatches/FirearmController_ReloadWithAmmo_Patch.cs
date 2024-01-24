@@ -1,5 +1,5 @@
 ﻿using EFT.InventoryLogic;
-using StayInTarkov.Coop.ItemControllerPatches;
+//using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
@@ -125,7 +125,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
             firearmCont.ReloadWithAmmo(ammoPack, (c) =>
             {
@@ -137,7 +137,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             });
             GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+            //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
 
         }
     }
