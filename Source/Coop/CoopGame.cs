@@ -187,13 +187,13 @@ namespace StayInTarkov.Coop
 
             if (MatchmakerAcceptPatches.IsServer)
             {
-                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == "relay")
+                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == ServerType.Relay)
                 {
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
                 }
-                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == "p2p")
+                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == ServerType.P2P)
                 {
-                    coopGame.Server = coopGame.GetOrAddComponent<GameServerUDP>();
+                    coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
                 }
             }
 

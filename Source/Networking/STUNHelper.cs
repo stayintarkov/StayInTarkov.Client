@@ -33,9 +33,9 @@ namespace StayInTarkov.Networking
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
                 //var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
             }
-            catch (STUNQueryErrorException ex)
+            catch (Exception ex)
             {
-                Logger.LogError(ex.Error);
+                Logger.LogError(ex.Message);
                 return false;
             }
 

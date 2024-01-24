@@ -1,10 +1,12 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.UI;
 using EFT.Weather;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using Newtonsoft.Json;
+using Open.Nat;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -28,6 +30,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 using static UnityEngine.UIElements.StyleVariableResolver;
@@ -65,7 +69,7 @@ namespace StayInTarkov.Networking
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
         }
 
-        public void Start()
+        public async void Start()
         {
             NetDebug.Logger = this;
 
@@ -94,21 +98,51 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "upnp")
+            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.Upnp)
             {
-                // get external ip + upnp port
-                
-                // SendConnectionInfo(...)
+                bool upnpFailed = false;
+                IPAddress externalIp = null;
+
+                await Task.Run(async () =>
+                {
+                    try
+                    {
+                        var discoverer = new NatDiscoverer();
+                        var cts = new CancellationTokenSource(15000);
+                        var device = await discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts);
+                        var extIp = await device.GetExternalIPAsync();
+                        externalIp = extIp.MapToIPv4();
+                        await device.CreatePortMapAsync(new Mapping(Protocol.Udp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 300, "SIT UDP"));
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleScreen.LogError($"Error when mapping port {PluginConfigSettings.Instance.CoopSettings.SITUdpPort} using UPNP: {ex.Message}");
+                        upnpFailed = true;
+                    }
+                });
+
+                if (upnpFailed)
+                {
+                    Singleton<PreloaderUI>.Instance.ShowErrorScreen("Network Error", "UPnP mapping failed. Make sure the selected port is not already open!");
+                    return;
+                }
+
+                if(externalIp != null)
+                {
+                    var ipEndPoint = new IPEndPoint(externalIp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                    SendConnectionInfo(ipEndPoint);
+                }
             }
 
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "portforward")
+            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.PortForward)
             {
                 // get external ip + port
 
                 // SendConnectionInfo(...)
             }
 
-            if (PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == "natpunch")
+            if (PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.NatPunch)
             {
                 _natPunchHelper = new NatPunchHelper(_netServer);
                 _natPunchHelper.Connect();
