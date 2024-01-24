@@ -953,7 +953,7 @@ namespace StayInTarkov.Coop
             StopCoroutine(ClientLoadingPinger());
             //GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
 
-            var magazines = Profile_0.Inventory.AllPlayerItems.OfType<MagazineClass>().ToList();
+            var magazines = Profile_0.Inventory.AllRealPlayerItems.OfType<MagazineClass>().ToList();
             for (int i = 0; i < magazines.Count(); i++)
                 Profile_0.CheckMagazines(magazines[i].Id, 2);
 

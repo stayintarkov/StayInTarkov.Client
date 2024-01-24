@@ -1150,7 +1150,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             }
             else // Make Player PMC items are all not 'FiR'
             {
-                Item[] items = profile.Inventory.AllPlayerItems?.ToArray();
+                Item[] items = profile.Inventory.AllRealPlayerItems?.ToArray();
                 if (items != null)
                 {
                     for (int i = 0; i < items.Count(); i++)
