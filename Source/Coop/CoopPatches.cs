@@ -79,7 +79,7 @@ namespace StayInTarkov.Coop
 
             if (!NoMRPPatches.Any())
             {
-                NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
+                //NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
                 //NoMRPPatches.Add(new ItemControllerHandler_Move_Patch());
                 NoMRPPatches.Add(new LootableContainer_Interact_Patch());
