@@ -327,13 +327,15 @@ namespace StayInTarkov.Networking
 
         public void OnPeerConnected(NetPeer peer)
         {
+            EFT.UI.ConsoleScreen.Log($"[SERVER] {nameof(OnPeerConnected)} {peer.EndPoint} connected to server.");
+
             NotificationManagerClass.DisplayMessageNotification($"Peer {peer.EndPoint} connected to server.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
         {
-            EFT.UI.ConsoleScreen.Log("[SERVER] error " + socketErrorCode);
+            EFT.UI.ConsoleScreen.LogError("[SERVER] error " + socketErrorCode);
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
