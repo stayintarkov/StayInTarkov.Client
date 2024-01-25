@@ -89,7 +89,7 @@ namespace StayInTarkov
             : "Illegal game found. Please buy, install and launch the game once.";
 
 
-        async void Awake()
+        void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
@@ -105,9 +105,7 @@ namespace StayInTarkov
             EnableCorePatches();
             EnableBundlePatches();
 
-            await Task.Run(() =>
-            {
-
+          
                 EnableSPPatches();
 
                 EnableCoopPatches();
@@ -115,8 +113,6 @@ namespace StayInTarkov
                 EnableAirdropPatches();
 
                 ThirdPartyModPatches.Run(Config, this);
-
-            });
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }

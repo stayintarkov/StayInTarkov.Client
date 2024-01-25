@@ -425,21 +425,21 @@ namespace StayInTarkov.Coop
             }
             Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
 
-            LocalPlayer localPlayer;
+            LocalPlayer botPlayer;
             if (!base.Status.IsRunned())
             {
-                localPlayer = null;
+                botPlayer = null;
             }
             else if (this.Bots.ContainsKey(profile.Id))
             {
-                localPlayer = null;
+                botPlayer = null;
             }
             else
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
 
-                localPlayer
+                botPlayer
                    = (await CoopPlayer.Create(
                        num
                        , position
@@ -459,15 +459,15 @@ namespace StayInTarkov.Coop
                     
                     )
                   );
-                localPlayer.Location = base.Location_0.Id;
-                if (this.Bots.ContainsKey(localPlayer.ProfileId))
+                botPlayer.Location = base.Location_0.Id;
+                if (this.Bots.ContainsKey(botPlayer.ProfileId))
                 {
-                    GameObject.Destroy(localPlayer);
+                    GameObject.Destroy(botPlayer);
                     return null;
                 }
                 else
                 {
-                    this.Bots.Add(localPlayer.ProfileId, localPlayer);
+                    this.Bots.Add(botPlayer.ProfileId, botPlayer);
                 }
 
                 // Start with SPT-AKI 3.7.0 AI PMC carrying 'FiR' items, this is just a simple "concept" of it.
@@ -501,12 +501,13 @@ namespace StayInTarkov.Coop
 
                 // 0.14 update. Add to ProfileIdsAI list.
                 // Add to CoopGameComponent list
-                coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)localPlayer);
+                coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)botPlayer);
                 coopGameComponent.ProfileIdsAI.Add(profile.Id);
 
+                SendPlayerDataToServer(botPlayer);
 
             }
-            return localPlayer;
+            return botPlayer;
         }
 
 
@@ -658,6 +659,8 @@ namespace StayInTarkov.Coop
             coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)myPlayer);
             coopGameComponent.ProfileIdsUser.Add(profile.Id);
 
+            CoopGame.SendPlayerDataToServer(myPlayer);
+
             //SendOrReceiveSpawnPoint(myPlayer);
 
             // ---------------------------------------------
@@ -754,9 +757,11 @@ namespace StayInTarkov.Coop
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
-        public static void SendPlayerDataToServer(EFT.LocalPlayer player)
+        public static async void SendPlayerDataToServer(EFT.LocalPlayer player)
         {
+            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
             var profileJson = player.Profile.SITToJson();
+
 
 
             Dictionary<string, object> packet = new()
@@ -802,7 +807,12 @@ namespace StayInTarkov.Coop
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+
+            // ------------------------------------------------------------------------------------
+            // Send the information to the server
+            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJson");
+            AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.SITToJson());
         }
 
         /// <summary>
