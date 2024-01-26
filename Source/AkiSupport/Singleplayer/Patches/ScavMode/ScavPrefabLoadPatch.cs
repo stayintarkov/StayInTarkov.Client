@@ -12,7 +12,11 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
     {
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(TarkovApplication.Struct295);
+            var desiredType = typeof(TarkovApplication)
+                .GetNestedTypes(BindingFlags.Public)
+                .SingleCustom(x => x.GetField("timeAndWeather") != null
+                                   && x.GetField("timeHasComeScreenController") == null
+                                   && x.Name.Contains("Struct"));
 
             var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags)
                 .FirstOrDefault(x => x.Name == "MoveNext");

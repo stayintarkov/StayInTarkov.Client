@@ -19,8 +19,6 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         /// <returns></returns>
         protected override MethodBase GetTargetMethod()
         {
-            //var desiredType = typeof(SessionResultExitStatus);
-            //var desiredMethod = ReflectionHelpers.GetAllMethodsForType(desiredType).FirstOrDefault(IsTargetMethod);
             var desiredType = typeof(SessionResultExitStatus);
             var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags).FirstOrDefault(IsTargetMethod);
 
