@@ -89,7 +89,7 @@ namespace StayInTarkov
             : "Illegal game found. Please buy, install and launch the game once.";
 
 
-        async void Awake()
+        void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
@@ -105,9 +105,7 @@ namespace StayInTarkov
             EnableCorePatches();
             EnableBundlePatches();
 
-            await Task.Run(() =>
-            {
-
+          
                 EnableSPPatches();
 
                 EnableCoopPatches();
@@ -115,8 +113,6 @@ namespace StayInTarkov
                 EnableAirdropPatches();
 
                 ThirdPartyModPatches.Run(Config, this);
-
-            });
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
@@ -314,10 +310,10 @@ namespace StayInTarkov
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
                         var majorN2 = EFTVersionMajor.Split('.')[1]; // 14
                         var majorN3 = EFTVersionMajor.Split('.')[2]; // 0
-                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 0
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "0" || majorN4 != "0")
+                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "0" || majorN4 != "1")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -389,6 +385,9 @@ namespace StayInTarkov
                 //// --------- Airdrop -----------------------
                 //new AirdropPatch().Enable();
 
+                //// --------- Settings -----------------------
+                SettingsLocationPatch.Enable();
+
                 //// --------- Screens ----------------
                 EnableSPPatches_Screens(Config);
 
@@ -400,9 +399,6 @@ namespace StayInTarkov
                 EnableSPPatches_Bots(Config);
 
                 new QTEPatch().Enable();
-
-               
-
             }
             catch (Exception ex)
             {
