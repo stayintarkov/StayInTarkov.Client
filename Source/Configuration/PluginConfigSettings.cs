@@ -121,6 +121,8 @@ namespace StayInTarkov.Configuration
                        ("Coop", "BlackScreenOnDeathTime", 333, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
                 }
             }
+            
+            public bool QuickStartSolo { get; set; } = true;
 
             public string SITUDPHostIPV4 { get; set; }
             public string SITUDPHostIPV6 { get; set; }
@@ -155,6 +157,9 @@ namespace StayInTarkov.Configuration
 
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;
+
+                QuickStartSolo = StayInTarkovPlugin.Instance.Config.Bind
+                    ("Coop", "QuickStart", true, new ConfigDescription("Replaces single player with a quick start server hosted for 1 player.")).Value;
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");

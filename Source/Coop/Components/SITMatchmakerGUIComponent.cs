@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using StayInTarkov.Configuration;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
@@ -214,13 +215,32 @@ namespace StayInTarkov.Coop.Components
                 }
 
                 // Create "Play Single Player" button next to the "Host Game" button
+                // Creates a hosted game with 1 player if the "Quick Start Solo" option is enabled
                 buttonX += buttonWidth + 10;
-                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
+                if (!PluginConfigSettings.Instance.CoopSettings.QuickStartSolo)
                 {
-                    FixesHideoutMusclePain();
-                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
-                    OriginalAcceptButton.OnClick.Invoke();
-                    DestroyThis();
+                    if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
+                    {
+                        FixesHideoutMusclePain();
+                        MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+                        OriginalAcceptButton.OnClick.Invoke();
+                        DestroyThis();
+                    }
+                }
+                else
+                {
+                    if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["SOLO_QUICKSTART"], gamemodeButtonStyle))
+                    {
+                        FixesHideoutMusclePain();
+                        RaidSettings.BotSettings.BotAmount = EBotAmount.AsOnline;
+                        RaidSettings.WavesSettings.BotAmount = EBotAmount.AsOnline;
+                        RaidSettings.WavesSettings.BotDifficulty = EBotDifficulty.AsOnline;
+                        RaidSettings.WavesSettings.IsBosses = true;
+                        MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
+                        OriginalAcceptButton.OnClick.Invoke();
+                        DestroyThis();
+                        AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+                    }
                 }
             }
             else if (showHostGameWindow)
