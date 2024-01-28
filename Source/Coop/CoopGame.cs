@@ -58,8 +58,6 @@ namespace StayInTarkov.Coop
 
         public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
-        public Dictionary<string, string> ServerConnectionInfo { get; set; }
-
         BotsController IBotGame.BotsController
         {
             get
@@ -168,33 +166,21 @@ namespace StayInTarkov.Coop
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
 
-            if (MatchmakerAcceptPatches.IsClient)
+            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
+
+            if (networkConfig.ServerType == ServerType.Relay)
             {
-                var result = AkiBackendCommunication.Instance.GetJson($"/coop/server/connectionInfo/{MatchmakerAcceptPatches.GetGroupId()}");
-
-                coopGame.ServerConnectionInfo = result.ParseJsonTo<Dictionary<string, string>>();
-
-                if (coopGame.ServerConnectionInfo["serverType"] == "relay")
-                {
-                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
-                }
-
-                if (coopGame.ServerConnectionInfo["serverType"] == "p2p")
-                {
-                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
-                }
+                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
             }
 
-            if (MatchmakerAcceptPatches.IsServer)
+            if (networkConfig.ServerType == ServerType.P2P)
             {
-                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == ServerType.Relay)
-                {
-                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
-                }
-                if (PluginConfigSettings.Instance.CoopSettings.SITServerType == ServerType.P2P)
+                if (MatchmakerAcceptPatches.IsServer)
                 {
                     coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
                 }
+                
+                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
             }
 
             return coopGame;

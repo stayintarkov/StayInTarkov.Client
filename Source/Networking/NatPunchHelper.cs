@@ -19,13 +19,14 @@ namespace StayInTarkov.Networking
         public LiteNetLib.NetManager NetManager;
         public WebSocket WebSocket { get; set; }
         public IPEndPoint PublicEndPoint { get; private set; }
-        private TaskCompletionSource<IPEndPoint> NatTraversalCompletionSource;
+        private TaskCompletionSource<bool> NatTraversalCompletionSource;
 
         private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("P2P Connection Helper");
 
-        public NatPunchHelper(LiteNetLib.NetManager netManager)
+        public NatPunchHelper(LiteNetLib.NetManager netManager, IPEndPoint publicEndPoint)
         {
             NetManager = netManager;
+            PublicEndPoint = publicEndPoint;
         }
 
         public void Connect()
@@ -90,24 +91,13 @@ namespace StayInTarkov.Networking
 
                 PunchNat(endPoint);
 
-                NatTraversalCompletionSource.SetResult(endPoint);
+                NatTraversalCompletionSource.SetResult(true);
             }
         }
 
-        public bool CreatePublicEndPoint(int localPort)
+        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId)
         {
-            if (STUNHelper.Query(localPort, out STUNQueryResult stunQueryResult))
-            {
-                PublicEndPoint = stunQueryResult.PublicEndPoint;
-                return true;
-            }
-
-            return false;
-        }
-
-        public async Task<IPEndPoint> NatPunchRequestAsync(string serverId, string profileId)
-        {
-            NatTraversalCompletionSource = new TaskCompletionSource<IPEndPoint>();
+            NatTraversalCompletionSource = new TaskCompletionSource<bool>();
 
             if (PublicEndPoint != null)
             {
@@ -121,7 +111,7 @@ namespace StayInTarkov.Networking
                 return endPoint;
             }
 
-            return null;
+            return false;
         }
 
         private void PunchNat(IPEndPoint endPoint)
@@ -129,8 +119,6 @@ namespace StayInTarkov.Networking
             // bogus punch data
             NetDataWriter resp = new NetDataWriter();
             resp.Put(9999);
-
-            Logger.LogInfo($"Punching: {endPoint.Address.ToString()}:{endPoint.Port}");
 
             // send a couple of packets to punch a hole
             for (int i = 0; i < 10; i++)

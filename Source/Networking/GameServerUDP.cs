@@ -98,57 +98,12 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.Upnp)
+            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
+
+            if (networkConfig.NatTraversalMethod == NatTraversalMethod.NatPunch)
             {
-                bool upnpFailed = false;
-                IPAddress externalIp = null;
-
-                await Task.Run(async () =>
-                {
-                    try
-                    {
-                        var discoverer = new NatDiscoverer();
-                        var cts = new CancellationTokenSource(15000);
-                        var device = await discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts);
-                        var extIp = await device.GetExternalIPAsync();
-                        externalIp = extIp.MapToIPv4();
-                        await device.CreatePortMapAsync(new Mapping(Protocol.Udp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 300, "SIT UDP"));
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleScreen.LogError($"Error when mapping port {PluginConfigSettings.Instance.CoopSettings.SITUdpPort} using UPNP: {ex.Message}");
-                        upnpFailed = true;
-                    }
-                });
-
-                if (upnpFailed)
-                {
-                    Singleton<PreloaderUI>.Instance.ShowErrorScreen("Network Error", "UPnP mapping failed. Make sure the selected port is not already open!");
-                    return;
-                }
-
-                if(externalIp != null)
-                {
-                    var ipEndPoint = new IPEndPoint(externalIp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-                    SendConnectionInfo(ipEndPoint);
-                }
-            }
-
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.PortForward)
-            {
-                // get external ip + port
-
-                // SendConnectionInfo(...)
-            }
-
-            if (PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.NatPunch)
-            {
-                _natPunchHelper = new NatPunchHelper(_netServer);
+                _natPunchHelper = new NatPunchHelper(_netServer, networkConfig.EndPoint);
                 _natPunchHelper.Connect();
-                _natPunchHelper.CreatePublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-                SendConnectionInfo();
             }
 
             _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
@@ -157,27 +112,6 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
             EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
-        }
-
-        private void SendConnectionInfo(IPEndPoint endPoint = null)
-        {
-            var serverConnectionInfoPacket = new Dictionary<string, object>
-            {
-                { "serverId", MatchmakerAcceptPatches.GetGroupId() },
-                { "serverType", PluginConfigSettings.Instance.CoopSettings.SITServerType},
-                { "serverNat", PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod}
-            };
-
-            if(endPoint != null)
-            {
-                serverConnectionInfoPacket.AddRange(new Dictionary<string, object>
-                {
-                    { "serverIp", endPoint.Address.ToString() },
-                    { "serverPort", endPoint.Port }
-                });
-            }
-
-            var result = AkiBackendCommunication.Instance.PostJson($"/coop/server/connectionInfo", JsonConvert.SerializeObject(serverConnectionInfoPacket));
         }
 
         //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)
@@ -385,6 +319,7 @@ namespace StayInTarkov.Networking
         void OnDestroy()
         {
             NetDebug.Logger = null;
+            
             if (_netServer != null)
                 _netServer.Stop();
 
@@ -424,7 +359,7 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
-            if (messageType == UnconnectedMessageType.Broadcast)
+            if (messageType == UnconnectedMessageType.Broadcast && reader.GetInt() == 1)
             {
                 EFT.UI.ConsoleScreen.Log("[SERVER] Received discovery request. Send discovery response");
                 NetDataWriter resp = new NetDataWriter();

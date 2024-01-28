@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using BepInEx.Logging;
+using StayInTarkov.Networking;
 using System;
 using System.Net;
 
@@ -9,19 +10,6 @@ namespace StayInTarkov.Configuration
     /// Created by: Paulov
     /// Description: Stores and Loads all of the Plugin config settings
     /// </summary>
-    
-    public enum ServerType
-    {
-        Relay,
-        P2P
-    }
-
-    public enum NatTraversalMethod
-    {
-        NatPunch,
-        Upnp,
-        PortForward
-    }
 
     public class PluginConfigSettings
     {
@@ -185,7 +173,7 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
 
                 SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port")).Value;
-                SITNatPunchHelperPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITNatPunchHelper", 6971, new ConfigDescription("SIT Nat Punch Helper Port")).Value;
+                SITNatPunchHelperPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITNatPunchHelperPort", 6971, new ConfigDescription("SIT Nat Punch Helper Port")).Value;
                 SITUdpPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUdpPort", 6972, new ConfigDescription("SIT UDP port for P2P connection.")).Value;
                 SITServerType = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITServerType", ServerType.Relay, new ConfigDescription("SIT Server Type (when hosting a match). Possible values: Relay, P2P")).Value;
                 SITNatTraversalMethod = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITNatTraversalMethod", NatTraversalMethod.Upnp, new ConfigDescription("SIT Nat Traversal Method (when hosting a match using p2p). Possible values: Upnp, NatPunch, PortForward")).Value;

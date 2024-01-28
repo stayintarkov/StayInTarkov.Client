@@ -1,17 +1,43 @@
-﻿using StayInTarkov.Configuration;
-using STUN.Attributes;
+﻿using BepInEx.Logging;
+using StayInTarkov.Configuration;
 using STUN;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using BepInEx.Logging;
 
 namespace StayInTarkov.Networking
 {
+    public enum ServerType
+    {
+        Relay,
+        P2P
+    }
+
+    public enum NatTraversalMethod
+    {
+        Upnp,
+        NatPunch,
+        PortForward
+    }
+
+    public class SITNetworkConfig
+    {
+        public ServerType ServerType { get; set; }
+        public NatTraversalMethod NatTraversalMethod { get; set; }
+        public IPEndPoint EndPoint { get; set; }
+
+        public SITNetworkConfig(ServerType serverType, NatTraversalMethod natTraversalMethod, IPEndPoint endPoint)
+        {
+            ServerType = serverType;
+            NatTraversalMethod = natTraversalMethod;
+            EndPoint = endPoint;
+        }
+    }
+
     public static class STUNHelper
     {
         private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("STUN Helper");

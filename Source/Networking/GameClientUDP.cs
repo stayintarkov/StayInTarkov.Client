@@ -11,6 +11,8 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Players;
+using STUN;
+
 //using StayInTarkov.Coop.Players;
 //using StayInTarkov.Networking.Packets;
 using System;
@@ -52,7 +54,7 @@ namespace StayInTarkov.Networking
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameClientUDP));
         }
 
-        public void Start()
+        public async void Start()
         {
             _packetProcessor.RegisterNestedType(Vector3Utils.Serialize, Vector3Utils.Deserialize);
             _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
@@ -78,39 +80,36 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false
             };
 
-            Connect();
-        }
+            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
 
-        private async void Connect()
-        {
-            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (networkConfig.NatTraversalMethod == NatTraversalMethod.Upnp || networkConfig.NatTraversalMethod == NatTraversalMethod.PortForward)
             {
-                var coopGame = coopGameComponent.LocalGameInstance as CoopGame;
+                _netClient.Start();
+                _netClient.Connect(networkConfig.EndPoint, "sit.core");
+            }
 
-                var serverConnectionInfo = coopGame.ServerConnectionInfo;
-
-                if (serverConnectionInfo["serverNat"] == "upnp" || serverConnectionInfo["serverNat"] == "portforward")
+            if (networkConfig.NatTraversalMethod == NatTraversalMethod.NatPunch)
+            {
+                if(MatchmakerAcceptPatches.IsClient)
                 {
-                    _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                    if (STUNHelper.Query(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, out STUNQueryResult stunQueryResult))
+                    {
+                        _natPunchHelper = new NatPunchHelper(_netClient, stunQueryResult.PublicEndPoint);
+                        _natPunchHelper.Connect();
 
-                    endPointToConnect = new IPEndPoint(IPAddress.Parse(serverConnectionInfo["serverIp"]), int.Parse(serverConnectionInfo["serverPort"]));
+                        _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-                    _netClient.Connect(endPointToConnect, "sit.core");
+                        await _natPunchHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+
+                        _netClient.Connect(networkConfig.EndPoint, "sit.core");
+
+                        _natPunchHelper.Close();
+                    }
                 }
-
-                if(serverConnectionInfo["serverNat"] == "natpunch")
+                else
                 {
-                    _natPunchHelper = new NatPunchHelper(_netClient);
-                    _natPunchHelper.Connect();
-                    _natPunchHelper.CreatePublicEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-                    _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-                    endPointToConnect = await _natPunchHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
-
-                    _natPunchHelper.Close();
-
-                    _netClient.Connect(endPointToConnect, "sit.core");
+                    _netClient.Start();
+                    _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
                 }
             }
         }
