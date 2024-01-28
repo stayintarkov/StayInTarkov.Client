@@ -148,8 +148,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
             Player = player;
-            if (profile.ProfileId.StartsWith("pmc") && !IsDiscardLimitsFine(DiscardLimits))
-                ResetDiscardLimits();
+            /*if (player.Side != EPlayerSide.Savage && !IsDiscardLimitsFine(DiscardLimits))
+                ResetDiscardLimits();*/
         }
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)

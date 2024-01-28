@@ -19,7 +19,7 @@ namespace StayInTarkov.Coop
             if (!string.IsNullOrEmpty(templateId))
             {
                 //var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(templateId);
-                var allEquipmentItems = player.Profile.Inventory.GetAllEquipmentItems();
+                var allEquipmentItems = player.Profile.Inventory.GetPlayerItems(EPlayerItems.Equipment);
 
                 if (!allEquipmentItems.Any())
                     return false;
@@ -28,7 +28,7 @@ namespace StayInTarkov.Coop
             }
             else
             {
-                item = player.Profile.Inventory.AllPlayerItems.FirstOrDefault(x => x.Id == itemId);
+                item = player.Profile.Inventory.AllRealPlayerItems.FirstOrDefault(x => x.Id == itemId);
             }
             return item != null;
         }
