@@ -113,6 +113,15 @@ namespace StayInTarkov.Networking
             var bytes = reader.GetRemainingBytes();
             SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
             _netServer.SendToAll(bytes, deliveryMethod);
+
+#if DEBUG
+
+            if (_netServer.Statistics.PacketLossPercent > 0)
+            {
+                Logger.LogError($"Packet Loss {_netServer.Statistics.PacketLossPercent}%");
+            }
+
+#endif
         }
 
 
