@@ -17,13 +17,16 @@ using STUN;
 //using StayInTarkov.Networking.Packets;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityStandardAssets.Water;
+using static BackendConfigManagerConfig;
 using static StayInTarkov.Networking.SITSerialization;
 
 /* 
@@ -35,8 +38,9 @@ namespace StayInTarkov.Networking
 {
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
+        public Dictionary<string, string> RemoteEndPoints;
+        public NatHelper _natHelper;
         private LiteNetLib.NetManager _netClient;
-        private NatPunchHelper _natPunchHelper;
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer { get; set; }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
@@ -44,7 +48,6 @@ namespace StayInTarkov.Networking
         public NetPacketProcessor _packetProcessor = new();
         public int Ping = 0;
         public int ConnectedClients = 0;
-        public IPEndPoint endPointToConnect;
 
         private ManualLogSource Logger { get; set; }
 
@@ -52,6 +55,8 @@ namespace StayInTarkov.Networking
         {
             CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameClientUDP));
+
+            //PublicEndPoint = new IPEndPoint(IPAddress.Parse(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4), PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
         }
 
         public async void Start()
@@ -80,37 +85,33 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false
             };
 
-            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
-
-            if (networkConfig.NatTraversalMethod == NatTraversalMethod.Upnp || networkConfig.NatTraversalMethod == NatTraversalMethod.PortForward)
+            if(MatchmakerAcceptPatches.IsClient)
             {
-                _netClient.Start();
-                _netClient.Connect(networkConfig.EndPoint, "sit.core");
+                _natHelper = new NatHelper(_netClient);
+                await Task.Run(() => _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort));
+                _natHelper.Connect();
+
+                _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                RemoteEndPoints = await _natHelper.GetEndpointsRequest(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+
+                foreach(var remoteEndPoint in RemoteEndPoints)
+                {
+                    var remoteEndPointIp = remoteEndPoint.Value.Split(':')[0];
+                    var remoteEndPointPort = int.Parse(remoteEndPoint.Value.Split(':')[1]);
+
+                    EFT.UI.ConsoleScreen.Log($"Connecting to: {remoteEndPointIp}:{remoteEndPointPort}");
+
+                    _netClient.Connect(remoteEndPointIp, remoteEndPointPort, "sit.core");
+                }    
+
+                _natHelper.Close();
             }
-
-            if (networkConfig.NatTraversalMethod == NatTraversalMethod.NatPunch)
+            else
             {
-                if(MatchmakerAcceptPatches.IsClient)
-                {
-                    if (STUNHelper.Query(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, out STUNQueryResult stunQueryResult))
-                    {
-                        _natPunchHelper = new NatPunchHelper(_netClient, stunQueryResult.PublicEndPoint);
-                        _natPunchHelper.Connect();
-
-                        _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
-                        await _natPunchHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
-
-                        _netClient.Connect(networkConfig.EndPoint, "sit.core");
-
-                        _natPunchHelper.Close();
-                    }
-                }
-                else
-                {
-                    _netClient.Start();
-                    _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
-                }
+                // Connect locally if we're the server.
+                _netClient.Start();
+                _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
             }
         }
 
@@ -398,7 +399,17 @@ namespace StayInTarkov.Networking
             }
             else
             {
-                _netClient.SendBroadcast([1], PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                if(MatchmakerAcceptPatches.IsClient)
+                {
+                    if (RemoteEndPoints != null)
+                    {
+                        foreach(var remoteEndPoint in RemoteEndPoints)
+                        {
+                            _netClient.SendBroadcast([1], int.Parse(remoteEndPoint.Value.Split(':')[1]));
+                        }
+                    }
+                        
+                }
             }
         }
 

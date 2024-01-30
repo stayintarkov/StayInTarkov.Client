@@ -525,11 +525,8 @@ namespace StayInTarkov.Coop.Components
                 JObject result = JObject.Parse(returnedJson);
 
                 Enum.TryParse(result["serverType"].ToString(), out ServerType serverType);
-                Enum.TryParse(result["serverNat"].ToString(), out NatTraversalMethod serverNat);
 
-                var serverEndPoint = new IPEndPoint(IPAddress.Parse(result["serverIp"].ToString()), int.Parse(result["serverPort"].ToString()));
-
-                MatchmakerAcceptPatches.NetworkConfig = new SITNetworkConfig(serverType, serverNat, serverEndPoint);
+                MatchmakerAcceptPatches.ServerType = serverType;
                 MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
                 MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
@@ -685,9 +682,7 @@ namespace StayInTarkov.Coop.Components
             RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
             RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
 
-            var hostEndPoint = await CreateHostEndPoint();
-
-            MatchmakerAcceptPatches.CreateMatch(hostEndPoint, MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
+            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
             OriginalAcceptButton.OnClick.Invoke();
 
 
@@ -698,61 +693,6 @@ namespace StayInTarkov.Coop.Components
             AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
 
             DestroyThis();
-        }
-
-        async Task<IPEndPoint> CreateHostEndPoint()
-        {
-            //TODO : change this to UI selection instead
-
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.Upnp)
-            {
-                bool upnpFailed = false;
-                IPAddress externalIp = null;
-
-                await Task.Run(async () =>
-                {
-                    try
-                    {
-                        var discoverer = new NatDiscoverer();
-                        var cts = new CancellationTokenSource(15000);
-                        var device = await discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts);
-                        var extIp = await device.GetExternalIPAsync();
-                        externalIp = extIp.MapToIPv4();
-                        await device.CreatePortMapAsync(new Mapping(Protocol.Udp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "SIT UDP"));
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleScreen.LogError($"Error when mapping port {PluginConfigSettings.Instance.CoopSettings.SITUdpPort} using UPNP: {ex.Message}");
-                        upnpFailed = true;
-                    }
-                });
-
-                if (upnpFailed)
-                {
-                    Singleton<PreloaderUI>.Instance.ShowErrorScreen("Network Error", "UPnP mapping failed. Make sure the selected port is not already open!");
-                    return null;
-                }
-
-                if (externalIp != null)
-                {
-                    return new IPEndPoint(externalIp, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-                }
-            }
-
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.NatPunch)
-            {
-                if (STUNHelper.Query(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, out STUNQueryResult stunQueryResult))
-                {
-                    return stunQueryResult.PublicEndPoint;
-                }
-            }
-
-            if(PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod == NatTraversalMethod.PortForward)
-            {
-                return new IPEndPoint(IPAddress.Parse(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4), PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-            }
-
-            return null;
         }
 
         void FixesHideoutMusclePain()

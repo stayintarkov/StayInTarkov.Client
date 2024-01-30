@@ -45,8 +45,8 @@ namespace StayInTarkov.Networking
 {
     public class GameServerUDP : MonoBehaviour, INetEventListener, INetLogger
     {
+        public NatHelper _natHelper;
         private LiteNetLib.NetManager _netServer;
-        public NatPunchHelper _natPunchHelper;
         public NetPacketProcessor _packetProcessor = new();
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
@@ -98,13 +98,11 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
-            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
-
-            if (networkConfig.NatTraversalMethod == NatTraversalMethod.NatPunch)
-            {
-                _natPunchHelper = new NatPunchHelper(_netServer, networkConfig.EndPoint);
-                _natPunchHelper.Connect();
-            }
+            _natHelper = new NatHelper(_netServer);
+            await _natHelper.AddUpnpMap(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "sit.core");
+            _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            _natHelper.AddPortForwardEndPoint(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            _natHelper.Connect();
 
             _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
@@ -323,9 +321,9 @@ namespace StayInTarkov.Networking
             if (_netServer != null)
                 _netServer.Stop();
 
-            if(_natPunchHelper != null)
+            if(_natHelper != null)
             {
-                _natPunchHelper.Close();
+                _natHelper.Close();
             }
         }
 
@@ -361,7 +359,7 @@ namespace StayInTarkov.Networking
         {
             if (messageType == UnconnectedMessageType.Broadcast && reader.GetInt() == 1)
             {
-                EFT.UI.ConsoleScreen.Log("[SERVER] Received discovery request. Send discovery response");
+                EFT.UI.ConsoleScreen.Log($"[SERVER] Received discovery request. Send discovery response to {remoteEndPoint}");
                 NetDataWriter resp = new NetDataWriter();
                 resp.Put(1);
                 _netServer.SendUnconnectedMessage(resp, remoteEndPoint);

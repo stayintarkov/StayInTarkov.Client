@@ -166,14 +166,12 @@ namespace StayInTarkov.Coop
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
 
-            var networkConfig = MatchmakerAcceptPatches.NetworkConfig;
-
-            if (networkConfig.ServerType == ServerType.Relay)
+            if (MatchmakerAcceptPatches.ServerType == ServerType.Relay)
             {
                 coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
             }
 
-            if (networkConfig.ServerType == ServerType.P2P)
+            if (MatchmakerAcceptPatches.ServerType == ServerType.P2P)
             {
                 if (MatchmakerAcceptPatches.IsServer)
                 {

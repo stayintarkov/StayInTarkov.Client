@@ -40,7 +40,7 @@ namespace StayInTarkov.Coop.Matchmaker
         public static bool IsClient => MatchingType == EMatchmakerType.GroupPlayer;
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
         public static int HostExpectedNumberOfPlayers { get; set; } = 1;
-        public static SITNetworkConfig NetworkConfig { get; set; }
+        public static ServerType ServerType { get; set; }
         private static string groupId;
         private static long timestamp;
         #endregion
@@ -226,22 +226,17 @@ namespace StayInTarkov.Coop.Matchmaker
             return false;
         }
 
-        public static void CreateMatch(IPEndPoint endPoint, string profileId, RaidSettings rs, string password = null)
+        public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
         {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            NetworkConfig = new SITNetworkConfig(
-                PluginConfigSettings.Instance.CoopSettings.SITServerType,
-                PluginConfigSettings.Instance.CoopSettings.SITNatTraversalMethod,
-                endPoint);
+            //TODO: change to UI selection
+            ServerType = PluginConfigSettings.Instance.CoopSettings.SITServerType;
 
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId },
-                { "serverType", NetworkConfig.ServerType },
-                { "serverNat", NetworkConfig.NatTraversalMethod },
-                { "serverIp", NetworkConfig.EndPoint.Address.ToString() },
-                { "serverPort", NetworkConfig.EndPoint.Port },
+                { "serverType", ServerType },
                 { "timestamp", timestamp },
                 { "settings", rs },
                 { "expectedNumberOfPlayers", HostExpectedNumberOfPlayers },
