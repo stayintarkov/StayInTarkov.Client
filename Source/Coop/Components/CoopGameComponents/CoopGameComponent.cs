@@ -246,16 +246,29 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             CoopPatches.EnableDisablePatches();
 
             Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;
+
+            // In game ping system.
+            if (Singleton<FrameMeasurer>.Instantiated)
+            {
+                FrameMeasurer instance = Singleton<FrameMeasurer>.Instance;
+                instance.PlayerRTT = ServerPing;
+                instance.ServerFixedUpdateTime = ServerPing;
+                instance.ServerTime = ServerPing;
+                instance.NetworkQuality.CreateMeasurers();
+                instance.NetworkQuality.MaxLoss.AddValue(5);
+                instance.NetOutgoingMeasurer.MeasureStatistics.AddMeasurement(new MeasurementData() { DateTime = DateTime.Now, Value = 75 });
+            }
         }
 
         private IEnumerator SendPlayerStatePacket()
         {
-            JObject playerStates = new();
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            playerStates.Add("t", DateTime.UtcNow.Ticks);
+            PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
+            //JObject playerStates = new();
+            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
+            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
+            //playerStates.Add("t", DateTime.UtcNow.Ticks);
 
-            JArray playerStateArray = new JArray();
+            List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
             foreach (var player in Players.Values)
             {
                 if (player == null)
@@ -273,12 +286,31 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!player.isActiveAndEnabled)
                     continue;
 
-                CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
+                CreatePlayerStatePacketFromPRC(ref packets, player);
             }
 
-            playerStates.Add("dataList", playerStateArray);
+            //playerStates.Add("dataList", playerStateArray);
             //Logger.LogDebug(playerStates.SITToJson());
-            GameClient.SendData(Encoding.UTF8.GetBytes(playerStates.SITToJson()));
+            playerStatesPacket.PlayerStates = packets.ToArray();
+            var serialized = playerStatesPacket.Serialize();
+
+            //Logger.LogDebug($"{nameof(playerStatesPacket)} is {serialized.Length} in Length");
+
+            // Testing the length MTU. If over the traffic limit, then try sending lots of smaller packets 
+            if (serialized.Length >= 1460)
+            {
+#if DEBUG
+                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
+#endif
+                foreach(var psp in playerStatesPacket.PlayerStates)
+                {
+                    // wait a little bit for the previous packet to process thru
+                    yield return new WaitForSeconds(0.033f);
+                    GameClient.SendData(serialized);
+                }
+            }
+            else 
+                GameClient.SendData(serialized);
 
             LastPlayerStateSent = DateTime.Now;
 
@@ -666,6 +698,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 instance.PlayerRTT = ServerPing;
                 instance.ServerFixedUpdateTime = ServerPing;
                 instance.ServerTime = ServerPing;
+                //instance.NetworkQuality.CreateMeasurers();
             }
 
             if (Singleton<PreloaderUI>.Instantiated && SITCheckConfirmed[0] == 0 && SITCheckConfirmed[1] == 0)
@@ -1226,7 +1259,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
 
-        private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        private void CreatePlayerStatePacketFromPRC(ref List<PlayerStatePacket> playerStates, EFT.Player player)
         {
             // Build up the SEX MOD player dick Health Packet /s
             // Actually.
@@ -1285,9 +1318,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ;
 
             // Add the serialized packets to the PlayerStates JArray
-            playerStates.Add(playerStatePacket.Serialize());
-            playerStatePacket.Dispose();
-            playerStatePacket = null;
+            playerStates.Add(playerStatePacket);
 
         }
 
