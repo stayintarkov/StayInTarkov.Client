@@ -98,18 +98,23 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
+            EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
             _natHelper = new NatHelper(_netServer);
+            _natHelper.Connect();
+
+            EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
             await _natHelper.AddUpnpMap(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "sit.core");
             _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
             _natHelper.AddPortForwardEndPoint(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-            _natHelper.Connect();
 
             _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
+            
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
+            
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
-            EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
         //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)

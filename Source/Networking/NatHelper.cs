@@ -38,19 +38,24 @@ namespace StayInTarkov.Networking
     {
         public LiteNetLib.NetManager NetManager;
         public WebSocket WebSocket { get; set; }
-        public TaskCompletionSource<Dictionary<string, string>> NatTraversalCompletionSource;
+        public Dictionary<string, TaskCompletionSource<object>> RequestCompletionSourceList = new Dictionary<string, TaskCompletionSource<object>>();
         public Dictionary<string, string> PublicEndPoints = new Dictionary<string, string>();
 
-        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("P2P Connection Helper");
+        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Net Helper");
 
         public NatHelper(LiteNetLib.NetManager netManager)
         {
             NetManager = netManager;
         }
 
+        public NatHelper()
+        {
+
+        }
+
         public void Connect()
         {
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatPunchHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
 
             WebSocket = new WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
@@ -85,82 +90,129 @@ namespace StayInTarkov.Networking
 
         private void ProcessMessage(string message)
         {
-            try
-            {
+
                 JObject msgObj = JObject.Parse(message);
 
-                if(msgObj.ContainsKey("getEndPointsRequest"))
+                if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType"))
                 {
-                    var profileId = msgObj["profileId"];
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
+                    var requestId = msgObj["requestId"].ToString();
+                    var requestType = msgObj["requestType"].ToString();
+                    var profileId = msgObj["profileId"].ToString();
 
-                    if(publicEndPoints.ContainsKey("stun"))
+                    if (requestType == "getEndPointsRequest")
                     {
-                        var stunEndPointIp = publicEndPoints["stun"].Split(':')[0];
-                        var stunEndPointPort = int.Parse(publicEndPoints["stun"].Split(':')[1]);
-                        PunchNat(new IPEndPoint(IPAddress.Parse(stunEndPointIp), stunEndPointPort));
+                        var getServerEndPointsResponse = new Dictionary<string, object>
+                        {
+                            { "requestId", requestId },
+                            { "requestType", "getEndPointsResponse" },
+                            { "profileId", profileId },
+                            { "publicEndPoints", PublicEndPoints }
+                        };
+
+                        WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsResponse));
                     }
 
-                    var getServerEndPointsResponse = new Dictionary<string, object>
+                    if (requestType == "natPunchRequest")
                     {
-                        { "getEndPointsResponse", true },
-                        { "profileId", profileId },
-                        { "publicEndPoints", PublicEndPoints }
-                    };
+                        var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
 
-                    WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsResponse));
-                }
+                        if (publicEndPoints.ContainsKey("stun"))
+                        {
+                            PunchNat(publicEndPoints["stun"]);
+                        }
 
-                if(msgObj.ContainsKey("getEndPointsResponse"))
-                {
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
+                        var natPunchResponse = new Dictionary<string, object>
+                        {
+                            { "requestId", requestId },
+                            { "requestType", "natPunchResponse" },
+                            { "profileId", profileId },
+                        };
 
-                    if (publicEndPoints.ContainsKey("stun"))
-                    {
-                        var stunEndPointIp = publicEndPoints["stun"].Split(':')[0];
-                        var stunEndPointPort = int.Parse(publicEndPoints["stun"].Split(':')[1]);
-                        PunchNat(new IPEndPoint(IPAddress.Parse(stunEndPointIp), stunEndPointPort));
+                        WebSocket.Send(JsonConvert.SerializeObject(natPunchResponse));
                     }
 
-                    NatTraversalCompletionSource.SetResult(publicEndPoints);
-                }
-            }
+                    if (requestType == "getEndPointsResponse")
+                    {
+                        var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
 
-            catch(Exception ex)
-            {
-                EFT.UI.ConsoleScreen.Log(ex.Message);
-            }
+                        if(RequestCompletionSourceList.ContainsKey(requestId))
+                            RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
+                    }
+
+                    if (requestType == "natPunchResponse")
+                    {
+                        if (RequestCompletionSourceList.ContainsKey(requestId))
+                            RequestCompletionSourceList[requestId].SetResult(true);
+                    }
+                }
+
+
         }
 
-        public async Task<Dictionary<string, string>> GetEndpointsRequest(string serverId, string profileId)
+        public async Task<Dictionary<string, string>> GetEndpointsRequestAsync(string serverId, string profileId)
         {
-            NatTraversalCompletionSource = new TaskCompletionSource<Dictionary<string, string>>();
+            var requestId = Guid.NewGuid().ToString();
 
-            if (PublicEndPoints != null && PublicEndPoints.Count > 0)
+            RequestCompletionSourceList.Add(requestId, new TaskCompletionSource<object>());
+
+            var getServerEndPointsRequest = new Dictionary<string, object>
             {
-                var getServerEndPointsRequest = new Dictionary<string, object>
-                {
-                    { "getEndPointsRequest", true },
-                    { "serverId", serverId },
-                    { "profileId", profileId },
-                    { "publicEndPoints", PublicEndPoints }
-                };
+                { "requestId", requestId },
+                { "requestType", "getEndPointsRequest" },
+                { "serverId", serverId },
+                { "profileId", profileId },
+            };
 
-                WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsRequest));
+            WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsRequest));
 
-                var publicEndPoints = await NatTraversalCompletionSource.Task;
+            var publicEndPoints = (Dictionary<string, string>)await RequestCompletionSourceList[requestId].Task;
 
-                return publicEndPoints;
-            }
-
-            return null;
+            return publicEndPoints;
         }
 
-        private void PunchNat(IPEndPoint endPoint)
+        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId, Dictionary<string, string> remoteEndPoints)
+        {
+            var requestId = Guid.NewGuid().ToString();
+
+            RequestCompletionSourceList.Add(requestId, new TaskCompletionSource<object>());
+
+            var natPunchRequest = new Dictionary<string, object>
+            {
+                { "requestId", requestId },
+                { "requestType", "natPunchRequest" },
+                { "serverId", serverId },
+                { "profileId", profileId },
+                { "publicEndPoints", PublicEndPoints }
+            };
+
+            WebSocket.Send(JsonConvert.SerializeObject(natPunchRequest));
+
+            await RequestCompletionSourceList[requestId].Task;
+
+            if (remoteEndPoints.ContainsKey("stun"))
+            {
+                PunchNat(remoteEndPoints["stun"]);
+            }
+
+            return true;
+        }
+
+        public void PunchNat(string endPoint)
+        {
+            var endPointArr = endPoint.Split(':');
+            var stunEndPointIp = endPointArr[0];
+            var stunEndPointPort = int.Parse(endPointArr[1]);
+
+            PunchNat(new IPEndPoint(IPAddress.Parse(stunEndPointIp), stunEndPointPort));
+        }
+
+        public void PunchNat(IPEndPoint endPoint)
         {
             // bogus punch data
             NetDataWriter resp = new NetDataWriter();
             resp.Put(9999);
+
+            EFT.UI.ConsoleScreen.Log($"Punching: {endPoint}");
 
             // send a couple of packets to punch a hole
             for (int i = 0; i < 10; i++)
@@ -205,8 +257,10 @@ namespace StayInTarkov.Networking
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
                 //var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
 
-                PublicEndPoints.Add("stun", $"{queryResult.PublicEndPoint.Address}:{queryResult.PublicEndPoint.Port}");
-
+                if(queryResult != null)
+                {
+                    PublicEndPoints.Add("stun", $"{queryResult.PublicEndPoint.Address}:{queryResult.PublicEndPoint.Port}");
+                }
             }
             catch (Exception ex)
             {

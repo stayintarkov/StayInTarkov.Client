@@ -38,7 +38,7 @@ namespace StayInTarkov.Networking
 {
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
-        public Dictionary<string, string> RemoteEndPoints;
+        public Dictionary<string, string> ServerEndPoints = new Dictionary<string, string>();
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netClient;
         private NetDataWriter _dataWriter = new();
@@ -87,22 +87,33 @@ namespace StayInTarkov.Networking
 
             if(MatchmakerAcceptPatches.IsClient)
             {
+                EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
                 _natHelper = new NatHelper(_netClient);
-                await Task.Run(() => _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort));
                 _natHelper.Connect();
 
+                EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
+                _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+                EFT.UI.ConsoleScreen.Log($"Getting Server Endpoints...");
+                ServerEndPoints = await _natHelper.GetEndpointsRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+
+                EFT.UI.ConsoleScreen.Log($"ServerEndpoints: " + ServerEndPoints.Count);
+
+                EFT.UI.ConsoleScreen.Log($"Performing Nat Punch Request...");
+                await _natHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId, ServerEndPoints);
+
+                EFT.UI.ConsoleScreen.Log($"Connecting to server...");
                 _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-                RemoteEndPoints = await _natHelper.GetEndpointsRequest(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
-
-                foreach(var remoteEndPoint in RemoteEndPoints)
+                foreach (var serverEndPoint in ServerEndPoints)
                 {
-                    var remoteEndPointIp = remoteEndPoint.Value.Split(':')[0];
-                    var remoteEndPointPort = int.Parse(remoteEndPoint.Value.Split(':')[1]);
+                    var serverEndPointArr = serverEndPoint.Value.Split(':');
+                    var serverEndPointIp = serverEndPointArr[0];
+                    var serverEndPointPort = int.Parse(serverEndPointArr[1]);
 
-                    EFT.UI.ConsoleScreen.Log($"Connecting to: {remoteEndPointIp}:{remoteEndPointPort}");
+                    EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPointIp}:{serverEndPointPort}");
 
-                    _netClient.Connect(remoteEndPointIp, remoteEndPointPort, "sit.core");
+                    _netClient.Connect(serverEndPointIp, serverEndPointPort, "sit.core");
                 }    
 
                 _natHelper.Close();
@@ -110,6 +121,7 @@ namespace StayInTarkov.Networking
             else
             {
                 // Connect locally if we're the server.
+                EFT.UI.ConsoleScreen.Log($"Connecting to local server...");
                 _netClient.Start();
                 _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
             }
@@ -401,14 +413,13 @@ namespace StayInTarkov.Networking
             {
                 if(MatchmakerAcceptPatches.IsClient)
                 {
-                    if (RemoteEndPoints != null)
+                    if (ServerEndPoints != null)
                     {
-                        foreach(var remoteEndPoint in RemoteEndPoints)
+                        foreach(var serverEndPoint in ServerEndPoints)
                         {
-                            _netClient.SendBroadcast([1], int.Parse(remoteEndPoint.Value.Split(':')[1]));
+                            _netClient.SendBroadcast([1], int.Parse(serverEndPoint.Value.Split(':')[1]));
                         }
                     }
-                        
                 }
             }
         }
@@ -417,6 +428,9 @@ namespace StayInTarkov.Networking
         {
             if (_netClient != null)
                 _netClient.Stop();
+
+            if (_natHelper != null)
+                _natHelper.Close();
         }
         
         public void OnPeerConnected(NetPeer peer)
