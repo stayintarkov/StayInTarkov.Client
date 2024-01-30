@@ -2,12 +2,13 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-//using StayInTarkov.Coop.ItemControllerPatches;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 {
@@ -31,10 +32,11 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static void Prefix(
+        public static bool Prefix(
            EFT.Player ____player)
         {
             //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(____player.ProfileId);
+            return CallLocally.Contains(____player.ProfileId) || CoopGameComponent.GetCoopGameComponent().ProfileIdsAI.Contains(____player.ProfileId);
         }
 
         [PatchPostfix]
@@ -92,9 +94,9 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:Replicated");
-            Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
-            StayInTarkovHelperConstants.Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("Replicated");
+            //Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
+            //StayInTarkovHelperConstants.Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
 
             //if (HasProcessed(GetType(), player, dict))
             //{
@@ -102,17 +104,17 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             //    return;
             //}
 
-            GetLogger().LogDebug("FirearmController_ReloadMag_Patch:Replicated. Doing things!");
+            //GetLogger().LogDebug("FirearmController_ReloadMag_Patch:Replicated. Doing things!");
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
                     var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
-                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
+                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot, out var magAddressStack);
 
                     var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
-                    ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
+                    ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot, out var gridAddressStack);
 
                     var magTemplateId = dict["mg.tpl"].ToString();
                     var magItemId = dict["mg.id"].ToString();
@@ -156,24 +158,27 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         {
             while (!firearmCont.CanStartReload())
             {
-                yield return null;
+                yield return new WaitForSeconds(1);
             }
 
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
+            //GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
             //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine
+            ReplicatedGridAddressGrid(
+                player
+                , firearmCont
+                , gridAddressGrid
+                , magazine
 
                 , () =>
                 {
-                    GetLogger().LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                    //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    // Debug log success
+                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("Reloaded magazine successfully");
                     firearmCont.StopCoroutine(nameof(ReloadCR));
                 }
                 , () =>
                 {
-                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                    //ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    // Try again
                     firearmCont.StopCoroutine(nameof(ReloadCR));
                     //if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
                     //{
@@ -205,17 +210,17 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
 
             ItemController itemController = null;
-            if (!ItemFinder.TryFindItemController(gridAddressGrid.Container.ParentId, out itemController))
-            {
+            //if (!ItemFinder.TryFindItemController(gridAddressGrid.Container.ParentId, out itemController))
+            //{
                 if (player != null && !ItemFinder.TryFindItemController(player.ProfileId, out itemController))
                 {
-                    if (!ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController))
-                    {
+                    //if (!ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController))
+                    //{
+                        failureCallback();
                         return false;
-                    }
+                    //}
                 }
-            }
-
+            //}
 
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + itemController.GetType());
 
@@ -223,15 +228,9 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             if (address == null)
             {
                 GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogError("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot.Unable to find Address!");
+                failureCallback();
                 return false;
             }
-
-            //StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
-            //if (grid == null)
-            //{
-            //    //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-            //    return false;
-            //}
 
             if (!CallLocally.Contains(player.ProfileId))
                 CallLocally.Add(player.ProfileId);
