@@ -8,6 +8,7 @@ using EFT.UI.BattleTimer;
 using StayInTarkov.AkiSupport.Airdrops.Models;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.World;
 using StayInTarkov.Core.Player;
@@ -16,14 +17,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace StayInTarkov.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
+        public readonly BlockingCollection<ISITPacket> ActionSITPackets = new(9999);
+
         public readonly BlockingCollection<Dictionary<string, object>> ActionPackets = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new(9999);
         public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new(9999);
@@ -98,6 +103,25 @@ namespace StayInTarkov.Coop.Components
             if (Players == null)
                 return;
 
+            if (ActionSITPackets.Count > 0)
+            {
+                Stopwatch stopwatchActionPackets = Stopwatch.StartNew();
+                while (ActionSITPackets.TryTake(out var result))
+                {
+                    
+                    Stopwatch stopwatchActionPacket = Stopwatch.StartNew();
+                    if (!ProcessSITActionPackets(result))
+                    {
+                        continue;
+                    }
+
+                    if (stopwatchActionPacket.ElapsedMilliseconds > 1)
+                        Logger.LogDebug($"ActionSITPackets {result.Method} took {stopwatchActionPacket.ElapsedMilliseconds}ms to process!");
+                }
+                if (stopwatchActionPackets.ElapsedMilliseconds > 1)
+                    Logger.LogDebug($"ActionSITPackets took {stopwatchActionPackets.ElapsedMilliseconds}ms to process!");
+            }
+
             if (ActionPackets.Count > 0)
             {
                 Stopwatch stopwatchActionPackets = Stopwatch.StartNew();
@@ -169,6 +193,35 @@ namespace StayInTarkov.Coop.Components
             return;
         }
 
+        bool ProcessSITActionPackets(ISITPacket packet)
+        {
+            //Logger.LogInfo($"{nameof(ProcessSITActionPackets)} received {packet.GetType()}");
+
+            packet.Process();
+
+            //var playerPacket = packet as BasePlayerPacket;
+            //if (playerPacket != null)
+            //{
+            //    if (!Players.ContainsKey(playerPacket.ProfileId))
+            //        return false;
+
+            //    Players[playerPacket.ProfileId].ProcessSITPacket(playerPacket);
+            //}
+            //else
+            //{
+            //    // Process Player States Packet
+            //    if(packet is PlayerStatesPacket playerStatesPacket)
+            //    {
+            //        foreach(var psp in playerStatesPacket.PlayerStates)
+            //        {
+            //            ProcessSITActionPackets(psp);
+            //        }
+            //    }
+            //}
+
+            return false;
+        }
+
         bool ProcessLastActionDataPacket(Dictionary<string, object> packet)
         {
             if (Singleton<GameWorld>.Instance == null)
@@ -179,12 +232,18 @@ namespace StayInTarkov.Coop.Components
                 Logger.LogInfo("No Data Returned from Last Actions!");
                 return false;
             }
+            
 
             bool result = ProcessPlayerPacket(packet);
             if (!result)
                 result = ProcessWorldPacket(ref packet);
 
             return result;
+        }
+
+        private bool ProcessPlayerStatesPacket(PlayerStatesPacket playerStatesPacket)
+        {
+            return false;
         }
 
         bool ProcessWorldPacket(ref Dictionary<string, object> packet)
@@ -248,7 +307,6 @@ namespace StayInTarkov.Coop.Components
 
             if (packet == null)
                 return true;
-
 
             var profileId = "";
             
