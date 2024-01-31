@@ -99,20 +99,29 @@ namespace StayInTarkov.Networking
             };
 
             EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
+            
             _natHelper = new NatHelper(_netServer);
             _natHelper.Connect();
 
             EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
-            await _natHelper.AddUpnpMap(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "sit.core");
-            _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-            _natHelper.AddPortForwardEndPoint(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            
+            // UPNP
+            var upnpResult = await _natHelper.AddUpnpEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "sit.core");
+
+            // Only do STUN (nat punch) if UPNP failed.
+            if(!upnpResult)
+                _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+
+            // External (port forwarding)
+            _natHelper.AddEndPoint("external", StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            
+            // NatHelper will replace this endpoint with the local or external IP address of the host.
+            _natHelper.AddEndPoint("remote", "0.0.0.0", PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
-            
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
-            
             NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }

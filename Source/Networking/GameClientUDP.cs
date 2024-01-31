@@ -88,21 +88,22 @@ namespace StayInTarkov.Networking
             if(MatchmakerAcceptPatches.IsClient)
             {
                 EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
+
                 _natHelper = new NatHelper(_netClient);
                 _natHelper.Connect();
 
-                EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
-                _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-
                 EFT.UI.ConsoleScreen.Log($"Getting Server Endpoints...");
+
                 ServerEndPoints = await _natHelper.GetEndpointsRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
 
-                EFT.UI.ConsoleScreen.Log($"ServerEndpoints: " + ServerEndPoints.Count);
+                if(ServerEndPoints.ContainsKey("stun"))
+                {
+                    EFT.UI.ConsoleScreen.Log($"Performing Nat Punch Request...");
+                    
+                    _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                    await _natHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId, ServerEndPoints);
+                }
 
-                EFT.UI.ConsoleScreen.Log($"Performing Nat Punch Request...");
-                await _natHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId, ServerEndPoints);
-
-                EFT.UI.ConsoleScreen.Log($"Connecting to server...");
                 _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
                 foreach (var serverEndPoint in ServerEndPoints)
@@ -114,14 +115,13 @@ namespace StayInTarkov.Networking
                     EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPointIp}:{serverEndPointPort}");
 
                     _netClient.Connect(serverEndPointIp, serverEndPointPort, "sit.core");
-                }    
+                }
 
                 _natHelper.Close();
             }
             else
             {
                 // Connect locally if we're the server.
-                EFT.UI.ConsoleScreen.Log($"Connecting to local server...");
                 _netClient.Start();
                 _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
             }
@@ -411,6 +411,7 @@ namespace StayInTarkov.Networking
             }
             else
             {
+                /*
                 if(MatchmakerAcceptPatches.IsClient)
                 {
                     if (ServerEndPoints != null)
@@ -421,6 +422,7 @@ namespace StayInTarkov.Networking
                         }
                     }
                 }
+                */
             }
         }
 
@@ -435,6 +437,13 @@ namespace StayInTarkov.Networking
         
         public void OnPeerConnected(NetPeer peer)
         {
+            // Disconnect if more than one endpoint was reached
+            if (_netClient.ConnectedPeersCount > 1)
+            {
+                peer.Disconnect();
+                return;
+            }
+
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
             NotificationManagerClass.DisplayMessageNotification($"Connected to server {peer.EndPoint}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);

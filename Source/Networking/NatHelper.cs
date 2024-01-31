@@ -221,7 +221,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public async Task AddUpnpMap(int port, int lifetime, string desc)
+        public async Task<bool> AddUpnpEndPoint(int port, int lifetime, string desc)
         {
             try
             {
@@ -233,20 +233,25 @@ namespace StayInTarkov.Networking
                 await device.CreatePortMapAsync(new Mapping(Protocol.Udp, port, port, lifetime, desc));
 
                 PublicEndPoints.Add("upnp", $"{externalIp}:{port}");
+
+                return true;
             }
             catch (Exception ex)
             {
-                EFT.UI.ConsoleScreen.Log(ex.Message);
+                Logger.LogInfo($"Warning: UPNP mapping failed.");
+                EFT.UI.ConsoleScreen.Log($"Warning: UPNP mapping failed.");
             }
+
+            return false;
         }
 
         public void AddStunEndPoint(int port)
         {
-            var queryResult = new STUNQueryResult();
-            var stunUdpClient = new UdpClient(AddressFamily.InterNetwork);
-
             try
             {
+                var queryResult = new STUNQueryResult();
+                var stunUdpClient = new UdpClient();
+
                 stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 
                 IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
@@ -257,24 +262,29 @@ namespace StayInTarkov.Networking
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
                 //var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
 
-                if(queryResult != null)
+                if (queryResult.PublicEndPoint != null)
                 {
                     PublicEndPoints.Add("stun", $"{queryResult.PublicEndPoint.Address}:{queryResult.PublicEndPoint.Port}");
                 }
-            }
-            catch (Exception ex)
-            {
-                EFT.UI.ConsoleScreen.Log(ex.Message);
-            }
+                else
+                {
+                    Logger.LogInfo($"Warning: STUN query failed.");
+                    EFT.UI.ConsoleScreen.Log($"Warning: STUN query failed.");
+                }
 
-            stunUdpClient.Client.Close();
+                stunUdpClient.Client.Close();
+            }
+            catch(Exception ex)
+            {
+
+            }
         }
 
-        public void AddPortForwardEndPoint(string externalIp, int port)
+        public void AddEndPoint(string name, string ip, int port)
         {
-            if (externalIp != null && !string.IsNullOrEmpty(externalIp))
+            if (ip != null && !string.IsNullOrEmpty(ip))
             {
-                PublicEndPoints.Add("portforward", $"{externalIp}:{port}");
+                PublicEndPoints.Add(name, $"{ip}:{port}");
             }
         }
     }
