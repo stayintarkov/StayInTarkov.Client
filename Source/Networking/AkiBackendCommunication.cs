@@ -304,8 +304,6 @@ namespace StayInTarkov.Networking
         //}
 
         public int HostPing { get; private set; } = 1;
-        public int PostPing { get; private set; } = 1;
-        public ConcurrentQueue<int> PostPingSmooth { get; } = new();
 
         private Task PeriodicallySendPooledDataTask;
 

@@ -113,10 +113,10 @@ namespace StayInTarkov.Coop
 
         public override void ExperienceGained(float experience)
         {
-            if (experience > 0)
-            {
-                NotificationManagerClass.DisplayMessageNotification(experience.ToString());
-            }
+            //if (experience > 0)
+            //{
+            //    NotificationManagerClass.DisplayMessageNotification(experience.ToString());
+            //}
             base.ExperienceGained(experience);
         }
 

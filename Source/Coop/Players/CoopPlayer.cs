@@ -443,14 +443,7 @@ namespace StayInTarkov.Coop.Players
 
         public virtual void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
-            //Logger.LogInfo(playerStatePacket.SITToJson());
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
-
-            prc.ReplicatedPlayerStatePacket = playerStatePacket;
-
-
+           
         }
 
         protected virtual void Interpolate()
@@ -462,5 +455,6 @@ namespace StayInTarkov.Coop.Players
         {
             base.UpdateTick();
         }
+
     }
 }

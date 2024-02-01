@@ -86,14 +86,14 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 {
                     var ammoIds = dict["ammo"].ToString().ParseJsonTo<string[]>();
                     List<BulletClass> list = new();
-                    foreach (string text in ammoIds)
+                    foreach (string ammoId in ammoIds)
                     {
-                        var findItem = player.FindItemById(text, false, true);
+                        var findItem = player.FindItemById(ammoId, false, true);
                         if (findItem.Failed)
                         {
-                            Logger.LogInfo("There is no item with id " + text + " in the GameWorld");
+                            Logger.LogInfo("There is no item with id " + ammoId + " in the GameWorld");
                         }
-                        Item item = player.FindItemById(text, false, true).Value;
+                        Item item = player.FindItemById(ammoId, false, true).Value;
                         BulletClass bulletClass = findItem.Value as BulletClass;
                         if (bulletClass == null)
                             continue;
