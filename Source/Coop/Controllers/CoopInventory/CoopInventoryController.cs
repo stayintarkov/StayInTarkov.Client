@@ -4,7 +4,6 @@ using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using JetBrains.Annotations;
-//using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
@@ -72,6 +71,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
                 BepInLogger.LogDebug($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
 
+
+                ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Begin);
+
                 var s = itemPlayerPacket.Serialize();
                 GameClient.SendData(s);
                 InventoryOperations.Add(operation);
@@ -86,7 +88,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             if (operation == null)
                 return;
 
-            BepInLogger.LogDebug($"{operation}");
+            BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
             var cachedOperation = InventoryOperations.FirstOrDefault(x => x.Id == operation.Id);
             // Operation created via this player
@@ -98,25 +100,24 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                     //BepInLogger.LogInfo($"operation.vmethod_0 : {executeResult}");
                     if (executeResult.Succeed)
                     {
-                        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Succeed);
                         RaiseInvEvents(cachedOperation, CommandStatus.Succeed);
-                        //cachedOperation.Dispose();
+                        RaiseInvEvents(operation, CommandStatus.Succeed);
                     }
                     else
                     {
-                        ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Failed);
+                        RaiseInvEvents(cachedOperation, CommandStatus.Failed);
+                        RaiseInvEvents(operation, CommandStatus.Failed);
                     }
                     cachedOperation.Dispose();
 
 
                 }, false);
             }
-            // Operation created by another player
             else
             {
+                // Operation created by another player
                 base.Execute(operation, (result) => { });
             }
-            
         }
 
         void RaiseInvEvents(object operation, CommandStatus status)
@@ -130,19 +131,33 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public void CancelExecute(uint id)
         {
             BepInLogger.LogError($"CancelExecute");
-            BepInLogger.LogInfo($"{id}");
+            BepInLogger.LogError($"OperationId:{id}");
             // If operation created via this player, then cancel that operation
             var operation = InventoryOperations.FirstOrDefault(x => x.Id == id);
             if(operation != null)
             {
                 operation.vmethod_0(delegate (IResult result)
                 {
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Succeed);
+                    ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Failed);
                 });
             }
         }
 
+        public override void OutProcess(ItemController executor, Item item, ItemAddress from, ItemAddress to, IOperation1 operation, Callback callback)
+        {
+            base.OutProcess(executor, item, from, to, operation, callback);
+        }
 
+        public override void InProcess(ItemController executor, Item item, ItemAddress to, bool succeed, IOperation1 operation, Callback callback)
+        {
+            // Taken from EFT.Player.PlayerInventoryController
+            if (!succeed)
+            {
+                callback.Succeed();
+                return;
+            }
+            base.InProcess(executor, item, to, succeed, operation, callback);
+        }
 
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
         {
@@ -154,22 +169,23 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
-            //BepInLogger.LogInfo("LoadMagazine");
+            BepInLogger.LogDebug("LoadMagazine");
+            BepInLogger.LogDebug($"{sourceAmmo}:{magazine}:{loadCount}:{ignoreRestrictions}");
             return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
         }
 
-        //public override Task<IResult> UnloadMagazine(MagazineClass magazine)
-        //{
-        //    Task<IResult> result;
+        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        {
+            Task<IResult> result;
 
-        //    BepInLogger.LogDebug("UnloadMagazine");
-        //    ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
-        //    var serialized = unloadMagazinePacket.Serialize();
+            BepInLogger.LogDebug("UnloadMagazine");
+            //ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
+            //var serialized = unloadMagazinePacket.Serialize();
 
-        //    GameClient.SendDataToServer(serialized);
-        //    result = base.UnloadMagazine(magazine);
-        //    return result;
-        //}
+            //GameClient.SendDataToServer(serialized);
+            result = base.UnloadMagazine(magazine);
+            return result;
+        }
 
         //public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
         //{
@@ -198,9 +214,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 && DiscardLimits.ContainsKey(DogtagComponent.BearDogtagsTemplate) // Value: 0
                 && DiscardLimits.ContainsKey(DogtagComponent.UsecDogtagsTemplate); // Value: 0
         }
-
-
-
 
         // PlayerOwnerInventoryController methods. We should inherit EFT.Player.PlayerInventoryController and override these methods based on EFT.Player.PlayerOwnerInventoryController
 

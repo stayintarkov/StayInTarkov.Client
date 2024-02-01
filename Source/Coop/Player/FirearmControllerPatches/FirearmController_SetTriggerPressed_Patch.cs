@@ -127,8 +127,8 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             tpp.Deserialize((byte[])dict["data"]);
 
-            if (HasProcessed(GetType(), player, tpp))
-                return;
+            //if (HasProcessed(GetType(), player, tpp))
+            //    return;
 
             if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 return;

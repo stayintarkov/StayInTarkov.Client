@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using ChatShared;
+using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
 using LiteNetLib.Utils;
@@ -470,6 +471,14 @@ namespace StayInTarkov.Coop.NetworkPacket
             reader.GetBytes(bytes, length);
             Deserialize(bytes);
         }
+
+        /// <summary>
+        /// Process this packet. Overridable for other packets to provide their own handlers.
+        /// </summary>
+        public virtual void Process()
+        {
+
+        }
     }
 
     public interface ISITPacket
@@ -479,6 +488,8 @@ namespace StayInTarkov.Coop.NetworkPacket
         public string Method { get; set; }
         byte[] Serialize();
         ISITPacket Deserialize(byte[] bytes);
+
+        void Process();
 
     }
 

@@ -37,7 +37,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 { "mg.id", magazine.Id },
                 { "mg.tpl", magazine.TemplateId },
                 { "ma", magAddressDict },
-                { "m", "ReloadMag" }
+                { "m", "QuickReloadMag" }
             };
             AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
 
@@ -58,7 +58,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 {
 
                     var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
-                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
+                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot, out var magAddressStack);
 
                     var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString())
                         .FirstOrDefault(x => x.Id == dict["mg.id"].ToString()) as MagazineClass;

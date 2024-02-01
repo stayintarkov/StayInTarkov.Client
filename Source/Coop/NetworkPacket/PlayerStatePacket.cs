@@ -1,6 +1,9 @@
 ﻿using LiteNetLib.Utils;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.ThirdParty;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -77,15 +80,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             using BinaryWriter writer = new BinaryWriter(ms);
             WriteHeader(writer);
             writer.Write(ProfileId);
-            //writer.Write(PositionX);
-            //writer.Write(PositionY);
-            //writer.Write(PositionZ);
-            //writer.Write(RotationX);
-            //writer.Write(RotationY);
-            //writer.Write(HeadRotationX);
-            //writer.Write(HeadRotationY);
-            //writer.Write(MovementDirectionX);
-            //writer.Write(MovementDirectionY);
             Vector3Utils.Serialize(writer, Position);
             Vector2Utils.Serialize(writer, Rotation);
             Vector2Utils.Serialize(writer, HeadRotation);
@@ -191,6 +185,25 @@ namespace StayInTarkov.Coop.NetworkPacket
             byte[] bytes = new byte[length];
             reader.GetBytes(bytes, length);
             Deserialize(bytes);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PlayerStatePacket other)
+            {
+                return (other.ProfileId == ProfileId
+                    && other.Position.IsEqual(Position, 1)
+                    && other.Rotation.Equals(Rotation)
+                    );
+            }
+            return base.Equals(obj);
+        }
+
+        public override void Process()
+        {
+            var players = CoopGameComponent.GetCoopGameComponent().Players;
+            if (players.ContainsKey(ProfileId))
+                players[ProfileId].ReceivePlayerStatePacket(this);
         }
     }
 }

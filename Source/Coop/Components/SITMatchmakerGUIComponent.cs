@@ -102,7 +102,7 @@ namespace StayInTarkov.Coop.Components
             Logger.LogInfo("Start");
 
             TMPManager = new PaulovTMPManager();
-            DrawIPAddresses();
+            //DrawIPAddresses();
             DrawSITButtons();
             //// Get Canvas
             //Canvas = GameObject.FindObjectOfType<Canvas>();

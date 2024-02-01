@@ -30,5 +30,10 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         }
 
+        public override void CallMalfunctionRepaired(Weapon weapon)
+        {
+            base.CallMalfunctionRepaired(weapon);
+        }
+
     }
 }
