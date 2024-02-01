@@ -297,19 +297,19 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //Logger.LogDebug($"{nameof(playerStatesPacket)} is {serialized.Length} in Length");
 
             // Testing the length MTU. If over the traffic limit, then try sending lots of smaller packets 
-            if (serialized.Length >= 1460)
-            {
-#if DEBUG
-                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
-#endif
-                foreach(var psp in playerStatesPacket.PlayerStates)
-                {
-                    // wait a little bit for the previous packet to process thru
-                    yield return new WaitForSeconds(0.033f);
-                    GameClient.SendData(serialized);
-                }
-            }
-            else 
+//            if (serialized.Length >= 1460)
+//            {
+//#if DEBUG
+//                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
+//#endif
+//                foreach(var psp in playerStatesPacket.PlayerStates)
+//                {
+//                    // wait a little bit for the previous packet to process thru
+//                    yield return new WaitForSeconds(0.033f);
+//                    GameClient.SendData(serialized);
+//                }
+//            }
+//            else 
                 GameClient.SendData(serialized);
 
             LastPlayerStateSent = DateTime.Now;
