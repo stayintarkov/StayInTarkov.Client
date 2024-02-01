@@ -263,11 +263,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         private IEnumerator SendPlayerStatePacket()
         {
             PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
-            //JObject playerStates = new();
-            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-            //playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            //playerStates.Add("t", DateTime.UtcNow.Ticks);
-
+           
             List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
             foreach (var player in Players.Values)
             {
@@ -296,21 +292,26 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             //Logger.LogDebug($"{nameof(playerStatesPacket)} is {serialized.Length} in Length");
 
+            // ----------------------------------------------------------------------------------------------------
+            // Paulov: Keeping this here as a note. DO NOT DELETE.
             // Testing the length MTU. If over the traffic limit, then try sending lots of smaller packets 
-//            if (serialized.Length >= 1460)
-//            {
-//#if DEBUG
-//                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
-//#endif
-//                foreach(var psp in playerStatesPacket.PlayerStates)
-//                {
-//                    // wait a little bit for the previous packet to process thru
-//                    yield return new WaitForSeconds(0.033f);
-//                    GameClient.SendData(serialized);
-//                }
-//            }
-//            else 
-                GameClient.SendData(serialized);
+            // After testing. This was a bad idea. It caused multiple 1% packet loss over Udp instead of very minor packet loss when sending large packets
+            // The 1% packet loss resulted in bots looking the wrong direction and all kinds of weird behavior. Not great.
+            //            if (serialized.Length >= 1460)
+            //            {
+            //#if DEBUG
+            //                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
+            //#endif
+            //                foreach(var psp in playerStatesPacket.PlayerStates)
+            //                {
+            //                    // wait a little bit for the previous packet to process thru
+            //                    yield return new WaitForSeconds(0.033f);
+            //                    GameClient.SendData(serialized);
+            //                }
+            //            }
+            // ----------------------------------------------------------------------------------------------------
+
+            GameClient.SendData(serialized);
 
             LastPlayerStateSent = DateTime.Now;
 
