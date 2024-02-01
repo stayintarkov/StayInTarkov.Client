@@ -165,7 +165,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            //gameObject.AddComponent<CoopGameGUIComponent>();
+            gameObject.AddComponent<CoopGameGUIComponent>();
 
             SITCheck();
         }
@@ -233,11 +233,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             StartCoroutine(SendPlayerStatePacket());
 
             // Start the SIT Garbage Collector
-            //if (PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
-            //    InvokeRepeating(nameof(PeriodicEnableDisableGC), 1.0f, 60.0f);
-            StartCoroutine(PeriodicEnableDisableGC());
+            //StartCoroutine(PeriodicEnableDisableGC());
             GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
-
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
@@ -255,8 +252,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 instance.ServerFixedUpdateTime = ServerPing;
                 instance.ServerTime = ServerPing;
                 instance.NetworkQuality.CreateMeasurers();
-                instance.NetworkQuality.MaxLoss.AddValue(5);
-                instance.NetOutgoingMeasurer.MeasureStatistics.AddMeasurement(new MeasurementData() { DateTime = DateTime.Now, Value = 75 });
             }
         }
 

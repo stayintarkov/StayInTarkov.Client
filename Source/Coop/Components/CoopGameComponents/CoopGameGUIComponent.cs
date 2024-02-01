@@ -5,6 +5,7 @@ using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Networking;
+using StayInTarkov.UI;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,12 +44,17 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         int GuiWidth = 400;
         public int ServerPing => CoopGameComponent.ServerPing;
 
+        private PaulovTMPManager TMPManager { get; } = new PaulovTMPManager();
+        private GameObject _endGameMessageGO;
+
         void Awake()
         {
             // ----------------------------------------------------
             // Create a BepInEx Logger for CoopGameComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(CoopGameGUIComponent)}");
             Logger.LogDebug($"{nameof(CoopGameGUIComponent)}:Awake");
+
+            _endGameMessageGO = TMPManager.InstantiateTarkovTextLabel("_EndGameMessage", "", 20, new Vector3(0, (Screen.height / 2) - 120, 0));
         }
 
         void OnGUI()
@@ -90,7 +96,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             rectEndOfGameMessage.height = Screen.height * h;
 
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-
 
             if (LocalGameInstance == null)
                 return;
