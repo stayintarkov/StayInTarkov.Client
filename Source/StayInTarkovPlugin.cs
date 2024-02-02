@@ -8,6 +8,7 @@ using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
+using Open.Nat;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
@@ -119,42 +120,18 @@ namespace StayInTarkov
 
         private async void GetExternalIPAddress()
         {
-            int attempts = 0;
-            while (string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4) && attempts++ < 10)
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = new TimeSpan(0,0,0,0,1000);
-                    Logger.LogInfo($"{nameof(GetExternalIPAddress)}:Attempt:{attempts}");
-                    string result = "";
-                    try
-                    {
-                        result = await client.GetStringAsync("http://wtfismyip.com/text");
-                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
-                    }
-                    catch (WebException e)
-                    {
-                        // offline...
-                    }
+            NatDiscoverer natDiscoverer = new NatDiscoverer();
+            var device = await natDiscoverer.DiscoverDeviceAsync();
+            if (device == null)
+                return;
 
-                    try
-                    {
-                        result = await client.GetStringAsync("https://api.ipify.org/");
-                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
-                    }
-                    catch (WebException e)
-                    {
-                        // offline too...
-                    }
+            var externalIp = await device.GetExternalIPAsync();
+            if (externalIp == null) 
+                return;
 
-                    // if we got here, all the websites are down, which is unlikely
-                }
-                await Task.Delay(1000);
-            }
+            SITIPAddresses.ExternalAddresses.IPAddressV4 = externalIp.ToString();
 
-            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV4);
-            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV6);
-
+            Logger.LogInfo($"External IP Discovered: {SITIPAddresses.ExternalAddresses.IPAddressV4}");
         }
 
        
