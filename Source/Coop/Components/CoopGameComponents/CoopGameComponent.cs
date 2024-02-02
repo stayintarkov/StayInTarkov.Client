@@ -233,7 +233,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             StartCoroutine(SendPlayerStatePacket());
 
             // Start the SIT Garbage Collector
-            //StartCoroutine(PeriodicEnableDisableGC());
+            StartCoroutine(PeriodicEnableDisableGC());
             GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
