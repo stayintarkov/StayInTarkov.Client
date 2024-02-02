@@ -279,7 +279,7 @@ namespace StayInTarkov.Networking
 
         public void AddEndPoint(string name, string ip, int port)
         {
-            if (ip != null && !string.IsNullOrEmpty(ip))
+            if (!string.IsNullOrEmpty(ip))
             {
                 PublicEndPoints.Add(name, $"{ip}:{port}");
             }
