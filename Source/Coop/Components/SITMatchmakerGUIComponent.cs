@@ -553,42 +553,59 @@ namespace StayInTarkov.Coop.Components
             }
         }
 
+        //GameObject GameObject_NumberOfPlayersToWaitFor;
+
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 4;
+            var rows = 5;
             var halfWindowWidth = windowInnerRect.width / 2;
+
+            var cols = new float[] { halfWindowWidth * 0.1f, halfWindowWidth * 0.66f, halfWindowWidth * 1.01f, halfWindowWidth * 1.33f };
 
             // Define a style for the title label
             GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
-            labelStyle.fontSize = 18;
+            labelStyle.fontSize = 14;
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
             GUIStyle labelSmallStyle = new(labelStyle);
             labelSmallStyle.alignment = TextAnchor.UpperLeft;
-            labelSmallStyle.fontSize = 12;
+            labelSmallStyle.fontSize = 14;
 
 
             // Define a style for buttons
             GUIStyle buttonStyle = new(GUI.skin.button);
-            buttonStyle.fontSize = 30;
-            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.fontSize = 14;
+            buttonStyle.fontStyle = FontStyle.Normal;
+
+            var buttonSize = 25;
+
+            var lblNumberOfPlayers = StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"];
+            var contentLabelNumberOfPlayers = new GUIContent(lblNumberOfPlayers);
+            var calcSizeContentLabelNumberOfPlayers = labelStyle.CalcSize(contentLabelNumberOfPlayers);
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 20 + (iRow * 60);
+                var y = 25 + (iRow * 35);
 
                 switch (iRow)
                 {
                     case 0:
-                        // Title label for the number of players
-                        GUI.Label(new UnityEngine.Rect(10, y, windowInnerRect.width - 20, 30), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
-                        break;
 
-                    case 1:
+                        //if (GameObject_NumberOfPlayersToWaitFor == null)
+                        //    GameObject_NumberOfPlayersToWaitFor = TMPManager.InstantiateTarkovTextLabel(
+                        //        nameof(GameObject_NumberOfPlayersToWaitFor)
+                        //        , StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"]
+                        //        , 14
+                        //        // for TMP, 0 is the middle of the screen
+                        //        , new Vector3(0, 0)
+                        //        );
+                        // Title label for the number of players
+                        GUI.Label(new UnityEngine.Rect(cols[0], y, calcSizeContentLabelNumberOfPlayers.x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
+
                         // Decrease button
-                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth - 50, y, 30, 30), "-", buttonStyle))
+                        if (GUI.Button(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), "-", buttonStyle))
                         {
                             if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers > 1)
                             {
@@ -596,59 +613,64 @@ namespace StayInTarkov.Coop.Components
                             }
                         }
 
+                        var contentNumberOfPlayers = new GUIContent(MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString());
                         // Player count label
-                        GUI.Label(new UnityEngine.Rect(halfWindowWidth - 15, y, 30, 30), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
+                        GUI.Label(new UnityEngine.Rect(cols[2], y, labelStyle.CalcSize(contentNumberOfPlayers).x, labelStyle.CalcSize(contentNumberOfPlayers).y), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
 
                         // Increase button
-                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 20, y, 30, 30), "+", buttonStyle))
+                        if (GUI.Button(new UnityEngine.Rect(cols[3], y, buttonSize, buttonSize), "+", buttonStyle))
                         {
-                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers < 10)
+                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers < 99)
                             {
                                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers += 1;
                             }
                         }
                         break;
 
-                    case 2:
+                    case 1:
                         CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]), halfWindowWidth);
+                       
+                        // "Require Password" text
+                        GUI.Label(new UnityEngine.Rect(cols[0], y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
-
-                        // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
-
+                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), showPasswordField, "");
+                     
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
-                        var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+                        var passwordFieldX = cols[2] - passwordFieldWidth / 2;
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y + 30, 200, 30), passwordInput, '*', 25);
+                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y, 200, buttonSize), passwordInput, '*', 25);
                         }
 
                         break;
 
-                    case 3:
+                    case 2:
+                        var lblBotAmountText = StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"];
+
                         var botSettingtFieldWidth = 350;
                         var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
                         //Ai Amount
-                        CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelSmallStyle);
-                        Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelStyle);
+                        Rect botAmountGridRect = new Rect(cols[1], y, BotAmountStringOptions.Count() * 80, 25);
                         botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
+                       
+                        break;
+                    case 3:
 
                         //Ai Difficulty
-                        CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 55, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelSmallStyle);
-                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 80, BotDifficultyStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelStyle);
+                        Rect botDifficultyGridRect = new Rect(cols[1], y, BotDifficultyStringOptions.Count() * 80, 25);
                         botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
+                        break;
+                    case 4:
                         //Bosses enabled - disabled
-                        CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
-                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 115, 200, 25), BotBossesEnabled, "");
-                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 115, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelSmallStyle);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelStyle);
+                        BotBossesEnabled = GUI.Toggle(new Rect(cols[1], y, 200, 25), BotBossesEnabled, "");
 
                         break;
                 }
