@@ -90,60 +90,63 @@ namespace StayInTarkov.Networking
 
         private void ProcessMessage(string message)
         {
-            JObject msgObj = JObject.Parse(message);
 
-            if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType"))
-            {
-                var requestId = msgObj["requestId"].ToString();
-                var requestType = msgObj["requestType"].ToString();
-                var profileId = msgObj["profileId"].ToString();
+                JObject msgObj = JObject.Parse(message);
 
-                if (requestType == "getEndPointsRequest")
+                if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType"))
                 {
-                    var getServerEndPointsResponse = new Dictionary<string, object>
+                    var requestId = msgObj["requestId"].ToString();
+                    var requestType = msgObj["requestType"].ToString();
+                    var profileId = msgObj["profileId"].ToString();
+
+                    if (requestType == "getEndPointsRequest")
                     {
-                        { "requestId", requestId },
-                        { "requestType", "getEndPointsResponse" },
-                        { "profileId", profileId },
-                        { "publicEndPoints", PublicEndPoints }
-                    };
+                        var getServerEndPointsResponse = new Dictionary<string, object>
+                        {
+                            { "requestId", requestId },
+                            { "requestType", "getEndPointsResponse" },
+                            { "profileId", profileId },
+                            { "publicEndPoints", PublicEndPoints }
+                        };
 
-                    WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsResponse));
-                }
-
-                if (requestType == "natPunchRequest")
-                {
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
-
-                    if (publicEndPoints.ContainsKey("stun"))
-                    {
-                        PunchNat(publicEndPoints["stun"]);
+                        WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsResponse));
                     }
 
-                    var natPunchResponse = new Dictionary<string, object>
+                    if (requestType == "natPunchRequest")
                     {
-                        { "requestId", requestId },
-                        { "requestType", "natPunchResponse" },
-                        { "profileId", profileId },
-                    };
+                        var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
 
-                    WebSocket.Send(JsonConvert.SerializeObject(natPunchResponse));
+                        if (publicEndPoints.ContainsKey("stun"))
+                        {
+                            PunchNat(publicEndPoints["stun"]);
+                        }
+
+                        var natPunchResponse = new Dictionary<string, object>
+                        {
+                            { "requestId", requestId },
+                            { "requestType", "natPunchResponse" },
+                            { "profileId", profileId },
+                        };
+
+                        WebSocket.Send(JsonConvert.SerializeObject(natPunchResponse));
+                    }
+
+                    if (requestType == "getEndPointsResponse")
+                    {
+                        var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
+
+                        if(RequestCompletionSourceList.ContainsKey(requestId))
+                            RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
+                    }
+
+                    if (requestType == "natPunchResponse")
+                    {
+                        if (RequestCompletionSourceList.ContainsKey(requestId))
+                            RequestCompletionSourceList[requestId].SetResult(true);
+                    }
                 }
 
-                if (requestType == "getEndPointsResponse")
-                {
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
 
-                    if(RequestCompletionSourceList.ContainsKey(requestId))
-                        RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
-                }
-
-                if (requestType == "natPunchResponse")
-                {
-                    if (RequestCompletionSourceList.ContainsKey(requestId))
-                        RequestCompletionSourceList[requestId].SetResult(true);
-                }
-            }
         }
 
         public async Task<Dictionary<string, string>> GetEndpointsRequestAsync(string serverId, string profileId)
