@@ -62,7 +62,7 @@ namespace StayInTarkov.Configuration
                 ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
 
                 SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorMemoryThreshold", 512, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
+                ("Advanced", "SITGarbageCollectorMemoryThreshold", 768, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
 
                 SITGCClearAssets = StayInTarkovPlugin.Instance.Config.Bind
                 ("Advanced", "SITGarbageCollectorClearAssets", false, new ConfigDescription("Set SIT Garbage Collector to clear Unity assets. Reduces RAM usage but can be unstable!")).Value;
