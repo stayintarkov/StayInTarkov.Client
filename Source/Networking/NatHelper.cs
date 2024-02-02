@@ -41,7 +41,7 @@ namespace StayInTarkov.Networking
         public Dictionary<string, TaskCompletionSource<object>> RequestCompletionSourceList = new Dictionary<string, TaskCompletionSource<object>>();
         public Dictionary<string, string> PublicEndPoints = new Dictionary<string, string>();
 
-        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Net Helper");
+        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Nat Helper");
 
         public NatHelper(LiteNetLib.NetManager netManager)
         {
