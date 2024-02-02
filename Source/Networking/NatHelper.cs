@@ -92,7 +92,7 @@ namespace StayInTarkov.Networking
         {
             JObject msgObj = JObject.Parse(message);
 
-            if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType"))
+            if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType") && msgObj.ContainsKey("profileId"))
             {
                 var requestId = msgObj["requestId"].ToString();
                 var requestType = msgObj["requestType"].ToString();
