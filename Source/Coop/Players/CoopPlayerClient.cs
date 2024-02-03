@@ -154,7 +154,7 @@ namespace StayInTarkov.Coop.Players
             CurrentManagedState.SetStep(NewState.Step);
             MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
             MovementContext.EnableSprint(NewState.IsSprinting);
-
+            MovementContext.LeftStanceController.SetLeftStanceForce(NewState.LeftStance);
             MovementContext.IsInPronePose = NewState.IsProne;
             MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
 
