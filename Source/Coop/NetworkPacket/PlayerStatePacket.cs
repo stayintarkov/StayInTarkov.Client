@@ -194,6 +194,11 @@ namespace StayInTarkov.Coop.NetworkPacket
             return base.Equals(obj);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override void Process()
         {
             var players = CoopGameComponent.GetCoopGameComponent().Players;
