@@ -35,6 +35,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public Vector2 InputDirection { get; set; }
         public int Blindfire { get; set; }
         public float LinearSpeed { get; set; }
+        public bool LeftStance { get; set; }
 
         public PlayerHealthPacket PlayerHealth { get; set; }
 
@@ -42,7 +43,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection
+            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, bool leftStance
             , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
             : base(new string(profileId.ToCharArray()), "PlayerState")
         {
@@ -72,6 +73,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             Stamina = stamina;
             Blindfire = blindFire;
             LinearSpeed = linearSpeed;
+            LeftStance = leftStance;
         }
 
         public override byte[] Serialize()
@@ -94,6 +96,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(IsSprinting);
             PhysicalUtils.Serialize(writer, Stamina);
             Vector2Utils.Serialize(writer, InputDirection);
+            writer.Write(LeftStance);
             writer.Write(Blindfire);
             writer.Write(LinearSpeed);
             writer.Write(TimeSerializedBetter);
@@ -145,6 +148,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsSprinting = reader.ReadBoolean();
             Stamina = PhysicalUtils.Deserialize(reader);
             InputDirection = Vector2Utils.Deserialize(reader);
+            LeftStance = reader.ReadBoolean();
             Blindfire = reader.ReadInt32();
             LinearSpeed = reader.ReadSingle();
             TimeSerializedBetter = reader.ReadString();
