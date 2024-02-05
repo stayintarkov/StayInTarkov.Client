@@ -219,6 +219,7 @@ namespace StayInTarkov.Coop.Matchmaker
         public static void CreateMatch(string profileId, RaidSettings rs, string password = null, ESITProtocol protocol = ESITProtocol.PeerToPeerUdp)
         {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+            SITProtocol = protocol;
 
             var objectToSend = new Dictionary<string, object>
             {
