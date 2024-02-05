@@ -83,7 +83,6 @@ namespace StayInTarkov
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
-        public static SITIPAddresses SITIPAddresses { get; } = new SITIPAddresses();
 
         internal static string IllegalMessage { get; }
             = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
@@ -100,7 +99,7 @@ namespace StayInTarkov
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
-            GetExternalIPAddress();
+            SITIPAddressManager.GetExternalIPAddress();
 
             ReadInLanguageDictionary();
 
@@ -119,21 +118,7 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
-        private async void GetExternalIPAddress()
-        {
-            NatDiscoverer natDiscoverer = new NatDiscoverer();
-            var device = await natDiscoverer.DiscoverDeviceAsync();
-            if (device == null)
-                return;
-
-            var externalIp = await device.GetExternalIPAsync();
-            if (externalIp == null) 
-                return;
-
-            SITIPAddresses.ExternalAddresses.IPAddressV4 = externalIp.ToString();
-
-            Logger.LogInfo($"External IP Discovered: {SITIPAddresses.ExternalAddresses.IPAddressV4}");
-        }
+      
 
        
 

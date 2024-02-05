@@ -113,7 +113,7 @@ namespace StayInTarkov.Networking
                 _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
             // External (port forwarding)
-            _natHelper.AddEndPoint("external", StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            _natHelper.AddEndPoint("external", SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
             
             // NatHelper will replace this endpoint with the local or external IP address of the host.
             _natHelper.AddEndPoint("remote", "0.0.0.0", PluginConfigSettings.Instance.CoopSettings.SITUdpPort);

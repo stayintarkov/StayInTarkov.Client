@@ -169,8 +169,8 @@ namespace StayInTarkov.Coop.Components
 
         private void DrawIPAddresses()
         {
-            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
-            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
+            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
         }
 
         private void DrawSITButtons()
