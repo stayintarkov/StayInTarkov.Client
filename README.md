@@ -85,6 +85,7 @@ SIT/
 ### Client Install
 - **Everyone** must install the SIT Client Mod. You can install it using SIT Manager, or manually if desired.
 - **IF YOU USE SPT ALREADY**: Do **NOT** install the SIT Client mod onto your existing SPT install. The SIT Client Mod is currently not compatible with the SPT-Aki client, so it needs to be installed on it's own copy of Tarkov.
+- __**NOTE:**__ As of 05/02/2024 the downgraders used by the manager and in the link provided for the manual install will not downgrade to the correct version and/or fail. Please check the SIT Discord for the latest EFT downgrader
 
 #### SIT Manager Method
 - Copy the contents of your live EFT installation into the currently-empty `SIT/game` folder
