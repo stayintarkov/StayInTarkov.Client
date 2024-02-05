@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.UI;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using Sirenix.Utilities;
@@ -108,15 +109,27 @@ namespace StayInTarkov.Networking
 
                 _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
 
-                foreach (var serverEndPoint in ServerEndPoints)
+                if (!string.IsNullOrEmpty(SITMatchmaking.ForcedIPAddress))
                 {
-                    var serverEndPointArr = serverEndPoint.Value.Split(':');
-                    var serverEndPointIp = serverEndPointArr[0];
-                    var serverEndPointPort = int.Parse(serverEndPointArr[1]);
+                    string debugMessage = $"Forcing a connection to IP Address {SITMatchmaking.ForcedIPAddress} as defined by the host";
+                    Logger.LogDebug(debugMessage);
+                    EFT.UI.ConsoleScreen.Log(debugMessage);
 
-                    EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPointIp}:{serverEndPointPort}");
+                    _netClient.Connect(SITMatchmaking.ForcedIPAddress, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, "sit.core");
+                }
+                else
+                {
 
-                    _netClient.Connect(serverEndPointIp, serverEndPointPort, "sit.core");
+                    foreach (var serverEndPoint in ServerEndPoints)
+                    {
+                        var serverEndPointArr = serverEndPoint.Value.Split(':');
+                        var serverEndPointIp = serverEndPointArr[0];
+                        var serverEndPointPort = int.Parse(serverEndPointArr[1]);
+
+                        EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPointIp}:{serverEndPointPort}");
+
+                        _netClient.Connect(serverEndPointIp, serverEndPointPort, "sit.core");
+                    }
                 }
 
                 _natHelper.Close();
@@ -481,6 +494,8 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[CLIENT] We disconnected because " + disconnectInfo.Reason);
         }
 
+        int firstPeerErrorCount = 0;
+
         public void SendData(byte[] data)
         {
             if (_netClient == null)
@@ -491,7 +506,24 @@ namespace StayInTarkov.Networking
 
             if (_netClient.FirstPeer == null)
             {
-                EFT.UI.ConsoleScreen.LogError("[CLIENT] First Peer is Null");
+                string clientFirstPeerIsNullMessage = "[CLIENT] First Peer is Null";
+                EFT.UI.ConsoleScreen.LogError(clientFirstPeerIsNullMessage);
+                Logger.LogError(clientFirstPeerIsNullMessage);
+
+                firstPeerErrorCount++;
+
+                if(firstPeerErrorCount == 30)
+                {
+                    Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("Connection Error"
+                        , $"Connection Lost. Unable to communicate with Server. Error: {clientFirstPeerIsNullMessage}"
+                        , ErrorScreen.EButtonType.OkButton
+                        , 60
+                        , () => { Singleton<ISITGame>.Instance.Stop(SITMatchmaking.Profile.ProfileId, ExitStatus.Survived, ""); }
+                        , () => { Singleton<ISITGame>.Instance.Stop(SITMatchmaking.Profile.ProfileId, ExitStatus.Survived, ""); }
+                        );
+
+                    throw new Exception();
+                }
                 return;
             }
 

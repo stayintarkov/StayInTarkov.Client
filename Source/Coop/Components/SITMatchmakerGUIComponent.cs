@@ -61,10 +61,14 @@ namespace StayInTarkov.Coop.Components
         private int botAmountInput = 0;
         private int botDifficultyInput = 0;
         private int protocolInput = 0;
+        private string pendingServerId = "";
+        private int p2pAddressOptionInput;
+        private string p2pForcedIPAddress { get; set; } = SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4;
 
         private string[] BotAmountStringOptions = new string[] { "AsOnline", "None", "Low", "Medium", "High", "Horde" };
         private string[] BotDifficultyStringOptions = new string[] { "AsOnline", "Easy", "Medium", "Hard", "Impossible", "Random" };
         private string[] ProtocolStringOptions = StayInTarkovPlugin.LanguageDictionary["PROTOCOL_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
+        private string[] YesOrNoStringOptions = StayInTarkovPlugin.LanguageDictionary["YES_NO_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
 
         private bool BotBossesEnabled = true;
 
@@ -91,7 +95,7 @@ namespace StayInTarkov.Coop.Components
         private bool showErrorMessageWindow { get; set; } = false;
         private bool showPasswordRequiredWindow { get; set; } = false;
 
-        private string pendingServerId = "";
+
 
         #endregion
 
@@ -533,6 +537,7 @@ namespace StayInTarkov.Coop.Components
                 SITMatchmaking.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 SITMatchmaking.MatchingType = EMatchmakerType.GroupPlayer;
                 SITMatchmaking.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+                SITMatchmaking.ForcedIPAddress = result["ipAddress"].ToString();
 
                 FixesHideoutMusclePain();
                 DestroyThis();
@@ -559,7 +564,7 @@ namespace StayInTarkov.Coop.Components
 
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 6;
+            var rows = 8;
             var halfWindowWidth = windowInnerRect.width / 2;
 
             var cols = new float[] { halfWindowWidth * 0.1f, halfWindowWidth * 0.66f, halfWindowWidth * 1.01f, halfWindowWidth * 1.33f };
@@ -683,6 +688,29 @@ namespace StayInTarkov.Coop.Components
                         protocolInput = GUI.SelectionGrid(protocolGridRect, protocolInput, ProtocolStringOptions, ProtocolStringOptions.Count());
 
                         break;
+                    case 6:
+
+                        // If Peer to Peer is chosen
+                        if (protocolInput == 0)
+                        {
+                            // P2P Address Option Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString(), labelStyle);
+
+                            Rect p2pAddressOptionGridRect = new Rect(cols[1], y, YesOrNoStringOptions.Count() * 120, 25);
+                            p2pAddressOptionInput = GUI.SelectionGrid(p2pAddressOptionGridRect, p2pAddressOptionInput, YesOrNoStringOptions, YesOrNoStringOptions.Count());
+                        }
+                        break;
+                    case 7:
+                        // If Peer to Peer is chosen and manually set
+                        if (protocolInput == 0 && p2pAddressOptionInput == 1)
+                        {
+                            // P2P Address Option Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString(), labelStyle);
+
+                            Rect p2pAddressIPRect = new Rect(cols[1], y, 200, 25);
+                            p2pForcedIPAddress = GUI.TextField(p2pAddressIPRect, p2pForcedIPAddress, 16);
+                        }
+                        break;
                 }
             }
 
@@ -719,6 +747,7 @@ namespace StayInTarkov.Coop.Components
                 , RaidSettings
                 , passwordInput
                 , (ESITProtocol)protocolInput
+                , ((ESITProtocol)protocolInput) == ESITProtocol.PeerToPeerUdp && p2pAddressOptionInput == 1 ? p2pForcedIPAddress : null
                 );
             OriginalAcceptButton.OnClick.Invoke();
 

@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using BepInEx.Logging;
+using EFT;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -43,7 +44,7 @@ namespace StayInTarkov.Coop.Matchmaker
                 var screenController = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
                 if (screenController != null)
                 {
-                    StayInTarkovHelperConstants.Logger.LogInfo("MatchmakerAcceptPatches.Found ScreenController Instance");
+                    Logger.LogInfo("MatchmakerAcceptPatches.Found ScreenController Instance");
 
                     return screenController;
 
@@ -55,7 +56,14 @@ namespace StayInTarkov.Coop.Matchmaker
         public static GameObject EnvironmentUIRoot { get; internal set; }
         public static MatchmakerTimeHasCome.TimeHasComeScreenController TimeHasComeScreenController { get; internal set; }
         public static ESITProtocol SITProtocol { get; internal set; }
+        public static string ForcedIPAddress { get; internal set; }
+        public static ManualLogSource Logger { get; }
         #endregion
+
+        static SITMatchmaking()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITMatchmaking));
+        }
 
         public static void Run()
         {
@@ -87,7 +95,7 @@ namespace StayInTarkov.Coop.Matchmaker
         public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
-            StayInTarkovHelperConstants.Logger.LogInfo("CheckForMatch");
+            Logger.LogInfo("CheckForMatch");
             outJson = string.Empty;
 
             if (SITMatchmaking.MatchMakerAcceptScreenInstance != null)
@@ -96,7 +104,7 @@ namespace StayInTarkov.Coop.Matchmaker
                 settingsJSON.Add("password", password);
 
                 outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settingsJSON));
-                StayInTarkovHelperConstants.Logger.LogInfo(outJson);
+                Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
                 {
@@ -141,7 +149,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
                         serverExists = true;
                     }
-                    StayInTarkovHelperConstants.Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
+                    Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
 
                     return serverExists;
                 }
@@ -152,7 +160,7 @@ namespace StayInTarkov.Coop.Matchmaker
         public static bool TryJoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
-            StayInTarkovHelperConstants.Logger.LogDebug("JoinMatch");
+            Logger.LogDebug("JoinMatch");
             outJson = string.Empty;
 
             if (SITMatchmaking.MatchMakerAcceptScreenInstance != null)
@@ -163,7 +171,7 @@ namespace StayInTarkov.Coop.Matchmaker
                 objectToSend.Add("password", password);
 
                 outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/join", objectToSend.ToJson());
-                StayInTarkovHelperConstants.Logger.LogInfo(outJson);
+                Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
                 {
@@ -216,7 +224,11 @@ namespace StayInTarkov.Coop.Matchmaker
             return false;
         }
 
-        public static void CreateMatch(string profileId, RaidSettings rs, string password = null, ESITProtocol protocol = ESITProtocol.PeerToPeerUdp)
+        public static void CreateMatch(string profileId
+            , RaidSettings rs
+            , string password = null
+            , ESITProtocol protocol = ESITProtocol.PeerToPeerUdp
+            , string p2pForcedIpAddress = null)
         {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
             SITProtocol = protocol;
@@ -229,25 +241,31 @@ namespace StayInTarkov.Coop.Matchmaker
                 { "expectedNumberOfPlayers", HostExpectedNumberOfPlayers },
                 { "gameVersion", StayInTarkovPlugin.EFTVersionMajor },
                 { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version },
-                { "protocol", protocol }
+                { "protocol", protocol },
             };
 
-            if (password != null)
+            if (!string.IsNullOrEmpty(password))
                 objectToSend.Add("password", password);
+
+            if (!string.IsNullOrEmpty(p2pForcedIpAddress))
+                objectToSend.Add("ipAddress", p2pForcedIpAddress);
+
+            Logger.LogDebug($"{nameof(CreateMatch)}");
+            Logger.LogDebug($"{objectToSend.ToJson()}");
 
             string result = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 objectToSend));
 
             if (!string.IsNullOrEmpty(result))
             {
-                StayInTarkovHelperConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
+                Logger.LogDebug($"CreateMatch:: Match Created for {profileId}");
                 SetGroupId(profileId);
                 SetTimestamp(timestamp);
                 MatchingType = EMatchmakerType.GroupLeader;
                 return;
             }
 
-            StayInTarkovHelperConstants.Logger.LogError("CreateMatch:: ERROR: Match NOT Created");
+            Logger.LogError("CreateMatch:: ERROR: Match NOT Created");
 
         }
     }

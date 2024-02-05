@@ -24,5 +24,8 @@
   "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait other player(s) to extract or died.",
   "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key.",
   "PROTOCOL": "Protocol",
-  "PROTOCOL_OPTIONS": [ "Peer to Peer", "Relay" ]
+  "PROTOCOL_OPTIONS": [ "Peer to Peer", "Relay" ],
+  "P2P_IP_ADDRESS_OPTIONS_LABEL": "Auto select IP Address?",
+  "YES_NO_OPTIONS": [ "Yes", "No" ],
+  "P2P_IP_ADDRESS_LABEL": "IP Address"
 }
