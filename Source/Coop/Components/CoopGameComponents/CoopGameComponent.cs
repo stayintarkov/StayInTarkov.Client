@@ -1306,6 +1306,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 , player.MovementContext.PoseLevel
                 , player.MovementContext.IsSprintEnabled
                 , player.InputDirection
+                , player.MovementContext.LeftStanceController.LastAnimValue
                 , playerHealth
                 , player.Physical.SerializationStruct
                 , player.MovementContext.BlindFire

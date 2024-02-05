@@ -420,6 +420,7 @@ namespace StayInTarkov
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             new LocationLootCacheBustingPatch().Enable();
+            new FixBrokenSpawnOnSandboxPatch().Enable();
         }
 
         private void EnableCoopPatches()
