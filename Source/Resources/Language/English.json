@@ -22,5 +22,7 @@
   "RAID_PLAYER_DEAD_CLIENT": "You are Dead! Please wait for the game to end or quit now using the F8 Key.",
   "RAID_TEAM_EXTRACTED": "Your team has extracted! You can quit now using the F8 Key.",
   "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait other player(s) to extract or died.",
-  "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key."
+  "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key.",
+  "PROTOCOL": "Protocol",
+  "PROTOCOL_OPTIONS": [ "Peer to Peer", "Relay" ]
 }

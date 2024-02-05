@@ -20,17 +20,7 @@ namespace StayInTarkov.Coop.Matchmaker
         GroupLeader = 2
     }
 
-    [Serializable]
-    public class ServerStatus
-    {
-        [JsonProperty("ip")]
-        public string ip { get; set; }
-
-        [JsonProperty("status")]
-        public string status { get; set; }
-    }
-
-    public static class MatchmakerAcceptPatches
+    public static class SITMatchmaking
     {
         #region Fields/Properties
         public static EFT.UI.Matchmaker.MatchMakerAcceptScreen MatchMakerAcceptScreenInstance { get; set; }
@@ -40,7 +30,6 @@ namespace StayInTarkov.Coop.Matchmaker
         public static bool IsClient => MatchingType == EMatchmakerType.GroupPlayer;
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
         public static int HostExpectedNumberOfPlayers { get; set; } = 1;
-        public static ServerType ServerType { get; set; }
         private static string groupId;
         private static long timestamp;
         #endregion
@@ -65,6 +54,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         public static GameObject EnvironmentUIRoot { get; internal set; }
         public static MatchmakerTimeHasCome.TimeHasComeScreenController TimeHasComeScreenController { get; internal set; }
+        public static ESITProtocol SITProtocol { get; internal set; }
         #endregion
 
         public static void Run()
@@ -100,7 +90,7 @@ namespace StayInTarkov.Coop.Matchmaker
             StayInTarkovHelperConstants.Logger.LogInfo("CheckForMatch");
             outJson = string.Empty;
 
-            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            if (SITMatchmaking.MatchMakerAcceptScreenInstance != null)
             {
                 JObject settingsJSON = JObject.FromObject(settings);
                 settingsJSON.Add("password", password);
@@ -159,13 +149,13 @@ namespace StayInTarkov.Coop.Matchmaker
             return false;
         }
 
-        public static bool JoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
+        public static bool TryJoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             StayInTarkovHelperConstants.Logger.LogDebug("JoinMatch");
             outJson = string.Empty;
 
-            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            if (SITMatchmaking.MatchMakerAcceptScreenInstance != null)
             {
                 JObject objectToSend = JObject.FromObject(settings);
                 objectToSend.Add("profileId", profileId);
@@ -226,22 +216,19 @@ namespace StayInTarkov.Coop.Matchmaker
             return false;
         }
 
-        public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
+        public static void CreateMatch(string profileId, RaidSettings rs, string password = null, ESITProtocol protocol = ESITProtocol.PeerToPeerUdp)
         {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-            //TODO: change to UI selection
-            ServerType = PluginConfigSettings.Instance.CoopSettings.SITServerType;
 
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId },
-                { "serverType", ServerType },
                 { "timestamp", timestamp },
                 { "settings", rs },
                 { "expectedNumberOfPlayers", HostExpectedNumberOfPlayers },
                 { "gameVersion", StayInTarkovPlugin.EFTVersionMajor },
-                { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version }
+                { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version },
+                { "protocol", protocol }
             };
 
             if (password != null)

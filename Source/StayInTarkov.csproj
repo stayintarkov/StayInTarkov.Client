@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Networking\Packets\**" />
+    <EmbeddedResource Remove="Networking\Packets\**" />
+    <None Remove="Networking\Packets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Language\English.json">
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\French.json" />
@@ -138,7 +144,6 @@
   
   <ItemGroup>
     <Folder Include="Networking\Nat\" />
-    <Folder Include="Networking\Packets\" />
   </ItemGroup>
   
 </Project>

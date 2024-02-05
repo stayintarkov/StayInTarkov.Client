@@ -21,11 +21,6 @@ using WebSocketSharp;
 
 namespace StayInTarkov.Networking
 {
-    public enum ServerType
-    {
-        Relay,
-        P2P
-    }
 
     public enum NatTraversalMethod
     {
@@ -55,7 +50,7 @@ namespace StayInTarkov.Networking
 
         public void Connect()
         {
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{MatchmakerAcceptPatches.Profile.ProfileId}?";
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{SITMatchmaking.Profile.ProfileId}?";
 
             WebSocket = new WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);

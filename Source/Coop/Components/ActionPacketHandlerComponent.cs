@@ -409,7 +409,7 @@ namespace StayInTarkov.Coop.Components
             if (coopGameComponent == null)
                 return;
 
-            if (MatchmakerAcceptPatches.IsClient)
+            if (SITMatchmaking.IsClient)
             {
                 var sessionTime = new TimeSpan(long.Parse(packet["sessionTime"].ToString()));
                 Logger.LogInfo($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
@@ -450,7 +450,7 @@ namespace StayInTarkov.Coop.Components
             if (coopGameComponent == null)
                 return;
 
-            if (MatchmakerAcceptPatches.IsClient)
+            if (SITMatchmaking.IsClient)
             {
                 Logger.LogDebug(packet.ToJson());
 
@@ -548,7 +548,7 @@ namespace StayInTarkov.Coop.Components
             if (coopGameComponent == null)
                 return;
 
-            if (MatchmakerAcceptPatches.IsClient)
+            if (SITMatchmaking.IsClient)
             {
                 DateTime utcTime = new(long.Parse(packet["utcTime"].ToString()));
 

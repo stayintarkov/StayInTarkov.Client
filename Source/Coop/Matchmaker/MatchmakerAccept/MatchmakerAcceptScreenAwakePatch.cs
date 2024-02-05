@@ -40,7 +40,7 @@ namespace StayInTarkov.Coop.Matchmaker
             )
         {
             Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
-            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
+            SITMatchmaking.MatchMakerAcceptScreenInstance = __instance;
             return true;
         }
 

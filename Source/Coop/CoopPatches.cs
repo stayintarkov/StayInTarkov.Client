@@ -46,7 +46,7 @@ namespace StayInTarkov.Coop
 
 
             // ------ MATCHMAKER -------------------------
-            MatchmakerAcceptPatches.Run();
+            SITMatchmaking.Run();
 
         }
 

@@ -87,7 +87,7 @@ namespace StayInTarkov.Networking
                 EnableStatistics = true,
             };
 
-            if(MatchmakerAcceptPatches.IsClient)
+            if(SITMatchmaking.IsClient)
             {
                 EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
 
@@ -96,14 +96,14 @@ namespace StayInTarkov.Networking
 
                 EFT.UI.ConsoleScreen.Log($"Getting Server Endpoints...");
 
-                ServerEndPoints = await _natHelper.GetEndpointsRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId);
+                ServerEndPoints = await _natHelper.GetEndpointsRequestAsync(SITMatchmaking.GetGroupId(), SITMatchmaking.Profile.ProfileId);
 
                 if(ServerEndPoints.ContainsKey("stun"))
                 {
                     EFT.UI.ConsoleScreen.Log($"Performing Nat Punch Request...");
                     
                     _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-                    await _natHelper.NatPunchRequestAsync(MatchmakerAcceptPatches.GetGroupId(), MatchmakerAcceptPatches.Profile.ProfileId, ServerEndPoints);
+                    await _natHelper.NatPunchRequestAsync(SITMatchmaking.GetGroupId(), SITMatchmaking.Profile.ProfileId, ServerEndPoints);
                 }
 
                 _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
