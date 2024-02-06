@@ -1148,7 +1148,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                 }
             }
-            else // Make Player PMC items are all not 'FiR'
+            else if(profile.Info.Side != EPlayerSide.Savage) // Make Player PMC items are all not 'FiR'
             {
                 Item[] items = profile.Inventory.AllRealPlayerItems?.ToArray();
                 if (items != null)
