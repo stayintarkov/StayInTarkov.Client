@@ -56,7 +56,8 @@ namespace StayInTarkov.Coop.Matchmaker
         public static GameObject EnvironmentUIRoot { get; internal set; }
         public static MatchmakerTimeHasCome.TimeHasComeScreenController TimeHasComeScreenController { get; internal set; }
         public static ESITProtocol SITProtocol { get; internal set; }
-        public static string ForcedIPAddress { get; internal set; }
+        public static string IPAddress { get; internal set; }
+        public static int Port { get; internal set; }
         public static ManualLogSource Logger { get; }
         #endregion
 
@@ -226,9 +227,10 @@ namespace StayInTarkov.Coop.Matchmaker
 
         public static void CreateMatch(string profileId
             , RaidSettings rs
-            , string password = null
-            , ESITProtocol protocol = ESITProtocol.PeerToPeerUdp
-            , string p2pForcedIpAddress = null)
+            , string password
+            , ESITProtocol protocol
+            , string ipAddress
+            , int port)
         {           
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
             SITProtocol = protocol;
@@ -242,13 +244,14 @@ namespace StayInTarkov.Coop.Matchmaker
                 { "gameVersion", StayInTarkovPlugin.EFTVersionMajor },
                 { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version },
                 { "protocol", protocol },
+                { "port", port }
             };
 
             if (!string.IsNullOrEmpty(password))
                 objectToSend.Add("password", password);
 
-            if (!string.IsNullOrEmpty(p2pForcedIpAddress))
-                objectToSend.Add("ipAddress", p2pForcedIpAddress);
+            if (!string.IsNullOrEmpty(ipAddress))
+                objectToSend.Add("ipAddress", ipAddress);
 
             Logger.LogDebug($"{nameof(CreateMatch)}");
             Logger.LogDebug($"{objectToSend.ToJson()}");
@@ -262,6 +265,9 @@ namespace StayInTarkov.Coop.Matchmaker
                 SetGroupId(profileId);
                 SetTimestamp(timestamp);
                 MatchingType = EMatchmakerType.GroupLeader;
+
+                IPAddress = ipAddress;
+                Port = port;
                 return;
             }
 

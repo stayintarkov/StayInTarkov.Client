@@ -106,19 +106,16 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
             
             // UPNP
-            var upnpResult = await _natHelper.AddUpnpEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort, 900, "sit.core");
+            var upnpResult = await _natHelper.AddUpnpEndPoint(SITMatchmaking.Port, 900, "sit.core");
 
             // Only do STUN (nat punch) if UPNP failed.
             if(!upnpResult)
-                _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                _natHelper.AddStunEndPoint(SITMatchmaking.Port);
 
             // External (port forwarding)
-            _natHelper.AddEndPoint("external", SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4, PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
-            
-            // NatHelper will replace this endpoint with the local or external IP address of the host.
-            _natHelper.AddEndPoint("remote", "0.0.0.0", PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            _natHelper.AddEndPoint("external", SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4, SITMatchmaking.Port);
 
-            _netServer.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+            _netServer.Start(SITMatchmaking.Port);
 
             Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");

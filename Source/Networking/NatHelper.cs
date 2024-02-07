@@ -34,7 +34,7 @@ namespace StayInTarkov.Networking
         public LiteNetLib.NetManager NetManager;
         public WebSocket WebSocket { get; set; }
         public Dictionary<string, TaskCompletionSource<object>> RequestCompletionSourceList = new Dictionary<string, TaskCompletionSource<object>>();
-        public Dictionary<string, string> PublicEndPoints = new Dictionary<string, string>();
+        public Dictionary<string, IPEndPoint> PublicEndPoints = new Dictionary<string, IPEndPoint>();
 
         private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Nat Helper");
 
@@ -95,20 +95,23 @@ namespace StayInTarkov.Networking
 
                 if (requestType == "getEndPointsRequest")
                 {
-                    var getServerEndPointsResponse = new Dictionary<string, object>
+                    var getEndPointsResponse = new Dictionary<string, object>
                     {
                         { "requestId", requestId },
+                        { "serverId",  SITMatchmaking.Profile.ProfileId },
                         { "requestType", "getEndPointsResponse" },
                         { "profileId", profileId },
-                        { "publicEndPoints", PublicEndPoints }
+                        { "publicEndPoints", PublicEndPoints.ToDictionary(x => x.Key, x => x.Value.ToString()) }
                     };
 
-                    WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsResponse));
+                    WebSocket.Send(JsonConvert.SerializeObject(getEndPointsResponse));
                 }
 
                 if (requestType == "natPunchRequest")
                 {
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
+                    var publicEndPoints = msgObj["publicEndPoints"]
+                        .ToObject<Dictionary<string, string>>()
+                        .ToDictionary(x => x.Key, x => x.Value.ToIPEndPoint());
 
                     if (publicEndPoints.ContainsKey("stun"))
                     {
@@ -127,7 +130,9 @@ namespace StayInTarkov.Networking
 
                 if (requestType == "getEndPointsResponse")
                 {
-                    var publicEndPoints = msgObj["publicEndPoints"].ToObject<Dictionary<string, string>>();
+                    var publicEndPoints = msgObj["publicEndPoints"]
+                        .ToObject<Dictionary<string, string>>()
+                        .ToDictionary(x => x.Key, x => x.Value.ToIPEndPoint());
 
                     if(RequestCompletionSourceList.ContainsKey(requestId))
                         RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
@@ -141,7 +146,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public async Task<Dictionary<string, string>> GetEndpointsRequestAsync(string serverId, string profileId)
+        public async Task<Dictionary<string, IPEndPoint>> GetEndpointsRequestAsync(string serverId, string profileId)
         {
             var requestId = Guid.NewGuid().ToString();
 
@@ -157,12 +162,12 @@ namespace StayInTarkov.Networking
 
             WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsRequest));
 
-            var publicEndPoints = (Dictionary<string, string>)await RequestCompletionSourceList[requestId].Task;
+            var publicEndPoints = (Dictionary<string, IPEndPoint>)await RequestCompletionSourceList[requestId].Task;
 
             return publicEndPoints;
         }
 
-        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId, Dictionary<string, string> remoteEndPoints)
+        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId, Dictionary<string, IPEndPoint> remoteEndPoints)
         {
             var requestId = Guid.NewGuid().ToString();
 
@@ -174,7 +179,7 @@ namespace StayInTarkov.Networking
                 { "requestType", "natPunchRequest" },
                 { "serverId", serverId },
                 { "profileId", profileId },
-                { "publicEndPoints", PublicEndPoints }
+                { "publicEndPoints", PublicEndPoints.ToDictionary(x => x.Key, x => x.Value.ToString()) }
             };
 
             WebSocket.Send(JsonConvert.SerializeObject(natPunchRequest));
@@ -187,15 +192,6 @@ namespace StayInTarkov.Networking
             }
 
             return true;
-        }
-
-        public void PunchNat(string endPoint)
-        {
-            var endPointArr = endPoint.Split(':');
-            var stunEndPointIp = endPointArr[0];
-            var stunEndPointPort = int.Parse(endPointArr[1]);
-
-            PunchNat(new IPEndPoint(IPAddress.Parse(stunEndPointIp), stunEndPointPort));
         }
 
         public void PunchNat(IPEndPoint endPoint)
@@ -224,27 +220,28 @@ namespace StayInTarkov.Networking
                 var externalIp = extIp.MapToIPv4();
                 await device.CreatePortMapAsync(new Mapping(Protocol.Udp, port, port, lifetime, desc));
 
-                PublicEndPoints.Add("upnp", $"{externalIp}:{port}");
+                PublicEndPoints.Add("upnp", new IPEndPoint(externalIp, port));
 
                 return true;
             }
             catch (Exception ex)
             {
-                Logger.LogInfo($"Warning: UPNP mapping failed.");
-                EFT.UI.ConsoleScreen.Log($"Warning: UPNP mapping failed.");
+                Logger.LogInfo($"Warning: UPNP mapping failed: {ex.Message}");
+                EFT.UI.ConsoleScreen.Log($"Warning: UPNP mapping failed: {ex.Message}");
             }
 
             return false;
         }
 
-        public void AddStunEndPoint(int port)
+        public void AddStunEndPoint(int port = 0)
         {
             try
             {
                 var queryResult = new STUNQueryResult();
                 var stunUdpClient = new UdpClient();
-
-                stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+                
+                if(port > 0)
+                    stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 
                 IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
                 int stunPort = 19302;
@@ -252,11 +249,11 @@ namespace StayInTarkov.Networking
                 var stunEndPoint = new IPEndPoint(stunIp, stunPort);
 
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
-                //var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
+                //queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
 
                 if (queryResult.PublicEndPoint != null)
                 {
-                    PublicEndPoints.Add("stun", $"{queryResult.PublicEndPoint.Address}:{queryResult.PublicEndPoint.Port}");
+                    PublicEndPoints.Add("stun", queryResult.PublicEndPoint);
                 }
                 else
                 {
@@ -268,16 +265,29 @@ namespace StayInTarkov.Networking
             }
             catch(Exception ex)
             {
-
+                Logger.LogInfo($"STUN Error: {ex.Message}");
+                EFT.UI.ConsoleScreen.Log($"STUN Error: {ex.Message}");
             }
         }
 
         public void AddEndPoint(string name, string ip, int port)
         {
-            if (!string.IsNullOrEmpty(ip))
-            {
-                PublicEndPoints.Add(name, $"{ip}:{port}");
-            }
+            bool result = IPAddress.TryParse(ip, out var ipAddress);
+
+            if(result)
+                PublicEndPoints.Add(name, new IPEndPoint(ipAddress, port));
+        }
+    }
+
+    public static class ExtensionMethods
+    {
+        public static IPEndPoint ToIPEndPoint(this string ipEndPoint)
+        {   
+            var ipEndPointArr = ipEndPoint.Split(':');
+            var ip = ipEndPointArr[0];
+            var port = int.Parse(ipEndPointArr[1]);
+
+            return new IPEndPoint(IPAddress.Parse(ip), port);
         }
     }
 }

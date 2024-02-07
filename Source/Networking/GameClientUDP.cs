@@ -39,7 +39,7 @@ namespace StayInTarkov.Networking
 {
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
-        public Dictionary<string, string> ServerEndPoints = new Dictionary<string, string>();
+        public Dictionary<string, IPEndPoint> ServerEndPoints = new Dictionary<string, IPEndPoint>();
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netClient;
         private NetDataWriter _dataWriter = new();
@@ -103,42 +103,57 @@ namespace StayInTarkov.Networking
                 {
                     EFT.UI.ConsoleScreen.Log($"Performing Nat Punch Request...");
                     
-                    _natHelper.AddStunEndPoint(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                    _natHelper.AddStunEndPoint();
                     await _natHelper.NatPunchRequestAsync(SITMatchmaking.GetGroupId(), SITMatchmaking.Profile.ProfileId, ServerEndPoints);
+                    
+                    if(_natHelper.PublicEndPoints.ContainsKey("stun"))
+                        _netClient.Start(_natHelper.PublicEndPoints["stun"].Port);
                 }
 
-                _netClient.Start(PluginConfigSettings.Instance.CoopSettings.SITUdpPort);
+                if(!_netClient.IsRunning)
+                    _netClient.Start();
 
-                if (!string.IsNullOrEmpty(SITMatchmaking.ForcedIPAddress))
+                if (!string.IsNullOrEmpty(SITMatchmaking.IPAddress))
                 {
-                    string debugMessage = $"Forcing a connection to IP Address {SITMatchmaking.ForcedIPAddress} as defined by the host";
+                    string debugMessage = $"Forcing a connection to IP Address {SITMatchmaking.IPAddress} as defined by the host";
                     Logger.LogDebug(debugMessage);
                     EFT.UI.ConsoleScreen.Log(debugMessage);
 
-                    _netClient.Connect(SITMatchmaking.ForcedIPAddress, PluginConfigSettings.Instance.CoopSettings.SITUdpPort, "sit.core");
+                    _netClient.Connect(SITMatchmaking.IPAddress, SITMatchmaking.Port, "sit.core");
+
+                    return;
                 }
-                else
+
+                // Broadcast for local connection
+                _netClient.SendBroadcast([1], SITMatchmaking.Port);
+
+                var attemptedEndPoints = new List<IPEndPoint>();
+
+                foreach (var serverEndPoint in ServerEndPoints)
                 {
+                    // Make sure we are not already connected
+                    if (_netClient.ConnectedPeersCount > 0)
+                        break;
 
-                    foreach (var serverEndPoint in ServerEndPoints)
+                    // Make sure we only try proposed endpoints once
+                    if (!attemptedEndPoints.Contains(serverEndPoint.Value))
                     {
-                        var serverEndPointArr = serverEndPoint.Value.Split(':');
-                        var serverEndPointIp = serverEndPointArr[0];
-                        var serverEndPointPort = int.Parse(serverEndPointArr[1]);
+                        EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPoint.Value}");
 
-                        EFT.UI.ConsoleScreen.Log($"Attempt connect: {serverEndPointIp}:{serverEndPointPort}");
+                        _netClient.Connect(serverEndPoint.Value, "sit.core");
 
-                        _netClient.Connect(serverEndPointIp, serverEndPointPort, "sit.core");
+                        attemptedEndPoints.Add(serverEndPoint.Value);
                     }
                 }
 
                 _natHelper.Close();
             }
-            else
+
+            if(SITMatchmaking.IsServer)
             {
                 // Connect locally if we're the server.
                 _netClient.Start();
-                _netClient.Connect(new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.SITUdpPort), "sit.core");
+                _netClient.Connect(new IPEndPoint(IPAddress.Loopback, SITMatchmaking.Port), "sit.core");
             }
         }
 
@@ -418,21 +433,6 @@ namespace StayInTarkov.Networking
             {
                 //Basic lerp
                 //_lerpTime += Time.deltaTime / Time.fixedDeltaTime;
-            }
-            else
-            {
-                /*
-                if(MatchmakerAcceptPatches.IsClient)
-                {
-                    if (ServerEndPoints != null)
-                    {
-                        foreach(var serverEndPoint in ServerEndPoints)
-                        {
-                            _netClient.SendBroadcast([1], int.Parse(serverEndPoint.Value.Split(':')[1]));
-                        }
-                    }
-                }
-                */
             }
         }
 
