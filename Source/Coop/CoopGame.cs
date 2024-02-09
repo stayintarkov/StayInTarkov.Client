@@ -28,9 +28,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using static LocationSettings;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov.Coop
-{
+{   
     public sealed class FriendlyAIPMCSystem
     {
         /// <summary>
@@ -50,7 +52,6 @@ namespace StayInTarkov.Coop
     /// </summary>
     internal sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-
         public new bool InRaid { get { return true; } }
 
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
@@ -120,7 +121,7 @@ namespace StayInTarkov.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource("Coop Game Mode");
             Logger.LogInfo("CoopGame.Create");
 
-            if (wavesSettings.BotAmount == EBotAmount.NoBots && MatchmakerAcceptPatches.IsServer)
+            if (wavesSettings.BotAmount == EBotAmount.NoBots && SITMatchmaking.IsServer)
                 wavesSettings.BotAmount = EBotAmount.Medium;
 
             CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
@@ -164,26 +165,18 @@ namespace StayInTarkov.Coop
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
-            if (
-               // PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
-               //|| 
-               PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.TCP
-               )
-            {
-                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
-            }
 
-            // Udp Instanciate
-            if (
-                //PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.Both
-                //|| 
-                PluginConfigSettings.Instance.CoopSettings.SITHostProtocol == PluginConfigSettings.CoopConfigSettings.HostProtocol.UDP
-                )
+            switch(SITMatchmaking.SITProtocol)
             {
-                if(MatchmakerAcceptPatches.IsServer)
-                    coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
+                case ESITProtocol.RelayTcp:
+                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
+                    break;
+                default:
+                    if (SITMatchmaking.IsServer)
+                        coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
 
-                coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
+                    coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
+                    break;
             }
 
             return coopGame;
@@ -213,11 +206,11 @@ namespace StayInTarkov.Coop
             coopGameComponent.LocalGameInstance = this;
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
-            if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
+            if (!string.IsNullOrEmpty(SITMatchmaking.GetGroupId()))
             {
-                Logger.LogDebug($"{nameof(CreateCoopGameComponent)}:{MatchmakerAcceptPatches.GetGroupId()}");
-                coopGameComponent.ServerId = MatchmakerAcceptPatches.GetGroupId();
-                coopGameComponent.Timestamp = MatchmakerAcceptPatches.GetTimestamp();
+                Logger.LogDebug($"{nameof(CreateCoopGameComponent)}:{SITMatchmaking.GetGroupId()}");
+                coopGameComponent.ServerId = SITMatchmaking.GetGroupId();
+                coopGameComponent.Timestamp = SITMatchmaking.GetTimestamp();
             }
             else
             {
@@ -229,7 +222,7 @@ namespace StayInTarkov.Coop
                 throw new Exception("No Server Id found");
             }
 
-            if (MatchmakerAcceptPatches.IsServer)
+            if (SITMatchmaking.IsServer)
             {
                 //StartCoroutine(HostPinger());
                 StartCoroutine(GameTimerSync());
@@ -407,7 +400,7 @@ namespace StayInTarkov.Coop
 
         private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
-            if (MatchmakerAcceptPatches.IsClient)
+            if (SITMatchmaking.IsClient)
                 return null;
 
             if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
@@ -536,7 +529,7 @@ namespace StayInTarkov.Coop
         public static void SendOrReceiveSpawnPoint(ref ISpawnPoint selectedSpawnPoint, SpawnPoints spawnPoints)
         {
             var position = selectedSpawnPoint.Position;
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (!SITMatchmaking.IsClient)
             {
                 Dictionary<string, object> packet = new()
                 {
@@ -570,7 +563,7 @@ namespace StayInTarkov.Coop
                 //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
                 //Logger.LogInfo("Retreived Spawn Point " + json);
             }
-            else if (MatchmakerAcceptPatches.IsClient)
+            else if (SITMatchmaking.IsClient)
             {
                 if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
                 {
@@ -675,7 +668,7 @@ namespace StayInTarkov.Coop
                         await Task.Delay(1000);
                     }
 
-                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+                    var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
                     do
                     {
                         if (coopGameComponent.PlayerUsers == null)
@@ -692,11 +685,11 @@ namespace StayInTarkov.Coop
                             continue;
                         }
 
-                        var progress = (coopGameComponent.PlayerUsers.Count() / MatchmakerAcceptPatches.HostExpectedNumberOfPlayers);
-                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
-                        if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                        var progress = (coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers);
+                        numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+                        if (SITMatchmaking.TimeHasComeScreenController != null)
                         {
-                            MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
+                            SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
                         }
 
                         await Task.Delay(1000);
@@ -768,7 +761,7 @@ namespace StayInTarkov.Coop
             {
                         {
                             "serverId",
-                            MatchmakerAcceptPatches.GetGroupId()
+                            SITMatchmaking.GetGroupId()
                         },
                         {
                         "isAI",
@@ -781,7 +774,7 @@ namespace StayInTarkov.Coop
                         },
                         {
                             "groupId",
-                            Matchmaker.MatchmakerAcceptPatches.GetGroupId()
+                            Matchmaker.SITMatchmaking.GetGroupId()
                         },
                         {
                             "sPx",
@@ -835,7 +828,7 @@ namespace StayInTarkov.Coop
         {
             //Logger.LogDebug("vmethod_4");
 
-            var shouldSpawnBots = !MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
+            var shouldSpawnBots = !SITMatchmaking.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
             if (!shouldSpawnBots)
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
@@ -843,10 +836,10 @@ namespace StayInTarkov.Coop
                 if (!PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem)
                     Logger.LogDebug("Bot Spawner System has been turned off - Wave System is Disabled");
 
-                if (MatchmakerAcceptPatches.IsSinglePlayer)
+                if (SITMatchmaking.IsSinglePlayer)
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Single Player");
 
-                if (MatchmakerAcceptPatches.IsClient)
+                if (SITMatchmaking.IsClient)
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
@@ -1137,7 +1130,7 @@ namespace StayInTarkov.Coop
             });
 
             // If I am the Host/Server, then ensure all the bots have left too
-            if (MatchmakerAcceptPatches.IsServer)
+            if (SITMatchmaking.IsServer)
             {
                 foreach (var p in CoopGameComponent.GetCoopGameComponent().Players)
                 {

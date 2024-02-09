@@ -192,7 +192,7 @@ namespace StayInTarkov.Coop.Players
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // If we are not using the Client Side Damage, then only run this on the server
-                if (MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
+                if (SITMatchmaking.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
                     SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
                 else
                     SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);

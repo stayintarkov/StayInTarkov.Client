@@ -139,7 +139,7 @@ namespace StayInTarkov.Networking
                 }
 
                 // If this is an endSession packet, end the session for the clients
-                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
+                if (packet.ContainsKey("endSession") && SITMatchmaking.IsClient)
                 {
                     Logger.LogDebug("Received EndSession from Server. Ending Game.");
                     if (coopGameComponent.LocalGameInstance == null)

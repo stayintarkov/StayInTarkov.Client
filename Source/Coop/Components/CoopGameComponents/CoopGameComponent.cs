@@ -80,7 +80,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             {
                 if (LocalGameInstance is CoopGame coopGame)
                 {
-                    if (MatchmakerAcceptPatches.IsClient || coopGame.Bots.Count == 0)
+                    if (SITMatchmaking.IsClient || coopGame.Bots.Count == 0)
                         return Players
                             .Values
                             .Where(x => ProfileIdsAI.Contains(x.ProfileId) && x.ActiveHealthController.IsAlive)
@@ -233,7 +233,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             StartCoroutine(SendPlayerStatePacket());
 
             // Start the SIT Garbage Collector
-            //StartCoroutine(PeriodicEnableDisableGC());
+            StartCoroutine(PeriodicEnableDisableGC());
             GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
@@ -550,9 +550,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
                 else if (!world.MainPlayer.HealthController.IsAlive)
                 {
-                    if (MatchmakerAcceptPatches.IsClient)
+                    if (SITMatchmaking.IsClient)
                         quitState = EQuitState.YouAreDeadAsClient;
-                    else if (MatchmakerAcceptPatches.IsServer)
+                    else if (SITMatchmaking.IsServer)
                         quitState = EQuitState.YouAreDeadAsHost;
                 }
             }
@@ -565,9 +565,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // Extractions
             if (coopGame.ExtractedPlayers.Contains(world.MainPlayer.ProfileId))
             {
-                if (MatchmakerAcceptPatches.IsClient)
+                if (SITMatchmaking.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
-                else if (MatchmakerAcceptPatches.IsServer)
+                else if (SITMatchmaking.IsServer)
                     quitState = EQuitState.YouHaveExtractedOnlyAsHost;
             }
 
@@ -597,7 +597,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 RequestQuitGame = true;
 
                 // If you are the server / host
-                if (MatchmakerAcceptPatches.IsServer)
+                if (SITMatchmaking.IsServer)
                 {
                     // A host needs to wait for the team to extract or die!
                     if (PlayerUsers.Count() > 1 && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
@@ -1138,7 +1138,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.IsClientDrone = true;
 
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (!SITMatchmaking.IsClient)
             {
                 if (otherPlayer.ProfileId.StartsWith("pmc"))
                 {
@@ -1442,7 +1442,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return rect;
 
             rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
+            GUI.Label(rect, $"SIT Coop: " + (SITMatchmaking.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
             // PING ------

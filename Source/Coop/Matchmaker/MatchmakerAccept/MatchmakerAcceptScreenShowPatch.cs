@@ -98,9 +98,9 @@ namespace StayInTarkov.Coop.Matchmaker
 
             // ------------------------------------------
             // Keep an instance for other patches to work
-            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
+            SITMatchmaking.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
-            MatchmakerAcceptPatches.Profile = ___profile_0;
+            SITMatchmaking.Profile = ___profile_0;
         }
     }
 

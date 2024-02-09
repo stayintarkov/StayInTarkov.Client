@@ -110,30 +110,30 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             switch (quitState)
             {
                 case EQuitState.YourTeamIsDead:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YouAreDeadAsHost:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YouAreDeadAsClient:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YourTeamHasExtracted:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"].ToString(), middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"], middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"].ToString(), middleLargeLabelStyle);
                     break;
             }
 
             //OnGUI_DrawPlayerList(rect);
-            OnGUI_DrawPlayerFriendlyTags(rect);
+            //OnGUI_DrawPlayerFriendlyTags(rect);
             //OnGUI_DrawPlayerEnemyTags(rect);
 
         }
@@ -144,7 +144,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return rect;
 
             rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
+            GUI.Label(rect, $"SIT Coop: " + (SITMatchmaking.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
             // PING ------

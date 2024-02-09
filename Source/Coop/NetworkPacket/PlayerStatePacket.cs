@@ -47,15 +47,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
             : base(new string(profileId.ToCharArray()), "PlayerState")
         {
-            //PositionX = position.x;
-            //PositionY = position.y;
-            //PositionZ = position.z;
-            //RotationX = rotation.x;
-            //RotationY = rotation.y;
-            //HeadRotationX = headRotation.x;
-            //HeadRotationY = headRotation.y;
-            //MovementDirectionX = movementDirection.x;
-            //MovementDirectionY = movementDirection.y;
             Position = position;
             Rotation = rotation;
             HeadRotation = headRotation;
@@ -201,6 +192,11 @@ namespace StayInTarkov.Coop.NetworkPacket
                     );
             }
             return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public override void Process()

@@ -35,7 +35,7 @@ namespace StayInTarkov.Coop
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Prefix");
 
-            if (MatchmakerAcceptPatches.IsSinglePlayer)
+            if (SITMatchmaking.IsSinglePlayer)
                 return true;
 
             ISession session = __instance.GetClientBackEndSession();
@@ -63,7 +63,7 @@ namespace StayInTarkov.Coop
             string ____backendUrl
             )
         {
-            if (MatchmakerAcceptPatches.IsSinglePlayer)
+            if (SITMatchmaking.IsSinglePlayer)
                 return;
 
             if (CurrentSession == null)
@@ -85,7 +85,7 @@ namespace StayInTarkov.Coop
 
             LocationSettings.Location location = ____raidSettings.SelectedLocation;
 
-            MatchmakerAcceptPatches.TimeHasComeScreenController = timeHasComeScreenController;
+            SITMatchmaking.TimeHasComeScreenController = timeHasComeScreenController;
 
             //Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
             if (Singleton<NotificationManagerClass>.Instantiated)
@@ -110,7 +110,7 @@ namespace StayInTarkov.Coop
 
             await session.SendRaidSettings(____raidSettings);
 
-            if (MatchmakerAcceptPatches.IsClient)
+            if (SITMatchmaking.IsClient)
                 timeHasComeScreenController.ChangeStatus("Joining Coop Game");
             else
                 timeHasComeScreenController.ChangeStatus("Creating Coop Game");

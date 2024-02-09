@@ -37,12 +37,12 @@ namespace StayInTarkov.Coop.Session
         {
             Logger.LogDebug("LoadLocationLoot PatchPrefix");
 
-            if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.Single)
+            if (SITMatchmaking.MatchingType == EMatchmakerType.Single)
             {
                 return true;
             }
 
-            string serverId = MatchmakerAcceptPatches.GetGroupId();
+            string serverId = SITMatchmaking.GetGroupId();
 
             var objectToSend = new Dictionary<string, object>
             {
