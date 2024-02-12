@@ -103,12 +103,6 @@ namespace StayInTarkov.Coop
             }
 
             OverallAccountStats overallCounters = base.Profile_0.EftStats.OverallCounters;
-
-            if (GClass1350_0 == null)
-            {
-                Logger.LogError($"${nameof(GClass1350_0)} is Null");
-                return;
-            }
         }
 
         public override void ExperienceGained(float experience)

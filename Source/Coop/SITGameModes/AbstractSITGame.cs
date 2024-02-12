@@ -1,4 +1,9 @@
-﻿using BepInEx.Logging;
+﻿/**
+ * This file is written and licensed by Paulov (https://github.com/paulov-t) for Stay in Tarkov (https://github.com/stayintarkov)
+ * You are not allowed to reproduce this file in any other project
+ */
+
+using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using EFT.InputSystem;
@@ -8,9 +13,9 @@ using JsonType;
 using System;
 using System.Collections.Generic;
 
-namespace StayInTarkov.Coop
+namespace StayInTarkov.Coop.SITGameModes
 {
-    public abstract class ASITGame : BaseLocalGame<GamePlayerOwner>, IBotGame
+    public abstract class AbstractSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame
     {
         public new bool InRaid { get { return true; } }
 
@@ -73,7 +78,7 @@ namespace StayInTarkov.Coop
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
             , ISession backEndSession
-            , TimeSpan sessionTime) where T : ASITGame
+            , TimeSpan sessionTime) where T : AbstractSITGame
         {
 
             var r =

@@ -3,7 +3,7 @@ using Comfort.Common;
 using EFT;
 using FilesChecker;
 using Newtonsoft.Json;
-using StayInTarkov.Coop;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.UI;
 using System;
