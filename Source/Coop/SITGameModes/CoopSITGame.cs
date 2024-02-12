@@ -1,4 +1,10 @@
-﻿using Aki.Custom.Airdrops;
+﻿/**
+ * This file is written and licensed by Paulov (https://github.com/paulov-t) for Stay in Tarkov (https://github.com/stayintarkov)
+ * You are not allowed to reproduce this file in any other project
+ */
+
+
+using Aki.Custom.Airdrops;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
@@ -17,7 +23,6 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Players;
-using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -27,12 +32,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Assertions;
-using static LocationSettings;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
-namespace StayInTarkov.Coop
-{   
+namespace StayInTarkov.Coop.SITGameModes
+{
     public sealed class FriendlyAIPMCSystem
     {
         /// <summary>
@@ -50,7 +52,7 @@ namespace StayInTarkov.Coop
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    internal sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    internal sealed class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
         public new bool InRaid { get { return true; } }
 
@@ -64,7 +66,7 @@ namespace StayInTarkov.Coop
             {
                 if (BotsController == null)
                 {
-                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotsController)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
                 return BotsController;
             }
@@ -78,7 +80,7 @@ namespace StayInTarkov.Coop
             {
                 if (BotsController == null)
                 {
-                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(base.GetType(), typeof(BotsController)).GetValue(this);
+                    BotsController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(BotsController)).GetValue(this);
                 }
                 return BotsController;
             }
@@ -97,7 +99,7 @@ namespace StayInTarkov.Coop
 
         private static ManualLogSource Logger;
 
-        internal static CoopGame Create(
+        internal static CoopSITGame Create(
             InputTree inputTree
             , Profile profile
             , GameDateTime backendDateTime
@@ -124,8 +126,8 @@ namespace StayInTarkov.Coop
             if (wavesSettings.BotAmount == EBotAmount.NoBots && SITMatchmaking.IsServer)
                 wavesSettings.BotAmount = EBotAmount.Medium;
 
-            CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
-                .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
+            CoopSITGame coopGame = 
+                smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
             // ---------------------------------------------------------------------------------
@@ -147,10 +149,10 @@ namespace StayInTarkov.Coop
             // Setup Boss Wave Manager
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
                 (null, new object[] { location.BossLocationSpawn, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
-            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
+            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopSITGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
             coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
 
-            coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
+            coopGame.func_1 = (player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
             // ---------------------------------------------------------------------------------
             // Setup ISITGame Singleton
@@ -166,7 +168,7 @@ namespace StayInTarkov.Coop
             // Create GameClient(s)
             // TODO: Switch to GameClientTCP/GameClientUDP
 
-            switch(SITMatchmaking.SITProtocol)
+            switch (SITMatchmaking.SITProtocol)
             {
                 case ESITProtocol.RelayTcp:
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
@@ -187,12 +189,12 @@ namespace StayInTarkov.Coop
             var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
             if (coopGameComponent != null)
             {
-                GameObject.Destroy(coopGameComponent);
+                Destroy(coopGameComponent);
             }
 
             if (CoopPatches.CoopGameComponentParent != null)
             {
-                GameObject.Destroy(CoopPatches.CoopGameComponentParent);
+                Destroy(CoopPatches.CoopGameComponentParent);
                 CoopPatches.CoopGameComponentParent = null;
             }
 
@@ -214,7 +216,7 @@ namespace StayInTarkov.Coop
             }
             else
             {
-                GameObject.Destroy(coopGameComponent);
+                Destroy(coopGameComponent);
                 coopGameComponent = null;
                 Logger.LogError("========== ERROR = COOP ========================");
                 Logger.LogError("No Server Id found, Deleting Coop Game Component");
@@ -289,7 +291,7 @@ namespace StayInTarkov.Coop
                 Dictionary<string, string> hostPingerPacket = new();
                 hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
                 hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
-                StayInTarkov.Networking.GameClient.SendData(hostPingerPacket.ToJson());
+                Networking.GameClient.SendData(hostPingerPacket.ToJson());
             }
         }
 
@@ -312,7 +314,7 @@ namespace StayInTarkov.Coop
                         { "m", "RaidTimer" },
                         { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
                     };
-                    StayInTarkov.Networking.GameClient.SendData(raidTimerDict.ToJson());
+                    Networking.GameClient.SendData(raidTimerDict.ToJson());
                 }
             }
         }
@@ -358,7 +360,7 @@ namespace StayInTarkov.Coop
 
                     string packet = timeAndWeatherDict.ToJson();
                     Logger.LogDebug(packet);
-                    StayInTarkov.Networking.GameClient.SendData(packet);
+                    Networking.GameClient.SendData(packet);
                 }
             }
         }
@@ -391,12 +393,12 @@ namespace StayInTarkov.Coop
                         { "m", "ArmoredTrainTime" },
                         { "utcTime", ((DateTime)departField.GetValue(locomotive)).Ticks },
                     };
-                    StayInTarkov.Networking.GameClient.SendData(dict.ToJson());
+                    Networking.GameClient.SendData(dict.ToJson());
                 }
             }
         }
 
-        public Dictionary<string, EFT.Player> Bots { get; } = new ();
+        public Dictionary<string, EFT.Player> Bots { get; } = new();
 
         private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
@@ -419,11 +421,11 @@ namespace StayInTarkov.Coop
             Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
 
             LocalPlayer botPlayer;
-            if (!base.Status.IsRunned())
+            if (!Status.IsRunned())
             {
                 botPlayer = null;
             }
-            else if (this.Bots.ContainsKey(profile.Id))
+            else if (Bots.ContainsKey(profile.Id))
             {
                 botPlayer = null;
             }
@@ -433,7 +435,7 @@ namespace StayInTarkov.Coop
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
 
                 botPlayer
-                   = (await CoopPlayer.Create(
+                   = await CoopPlayer.Create(
                        num
                        , position
                        , Quaternion.identity
@@ -442,25 +444,25 @@ namespace StayInTarkov.Coop
                        , EPointOfView.ThirdPerson
                        , profile
                        , true
-                       , base.UpdateQueue
+                       , UpdateQueue
                        , EFT.Player.EUpdateMode.Manual
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
                     , () => 1f
                     , () => 1f
                     , FilterCustomizationClass1.Default
-                    
+
                     )
-                  );
-                botPlayer.Location = base.Location_0.Id;
-                if (this.Bots.ContainsKey(botPlayer.ProfileId))
+                  ;
+                botPlayer.Location = Location_0.Id;
+                if (Bots.ContainsKey(botPlayer.ProfileId))
                 {
-                    GameObject.Destroy(botPlayer);
+                    Destroy(botPlayer);
                     return null;
                 }
                 else
                 {
-                    this.Bots.Add(botPlayer.ProfileId, botPlayer);
+                    Bots.Add(botPlayer.ProfileId, botPlayer);
                 }
 
                 // Start with SPT-AKI 3.7.0 AI PMC carrying 'FiR' items, this is just a simple "concept" of it.
@@ -607,10 +609,10 @@ namespace StayInTarkov.Coop
         /// <returns></returns>
         public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestController questController, AbstractAchievementsController achievementsController)
         {
-            spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, base.Location_0.SpawnPointParams);
-            int spawnSafeDistance = ((Location_0.SpawnSafeDistanceMeters > 0) ? Location_0.SpawnSafeDistanceMeters : 100);
+            spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, Location_0.SpawnPointParams);
+            int spawnSafeDistance = Location_0.SpawnSafeDistanceMeters > 0 ? Location_0.SpawnSafeDistanceMeters : 100;
             SpawnSystemSettings settings = new(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
-            SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => UnityEngine.Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
+            SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
             spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
 
             if (spawnPoint == null)
@@ -619,7 +621,7 @@ namespace StayInTarkov.Coop
                 return null;
             }
 
-           
+
             SendOrReceiveSpawnPoint(ref spawnPoint, spawnPoints);
 
             Logger.LogDebug($"{nameof(vmethod_2)}:Creating Owner CoopPlayer");
@@ -633,7 +635,7 @@ namespace StayInTarkov.Coop
                , EPointOfView.FirstPerson
                , profile
                , aiControl: false
-               , base.UpdateQueue
+               , UpdateQueue
                , armsUpdateMode
                , EFT.Player.EUpdateMode.Auto
                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
@@ -652,7 +654,7 @@ namespace StayInTarkov.Coop
             coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)myPlayer);
             coopGameComponent.ProfileIdsUser.Add(profile.Id);
 
-            CoopGame.SendPlayerDataToServer(myPlayer);
+            SendPlayerDataToServer(myPlayer);
 
             //SendOrReceiveSpawnPoint(myPlayer);
 
@@ -680,12 +682,12 @@ namespace StayInTarkov.Coop
 
                         if (coopGameComponent.PlayerUsers.Count() == 0)
                         {
-                        Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is empty");
+                            Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is empty");
                             await Task.Delay(1000);
                             continue;
                         }
 
-                        var progress = (coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers);
+                        var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
                         numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
                         if (SITMatchmaking.TimeHasComeScreenController != null)
                         {
@@ -717,7 +719,7 @@ namespace StayInTarkov.Coop
                     profileClone.Id = "ai" + new MongoID(true);
                     profileClone.Skills.StartClientMode();
 
-                    CoopPlayer friendlyBot = (CoopPlayer)(await CoopPlayer
+                    CoopPlayer friendlyBot = (CoopPlayer)await CoopPlayer
                        .Create(
                        playerId + 90 + indexOfFriendly
                        , position
@@ -727,7 +729,7 @@ namespace StayInTarkov.Coop
                        , EPointOfView.ThirdPerson
                        , profileClone
                        , aiControl: true
-                       , base.UpdateQueue
+                       , UpdateQueue
                        , armsUpdateMode
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
@@ -735,7 +737,7 @@ namespace StayInTarkov.Coop
                        , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                        , new FilterCustomizationClass()
                        , null
-                       , isYourPlayer: false));
+                       , isYourPlayer: false);
                     friendlyBot.IsFriendlyBot = true;
                     //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
                     //companionComponent.CoopPlayer = friendlyBot;
@@ -750,7 +752,7 @@ namespace StayInTarkov.Coop
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
-        public static async void SendPlayerDataToServer(EFT.LocalPlayer player)
+        public static async void SendPlayerDataToServer(LocalPlayer player)
         {
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
             var profileJson = player.Profile.SITToJson();
@@ -774,7 +776,7 @@ namespace StayInTarkov.Coop
                         },
                         {
                             "groupId",
-                            Matchmaker.SITMatchmaking.GetGroupId()
+                            SITMatchmaking.GetGroupId()
                         },
                         {
                             "sPx",
@@ -843,29 +845,29 @@ namespace StayInTarkov.Coop
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
-            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
+            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
 
             LocalGameBotCreator profileCreator =
                 new(BackEndSession
-                , this.wavesSpawnScenario_0.SpawnWaves
+                , wavesSpawnScenario_0.SpawnWaves
                 , Location_0.BossLocationSpawn
                 , nonwaves
                 , true);
 
-            BotCreator botCreator = new(this, profileCreator, this.CreatePhysicalBot);
-            BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
-            this.PBotsController.Init(this
+            BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
+            BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
+            PBotsController.Init(this
                 , botCreator
                 , botZones
                 , spawnSystem
-                , this.wavesSpawnScenario_0.BotLocationModifier
+                , wavesSpawnScenario_0.BotLocationModifier
                 , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
                 , false // controllerSettings.IsScavWars
                 , true
                 , false
                 , false
                 , Singleton<GameWorld>.Instance
-                , base.Location_0.OpenZones)
+                , Location_0.OpenZones)
                 ;
 
             Logger.LogInfo($"Location: {Location_0.Name}");
@@ -879,7 +881,7 @@ namespace StayInTarkov.Coop
                 EBotAmount.Horde => 15,
                 _ => 16,
             };
-            switch(controllerSettings.BotAmount)
+            switch (controllerSettings.BotAmount)
             {
                 case EBotAmount.Low:
                     MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
@@ -895,8 +897,8 @@ namespace StayInTarkov.Coop
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
             Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
 
-            this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
-            this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
+            PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
+            PBotsController.AddActivePLayer(PlayerOwner.Player);
 
             //foreach (var friendlyB in FriendlyPlayers.Values)
             //{
@@ -922,28 +924,28 @@ namespace StayInTarkov.Coop
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
             {
-                this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
+                BossWaveManager.Run(EBotsSpawnMode.Anyway);
 
                 //if (this.nonWavesSpawnScenario_0 != null)
                 //    this.nonWavesSpawnScenario_0.Run();
 
                 //Logger.LogDebug($"Running Wave Scenarios");
 
-                if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                if (wavesSpawnScenario_0.SpawnWaves != null && wavesSpawnScenario_0.SpawnWaves.Length != 0)
                 {
-                    Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {this.wavesSpawnScenario_0.SpawnWaves.Length}");
-                    this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                    Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
+                    wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
                 }
 
             }
             else
             {
-                if (this.wavesSpawnScenario_0 != null)
-                    this.wavesSpawnScenario_0.Stop();
-                if (this.nonWavesSpawnScenario_0 != null)
-                    this.nonWavesSpawnScenario_0.Stop();
-                if (this.BossWaveManager != null)
-                    this.BossWaveManager.Stop();
+                if (wavesSpawnScenario_0 != null)
+                    wavesSpawnScenario_0.Stop();
+                if (nonWavesSpawnScenario_0 != null)
+                    nonWavesSpawnScenario_0.Stop();
+                if (BossWaveManager != null)
+                    BossWaveManager.Stop();
             }
 
 
@@ -960,7 +962,7 @@ namespace StayInTarkov.Coop
             for (int i = 0; i < magazines.Count(); i++)
                 Profile_0.CheckMagazines(magazines[i].Id, 2);
 
-           
+
 
             // ------------------------------------------------------------------------
             // Setup Winter
@@ -971,8 +973,8 @@ namespace StayInTarkov.Coop
 
             if (shouldSpawnBots)
             {
-                if (this.nonWavesSpawnScenario_0 != null)
-                    this.nonWavesSpawnScenario_0.Run();
+                if (nonWavesSpawnScenario_0 != null)
+                    nonWavesSpawnScenario_0.Run();
 
                 Logger.LogDebug($"Running Wave Scenarios");
             }
@@ -1000,7 +1002,7 @@ namespace StayInTarkov.Coop
         {
             Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
 
-            base.GameTimer.Start();
+            GameTimer.Start();
             gparam_0.vmethod_0();
             gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
 
@@ -1011,7 +1013,7 @@ namespace StayInTarkov.Coop
 
             ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
             ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
-            base.GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, base.GameTimer.SessionSeconds(), exfilPoints);
+            GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, GameTimer.SessionSeconds(), exfilPoints);
             foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
             {
                 exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
@@ -1020,8 +1022,8 @@ namespace StayInTarkov.Coop
                 UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
             }
 
-            base.dateTime_0 = DateTime.UtcNow;
-            base.Status = GameStatus.Started;
+            dateTime_0 = DateTime.UtcNow;
+            Status = GameStatus.Started;
             ConsoleScreen.ApplyStartCommands();
         }
 
@@ -1068,7 +1070,7 @@ namespace StayInTarkov.Coop
 
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
         {
-            UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
+            UpdateExfiltrationUi(point, point.Entered.Any((x) => x.ProfileId == Profile_0.Id));
             Logger.LogDebug("ExfiltrationPoint_OnStatusChanged");
             EExfiltrationStatus curStatus = point.Status;
             Logger.LogDebug($"{nameof(prevStatus)}:{prevStatus}.{nameof(curStatus)}:{curStatus}");
@@ -1145,14 +1147,14 @@ namespace StayInTarkov.Coop
             }
 
 
-            if (this.BossWaveManager != null)
-                this.BossWaveManager.Stop();
+            if (BossWaveManager != null)
+                BossWaveManager.Stop();
 
-            if (this.nonWavesSpawnScenario_0 != null)
-                this.nonWavesSpawnScenario_0.Stop();
+            if (nonWavesSpawnScenario_0 != null)
+                nonWavesSpawnScenario_0.Stop();
 
-            if (this.wavesSpawnScenario_0 != null)
-                this.wavesSpawnScenario_0.Stop();
+            if (wavesSpawnScenario_0 != null)
+                wavesSpawnScenario_0.Stop();
 
 
             CoopPatches.EnableDisablePatches();
@@ -1163,7 +1165,7 @@ namespace StayInTarkov.Coop
         public override void CleanUp()
         {
             base.CleanUp();
-            BaseLocalGame<GamePlayerOwner>.smethod_4(this.Bots);
+            smethod_4(Bots);
         }
 
         public override void Dispose()

@@ -15,7 +15,6 @@ using StayInTarkov.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static GClass1657;
 
 namespace Aki.Custom.Airdrops
 {

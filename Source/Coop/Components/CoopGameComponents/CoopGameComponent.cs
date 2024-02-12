@@ -10,6 +10,7 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.EssentialPatches;
@@ -78,7 +79,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             get
             {
-                if (LocalGameInstance is CoopGame coopGame)
+                if (LocalGameInstance is CoopSITGame coopGame)
                 {
                     if (SITMatchmaking.IsClient || coopGame.Bots.Count == 0)
                         return Players
@@ -320,7 +321,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
             {
                 // Send My Player to Aki, so that other clients know about me
-                CoopGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+                CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
             }
         }
 
@@ -1473,7 +1474,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             return rect;
         }
 
-        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
+        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopSITGame coopGame)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;

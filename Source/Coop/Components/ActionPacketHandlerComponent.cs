@@ -10,6 +10,7 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.World;
 using StayInTarkov.Core.Player;
 using System;
@@ -37,7 +38,7 @@ namespace StayInTarkov.Coop.Components
 
         private List<string> RemovedFromAIPlayers = new();
 
-        private CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
+        private CoopSITGame CoopGame { get; } = (CoopSITGame)Singleton<AbstractGame>.Instance;
 
         private CoopGameComponent CoopGameComponent { get; set; }
 
@@ -414,7 +415,7 @@ namespace StayInTarkov.Coop.Components
                 var sessionTime = new TimeSpan(long.Parse(packet["sessionTime"].ToString()));
                 Logger.LogInfo($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
 
-                if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
+                if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
                 {
                     var gameTimer = coopGame.GameTimer;
                     if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
@@ -455,7 +456,7 @@ namespace StayInTarkov.Coop.Components
                 Logger.LogDebug(packet.ToJson());
 
                 var gameDateTime = new DateTime(long.Parse(packet["GameDateTime"].ToString()));
-                if (coopGameComponent.LocalGameInstance is CoopGame coopGame && coopGame.GameDateTime != null)
+                if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame && coopGame.GameDateTime != null)
                     coopGame.GameDateTime.Reset(gameDateTime);
 
                 var weatherController = EFT.Weather.WeatherController.Instance;
@@ -552,7 +553,7 @@ namespace StayInTarkov.Coop.Components
             {
                 DateTime utcTime = new(long.Parse(packet["utcTime"].ToString()));
 
-                if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
+                if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
                 {
                     Timer1 gameTimer = coopGame.GameTimer;
 

@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +12,7 @@ using System.Threading.Tasks;
 using BepInEx.Logging;
 using Comfort.Common;
 using Mono.Cecil;
+using StayInTarkov.Coop.SITGameModes;
 
 namespace StayInTarkov.Networking
 {

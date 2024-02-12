@@ -4,6 +4,7 @@ using EFT;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System;
@@ -100,7 +101,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (LocalGameInstance == null)
                 return;
 
-            var coopGame = LocalGameInstance as CoopGame;
+            var coopGame = LocalGameInstance as CoopSITGame;
             if (coopGame == null)
                 return;
 
@@ -167,7 +168,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             return rect;
         }
 
-        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
+        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopSITGame coopGame)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;

@@ -6,6 +6,7 @@ using EFT.UI;
 using HarmonyLib;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.SITGameModes;
 using System;
 using UnityEngine;
 using UnityStandardAssets.ImageEffects;
@@ -80,7 +81,7 @@ namespace StayInTarkov.Coop.FreeCamera
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGC))
                 return;
 
-            var coopGame = coopGC.LocalGameInstance as CoopGame;
+            var coopGame = coopGC.LocalGameInstance as CoopSITGame;
             if (coopGame == null)
                 return;
 

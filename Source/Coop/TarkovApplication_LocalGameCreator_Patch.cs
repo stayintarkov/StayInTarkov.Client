@@ -4,6 +4,7 @@ using EFT.InputSystem;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.SITGameModes;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -116,7 +117,7 @@ namespace StayInTarkov.Coop
                 timeHasComeScreenController.ChangeStatus("Creating Coop Game");
 
             await Task.Delay(1000);
-            CoopGame localGame = CoopGame.Create(
+            CoopSITGame localGame = CoopSITGame.Create(
 
             // this is used for testing differences between CoopGame and EFT.LocalGame
             //EFT.LocalGame localGame = (EFT.LocalGame)ReflectionHelpers.GetMethodForType(typeof(EFT.LocalGame), "smethod_6").Invoke(null, 
