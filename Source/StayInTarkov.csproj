@@ -18,6 +18,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="STUN.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="STUN.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Language\English.json">
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\French.json" />
@@ -109,7 +119,8 @@
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\References\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
+		<Private>False</Private>
+	</Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\References\UnityEngine.dll</HintPath>
       <Private>False</Private>
