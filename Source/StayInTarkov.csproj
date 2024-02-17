@@ -18,16 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="STUN.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="STUN.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Language\English.json">
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\French.json" />
@@ -155,6 +145,7 @@
   
   <ItemGroup>
     <Folder Include="Networking\Nat\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
   
 </Project>
