@@ -44,8 +44,8 @@ namespace StayInTarkov.Coop.Players
             , CharacterControllerSpawner.Mode characterControllerMode
             , Func<float> getSensitivity, Func<float> getAimingSensitivity
             , IFilterCustomization filter
-            , AbstractQuestController questController = null
-            , AbstractAchievementsController achievementsController = null
+            , AbstractQuestControllerClass questController = null
+            , AbstractAchievementControllerClass achievementsController = null
             , bool isYourPlayer = false
             , bool isClientDrone = false)
         {
@@ -98,7 +98,7 @@ namespace StayInTarkov.Coop.Players
             player.IsYourPlayer = isYourPlayer;
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
-            InventoryController inventoryController = isYourPlayer && !isClientDrone
+            InventoryControllerClass inventoryController = isYourPlayer && !isClientDrone
                 ? new CoopInventoryController(player, profile, true)
                 : new CoopInventoryControllerForClientDrone(player, profile, true);
 
@@ -298,21 +298,6 @@ namespace StayInTarkov.Coop.Players
 
             yield break;
 
-        }
-
-        public override void OnSkillLevelChanged(AbstractSkill skill)
-        {
-            //base.OnSkillLevelChanged(skill);
-        }
-
-        public override void OnWeaponMastered(MasterSkill masterSkill)
-        {
-            //base.OnWeaponMastered(masterSkill);
-        }
-
-        public override void Heal(EBodyPart bodyPart, float value)
-        {
-            base.Heal(bodyPart, value);
         }
 
         //public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)

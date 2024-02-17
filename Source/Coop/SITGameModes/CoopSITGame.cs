@@ -103,16 +103,16 @@ namespace StayInTarkov.Coop.SITGameModes
             InputTree inputTree
             , Profile profile
             , GameDateTime backendDateTime
-            , Insurance insurance
+            , InsuranceCompanyClass insurance
             , MenuUI menuUI
             , CommonUI commonUI
             , PreloaderUI preloaderUI
             , GameUI gameUI
-            , LocationSettings.Location location
+            , LocationSettingsClass.Location location
             , TimeAndWeatherSettings timeAndWeather
             , WavesSettings wavesSettings
             , EDateTime dateTime
-            , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
+            , Callback<ExitStatus, TimeSpan, MetricsClass> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
             , ISession backEndSession
@@ -607,7 +607,8 @@ namespace StayInTarkov.Coop.SITGameModes
         /// <param name="statisticsManager"></param>
         /// <param name="questController"></param>
         /// <returns></returns>
-        public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestController questController, AbstractAchievementsController achievementsController)
+        /// 
+        public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestControllerClass questController, AbstractAchievementControllerClass achievementsController)
         {
             spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, Location_0.SpawnPointParams);
             int spawnSafeDistance = Location_0.SpawnSafeDistanceMeters > 0 ? Location_0.SpawnSafeDistanceMeters : 100;

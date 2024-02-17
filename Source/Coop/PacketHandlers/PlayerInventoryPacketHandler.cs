@@ -277,22 +277,22 @@ namespace SIT.Core.Coop.PacketHandlers
         //            Logger.LogError($"{packetJson}");
         //            Logger.LogError($"{ex}");
 
-        //            ItemController itemController = null;
+        //            TraderControllerClass itemController = null;
         //            if (ItemFinder.TryFindItemController(moveOpDesc.To.Container.ParentId, out itemController))
         //            {
-        //                Logger.LogError("ItemController not found! Falling back to To Container");
+        //                Logger.LogError("TraderControllerClass not found! Falling back to To Container");
         //                MoveInternalOperation moveOperation = new MoveInternalOperation(moveOpDesc.OperationId, itemController, item, itemController.ToItemAddress(moveOpDesc.To), new List<ItemsCount>());
         //                pic.ReceiveExecute(moveOperation, packetJson);
         //            }
         //            else if (ItemFinder.TryFindItemController(moveOpDesc.From.Container.ParentId, out itemController))
         //            {
-        //                Logger.LogError("ItemController not found! Falling back to From Container");
+        //                Logger.LogError("TraderControllerClass not found! Falling back to From Container");
         //                MoveInternalOperation moveOperation = new MoveInternalOperation(moveOpDesc.OperationId, itemController, item, itemController.ToItemAddress(moveOpDesc.To), new List<ItemsCount>());
         //                pic.ReceiveExecute(moveOperation, packetJson);
         //            }
         //            else
         //            {
-        //                Logger.LogError("ItemController not found!");
+        //                Logger.LogError("TraderControllerClass not found!");
         //            }
         //        }
         //    }

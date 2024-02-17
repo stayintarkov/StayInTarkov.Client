@@ -17,15 +17,15 @@ namespace StayInTarkov.UI
         }
 
         [PatchPostfix]
-        private static void Postfix(ref AmmoTemplate __instance, ref List<ItemAttribute> __result)
+        private static void Postfix(ref AmmoTemplate __instance, ref List<ItemAttributeClass> __result)
         {
-            if (!__result.Any((ItemAttribute a) => (Attributes.ENewMaximumDurabilityId)a.Id == Attributes.ENewMaximumDurabilityId.Damage))
+            if (!__result.Any((ItemAttributeClass a) => (Attributes.ENewMaximumDurabilityId)a.Id == Attributes.ENewMaximumDurabilityId.Damage))
             {
                 AddNewAttributes(ref __result, __instance);
             }
         }
 
-        public static void AddNewAttributes(ref List<ItemAttribute> attributes, AmmoTemplate template)
+        public static void AddNewAttributes(ref List<ItemAttributeClass> attributes, AmmoTemplate template)
         {
             if (template == null)
                 return;
@@ -34,7 +34,7 @@ namespace StayInTarkov.UI
             if (template.Damage > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewMaximumDurabilityId.Damage)
+                    new ItemAttributeClass(Attributes.ENewMaximumDurabilityId.Damage)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.Damage.GetName(),
                         Base = (() => template.Damage),
@@ -48,7 +48,7 @@ namespace StayInTarkov.UI
             if (template.ArmorDamage > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewMaximumDurabilityId.ArmorDamage)
+                    new ItemAttributeClass(Attributes.ENewMaximumDurabilityId.ArmorDamage)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.ArmorDamage.GetName(),
                         Base = (() => template.ArmorDamage),
@@ -62,7 +62,7 @@ namespace StayInTarkov.UI
             if (template.PenetrationPower > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewMaximumDurabilityId.Penetration)
+                    new ItemAttributeClass(Attributes.ENewMaximumDurabilityId.Penetration)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.Penetration.GetName(),
                         Base = (() => template.PenetrationPower),

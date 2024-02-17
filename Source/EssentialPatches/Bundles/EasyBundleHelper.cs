@@ -15,7 +15,8 @@ namespace StayInTarkov
 {
     public class EasyBundleHelper
     {
-        private const BindingFlags _flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        private const BindingFlags _privateFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+        private const BindingFlags _publicFlags = BindingFlags.Instance | BindingFlags.Public;
         private static readonly FieldInfo _pathField;
         private static readonly FieldInfo _keyWithoutExtensionField;
         private static readonly FieldInfo _bundleLockField;
@@ -31,15 +32,15 @@ namespace StayInTarkov
             _ = nameof(IBundleLock.IsLocked);
             _ = nameof(BindableState.Bind);
 
-            Type = StayInTarkovHelperConstants.EftTypes.Single(x => x.GetMethod("set_SameNameAsset", _flags) != null);
+            Type = StayInTarkovHelperConstants.EftTypes.Single(x => x.GetMethod("set_SameNameAsset", _publicFlags) != null);
             StayInTarkovHelperConstants.Logger.LogDebug($"EasyBundleHelper::{Type.FullName}");
-            _pathField = Type.GetField("string_1", _flags);
-            _keyWithoutExtensionField = Type.GetField("string_0", _flags);
-            _bundleLockField = Type.GetFields(_flags).FirstOrDefault(x => x.FieldType == typeof(IBundleLock));
+            _pathField = ReflectionHelpers.GetFieldFromType(Type, "string_1");
+            _keyWithoutExtensionField = ReflectionHelpers.GetFieldFromType(Type, "string_0");
+            _bundleLockField = Type.GetFields(_privateFlags).FirstOrDefault(x => x.FieldType == typeof(IBundleLock));
             _dependencyKeysProperty = Type.GetProperty("DependencyKeys");
             _keyProperty = Type.GetProperty("Key");
             _loadStateProperty = Type.GetProperty("LoadState");
-            _loadingCoroutineMethod = Type.GetMethods(_flags).Single(x => x.GetParameters().Length == 0 && x.ReturnType == typeof(Task));
+            _loadingCoroutineMethod = Type.GetMethods(_publicFlags).Single(x => x.GetParameters().Length == 0 && x.ReturnType == typeof(Task));
         }
 
         public EasyBundleHelper(object easyBundle)

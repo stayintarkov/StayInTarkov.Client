@@ -209,7 +209,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return false;
             }
 
-            ItemController itemController = null;
+            TraderControllerClass itemController = null;
             //if (!ItemFinder.TryFindItemController(gridAddressGrid.Container.ParentId, out itemController))
             //{
                 if (player != null && !ItemFinder.TryFindItemController(player.ProfileId, out itemController))
@@ -268,7 +268,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return false;
             }
 
-            //var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player);
+            //var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryControllerClass)).GetValue(player);
             var inventoryController = ItemFinder.GetPlayerInventoryController(player);
             Logger.LogInfo("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
 

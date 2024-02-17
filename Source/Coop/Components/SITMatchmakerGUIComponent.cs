@@ -793,12 +793,12 @@ namespace StayInTarkov.Coop.Components
                 // There should be 1 player only, but well, who knows if some bugs remain...
                 if (player.IsYourPlayer)
                 {
-                    HealthController.MusclePain musclePain = player.HealthController.FindActiveEffect<HealthController.MusclePain>(EBodyPart.Common);
+                    HealthControllerClass.MusclePain musclePain = player.HealthController.FindActiveEffect<HealthControllerClass.MusclePain>(EBodyPart.Common);
                     if (musclePain != null)
                     {
                         musclePain.Remove();
                     }
-                    HealthController.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthController.SevereMusclePain>(EBodyPart.Common);
+                    HealthControllerClass.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthControllerClass.SevereMusclePain>(EBodyPart.Common);
                     if (severeMusclePain != null)
                     {
                         severeMusclePain.Remove();

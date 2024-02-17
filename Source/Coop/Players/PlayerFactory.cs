@@ -10,7 +10,7 @@ namespace StayInTarkov.Coop.Players
 {
     internal class PlayerFactory
     {
-        public static QuestController GetQuestController(EFT.Profile profile, InventoryController inventoryController)
+        public static QuestController GetQuestController(EFT.Profile profile, InventoryControllerClass inventoryController)
         {
             var questController = new QuestController(profile, inventoryController, null, false);
             questController.Init();
@@ -33,7 +33,7 @@ namespace StayInTarkov.Coop.Players
             return statsManager;
         }
 
-        public static AchievementControllerClass GetAchievementController(EFT.Profile profile, InventoryController inventoryController)
+        public static AchievementControllerClass GetAchievementController(EFT.Profile profile, InventoryControllerClass inventoryController)
         {
             var aController = new AchievementControllerClass(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, true);
             aController.Init();
