@@ -59,7 +59,7 @@ namespace StayInTarkov.Coop.Player
 
         [PatchPostfix]
         public static void PostPatch(
-            ItemController __instance
+            TraderControllerClass __instance
             , BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions
             , Profile ___profile_0)
         {

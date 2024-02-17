@@ -52,7 +52,7 @@
 //            if (HasProcessed(GetType(), player, itemPacket))
 //                return;
 
-//            if (ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
+//            if (ItemFinder.TryFindItemController(player.ProfileId, out TraderControllerClass itemController))
 //            {
 //                if (itemController is EFT.Player.PlayerInventoryController playerInventoryController)
 //                {
@@ -88,7 +88,7 @@
 //                }
 //                else
 //                {
-//                    Logger.LogError("PlayerInventoryController_ThrowItem_Patch.Replicated. ItemController doesn't have derived class PlayerInventoryController!");
+//                    Logger.LogError("PlayerInventoryController_ThrowItem_Patch.Replicated. TraderControllerClass doesn't have derived class PlayerInventoryController!");
 //                }
 //            }
 //            else

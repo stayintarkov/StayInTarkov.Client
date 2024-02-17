@@ -49,14 +49,14 @@ namespace StayInTarkov.AkiSupport.Custom
         /// removes the !player.AIData.IsAI  check
         /// </summary>
         [PatchPrefix]
-        private static bool PatchPrefix(object __instance, ref IAIDetails player, ref bool ignoreAI)
+        private static bool PatchPrefix(object __instance, ref IPlayer player, ref bool ignoreAI)
         {
             if (!player.HealthController.IsAlive)
             {
                 return false; // do nothing and skip
             }
 
-            var enemies = (Dictionary<IAIDetails, BotSettingsClass>)_enemiesField.GetValue(__instance);
+            var enemies = (Dictionary<IPlayer, BotSettingsClass>)_enemiesField.GetValue(__instance);
             if (enemies.ContainsKey(player))
             {
                 return false;// do nothing and skip

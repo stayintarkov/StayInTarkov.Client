@@ -65,16 +65,16 @@ namespace StayInTarkov.Coop.SITGameModes
             InputTree inputTree
             , Profile profile
             , GameDateTime backendDateTime
-            , Insurance insurance
+            , InsuranceCompanyClass insurance
             , MenuUI menuUI
             , CommonUI commonUI
             , PreloaderUI preloaderUI
             , GameUI gameUI
-            , LocationSettings.Location location
+            , LocationSettingsClass.Location location
             , TimeAndWeatherSettings timeAndWeather
             , WavesSettings wavesSettings
             , EDateTime dateTime
-            , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
+            , Callback<ExitStatus, TimeSpan, MetricsClass> callback
             , float fixedDeltaTime
             , EUpdateQueue updateQueue
             , ISession backEndSession

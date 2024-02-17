@@ -44,7 +44,7 @@ namespace StayInTarkov.AkiSupport.Custom
         /// This should fix that.
         /// </summary>
         [PatchPrefix]
-        private static bool PatchPrefix(BotsController __instance, IAIDetails aggressor, IAIDetails groupOwner, IAIDetails target)
+        private static bool PatchPrefix(BotsController __instance, IPlayer aggressor, IPlayer groupOwner, IPlayer target)
         {
             BotZone botZone = groupOwner.AIData.BotOwner.BotsGroup.BotZone;
             foreach (var item in __instance.Groups())

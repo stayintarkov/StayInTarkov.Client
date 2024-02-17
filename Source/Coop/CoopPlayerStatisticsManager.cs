@@ -32,7 +32,6 @@ namespace StayInTarkov.Coop
             Logger.LogInfo($"{nameof(CoopPlayerStatisticsManager)}:{nameof(BeginStatisticsSession)}");
 
             //Logger.LogDebug(Profile_0.ToJson());
-            player_0.OnSpecialPlaceVisited += OnSpecialPlaceVisited;
 
             base.BeginStatisticsSession();
             //if (coroutine_0 != null)
@@ -81,30 +80,6 @@ namespace StayInTarkov.Coop
             //StartDamageHistory();
         }
 
-        private void OnSpecialPlaceVisited(string arg1, int arg2)
-        {
-            Logger.LogInfo($"{nameof(CoopPlayerStatisticsManager)}:{nameof(OnSpecialPlaceVisited)}");
-            if(Profile_0 == null)
-            {
-                Logger.LogError($"${nameof(Profile_0)} is Null");
-                return;
-            }
-
-            if (Profile_0.EftStats == null)
-            {
-                Logger.LogError($"${nameof(Profile_0.EftStats)} is Null");
-                return;
-            }
-
-            if (Profile_0.EftStats.OverallCounters == null)
-            {
-                Logger.LogError($"${nameof(Profile_0.EftStats.OverallCounters)} is Null");
-                return;
-            }
-
-            OverallAccountStats overallCounters = base.Profile_0.EftStats.OverallCounters;
-        }
-
         public override void ExperienceGained(float experience)
         {
             //if (experience > 0)
@@ -116,10 +91,14 @@ namespace StayInTarkov.Coop
 
         public override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
         {
-            if (value > 0)
-            {
-                NotificationManagerClass.DisplayNotification(new AbstractNotification46(localizationKey1, localizationKey2, value));
-            }
         }
+
+        //public override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
+        //{
+        //    if (value > 0)
+        //    {
+        //        NotificationManagerClass.DisplayNotification(new NotificationClass(localizationKey1, localizationKey2, value));
+        //    }
+        //}
     }
 }

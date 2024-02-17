@@ -38,7 +38,7 @@ namespace StayInTarkov.EssentialPatches.Web
         [PatchPrefix]
         private static bool PatchPrefix(
             object __instance,
-            ref TarkovRequestParams legacyParams)
+            ref LegacyParamsStruct legacyParams)
         {
             legacyParams.Url = legacyParams.Url
                 .Replace("https://", "")

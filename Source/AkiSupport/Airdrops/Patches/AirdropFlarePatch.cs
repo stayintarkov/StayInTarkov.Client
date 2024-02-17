@@ -24,7 +24,7 @@ namespace Aki.Custom.Airdrops.Patches
         }
 
         [PatchPostfix]
-        private static void PatchPostfix(FlareCartridgeSettings flareCartridgeSettings, IAIDetails player, BulletClass flareCartridge, Weapon weapon)
+        private static void PatchPostfix(FlareCartridgeSettings flareCartridgeSettings, IPlayer player, BulletClass flareCartridge, Weapon weapon)
         {
             var gameWorld = Singleton<GameWorld>.Instance;
             var points = LocationScene.GetAll<AirdropPoint>().Any();

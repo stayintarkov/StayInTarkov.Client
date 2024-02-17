@@ -75,11 +75,11 @@ namespace StayInTarkov.Coop
 
         public static CoopInventoryController GetPlayerInventoryController(EFT.Player player)
         {
-            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as CoopInventoryController;
+            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryControllerClass)).GetValue(player) as CoopInventoryController;
             return inventoryController;
         }
 
-        public static bool TryFindItemController(string controllerId, out ItemController itemController)
+        public static bool TryFindItemController(string controllerId, out TraderControllerClass itemController)
         {
             // Find in World
             itemController = Singleton<GameWorld>.Instance.FindControllerById(controllerId);

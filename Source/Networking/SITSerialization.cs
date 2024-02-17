@@ -1217,8 +1217,8 @@ namespace StayInTarkov.Networking
         {
             EmptyHands,
             FoodDrink,
-            ThrowWeap,
-            Meds,
+            GrenadeClass,
+            MedsClass,
             QuickGrenadeThrow,
             QuickKnifeKick,
             QuickUse,

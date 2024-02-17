@@ -84,7 +84,7 @@ namespace StayInTarkov.Coop
 
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
 
-            LocationSettings.Location location = ____raidSettings.SelectedLocation;
+            LocationSettingsClass.Location location = ____raidSettings.SelectedLocation;
 
             SITMatchmaking.TimeHasComeScreenController = timeHasComeScreenController;
 
@@ -135,9 +135,9 @@ namespace StayInTarkov.Coop
                 , timeAndWeather
                 , ____raidSettings.WavesSettings
                 , ____raidSettings.SelectedDateTime
-                , new Callback<ExitStatus, TimeSpan, ClientMetrics>((r) =>
+                , new Callback<ExitStatus, TimeSpan, MetricsClass>((r) =>
                 {
-                    // target private async void method_46(string profileId, Profile savageProfile, LocationSettings.Location location, Result<ExitStatus, TimeSpan, ClientMetrics> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
+                    // target private async void method_46(string profileId, Profile savageProfile, LocationSettingsClass.Location location, Result<ExitStatus, TimeSpan, MetricsClass> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
                     //Logger.LogInfo("Callback Metrics. Invoke method 45");
                     //ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
                     //session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
@@ -148,8 +148,8 @@ namespace StayInTarkov.Coop
                         x.GetParameters().Length >= 5
                         && x.GetParameters()[0].ParameterType == typeof(string)
                         && x.GetParameters()[1].ParameterType == typeof(Profile)
-                        && x.GetParameters()[2].ParameterType == typeof(LocationSettings.Location)
-                        && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, ClientMetrics>)
+                        && x.GetParameters()[2].ParameterType == typeof(LocationSettingsClass.Location)
+                        && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, MetricsClass>)
                         && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
                         ).Invoke(__instance, new object[] {
                     session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });

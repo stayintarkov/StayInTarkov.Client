@@ -53,16 +53,16 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                     itemId = moveOperation.Item.Id;
                     templateId = moveOperation.Item.TemplateId;
                 }
-                if (operation is MoveInternalOperation1 otherOperation)
-                {
-                    itemId = otherOperation.Item.Id;
-                    templateId = otherOperation.Item.TemplateId;
-                }
-                if (operation is MoveInternalOperation2 throwOperation)
-                {
-                    itemId = throwOperation.Item.Id;
-                    templateId = throwOperation.Item.TemplateId;
-                }
+                //if (operation is MoveInternalOperation1 otherOperation)
+                //{
+                //    itemId = otherOperation.Item.Id;
+                //    templateId = otherOperation.Item.TemplateId;
+                //}
+                //if (operation is MoveInternalOperation2 throwOperation)
+                //{
+                //    itemId = throwOperation.Item.Id;
+                //    templateId = throwOperation.Item.TemplateId;
+                //}
 
                 ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(Player.ProfileId, itemId, templateId, "PolymorphInventoryOperation");
                 itemPlayerPacket.OperationBytes = opBytes;
@@ -143,12 +143,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             }
         }
 
-        public override void OutProcess(ItemController executor, Item item, ItemAddress from, ItemAddress to, IOperation1 operation, Callback callback)
+        public override void OutProcess(TraderControllerClass executor, Item item, ItemAddress from, ItemAddress to, IOperation1 operation, Callback callback)
         {
             base.OutProcess(executor, item, from, to, operation, callback);
         }
 
-        public override void InProcess(ItemController executor, Item item, ItemAddress to, bool succeed, IOperation1 operation, Callback callback)
+        public override void InProcess(TraderControllerClass executor, Item item, ItemAddress to, bool succeed, IOperation1 operation, Callback callback)
         {
             // Taken from EFT.Player.PlayerInventoryController
             if (!succeed)
