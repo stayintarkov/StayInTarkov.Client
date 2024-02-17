@@ -1124,28 +1124,30 @@ namespace StayInTarkov.Coop.SITGameModes
 
             Logger.LogInfo("CoopGame.Stop");
 
-            // Notify that I have left the Server
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
-                { "m", "PlayerLeft" },
-                { "profileId", Singleton<GameWorld>.Instance.MainPlayer.ProfileId },
-                { "serverId", CoopGameComponent.GetServerId() }
-
-            });
-
             // If I am the Host/Server, then ensure all the bots have left too
             if (SITMatchmaking.IsServer)
             {
                 foreach (var p in CoopGameComponent.GetCoopGameComponent().Players)
                 {
-                    AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
+                    AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
 
                             { "m", "PlayerLeft" },
                             { "profileId", p.Value.ProfileId },
                             { "serverId", CoopGameComponent.GetServerId() }
 
-                        });
+                        }.ToJson());
                 }
             }
+
+            // Notify that I have left the Server
+            AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
+                { "m", "PlayerLeft" },
+                { "profileId", Singleton<GameWorld>.Instance.MainPlayer.ProfileId },
+                { "serverId", CoopGameComponent.GetServerId() }
+
+            }.ToJson());
+
+            
 
 
             if (BossWaveManager != null)
