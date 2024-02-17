@@ -647,6 +647,10 @@ namespace StayInTarkov.Networking
 
         public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
         {
+            // people forget the /
+            if(!url.StartsWith("/"))
+                url = "/" + url;
+
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
             {
                 if (stream == null)
