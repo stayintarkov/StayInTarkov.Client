@@ -33,7 +33,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             var codes = new List<CodeInstruction>(instructions);
 
             // Search for code where backend.Session.getProfile() is called.
-            var searchCode = new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(StayInTarkovHelperConstants.BackendSessionInterfaceType, "get_Profile"));
+            var searchCode = new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_Profile"));
             var searchIndex = -1;
 
             for (var i = 0; i < codes.Count; i++)
@@ -66,9 +66,9 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
                 new Code(OpCodes.Ldfld, typeof(TarkovApplication), "_raidSettings"),
                 new Code(OpCodes.Callvirt, typeof(RaidSettings), "get_IsPmc"),
                 new Code(OpCodes.Brfalse, brFalseLabel),
-                new Code(OpCodes.Callvirt, StayInTarkovHelperConstants.BackendSessionInterfaceType, "get_Profile"),
+                new Code(OpCodes.Callvirt, StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_Profile"),
                 new Code(OpCodes.Br, brLabel),
-                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.SessionInterfaceType, "get_ProfileOfPet"),
+                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.BackendProfilePetInterfaceType, "get_ProfileOfPet"),
                 new CodeWithLabel(OpCodes.Ldc_I4_1, brLabel)
             });
 

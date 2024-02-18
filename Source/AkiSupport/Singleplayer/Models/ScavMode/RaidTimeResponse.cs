@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
+namespace StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode
 {
     public class RaidTimeResponse
     {

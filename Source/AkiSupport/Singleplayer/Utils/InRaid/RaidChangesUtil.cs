@@ -1,6 +1,7 @@
 ﻿using StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode;
 using EFT;
 using System;
+using StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid
 {

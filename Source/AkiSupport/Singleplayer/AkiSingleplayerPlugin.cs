@@ -43,6 +43,10 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new ExfilPointManagerPatch().Enable();
                 new ScavProfileLoadCoopPatch().Enable();
                 new ScavQuestPatch().Enable();
+                new ScavSellAllRequestPatch().Enable();
+                new ScavSellAllPriceStorePatch().Enable();
+                new ScavEncyclopediaPatch().Enable();
+                new ScavItemCheckmarkPatch().Enable();
                 
                 // Unused Patches
                 //new OfflineSaveProfilePatch().Enable();

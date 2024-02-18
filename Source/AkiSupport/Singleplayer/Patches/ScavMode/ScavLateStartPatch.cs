@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode;
 using StayInTarkov.Networking;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
@@ -18,7 +19,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
     public class ScavLateStartPatch : ModulePatch
     {
         // A cache of Location settings before any edits were made
-        private static readonly Dictionary<string, LocationSettings.Location> originalLocationSettings = new Dictionary<string, LocationSettings.Location>();
+        private static readonly Dictionary<string, LocationSettingsClass.Location> originalLocationSettings = new Dictionary<string, LocationSettingsClass.Location>();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -88,7 +89,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             return true; // Do original method
         }
 
-        private static void AdjustMapExits(LocationSettings.Location location, List<ExitChanges> exitChangesToApply)
+        private static void AdjustMapExits(LocationSettingsClass.Location location, List<ExitChanges> exitChangesToApply)
         {
             // Loop over each exit change from server
             foreach (var exitChange in exitChangesToApply)
@@ -115,7 +116,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             }
         }
 
-        private static void ResetMapExits(LocationSettings.Location clientLocation, LocationSettings.Location cachedLocation)
+        private static void ResetMapExits(LocationSettingsClass.Location clientLocation, LocationSettingsClass.Location cachedLocation)
         {
             // Iterate over cached original map data
             foreach (var cachedExit in cachedLocation.exits)

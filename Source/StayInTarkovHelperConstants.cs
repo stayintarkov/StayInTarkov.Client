@@ -25,7 +25,8 @@ namespace StayInTarkov
         public static BindingFlags PublicDeclaredFlags { get; } = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
         
         public static Type SessionInterfaceType { get; private set; }
-        public static Type BackendSessionInterfaceType { get; private set; }
+        public static Type BackendProfileInterfaceType { get; private set; }
+        public static Type BackendProfilePetInterfaceType { get; private set; }
 
         private static Type[] _eftTypes;
         public static Type[] EftTypes
@@ -296,7 +297,9 @@ namespace StayInTarkov
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
             Logger.LogInfo($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
             SessionInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("GetPhpSessionId") && x.IsInterface);
-            BackendSessionInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("ChangeProfileStatus") && x.IsInterface);
+            //BackendSessionInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("ChangeProfileStatus") && x.IsInterface);
+            BackendProfileInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("ChangeProfileStatus") && x.IsInterface);
+            BackendProfilePetInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("ReadEncyclopedia") && x.IsInterface);
         }
     }
 }
