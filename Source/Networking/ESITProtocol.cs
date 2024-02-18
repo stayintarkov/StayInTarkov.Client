@@ -12,14 +12,14 @@ namespace StayInTarkov.Networking
     public enum ESITProtocol : int
     {
         /// <summary>
-        /// Peer to Peer connections over UDP
-        /// </summary>
-        PeerToPeerUdp = 0,
-
-        /// <summary>
         /// Relay TCP between SIT Client -> Web Server -> SIT Client
         /// </summary>
-        RelayTcp = 1,
+        RelayTcp = 0,
+
+        /// <summary>
+        /// Peer to Peer connections over UDP
+        /// </summary>
+        PeerToPeerUdp = 1,
 
         /// <summary>
         /// Currently unused
