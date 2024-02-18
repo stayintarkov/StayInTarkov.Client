@@ -646,7 +646,8 @@ namespace StayInTarkov.Coop.SITGameModes
                , null // Let the CoopPlayer Create handle this
                , null // Let the CoopPlayer Create handle this
                , isYourPlayer: true);
-            profile.SetSpawnedInSession(value: false);
+            // Inventory is FIR if Scav
+            profile.SetSpawnedInSession(value: profile.Side == EPlayerSide.Savage);
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(CoopGameComponent)}");

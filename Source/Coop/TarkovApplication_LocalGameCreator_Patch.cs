@@ -29,7 +29,7 @@ namespace StayInTarkov.Coop
                 );
         }
 
-        static ISession CurrentSession { get; set; }
+        public static ISession CurrentSession { get; set; }
 
         [PatchPrefix]
         public static bool Prefix(TarkovApplication __instance)
@@ -99,8 +99,8 @@ namespace StayInTarkov.Coop
             ISession session = CurrentSession;
             //IBackEndSession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<IBackEndSession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
 
-            Profile profile = session.Profile;
-            Profile profileScav = session.ProfileOfPet;
+            // Get player profile by side
+            Profile profile = session.GetProfileBySide(____raidSettings.Side);
 
             profile.Inventory.Stash = null;
             profile.Inventory.QuestStashItems = null;

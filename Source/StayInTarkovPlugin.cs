@@ -339,9 +339,9 @@ namespace StayInTarkov
 
                 //// --------- Player Init & Health -------------------
                 EnableSPPatches_PlayerHealth(Config);
-
+                
                 //// --------- SCAV MODE ---------------------
-                new RemoveScavModeButtonPatch().Enable();
+                //new RemoveScavModeButtonPatch().Enable();
 
                 //// --------- READY Button ---------------------
                 new RemoveReadyButtonPatch().Enable();
@@ -375,7 +375,6 @@ namespace StayInTarkov
         {
             //new OfflineRaidMenuPatch().Enable();
             new OfflineSettingsScreenPatch().Enable();
-
         }
 
         private static void EnableSPPatches_PlayerProgression()
