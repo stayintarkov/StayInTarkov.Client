@@ -17,7 +17,7 @@ namespace StayInTarkov.Networking
         void Awake()
         {
             AkiBackendCommunication.Instance.WebSocketClose();
-            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+            AkiBackendCommunication.Instance.WebSocketCreate(SITMatchmaking.Profile);
         }
 
         void Start()

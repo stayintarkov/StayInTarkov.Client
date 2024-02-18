@@ -25,8 +25,9 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         [PatchPostfix]
         private static void PatchPostfix()
         {
+            Logger.LogDebug($"[MidRaidQuestChangePatch] PatchPostfix");
             var gameWorld = Singleton<GameWorld>.Instance;
-            if (gameWorld != null)
+            if (gameWorld == null)
             {
                 Logger.LogError($"[MidRaidQuestChangePatch] gameWorld instance was null");
 
@@ -34,15 +35,18 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
             }
 
             var player = gameWorld.MainPlayer;
-            Logger.LogDebug($"[MidRaidQuestChangePatch] PatchPostfix");
 
             var questController = (QuestController)ReflectionHelpers.GetFieldFromType(player.GetType(), "_questController").GetValue(player);
-            if (questController != null)
+            if (questController == null) 
             {
-                foreach (var quest in questController.Quests.ToList())
-                {
-                    quest.CheckForStatusChange(true, true);
-                }
+				Logger.LogError($"[MidRaidQuestChangePatch] questController instance was null");
+
+				return;
+			}
+
+            foreach (var quest in questController.Quests.ToList())
+            {
+                quest.CheckForStatusChange(true, true);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using BepInEx.Logging;
+using StayInTarkov.Networking;
 using System;
 using System.Net;
 
@@ -9,6 +10,7 @@ namespace StayInTarkov.Configuration
     /// Created by: Paulov
     /// Description: Stores and Loads all of the Plugin config settings
     /// </summary>
+
     public class PluginConfigSettings
     {
         public ConfigFile Config { get; }
@@ -60,7 +62,7 @@ namespace StayInTarkov.Configuration
                 ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
 
                 SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorMemoryThreshold", 512, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
+                ("Advanced", "SITGarbageCollectorMemoryThreshold", 768, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
 
                 SITGCClearAssets = StayInTarkovPlugin.Instance.Config.Bind
                 ("Advanced", "SITGarbageCollectorClearAssets", false, new ConfigDescription("Set SIT Garbage Collector to clear Unity assets. Reduces RAM usage but can be unstable!")).Value;
@@ -103,9 +105,11 @@ namespace StayInTarkov.Configuration
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
             public bool ShowPing { get; set; } = true;
-            public HostProtocol SITHostProtocol { get; private set; }
             public int SITWebSocketPort { get; set; } = 6970;
-            public int SITUDPPort { get; set; } = 6971;
+            public int SITNatHelperPort { get; set; } = 6971;
+            public int SITUdpPort { get; set; } = 6972;
+            //public ServerType SITServerType { get; set; } = ServerType.Relay;
+            public NatTraversalMethod SITNatTraversalMethod { get; set; } = NatTraversalMethod.Upnp;
 
             public bool AllPlayersSpawnTogether { get; set; } = true;
             public bool ArenaMode { get; set; } = false;
@@ -122,9 +126,6 @@ namespace StayInTarkov.Configuration
                        ("Coop", "BlackScreenOnDeathTime", 500, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
                 }
             }
-
-            public string SITUDPHostIPV4 { get; set; }
-            public string SITUDPHostIPV6 { get; set; }
 
             public void GetSettings()
             {
@@ -171,13 +172,10 @@ namespace StayInTarkov.Configuration
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
 
-                SITHostProtocol = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITHostProtocol", HostProtocol.TCP, new ConfigDescription("SIT Host Protocol.")).Value;
-                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port DEFAULT = 6970")).Value;
-                SITUDPPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPPort", 6971, new ConfigDescription("SIT UDP Port DEFAULT = 6971")).Value;
-                SITUDPHostIPV4 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV4", "127.0.0.1", new ConfigDescription("The IPv4 to use when hosting a UDP Coop Session")).Value;
-                SITUDPHostIPV6 = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUDPHostIPV6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", new ConfigDescription("The IPv6 to use when hosting a UDP Coop Session")).Value;
-
-                Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
+                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT TCP/Websocket Port")).Value;
+                SITNatHelperPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITNatHelperPort", 6971, new ConfigDescription("SIT Nat Helper Port")).Value;
+                //SITUdpPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITUdpPort", 6972, new ConfigDescription("SIT UDP port for P2P connection.")).Value;
+                //SITServerType = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITServerType", ServerType.Relay, new ConfigDescription("SIT Server Type (when hosting a match). Possible values: Relay, P2P")).Value;
 
                 if (ArenaMode)
                 {
@@ -186,14 +184,6 @@ namespace StayInTarkov.Configuration
                     EnableAISpawnWaveSystem = false;
                 }
             }
-
-            public enum HostProtocol
-            {
-                TCP,
-                UDP, 
-                //Both
-            }
         }
-
     }
 }

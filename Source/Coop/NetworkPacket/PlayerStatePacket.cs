@@ -1,6 +1,9 @@
 ﻿using LiteNetLib.Utils;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.ThirdParty;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,6 +35,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public Vector2 InputDirection { get; set; }
         public int Blindfire { get; set; }
         public float LinearSpeed { get; set; }
+        public bool LeftStance { get; set; }
 
         public PlayerHealthPacket PlayerHealth { get; set; }
 
@@ -39,19 +43,10 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
-            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection
+            bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, bool leftStance
             , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
             : base(new string(profileId.ToCharArray()), "PlayerState")
         {
-            //PositionX = position.x;
-            //PositionY = position.y;
-            //PositionZ = position.z;
-            //RotationX = rotation.x;
-            //RotationY = rotation.y;
-            //HeadRotationX = headRotation.x;
-            //HeadRotationY = headRotation.y;
-            //MovementDirectionX = movementDirection.x;
-            //MovementDirectionY = movementDirection.y;
             Position = position;
             Rotation = rotation;
             HeadRotation = headRotation;
@@ -69,6 +64,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             Stamina = stamina;
             Blindfire = blindFire;
             LinearSpeed = linearSpeed;
+            LeftStance = leftStance;
         }
 
         public override byte[] Serialize()
@@ -77,15 +73,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             using BinaryWriter writer = new BinaryWriter(ms);
             WriteHeader(writer);
             writer.Write(ProfileId);
-            //writer.Write(PositionX);
-            //writer.Write(PositionY);
-            //writer.Write(PositionZ);
-            //writer.Write(RotationX);
-            //writer.Write(RotationY);
-            //writer.Write(HeadRotationX);
-            //writer.Write(HeadRotationY);
-            //writer.Write(MovementDirectionX);
-            //writer.Write(MovementDirectionY);
             Vector3Utils.Serialize(writer, Position);
             Vector2Utils.Serialize(writer, Rotation);
             Vector2Utils.Serialize(writer, HeadRotation);
@@ -100,6 +87,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(IsSprinting);
             PhysicalUtils.Serialize(writer, Stamina);
             Vector2Utils.Serialize(writer, InputDirection);
+            writer.Write(LeftStance);
             writer.Write(Blindfire);
             writer.Write(LinearSpeed);
             writer.Write(TimeSerializedBetter);
@@ -151,6 +139,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             IsSprinting = reader.ReadBoolean();
             Stamina = PhysicalUtils.Deserialize(reader);
             InputDirection = Vector2Utils.Deserialize(reader);
+            LeftStance = reader.ReadBoolean();
             Blindfire = reader.ReadInt32();
             LinearSpeed = reader.ReadSingle();
             TimeSerializedBetter = reader.ReadString();
@@ -191,6 +180,30 @@ namespace StayInTarkov.Coop.NetworkPacket
             byte[] bytes = new byte[length];
             reader.GetBytes(bytes, length);
             Deserialize(bytes);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PlayerStatePacket other)
+            {
+                return (other.ProfileId == ProfileId
+                    && other.Position.IsEqual(Position, 1)
+                    && other.Rotation.Equals(Rotation)
+                    );
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override void Process()
+        {
+            var players = CoopGameComponent.GetCoopGameComponent().Players;
+            if (players.ContainsKey(ProfileId))
+                players[ProfileId].ReceivePlayerStatePacket(this);
         }
     }
 }

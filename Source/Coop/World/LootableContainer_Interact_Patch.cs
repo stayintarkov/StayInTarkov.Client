@@ -54,7 +54,7 @@ namespace StayInTarkov.Coop.World
                 { "type", interactionResult.InteractionType.ToString() }
             };
 
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
+            GameClient.SendData(packet.ToJson());
         }
 
         public static void Replicated(Dictionary<string, object> packet)

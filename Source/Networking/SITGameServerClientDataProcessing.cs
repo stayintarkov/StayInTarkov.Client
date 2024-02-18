@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using BepInEx.Logging;
 using Comfort.Common;
+using Mono.Cecil;
+using StayInTarkov.Coop.SITGameModes;
 
 namespace StayInTarkov.Networking
 {
@@ -48,6 +49,7 @@ namespace StayInTarkov.Networking
                 }
 
                 Dictionary<string, object> packet = null;
+                ISITPacket sitPacket = null;
 
                 // Is a dictionary from Spt-Aki
                 if (!string.IsNullOrEmpty(sData) && sData.StartsWith("{"))
@@ -69,7 +71,7 @@ namespace StayInTarkov.Networking
                     //Logger.LogDebug(Encoding.UTF8.GetString(data));
                     //BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
                     //packet = basePlayerPacket.ToDictionary(data);
-                    ProcessSITPacket(data, ref packet);
+                    ProcessSITPacket(data, ref packet, out sitPacket);
 
                 }
 
@@ -137,7 +139,7 @@ namespace StayInTarkov.Networking
                 }
 
                 // If this is an endSession packet, end the session for the clients
-                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
+                if (packet.ContainsKey("endSession") && SITMatchmaking.IsClient)
                 {
                     Logger.LogDebug("Received EndSession from Server. Ending Game.");
                     if (coopGameComponent.LocalGameInstance == null)
@@ -164,7 +166,12 @@ namespace StayInTarkov.Networking
                     coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
                 }
                 else
-                    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
+                {
+                    if (sitPacket != null)
+                        coopGameComponent.ActionPacketHandler.ActionSITPackets.Add(sitPacket);
+                    else
+                        coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
+                }
 
             }
             catch (Exception ex)
@@ -173,8 +180,10 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public static void ProcessSITPacket(byte[] data, ref Dictionary<string, object> packet)
+        public static void ProcessSITPacket(byte[] data, ref Dictionary<string, object> dictObject, out ISITPacket packet)
         {
+            packet = null;
+
             var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
             if (coopGameComponent == null)
             {
@@ -208,26 +217,15 @@ namespace StayInTarkov.Networking
             using (var br = new BinaryReader(new MemoryStream(data)))
                 bp.ReadHeader(br);
 
-            packet = new Dictionary<string, object>();
-            packet[PACKET_TAG_DATA] = data;
-            packet[PACKET_TAG_METHOD] = bp.Method;
+            dictObject = new Dictionary<string, object>();
+            dictObject[PACKET_TAG_DATA] = data;
+            dictObject[PACKET_TAG_METHOD] = bp.Method;
 
-            //if(bp.Method == "PolymorphInventoryOperation")
-            //{
-            //    File.WriteAllBytes($"DEBUG_{nameof(ProcessSITPacket)}_{nameof(data)}.bin", data);
-            //}
-
-            //if (packet.ContainsKey(PACKET_TAG_DATA) && packet.ContainsKey(PACKET_TAG_METHOD))
-            //{
-            //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
-            //Logger.LogInfo(" ==================SIT Packet============= ");
-            //Logger.LogInfo(packet.ToJson());
-            //Logger.LogInfo(" ========================================= ");
-            if (!packet.ContainsKey("profileId"))
+            if (!dictObject.ContainsKey("profileId"))
             {
-                var bpp = new BasePlayerPacket("", packet[PACKET_TAG_METHOD].ToString());
+                var bpp = new BasePlayerPacket("", dictObject[PACKET_TAG_METHOD].ToString());
                 bpp.Deserialize(data);
-                packet.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
+                dictObject.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
                 bpp.Dispose();
                 bpp = null;
             }
@@ -235,9 +233,20 @@ namespace StayInTarkov.Networking
             if (DEBUGPACKETS)
             {
                 Logger.LogInfo(" ==================SIT Packet============= ");
-                Logger.LogInfo(packet.ToJson());
+                Logger.LogInfo(dictObject.ToJson());
             }
-            //}
+
+            var sitPacketType = 
+                StayInTarkovHelperConstants
+                .SITTypes
+                .Union(ReflectionHelpers.EftTypes)
+                .FirstOrDefault(x => x.Name == bp.Method);
+            if (sitPacketType != null) 
+            {
+                //Logger.LogInfo($"{sitPacketType} found");
+                packet = (ISITPacket)Activator.CreateInstance(sitPacketType);
+                packet = packet.Deserialize(data);
+            }
         }
 
         public static bool ProcessDataListPacket(ref Dictionary<string, object> packet)

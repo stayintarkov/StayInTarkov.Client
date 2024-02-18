@@ -10,6 +10,7 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.EssentialPatches;
@@ -78,9 +79,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             get
             {
-                if (LocalGameInstance is CoopGame coopGame)
+                if (LocalGameInstance is CoopSITGame coopGame)
                 {
-                    if (MatchmakerAcceptPatches.IsClient || coopGame.Bots.Count == 0)
+                    if (SITMatchmaking.IsClient || coopGame.Bots.Count == 0)
                         return Players
                             .Values
                             .Where(x => ProfileIdsAI.Contains(x.ProfileId) && x.ActiveHealthController.IsAlive)
@@ -165,7 +166,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            //gameObject.AddComponent<CoopGameGUIComponent>();
+            gameObject.AddComponent<CoopGameGUIComponent>();
 
             SITCheck();
         }
@@ -233,11 +234,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             StartCoroutine(SendPlayerStatePacket());
 
             // Start the SIT Garbage Collector
-            //if (PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
-            //    InvokeRepeating(nameof(PeriodicEnableDisableGC), 1.0f, 60.0f);
             StartCoroutine(PeriodicEnableDisableGC());
             GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
-
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
@@ -246,16 +244,23 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             CoopPatches.EnableDisablePatches();
 
             Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;
+
+            // In game ping system.
+            if (Singleton<FrameMeasurer>.Instantiated)
+            {
+                FrameMeasurer instance = Singleton<FrameMeasurer>.Instance;
+                instance.PlayerRTT = ServerPing;
+                instance.ServerFixedUpdateTime = ServerPing;
+                instance.ServerTime = ServerPing;
+                instance.NetworkQuality.CreateMeasurers();
+            }
         }
 
         private IEnumerator SendPlayerStatePacket()
         {
-            JObject playerStates = new();
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_METHOD, "PlayerStates");
-            playerStates.Add(AkiBackendCommunication.PACKET_TAG_SERVERID, GetServerId());
-            playerStates.Add("t", DateTime.UtcNow.Ticks);
-
-            JArray playerStateArray = new JArray();
+            PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
+           
+            List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
             foreach (var player in Players.Values)
             {
                 if (player == null)
@@ -273,12 +278,36 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!player.isActiveAndEnabled)
                     continue;
 
-                CreatePlayerStatePacketFromPRC(ref playerStateArray, player, prc);
+                CreatePlayerStatePacketFromPRC(ref packets, player);
             }
 
-            playerStates.Add("dataList", playerStateArray);
+            //playerStates.Add("dataList", playerStateArray);
             //Logger.LogDebug(playerStates.SITToJson());
-            GameClient.SendData(Encoding.UTF8.GetBytes(playerStates.SITToJson()));
+            playerStatesPacket.PlayerStates = packets.ToArray();
+            var serialized = playerStatesPacket.Serialize();
+
+            //Logger.LogDebug($"{nameof(playerStatesPacket)} is {serialized.Length} in Length");
+
+            // ----------------------------------------------------------------------------------------------------
+            // Paulov: Keeping this here as a note. DO NOT DELETE.
+            // Testing the length MTU. If over the traffic limit, then try sending lots of smaller packets 
+            // After testing. This was a bad idea. It caused multiple 1% packet loss over Udp instead of very minor packet loss when sending large packets
+            // The 1% packet loss resulted in bots looking the wrong direction and all kinds of weird behavior. Not great.
+            //            if (serialized.Length >= 1460)
+            //            {
+            //#if DEBUG
+            //                Logger.LogError($"{nameof(playerStatesPacket)} is {serialized.Length} in Length, this will be network split");
+            //#endif
+            //                foreach(var psp in playerStatesPacket.PlayerStates)
+            //                {
+            //                    // wait a little bit for the previous packet to process thru
+            //                    yield return new WaitForSeconds(0.033f);
+            //                    GameClient.SendData(serialized);
+            //                }
+            //            }
+            // ----------------------------------------------------------------------------------------------------
+
+            GameClient.SendData(serialized);
 
             LastPlayerStateSent = DateTime.Now;
 
@@ -292,7 +321,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
             {
                 // Send My Player to Aki, so that other clients know about me
-                CoopGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+                CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
             }
         }
 
@@ -522,9 +551,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
                 else if (!world.MainPlayer.HealthController.IsAlive)
                 {
-                    if (MatchmakerAcceptPatches.IsClient)
+                    if (SITMatchmaking.IsClient)
                         quitState = EQuitState.YouAreDeadAsClient;
-                    else if (MatchmakerAcceptPatches.IsServer)
+                    else if (SITMatchmaking.IsServer)
                         quitState = EQuitState.YouAreDeadAsHost;
                 }
             }
@@ -537,9 +566,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // Extractions
             if (coopGame.ExtractedPlayers.Contains(world.MainPlayer.ProfileId))
             {
-                if (MatchmakerAcceptPatches.IsClient)
+                if (SITMatchmaking.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
-                else if (MatchmakerAcceptPatches.IsServer)
+                else if (SITMatchmaking.IsServer)
                     quitState = EQuitState.YouHaveExtractedOnlyAsHost;
             }
 
@@ -569,7 +598,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 RequestQuitGame = true;
 
                 // If you are the server / host
-                if (MatchmakerAcceptPatches.IsServer)
+                if (SITMatchmaking.IsServer)
                 {
                     // A host needs to wait for the team to extract or die!
                     if (PlayerUsers.Count() > 1 && (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost))
@@ -666,6 +695,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 instance.PlayerRTT = ServerPing;
                 instance.ServerFixedUpdateTime = ServerPing;
                 instance.ServerTime = ServerPing;
+                //instance.NetworkQuality.CreateMeasurers();
             }
 
             if (Singleton<PreloaderUI>.Instantiated && SITCheckConfirmed[0] == 0 && SITCheckConfirmed[1] == 0)
@@ -1109,7 +1139,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.IsClientDrone = true;
 
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (!SITMatchmaking.IsClient)
             {
                 if (otherPlayer.ProfileId.StartsWith("pmc"))
                 {
@@ -1226,7 +1256,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
 
-        private void CreatePlayerStatePacketFromPRC(ref JArray playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        private void CreatePlayerStatePacketFromPRC(ref List<PlayerStatePacket> playerStates, EFT.Player player)
         {
             // Build up the SEX MOD player dick Health Packet /s
             // Actually.
@@ -1277,6 +1307,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 , player.MovementContext.PoseLevel
                 , player.MovementContext.IsSprintEnabled
                 , player.InputDirection
+                , player.MovementContext.LeftStanceController.LastAnimValue
                 , playerHealth
                 , player.Physical.SerializationStruct
                 , player.MovementContext.BlindFire
@@ -1285,9 +1316,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ;
 
             // Add the serialized packets to the PlayerStates JArray
-            playerStates.Add(playerStatePacket.Serialize());
-            playerStatePacket.Dispose();
-            playerStatePacket = null;
+            playerStates.Add(playerStatePacket);
 
         }
 
@@ -1414,7 +1443,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return rect;
 
             rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
+            GUI.Label(rect, $"SIT Coop: " + (SITMatchmaking.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
             // PING ------
@@ -1445,7 +1474,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             return rect;
         }
 
-        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
+        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopSITGame coopGame)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;

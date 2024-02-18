@@ -13,7 +13,7 @@ namespace StayInTarkov.Coop.Matchmaker
         [PatchPostfix]
         private static void PatchPostfix(EnvironmentUIRoot __instance)
         {
-            MatchmakerAcceptPatches.EnvironmentUIRoot = __instance.gameObject;
+            SITMatchmaking.EnvironmentUIRoot = __instance.gameObject;
         }
     }
 }

@@ -9,7 +9,7 @@
   "LOCATION": "Location",
   "RAID": "Raid",
   "START": "Start",
-  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Number of Players to Wait For (Including You)",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Number of Players",
   "REQUIRE_PASSWORD": "Require Password",
   "PASSWORD": "Password",
   "AI_AMOUNT": "AI Amount",
@@ -22,5 +22,10 @@
   "RAID_PLAYER_DEAD_CLIENT": "You are Dead! Please wait for the game to end or quit now using the F8 Key.",
   "RAID_TEAM_EXTRACTED": "Your team has extracted! You can quit now using the F8 Key.",
   "RAID_PLAYER_EXTRACTED_HOST": "You have extracted! Please wait other player(s) to extract or died.",
-  "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key."
+  "RAID_PLAYER_EXTRACTED_CLIENT": "You have extracted! Please wait for all players to extract or quit now using the F8 Key.",
+  "PROTOCOL": "Protocol",
+  "PROTOCOL_OPTIONS": [ "Peer to Peer", "Relay" ],
+  "P2P_IP_ADDRESS_OPTIONS_LABEL": "Auto select IP Address?",
+  "YES_NO_OPTIONS": [ "Yes", "No" ],
+  "P2P_IP_ADDRESS_LABEL": "IP Address"
 }

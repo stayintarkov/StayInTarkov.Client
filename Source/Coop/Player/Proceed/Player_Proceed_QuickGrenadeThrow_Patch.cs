@@ -35,7 +35,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance, ThrowWeap throwWeap, bool scheduled)
+        public static void PostPatch(EFT.Player __instance, GrenadeClass throwWeap, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -60,14 +60,14 @@ namespace StayInTarkov.Coop.Player.Proceed
 
             if (ItemFinder.TryFindItem(playerProceedPacket.ItemId, out Item item))
             {
-                if (item is ThrowWeap throwWeap)
+                if (item is GrenadeClass throwWeap)
                 {
                     CallLocally.Add(player.ProfileId);
                     player.Proceed(throwWeap, (Callback<IGrenadeQuickUseController>)null, playerProceedPacket.Scheduled);
                 }
                 else
                 {
-                    Logger.LogError($"Player_Proceed_QuickGrenadeThrow_Patch:Replicated. Item {playerProceedPacket.ItemId} is not a ThrowWeap!");
+                    Logger.LogError($"Player_Proceed_QuickGrenadeThrow_Patch:Replicated. Item {playerProceedPacket.ItemId} is not a GrenadeClass!");
                 }
             }
             else

@@ -1,4 +1,5 @@
 ﻿using EFT;
+using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
 
@@ -17,13 +18,13 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu
 
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(MainMenuController);
-            var desiredMethod = desiredType.GetMethod("method_69", BindingFlags.NonPublic | BindingFlags.Instance);
+            //var desiredType = typeof(MainMenuController);
+            //var desiredMethod = desiredType.GetMethod("method_69", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            Logger.LogDebug($"{GetType().Name} Type: {desiredType?.Name}");
-            Logger.LogDebug($"{GetType().Name} Method: {desiredMethod?.Name}");
+            //Logger.LogDebug($"{GetType().Name} Type: {desiredType?.Name}");
+            //Logger.LogDebug($"{GetType().Name} Method: {desiredMethod?.Name}");
 
-            return desiredMethod;
+            return AccessTools.Method(typeof(MainMenuController), "method_72");
         }
 
         [PatchPrefix]

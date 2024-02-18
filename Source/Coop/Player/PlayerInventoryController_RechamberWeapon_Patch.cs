@@ -10,7 +10,7 @@ namespace StayInTarkov.Coop.Player
 {
     internal class PlayerInventoryController_RechamberWeapon_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(InventoryController);
+        public override Type InstanceType => typeof(InventoryControllerClass);
 
         public override string MethodName => "RechamberWeapon";
 
@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.Player
         }
 
         [PatchPrefix]
-        public static bool PrePatch(InventoryController __instance, Weapon weapon)
+        public static bool PrePatch(InventoryControllerClass __instance, Weapon weapon)
         {
             Logger.LogInfo("PlayerInventoryController_RechamberWeapon_Patch:PrePatch");
 
@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Player
         }
 
         [PatchPostfix]
-        public static void PostPatch(InventoryController __instance, Weapon weapon)
+        public static void PostPatch(InventoryControllerClass __instance, Weapon weapon)
         {
             Logger.LogInfo("PlayerInventoryController_RechamberWeapon_Patch:PostPatch");
 
@@ -64,7 +64,7 @@ namespace StayInTarkov.Coop.Player
 
             if (player.IsYourPlayer)
             {
-                if (ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
+                if (ItemFinder.TryFindItemController(player.ProfileId, out TraderControllerClass itemController))
                 {
                     if (ItemFinder.TryFindItem(itemPacket.ItemId, out Item item))
                     {

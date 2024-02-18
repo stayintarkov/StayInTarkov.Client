@@ -18,14 +18,14 @@ namespace StayInTarkov.Coop.Session
     public class LocationDataRequest
     {
         [JsonProperty("data")]
-        public LocationSettings.Location Data { get; set; }
+        public LocationSettingsClass.Location Data { get; set; }
     }
 
     public class LoadLocationLootPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(typeof(Session1), "LoadLocationLoot");
+            var method = ReflectionHelpers.GetMethodForType(typeof(TradingBackend1), "LoadLocationLoot");
 
             Logger.LogDebug($"{GetType().Name} Method: {method?.Name}");
 
@@ -33,16 +33,16 @@ namespace StayInTarkov.Coop.Session
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(string locationId, int variantId, ref Task<LocationSettings.Location> __result)
+        private static bool PatchPrefix(string locationId, int variantId, ref Task<LocationSettingsClass.Location> __result)
         {
             Logger.LogDebug("LoadLocationLoot PatchPrefix");
 
-            if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.Single)
+            if (SITMatchmaking.MatchingType == EMatchmakerType.Single)
             {
                 return true;
             }
 
-            string serverId = MatchmakerAcceptPatches.GetGroupId();
+            string serverId = SITMatchmaking.GetGroupId();
 
             var objectToSend = new Dictionary<string, object>
             {

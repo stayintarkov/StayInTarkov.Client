@@ -98,7 +98,7 @@ namespace StayInTarkov.Coop.Player.InteractionPatches
             if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
                 return;
 
-            if (!ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
+            if (!ItemFinder.TryFindItemController(player.ProfileId, out TraderControllerClass itemController))
                 return;
 
             WorldInteractiveObject worldInteractiveObject = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == dict["WIOId"].ToString());

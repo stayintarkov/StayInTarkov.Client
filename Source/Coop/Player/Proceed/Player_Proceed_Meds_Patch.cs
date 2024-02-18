@@ -31,7 +31,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance, Meds meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
+        public static void PostPatch(EFT.Player __instance, MedsClass meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -74,7 +74,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 Logger.LogError($"Unable to find Item {playerProceedMedsPacket.ItemId}");
                 return;
             }
-                if (item is Meds meds)
+                if (item is MedsClass meds)
                 {
                     CallLocally.Add(player.ProfileId);
 

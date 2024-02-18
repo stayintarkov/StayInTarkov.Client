@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.LocalGame
         [PatchPrefix]
         public static bool PatchPrefix(NonWavesSpawnScenario __instance)
         {
-            var result = !Matchmaker.MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
+            var result = !Matchmaker.SITMatchmaking.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
             ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             return result;
         }

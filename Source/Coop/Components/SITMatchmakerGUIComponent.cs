@@ -1,16 +1,21 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.Bots;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
+using Open.Nat;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Networking;
 using StayInTarkov.UI;
+using STUN;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
@@ -52,9 +57,16 @@ namespace StayInTarkov.Coop.Components
 
         private int botAmountInput = 0;
         private int botDifficultyInput = 0;
+        private int protocolInput = 1;
+        private string pendingServerId = "";
+        private int p2pAddressOptionInput;
+        private string IpAddressInput { get; set; } = SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4;
+        private int PortInput { get; set; } = 6972;
 
         private string[] BotAmountStringOptions = new string[] { "AsOnline", "None", "Low", "Medium", "High", "Horde" };
         private string[] BotDifficultyStringOptions = new string[] { "AsOnline", "Easy", "Medium", "Hard", "Impossible", "Random" };
+        private string[] ProtocolStringOptions = StayInTarkovPlugin.LanguageDictionary["PROTOCOL_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
+        private string[] YesOrNoStringOptions = StayInTarkovPlugin.LanguageDictionary["YES_NO_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
 
         private bool BotBossesEnabled = true;
 
@@ -81,7 +93,7 @@ namespace StayInTarkov.Coop.Components
         private bool showErrorMessageWindow { get; set; } = false;
         private bool showPasswordRequiredWindow { get; set; } = false;
 
-        private string pendingServerId = "";
+
 
         #endregion
 
@@ -94,7 +106,7 @@ namespace StayInTarkov.Coop.Components
             Logger.LogInfo("Start");
 
             TMPManager = new PaulovTMPManager();
-            DrawIPAddresses();
+            //DrawIPAddresses();
             DrawSITButtons();
             //// Get Canvas
             //Canvas = GameObject.FindObjectOfType<Canvas>();
@@ -164,8 +176,8 @@ namespace StayInTarkov.Coop.Components
 
         private void DrawIPAddresses()
         {
-            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
-            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
+            var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
+            TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
         }
 
         private void DrawSITButtons()
@@ -236,7 +248,7 @@ namespace StayInTarkov.Coop.Components
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
                 // Create "Host Game" button
-                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
+                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"].ToString(), gamemodeButtonStyle))
                 {
                     showServerBrowserWindow = false;
                     showHostGameWindow = true;
@@ -244,17 +256,17 @@ namespace StayInTarkov.Coop.Components
 
                 // Create "Play Single Player" button next to the "Host Game" button
                 buttonX += buttonWidth + 10;
-                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
+                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"].ToString(), gamemodeButtonStyle))
                 {
                     FixesHideoutMusclePain();
-                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+                    SITMatchmaking.MatchingType = EMatchmakerType.Single;
                     OriginalAcceptButton.OnClick.Invoke();
                     DestroyThis();
                 }
             }
             else if (showHostGameWindow)
             {
-                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, StayInTarkovPlugin.LanguageDictionary["HOST_RAID"]);
+                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, StayInTarkovPlugin.LanguageDictionary["HOST_RAID"].ToString());
             }
 
             // Handle the "Back" Button
@@ -269,7 +281,7 @@ namespace StayInTarkov.Coop.Components
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
-                if (GUI.Button(new UnityEngine.Rect(backButtonX, backButtonY, 200, 40), StayInTarkovPlugin.LanguageDictionary["BACK"], buttonStyle))
+                if (GUI.Button(new UnityEngine.Rect(backButtonX, backButtonY, 200, 40), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString(), buttonStyle))
                 {
                     // Handle the "Back" button click
                     if (showServerBrowserWindow)
@@ -408,7 +420,7 @@ namespace StayInTarkov.Coop.Components
 
             if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
             {
-                JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, pendingServerId, passwordClientInput);
+                JoinMatch(SITMatchmaking.Profile.ProfileId, pendingServerId, passwordClientInput);
             }
         }
 
@@ -417,10 +429,10 @@ namespace StayInTarkov.Coop.Components
             // Define column labels
             // Use the Language Dictionary
             string[] columnLabels = {
-                StayInTarkovPlugin.LanguageDictionary["SERVER"]
-                , StayInTarkovPlugin.LanguageDictionary["PLAYERS"]
-                , StayInTarkovPlugin.LanguageDictionary["LOCATION"]
-                , StayInTarkovPlugin.LanguageDictionary["PASSWORD"]
+                StayInTarkovPlugin.LanguageDictionary["SERVER"].ToString()
+                , StayInTarkovPlugin.LanguageDictionary["PLAYERS"].ToString()
+                , StayInTarkovPlugin.LanguageDictionary["LOCATION"].ToString()
+                , StayInTarkovPlugin.LanguageDictionary["PASSWORD"].ToString()
             };
 
 
@@ -503,10 +515,10 @@ namespace StayInTarkov.Coop.Components
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                     // Create "Join" button for each match on the next column
-                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
+                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString(), buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["ServerId"].ToString());
+                        JoinMatch(SITMatchmaking.Profile.ProfileId, match["ServerId"].ToString());
                     }
 
                     index++;
@@ -516,15 +528,22 @@ namespace StayInTarkov.Coop.Components
 
         void JoinMatch(string profileId, string serverId, string password = "")
         {
-            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, profileId, serverId, password, out string returnedJson, out string errorMessage))
+            if (SITMatchmaking.TryJoinMatch(RaidSettings, profileId, serverId, password, out string returnedJson, out string errorMessage))
             {
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
-                MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
-                MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
-                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
 
+                Enum.TryParse(result["protocol"].ToString(), out ESITProtocol protocol);
+                Logger.LogDebug($"{nameof(SITMatchmakerGUIComponent)}:{nameof(JoinMatch)}:{protocol}");
+                SITMatchmaking.SITProtocol = protocol;
+                SITMatchmaking.Port = int.Parse(result["port"].ToString());
+                SITMatchmaking.SetGroupId(result["serverId"].ToString());
+                SITMatchmaking.SetTimestamp(long.Parse(result["timestamp"].ToString()));
+                SITMatchmaking.MatchingType = EMatchmakerType.GroupPlayer;
+                SITMatchmaking.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+                
+                if(result.ContainsKey("ipAddress"))
+                    SITMatchmaking.IPAddress = result["ipAddress"].ToString();
 
                 FixesHideoutMusclePain();
                 DestroyThis();
@@ -543,107 +562,177 @@ namespace StayInTarkov.Coop.Components
                     this.showErrorMessageWindow = true;
                     pendingServerId = "";
                 }
-
             }
         }
 
+        //GameObject GameObject_NumberOfPlayersToWaitFor;
+
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 4;
+            var rows = 9;
             var halfWindowWidth = windowInnerRect.width / 2;
+
+            var cols = new float[] { halfWindowWidth * 0.1f, halfWindowWidth * 0.66f, halfWindowWidth * 1.01f, halfWindowWidth * 1.33f };
 
             // Define a style for the title label
             GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.alignment = TextAnchor.MiddleCenter;
-            labelStyle.fontSize = 18;
+            labelStyle.fontSize = 14;
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
             GUIStyle labelSmallStyle = new(labelStyle);
             labelSmallStyle.alignment = TextAnchor.UpperLeft;
-            labelSmallStyle.fontSize = 12;
+            labelSmallStyle.fontSize = 14;
 
 
             // Define a style for buttons
             GUIStyle buttonStyle = new(GUI.skin.button);
-            buttonStyle.fontSize = 30;
-            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.fontSize = 14;
+            buttonStyle.fontStyle = FontStyle.Normal;
+
+            var buttonSize = 25;
+
+            var lblNumberOfPlayers = StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"].ToString();
+            var contentLabelNumberOfPlayers = new GUIContent(lblNumberOfPlayers);
+            var calcSizeContentLabelNumberOfPlayers = labelStyle.CalcSize(contentLabelNumberOfPlayers);
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 20 + (iRow * 60);
+                var y = 25 + (iRow * 35);
 
                 switch (iRow)
                 {
                     case 0:
+
+                        //if (GameObject_NumberOfPlayersToWaitFor == null)
+                        //    GameObject_NumberOfPlayersToWaitFor = TMPManager.InstantiateTarkovTextLabel(
+                        //        nameof(GameObject_NumberOfPlayersToWaitFor)
+                        //        , StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"]
+                        //        , 14
+                        //        // for TMP, 0 is the middle of the screen
+                        //        , new Vector3(0, 0)
+                        //        );
                         // Title label for the number of players
-                        GUI.Label(new UnityEngine.Rect(10, y, windowInnerRect.width - 20, 30), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
+                        GUI.Label(new UnityEngine.Rect(cols[0], y, calcSizeContentLabelNumberOfPlayers.x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"].ToString(), labelStyle);
+
+                        // Decrease button
+                        if (GUI.Button(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), "-", buttonStyle))
+                        {
+                            if (SITMatchmaking.HostExpectedNumberOfPlayers > 1)
+                            {
+                                SITMatchmaking.HostExpectedNumberOfPlayers -= 1;
+                            }
+                        }
+
+                        var contentNumberOfPlayers = new GUIContent(SITMatchmaking.HostExpectedNumberOfPlayers.ToString());
+                        // Player count label
+                        GUI.Label(new UnityEngine.Rect(cols[2], y, labelStyle.CalcSize(contentNumberOfPlayers).x, labelStyle.CalcSize(contentNumberOfPlayers).y), SITMatchmaking.HostExpectedNumberOfPlayers.ToString(), labelStyle);
+
+                        // Increase button
+                        if (GUI.Button(new UnityEngine.Rect(cols[3], y, buttonSize, buttonSize), "+", buttonStyle))
+                        {
+                            if (SITMatchmaking.HostExpectedNumberOfPlayers < 99)
+                            {
+                                SITMatchmaking.HostExpectedNumberOfPlayers += 1;
+                            }
+                        }
                         break;
 
                     case 1:
-                        // Decrease button
-                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth - 50, y, 30, 30), "-", buttonStyle))
-                        {
-                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers > 1)
-                            {
-                                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers -= 1;
-                            }
-                        }
-
-                        // Player count label
-                        GUI.Label(new UnityEngine.Rect(halfWindowWidth - 15, y, 30, 30), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
-
-                        // Increase button
-                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 20, y, 30, 30), "+", buttonStyle))
-                        {
-                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers < 10)
-                            {
-                                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers += 1;
-                            }
-                        }
-                        break;
-
-                    case 2:
-                        CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]), halfWindowWidth);
+                        CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString()), halfWindowWidth);
+                       
+                        // "Require Password" text
+                        GUI.Label(new UnityEngine.Rect(cols[0], y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString(), labelSmallStyle);
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(PasswordAmountXAxis.Checkbox, y, 200, 30), showPasswordField, "");
-
-                        // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(PasswordAmountXAxis.CheckboxText, y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"], labelSmallStyle);
-
+                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), showPasswordField, "");
+                     
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
-                        var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+                        var passwordFieldX = cols[2] - passwordFieldWidth / 2;
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y + 30, 200, 30), passwordInput, '*', 25);
+                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y, 200, buttonSize), passwordInput, '*', 25);
                         }
 
                         break;
 
-                    case 3:
+                    case 2:
+                        var lblBotAmountText = StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"];
+
                         var botSettingtFieldWidth = 350;
                         var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
 
                         //Ai Amount
-                        CalculateXAxis BotAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotAmountXAxis.Text, y, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"], labelSmallStyle);
-                        Rect botAmountGridRect = new Rect(botSettingsX, y + 20, BotAmountStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"].ToString(), labelStyle);
+                        Rect botAmountGridRect = new Rect(cols[1], y, BotAmountStringOptions.Count() * 80, 25);
                         botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, BotAmountStringOptions, 6);
+                       
+                        break;
+                    case 3:
 
                         //Ai Difficulty
-                        CalculateXAxis BotDifficultyXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"]), halfWindowWidth);
-                        GUI.Label(new Rect(BotDifficultyXAxis.Text, y + 55, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"], labelSmallStyle);
-                        Rect botDifficultyGridRect = new Rect(botSettingsX, y + 80, BotDifficultyStringOptions.Count() * 80, 30);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_DIFFICULTY"].ToString(), labelStyle);
+                        Rect botDifficultyGridRect = new Rect(cols[1], y, BotDifficultyStringOptions.Count() * 80, 25);
                         botDifficultyInput = GUI.SelectionGrid(botDifficultyGridRect, botDifficultyInput, BotDifficultyStringOptions, 6);
 
+                        break;
+                    case 4:
                         //Bosses enabled - disabled
-                        CalculateXAxis BotBossesEnabledXaxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"]), halfWindowWidth);
-                        BotBossesEnabled = GUI.Toggle(new Rect(BotBossesEnabledXaxis.Checkbox, y + 115, 200, 25), BotBossesEnabled, "");
-                        GUI.Label(new Rect(BotBossesEnabledXaxis.CheckboxText, y + 115, GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"])).x, 60), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"], labelSmallStyle);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_BOSSES_ENABLED"].ToString(), labelStyle);
+                        BotBossesEnabled = GUI.Toggle(new Rect(cols[1], y, 200, 25), BotBossesEnabled, "");
 
+                        break;
+                    case 5:
+                        // Protocol Choice
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["PROTOCOL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["PROTOCOL"].ToString(), labelStyle);
+
+                        Rect protocolGridRect = new Rect(cols[1], y, ProtocolStringOptions.Count() * 120, 25);
+                        protocolInput = GUI.SelectionGrid(protocolGridRect, protocolInput, ProtocolStringOptions, ProtocolStringOptions.Count());
+
+                        break;
+                    case 6:
+
+                        // If Peer to Peer is chosen
+                        if (protocolInput == 0)
+                        {
+                            // P2P Address Option Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString(), labelStyle);
+
+                            Rect p2pAddressOptionGridRect = new Rect(cols[1], y, YesOrNoStringOptions.Count() * 120, 25);
+                            p2pAddressOptionInput = GUI.SelectionGrid(p2pAddressOptionGridRect, p2pAddressOptionInput, YesOrNoStringOptions, YesOrNoStringOptions.Count());
+                        }
+                        break;
+                    case 7:
+                        // If Peer to Peer is chosen and manually set
+                        if (protocolInput == 0 && p2pAddressOptionInput == 1)
+                        {
+                            // P2P Address Option Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString(), labelStyle);
+
+                            Rect p2pAddressIPRect = new Rect(cols[1], y, 200, 25);
+                            IpAddressInput = GUI.TextField(p2pAddressIPRect, IpAddressInput, 16);
+                        }
+                        if (protocolInput == 0 && p2pAddressOptionInput == 0)
+                        {
+                            // Port Number Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent("Port")).x, calcSizeContentLabelNumberOfPlayers.y), "Port", labelStyle);
+
+                            Rect p2pPortRect = new Rect(cols[1], y, 100, 25);
+                            PortInput = int.Parse(GUI.TextField(p2pPortRect, PortInput.ToString(), 16));
+                        }
+                        break;
+                    case 8:
+                        if (protocolInput == 0 && p2pAddressOptionInput == 1)
+                        {
+                            // Port Number Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent("Port")).x, calcSizeContentLabelNumberOfPlayers.y), "Port", labelStyle);
+
+                            Rect p2pPortRect = new Rect(cols[1], y, 100, 25);
+                            PortInput = int.Parse(GUI.TextField(p2pPortRect, PortInput.ToString(), 16));
+                        }
                         break;
                 }
             }
@@ -654,14 +743,14 @@ namespace StayInTarkov.Coop.Components
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 
             // Back button
-            if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"], smallButtonStyle))
+            if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString(), smallButtonStyle))
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = true;
             }
 
             // Start button
-            if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
+            if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"].ToString(), smallButtonStyle))
             {
                 HostRaidAndJoin();
             }
@@ -670,22 +759,27 @@ namespace StayInTarkov.Coop.Components
         private void HostRaidAndJoin()
         {
             FixesHideoutMusclePain();
+
             RaidSettings.BotSettings.BotAmount = (EBotAmount)botAmountInput;
             RaidSettings.WavesSettings.BotAmount = (EBotAmount)botAmountInput;
-
             RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
-
             RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
 
-            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
+            SITMatchmaking.CreateMatch(
+                SITMatchmaking.Profile.ProfileId
+                , RaidSettings
+                , passwordInput
+                , (ESITProtocol)protocolInput
+                , ((ESITProtocol)protocolInput) == ESITProtocol.PeerToPeerUdp && p2pAddressOptionInput == 1 ? IpAddressInput : null
+                , PortInput);
             OriginalAcceptButton.OnClick.Invoke();
 
-
             JObject joinPacket = new();
-            joinPacket.Add("profileId", MatchmakerAcceptPatches.Profile.ProfileId);
-            joinPacket.Add("serverId", MatchmakerAcceptPatches.Profile.ProfileId);
+            joinPacket.Add("profileId", SITMatchmaking.Profile.ProfileId);
+            joinPacket.Add("serverId", SITMatchmaking.Profile.ProfileId);
             joinPacket.Add("m", "JoinMatch");
             AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+            //AkiBackendCommunication.Instance.PostJson("coop/server/update", joinPacket.SITToJson());
 
             DestroyThis();
         }
@@ -702,12 +796,12 @@ namespace StayInTarkov.Coop.Components
                 // There should be 1 player only, but well, who knows if some bugs remain...
                 if (player.IsYourPlayer)
                 {
-                    HealthController.MusclePain musclePain = player.HealthController.FindActiveEffect<HealthController.MusclePain>(EBodyPart.Common);
+                    HealthControllerClass.MusclePain musclePain = player.HealthController.FindActiveEffect<HealthControllerClass.MusclePain>(EBodyPart.Common);
                     if (musclePain != null)
                     {
                         musclePain.Remove();
                     }
-                    HealthController.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthController.SevereMusclePain>(EBodyPart.Common);
+                    HealthControllerClass.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthControllerClass.SevereMusclePain>(EBodyPart.Common);
                     if (severeMusclePain != null)
                     {
                         severeMusclePain.Remove();

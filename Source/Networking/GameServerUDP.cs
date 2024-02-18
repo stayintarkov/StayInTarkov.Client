@@ -1,12 +1,16 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.UI;
 using EFT.Weather;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Newtonsoft.Json;
+using Open.Nat;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Backend;
 using StayInTarkov.Coop.NetworkPacket.Communication;
@@ -26,8 +30,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 
@@ -38,6 +45,7 @@ namespace StayInTarkov.Networking
 {
     public class GameServerUDP : MonoBehaviour, INetEventListener, INetLogger
     {
+        public NatHelper _natHelper;
         private LiteNetLib.NetManager _netServer;
         public NetPacketProcessor _packetProcessor = new();
         private NetDataWriter _dataWriter = new();
@@ -61,7 +69,7 @@ namespace StayInTarkov.Networking
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
         }
 
-        public void Start()
+        public async void Start()
         {
             NetDebug.Logger = this;
 
@@ -87,18 +95,32 @@ namespace StayInTarkov.Networking
                 AutoRecycle = true,
                 IPv6Enabled = false,
                 EnableStatistics = true,
-                NatPunchEnabled = true
+                NatPunchEnabled = false
             };
 
-            _netServer.Start(
-                PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV4
-                , PluginConfigSettings.Instance.CoopSettings.SITUDPHostIPV6
-                , PluginConfigSettings.Instance.CoopSettings.SITUDPPort);
+            EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
+            
+            _natHelper = new NatHelper(_netServer);
+            _natHelper.Connect();
+
+            EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
+            
+            // UPNP
+            var upnpResult = await _natHelper.AddUpnpEndPoint(SITMatchmaking.Port, 900, "sit.core");
+
+            // Only do STUN (nat punch) if UPNP failed.
+            if(!upnpResult)
+                _natHelper.AddStunEndPoint(SITMatchmaking.Port);
+
+            // External (port forwarding)
+            _natHelper.AddEndPoint("external", SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4, SITMatchmaking.Port);
+
+            _netServer.Start(SITMatchmaking.Port);
 
             Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
             EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
-            //NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
-            //    EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+            NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
+                EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
         //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)
@@ -113,6 +135,15 @@ namespace StayInTarkov.Networking
             var bytes = reader.GetRemainingBytes();
             SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
             _netServer.SendToAll(bytes, deliveryMethod);
+
+#if DEBUG
+
+            if (_netServer.Statistics.PacketLossPercent > 0)
+            {
+                Logger.LogError($"Packet Loss {_netServer.Statistics.PacketLossPercent}%");
+            }
+
+#endif
         }
 
 
@@ -306,8 +337,14 @@ namespace StayInTarkov.Networking
         void OnDestroy()
         {
             NetDebug.Logger = null;
+            
             if (_netServer != null)
                 _netServer.Stop();
+
+            if(_natHelper != null)
+            {
+                _natHelper.Close();
+            }
         }
 
         public void SendDataToAll<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod, NetPeer peer = null) where T : INetSerializable
@@ -340,9 +377,9 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
-            if (messageType == UnconnectedMessageType.Broadcast)
+            if (messageType == UnconnectedMessageType.Broadcast && reader.GetInt() == 1)
             {
-                EFT.UI.ConsoleScreen.Log("[SERVER] Received discovery request. Send discovery response");
+                EFT.UI.ConsoleScreen.Log($"[SERVER] Received discovery request. Send discovery response to {remoteEndPoint}");
                 NetDataWriter resp = new NetDataWriter();
                 resp.Put(1);
                 _netServer.SendUnconnectedMessage(resp, remoteEndPoint);

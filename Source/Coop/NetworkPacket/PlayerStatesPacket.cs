@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class PlayerStatesPacket : BasePacket
+    public sealed class PlayerStatesPacket : BasePacket
     {
         public PlayerStatePacket[] PlayerStates { get; set; }
-        public PlayerStatesPacket() : base("PlayerStates")
+        public PlayerStatesPacket() : base("PlayerStatesPacket")
         {
 
         }
 
-        public PlayerStatesPacket(in PlayerStatePacket[] statePackets) : base("PlayerStates")
+        public PlayerStatesPacket(in PlayerStatePacket[] statePackets) : base("PlayerStatesPacket")
         {
             PlayerStates = statePackets;
         }
@@ -44,6 +45,14 @@ namespace StayInTarkov.Coop.NetworkPacket
                 PlayerStates[i] = new PlayerStatePacket().Deserialize(reader.ReadLengthPrefixedBytes()) as PlayerStatePacket;
             }
             return this;
+        }
+
+        public override void Process()
+        {
+            foreach (var psp in PlayerStates)
+            {
+                psp.Process();
+            }
         }
     }
 }

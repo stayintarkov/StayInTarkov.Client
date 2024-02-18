@@ -6,7 +6,7 @@ namespace StayInTarkov.Coop.Controllers
 {
     internal sealed class CoopHealthControllerForClientDrone : PlayerHealthController
     {
-        public CoopHealthControllerForClientDrone(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryController inventoryController, SkillManager skillManager, bool aiHealth)
+        public CoopHealthControllerForClientDrone(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)
         {
         }

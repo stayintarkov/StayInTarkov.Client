@@ -16,7 +16,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Quests
 
         static DogtagPatch()
         {
-            _ = nameof(Equipment.GetSlot);
+            _ = nameof(EquipmentClass.GetSlot);
             _ = nameof(DamageInfo.Weapon);
 
             _getEquipmentProperty = ReflectionHelpers.GetPropertyFromType(typeof(Player), "Equipment");
@@ -67,7 +67,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Quests
 
         private static Item GetDogTagItemFromPlayerWhoDied(Player __instance)
         {
-            var equipment = (Equipment)_getEquipmentProperty.GetValue(__instance);
+            var equipment = (EquipmentClass)_getEquipmentProperty.GetValue(__instance);
             if (equipment == null)
             {
                 Logger.LogError("DogtagPatch error > Player has no equipment");

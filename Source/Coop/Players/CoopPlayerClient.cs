@@ -67,15 +67,8 @@ namespace StayInTarkov.Coop.Players
 
         new void LateUpdate()
         {
-            //base.LateUpdate();
-            //BepInLogger.LogDebug("LateUpdate");
-
-            //MovementContext?.AnimatorStatesLateUpdate();
-            //DistanceDirty = true;
-            //OcclusionDirty = true;
             if (HealthController != null && HealthController.IsAlive)
             {
-                //Physical.LateUpdate();
                 VisualPass();
                 _armsupdated = false;
                 _bodyupdated = false;
@@ -89,12 +82,6 @@ namespace StayInTarkov.Coop.Players
             }
             ComplexLateUpdate(EUpdateQueue.Update, DeltaTime);
 
-            //var prc = GetComponent<PlayerReplicatedComponent>();
-            //if (prc == null || !prc.IsClientDrone)
-            //    return;
-
-            //prc.UpdateTick();
-
             if (LastState == null)
                 return;
 
@@ -102,6 +89,15 @@ namespace StayInTarkov.Coop.Players
             {
                 Move(LastState.InputDirection);
             }
+
+            ///
+            // Paulov: NOTE
+            // AnimatorStatesLateUpdate applies a "scheduled motion" and any "platform motion" to the character. Clients do not need this motion applied via this logic.
+            //if (MovementContext != null)
+            //{
+            //    MovementContext?.AnimatorStatesLateUpdate();
+            //}
+            ApplyReplicatedMotion();
         }
 
         protected override void Interpolate()
@@ -124,10 +120,10 @@ namespace StayInTarkov.Coop.Players
 
             HeadRotation = Vector3.Lerp(HeadRotation, NewState.HeadRotation, InterpolationRatio);
             ProceduralWeaponAnimation.SetHeadRotation(Vector3.Lerp(LastState.HeadRotation, NewState.HeadRotation, InterpolationRatio));
-            MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, InterpolationRatio));
+            MovementContext.PlayerAnimatorSetMovementDirection(Vector2.Lerp(LastState.MovementDirection, NewState.MovementDirection, Time.deltaTime));
             MovementContext.PlayerAnimatorSetDiscreteDirection(BSGDirectionalHelpers.ConvertToMovementDirection(NewState.MovementDirection));
 
-            EPlayerState name = MovementContext.CurrentState.Name;
+            EPlayerState currentPlayerState = MovementContext.CurrentState.Name;
             EPlayerState eplayerState = NewState.State;
 
             if (eplayerState == EPlayerState.ClimbUp || eplayerState == EPlayerState.ClimbOver || eplayerState == EPlayerState.VaultingLanding || eplayerState == EPlayerState.VaultingFallDown)
@@ -139,16 +135,16 @@ namespace StayInTarkov.Coop.Players
             {
                 Jump();
             }
-            if (name == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
+            if (currentPlayerState == EPlayerState.Jump && eplayerState != EPlayerState.Jump)
             {
                 MovementContext.PlayerAnimatorEnableJump(false);
                 MovementContext.PlayerAnimatorEnableLanding(true);
             }
-            if ((name == EPlayerState.ProneIdle || name == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
+            if ((currentPlayerState == EPlayerState.ProneIdle || currentPlayerState == EPlayerState.ProneMove) && eplayerState != EPlayerState.ProneMove && eplayerState != EPlayerState.Transit2Prone && eplayerState != EPlayerState.ProneIdle)
             {
                 MovementContext.IsInPronePose = false;
             }
-            if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && name != EPlayerState.ProneMove && name != EPlayerState.Prone2Stand && name != EPlayerState.Transit2Prone && name != EPlayerState.ProneIdle)
+            if ((eplayerState == EPlayerState.ProneIdle || eplayerState == EPlayerState.ProneMove) && currentPlayerState != EPlayerState.ProneMove && currentPlayerState != EPlayerState.Prone2Stand && currentPlayerState != EPlayerState.Transit2Prone && currentPlayerState != EPlayerState.ProneIdle)
             {
                 MovementContext.IsInPronePose = true;
             }
@@ -158,7 +154,7 @@ namespace StayInTarkov.Coop.Players
             CurrentManagedState.SetStep(NewState.Step);
             MovementContext.PlayerAnimatorEnableSprint(NewState.IsSprinting);
             MovementContext.EnableSprint(NewState.IsSprinting);
-
+            MovementContext.LeftStanceController.SetLeftStanceForce(NewState.LeftStance);
             MovementContext.IsInPronePose = NewState.IsProne;
             MovementContext.SetPoseLevel(Mathf.Lerp(LastState.PoseLevel, NewState.PoseLevel, InterpolationRatio));
 
@@ -169,18 +165,32 @@ namespace StayInTarkov.Coop.Players
             MovementContext.SetBlindFire(NewState.Blindfire);
 
 
-            if (!IsInventoryOpened && NewState.LinearSpeed > 0.25)
-            {
-                Move(NewState.InputDirection);
-            }
+           
             //else
             //{
-            Vector3 a = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 2);
-            CharacterController.Move(a - MovementContext.TransformPosition, Time.deltaTime);
+            ApplyReplicatedMotion();
             //}
 
             LastState = NewState;
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
+        }
+
+        private void ApplyReplicatedMotion()
+        {
+            if (MovementContext == null) return;
+
+            if (NewState == null) return;
+            
+            if (LastState == null) return;
+
+            Vector3 lerpedMovement = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 1.33f);
+            CharacterController.Move((lerpedMovement + MovementContext.PlatformMotion) - MovementContext.TransformPosition, Time.deltaTime);
+
+
+            if (!IsInventoryOpened && LastState.LinearSpeed > 0.25)
+            {
+                Move(LastState.InputDirection);
+            }
         }
 
         public override void UpdateTick()
@@ -188,15 +198,8 @@ namespace StayInTarkov.Coop.Players
             base.UpdateTick();
 
             Interpolate();
-
-            if (LastState == null)
-                return;
-
-            if (LastState.LinearSpeed > 0.25)
-            {
-                Move(LastState.InputDirection);
-            }
-
         }
+
+      
     }
 }

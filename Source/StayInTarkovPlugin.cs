@@ -8,6 +8,8 @@ using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Open.Nat;
 using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
@@ -77,15 +79,14 @@ namespace StayInTarkov
         /// </summary>
         public static string EFTEXEFileVersion { get; internal set; }
 
-        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();
+        public static JObject LanguageDictionary { get; } = new JObject();
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
-        public static SITIPAddresses SITIPAddresses { get; } = new SITIPAddresses();
 
         internal static string IllegalMessage { get; }
             = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
-            ? LanguageDictionary["ILLEGAL_MESSAGE"]
+            ? LanguageDictionary["ILLEGAL_MESSAGE"].ToString()
             : "Illegal game found. Please buy, install and launch the game once.";
 
 
@@ -98,7 +99,7 @@ namespace StayInTarkov
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
-            GetExternalIPAddress();
+            SITIPAddressManager.GetExternalIPAddress();
 
             ReadInLanguageDictionary();
 
@@ -117,45 +118,7 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
-        private async void GetExternalIPAddress()
-        {
-            int attempts = 0;
-            while (string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4) && attempts++ < 10)
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = new TimeSpan(0,0,0,0,1000);
-                    Logger.LogInfo($"{nameof(GetExternalIPAddress)}:Attempt:{attempts}");
-                    string result = "";
-                    try
-                    {
-                        result = await client.GetStringAsync("http://wtfismyip.com/text");
-                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
-                    }
-                    catch (WebException e)
-                    {
-                        // offline...
-                    }
-
-                    try
-                    {
-                        result = await client.GetStringAsync("https://api.ipify.org/");
-                        SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
-                    }
-                    catch (WebException e)
-                    {
-                        // offline too...
-                    }
-
-                    // if we got here, all the websites are down, which is unlikely
-                }
-                await Task.Delay(1000);
-            }
-
-            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV4);
-            Logger.LogInfo(SITIPAddresses.ExternalAddresses.IPAddressV6);
-
-        }
+      
 
        
 
@@ -229,7 +192,7 @@ namespace StayInTarkov
             Stream stream = null;
             StreamReader sr = null;
             string str = null;
-            Dictionary<string, string> resultLocaleDictionary = null;
+            JObject resultLocaleDictionary = null;
             switch (firstPartOfLang)
             {
                 case "zh":
@@ -267,7 +230,7 @@ namespace StayInTarkov
             {
                 str = sr.ReadToEnd();
 
-                resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                resultLocaleDictionary = JObject.Parse(str);
 
                 if (resultLocaleDictionary == null)
                     return;
@@ -283,11 +246,12 @@ namespace StayInTarkov
             // Load English Language Stream to Fill any missing expected statements in the Dictionary
             using (sr = new StreamReader(typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")))))
             {
-                foreach (var kvp in JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd()))
+                foreach(var kvp in JObject.Parse(sr.ReadToEnd()))
                 {
                     if (!LanguageDictionary.ContainsKey(kvp.Key))
                         LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
+
             }
 
             Logger.LogDebug("Loaded in the following Language Dictionary");
@@ -310,10 +274,10 @@ namespace StayInTarkov
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
                         var majorN2 = EFTVersionMajor.Split('.')[1]; // 14
                         var majorN3 = EFTVersionMajor.Split('.')[2]; // 0
-                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 2
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "0" || majorN4 != "1")
+                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "0" || majorN4 != "2")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -442,6 +406,7 @@ namespace StayInTarkov
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             new LocationLootCacheBustingPatch().Enable();
+            new FixBrokenSpawnOnSandboxPatch().Enable();
         }
 
         private void EnableCoopPatches()

@@ -18,7 +18,7 @@ namespace StayInTarkov.Coop.Matchmaker.MatchmakerAccept
         public static void PatchPostfix(ref object invite)
         {
             Logger.LogInfo("AcceptInvitePatch.PatchPostfix");
-            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+            SITMatchmaking.MatchingType = EMatchmakerType.GroupPlayer;
             //MatchmakerAcceptPatches.SetGroupId(ReflectionHelpers.GetFieldOrPropertyFromInstance<string>(invite, "From"));
         }
     }

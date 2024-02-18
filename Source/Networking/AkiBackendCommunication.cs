@@ -4,10 +4,10 @@ using EFT;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
-using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
@@ -304,8 +304,6 @@ namespace StayInTarkov.Networking
         //}
 
         public int HostPing { get; private set; } = 1;
-        public int PostPing { get; private set; } = 1;
-        public ConcurrentQueue<int> PostPingSmooth { get; } = new();
 
         private Task PeriodicallySendPooledDataTask;
 
@@ -649,6 +647,10 @@ namespace StayInTarkov.Networking
 
         public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
         {
+            // people forget the /
+            if(!url.StartsWith("/"))
+                url = "/" + url;
+
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
             {
                 if (stream == null)
