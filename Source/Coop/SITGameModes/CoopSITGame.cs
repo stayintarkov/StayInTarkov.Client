@@ -686,7 +686,7 @@ namespace StayInTarkov.Coop.SITGameModes
                             continue;
                         }
 
-                        var progress = coopGameComponent.PlayerUsers.Count() / (float)SITMatchmaking.HostExpectedNumberOfPlayers;
+                        var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
                         var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
 
                         if (SITMatchmaking.TimeHasComeScreenController != null)
