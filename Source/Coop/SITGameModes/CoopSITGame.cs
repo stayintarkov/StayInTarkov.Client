@@ -668,7 +668,7 @@ namespace StayInTarkov.Coop.SITGameModes
             {
                 if (coopGameComponent != null)
                 {
-                    System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                    System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
 
                     while (coopGameComponent.PlayerUsers == null)
                     {
@@ -678,6 +678,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
                     do
                     {
+    
                         if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
                         {
                             Logger.LogDebug($"{nameof(vmethod_2)}: PlayerUsers is null or empty");
@@ -685,17 +686,24 @@ namespace StayInTarkov.Coop.SITGameModes
                             continue;
                         }
 
-                        var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
+                        var progress = coopGameComponent.PlayerUsers.Count() / (float)SITMatchmaking.HostExpectedNumberOfPlayers;
                         var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+
                         if (SITMatchmaking.TimeHasComeScreenController != null)
                         {
                             SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
                         }
 
+                        if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)
+                        {
+                            Logger.LogInfo("Desired number of players reached. Starting the game.");
+                            break;
+                        }
+
                         if (stopwatch.Elapsed >= waitTimeout)
                         {
                             Logger.LogInfo("Timeout reached. Proceeding with current players.");
-                            break; // Exit the loop due to timeout
+                            break;
                         }
 
                         await Task.Delay(1000);
@@ -705,6 +713,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     stopwatch.Stop();
                 }
             });
+
 
 
             // ---------------------------------------------
