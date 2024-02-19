@@ -407,6 +407,7 @@ namespace StayInTarkov
             new SpawnProcessNegativeValuePatch().Enable();
             new LocationLootCacheBustingPatch().Enable();
             new FixBrokenSpawnOnSandboxPatch().Enable();
+            new IsEnemyPatch().Enable();
         }
 
         private void EnableCoopPatches()

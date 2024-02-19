@@ -317,6 +317,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private void GameWorld_AfterGameStarted()
         {
+            GameWorldGameStarted = true;
             Logger.LogDebug(nameof(GameWorld_AfterGameStarted));
             if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
             {
@@ -397,6 +398,14 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!Singleton<ISITGame>.Instantiated)
                     continue;
 
+                if (!Singleton<GameWorld>.Instantiated)
+                    continue;
+
+                if (!GameWorldGameStarted)
+                    continue;
+
+                //Logger.LogDebug($"DEBUG: {nameof(EverySecondCoroutine)}");
+
                 var coopGame = Singleton<ISITGame>.Instance;
 
                 var playersToExtract = new HashSet<string>();
@@ -459,6 +468,20 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         }
                     }
                 }
+
+
+                // Add players who have joined to the AI Enemy Lists
+                var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                if (botController != null)
+                {
+                    while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
+                    {
+                        Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
+                        botController.AddActivePLayer(otherPlayer);
+                        botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
+                    }
+                }
+
             }
         }
 
@@ -1141,17 +1164,19 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             if (!SITMatchmaking.IsClient)
             {
-                if (otherPlayer.ProfileId.StartsWith("pmc"))
+                if (ProfileIdsUser.Contains(otherPlayer.ProfileId))
                 {
-                    if (LocalGameInstance != null)
-                    {
-                        var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(LocalGameInstance);
-                        if (botController != null)
-                        {
-                            Logger.LogDebug("Adding Client Player to Enemy list");
-                            botController.AddActivePLayer(otherPlayer);
-                        }
-                    }
+                    PlayersForAIToTarget.Enqueue(otherPlayer);
+                    //if (Singleton<ISITGame>.Instantiated)
+                    //{
+                    //    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    //    if (botController != null)
+                    //    {
+                    //        Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
+                    //        botController.AddActivePLayer(otherPlayer);
+                    //        botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
+                    //    }
+                    //}
                 }
             }
 
@@ -1339,6 +1364,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
+        public ConcurrentQueue<EFT.Player> PlayersForAIToTarget { get; } = new();
+        public bool GameWorldGameStarted { get; private set; }
 
         GUIStyle middleLabelStyle;
         GUIStyle middleLargeLabelStyle;
