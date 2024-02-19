@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -77,6 +78,25 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 var s = itemPlayerPacket.Serialize();
                 GameClient.SendData(s);
                 InventoryOperations.Add(operation);
+            }
+
+            if (!vmethod_0(operation))
+            {
+                operation.Dispose();
+                callback?.Fail($"Can't execute {operation}", 1);
+                return;
+            }
+            else
+            {
+                callback?.Succeed();
+                //operation.vmethod_0(delegate (IResult result)
+                //{
+                //    if (!result.Succeed)
+                //    {
+                //        Logger.LogError("[{0}][{5}] {1} - Local operation failed: {2} - {3}\r\nError: {4}", Time.frameCount, ID, operation.Id, operation, result.Error, Name);
+                //    }
+                //    callback?.Invoke(result);
+                //});
             }
         }
 
