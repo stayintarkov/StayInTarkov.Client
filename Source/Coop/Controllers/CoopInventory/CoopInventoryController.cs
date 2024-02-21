@@ -6,6 +6,7 @@ using EFT.UI;
 using JetBrains.Annotations;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -194,17 +195,37 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
         }
 
-        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            Task<IResult> result;
+            BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
+            int retryCount = 3;
+            int delayBetweenRetries = 500;
 
-            BepInLogger.LogDebug("UnloadMagazine");
-            //ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
-            //var serialized = unloadMagazinePacket.Serialize();
-
-            //GameClient.SendDataToServer(serialized);
-            result = base.UnloadMagazine(magazine);
-            return result;
+            while (retryCount-- > 0)
+            {
+                try
+                {
+                    IResult result = await base.UnloadMagazine(magazine);
+                    if (result.Failed)
+                    {
+                        BepInLogger.LogError($"Failed to unload magazine {magazine.Id}: {result.Error}");
+                        if (retryCount > 0) await Task.Delay(delayBetweenRetries);
+                        else return result;
+                    }
+                    else
+                    {
+                        BepInLogger.LogDebug($"Successfully unloaded magazine {magazine.Id}");
+                        return SuccessfulResult.New;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    BepInLogger.LogError($"Exception in UnloadMagazine for magazine {magazine.Id}: {ex.Message}");
+                    if (retryCount <= 0) return new FailedResult($"Exception occurred: {ex.Message}", -1);
+                    await Task.Delay(delayBetweenRetries);
+                }
+            }
+            return new FailedResult("Failed to unload magazine after multiple attempts.", -1);
         }
 
         //public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
