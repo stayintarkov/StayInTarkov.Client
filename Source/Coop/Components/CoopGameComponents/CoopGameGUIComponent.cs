@@ -145,22 +145,22 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return rect;
 
             rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (SITMatchmaking.IsClient ? "CLIENT" : "SERVER"));
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["SIT_COOP"]}: " + (SITMatchmaking.IsClient ? StayInTarkovPlugin.LanguageDictionary["CLIENT"] : StayInTarkovPlugin.LanguageDictionary["SERVER-PLAY"]));
             rect.y += 15;
 
             // PING ------
             GUI.contentColor = Color.white;
             GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"RTT:{ServerPing}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["RTT"]}:{(ServerPing)}");
             rect.y += 15;
-            GUI.Label(rect, $"Host RTT:{ServerPing + AkiBackendCommunication.Instance.HostPing}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["HOST_RTT"]}:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 
             if (AkiBackendCommunication.Instance.HighPingMode)
             {
                 GUI.contentColor = Color.red;
-                GUI.Label(rect, $"!HIGH PING MODE!");
+                GUI.Label(rect, (string)StayInTarkovPlugin.LanguageDictionary["HIGH_PING_MODE"]);
                 GUI.contentColor = Color.white;
                 rect.y += 15;
             }
@@ -176,13 +176,13 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             // gathering extracted
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
-            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_ALIVE"]}: {numberOfPlayersAlive}");
             rect.y += 15;
-            GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_DEAD"]}: {numberOfPlayersDead}");
             rect.y += 15;
-            GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_EXTRACTED"]}: {numberOfPlayersExtracted}");
             rect.y += 15;
-            GUI.Label(rect, $"Bots: {PlayerBots.Length}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["BOTS"]}: {PlayerBots.Length}");
             rect.y += 15;
             return rect;
         }
@@ -349,11 +349,16 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 players = players.Distinct(x => x.ProfileId).ToList();
 
                 rect.y += 15;
-                GUI.Label(rect, $"Players [{players.Count}]:");
+                GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_COUNT"]} [{players.Count}]:");
+                //
                 rect.y += 15;
                 foreach (var p in players)
                 {
-                    GUI.Label(rect, $"{p.Profile.Nickname}:{(p.IsAI ? "AI" : "Player")}:{(p.HealthController.IsAlive ? "Alive" : "Dead")}");
+                    string aiPlayerText = (string)(p.IsAI ? StayInTarkovPlugin.LanguageDictionary["AI-SESSION"] : StayInTarkovPlugin.LanguageDictionary["PLAYER-SESSION"]);
+                    string aliveDeadText = (string)(p.HealthController.IsAlive ? StayInTarkovPlugin.LanguageDictionary["ALIVE"] : StayInTarkovPlugin.LanguageDictionary["DEAD"]);
+
+                    GUI.Label(rect, $"{p.Profile.Nickname}:{aiPlayerText}:{aliveDeadText}");
+                    //GUI.Label(rect, $"{p.Profile.Nickname}:{(p.IsAI ? "AI" : "Player")}:{(p.HealthController.IsAlive ? "Alive" : "Dead")}");
                     rect.y += 15;
                 }
 

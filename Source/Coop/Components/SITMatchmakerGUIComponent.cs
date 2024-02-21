@@ -63,8 +63,26 @@ namespace StayInTarkov.Coop.Components
         private string IpAddressInput { get; set; } = SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4;
         private int PortInput { get; set; } = 6972;
 
-        private string[] BotAmountStringOptions = new string[] { "AsOnline", "None", "Low", "Medium", "High", "Horde" };
-        private string[] BotDifficultyStringOptions = new string[] { "AsOnline", "Easy", "Medium", "Hard", "Impossible", "Random" };
+        private string[] BotAmountStringOptions = new string[]
+        {
+         (string) StayInTarkovPlugin.LanguageDictionary["SAME_AS_ONLINE"],
+         (string) StayInTarkovPlugin.LanguageDictionary["NONE_AI"],
+         (string) StayInTarkovPlugin.LanguageDictionary["LOW"],
+         (string) StayInTarkovPlugin.LanguageDictionary["MEDIUM"],
+         (string) StayInTarkovPlugin.LanguageDictionary["HIGH"],
+         (string) StayInTarkovPlugin.LanguageDictionary["HORDE"]
+        };
+
+        private string[] BotDifficultyStringOptions = new string[]
+        {
+         (string) StayInTarkovPlugin.LanguageDictionary["SAME_AS_ONLINE_DIFFICULTY"],
+         (string) StayInTarkovPlugin.LanguageDictionary["EASY_DIFFICULTY"],
+         (string) StayInTarkovPlugin.LanguageDictionary["MEDIUM_DIFFICULTY"],
+         (string) StayInTarkovPlugin.LanguageDictionary["HARD_DIFFICULTY"],
+         (string) StayInTarkovPlugin.LanguageDictionary["IMPOSSIBLE_DIFFICULTY"],
+         (string) StayInTarkovPlugin.LanguageDictionary["RANDOM_DIFFICULTY"]
+        };
+
         private string[] ProtocolStringOptions = StayInTarkovPlugin.LanguageDictionary["PROTOCOL_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
         private string[] YesOrNoStringOptions = StayInTarkovPlugin.LanguageDictionary["YES_NO_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
 
