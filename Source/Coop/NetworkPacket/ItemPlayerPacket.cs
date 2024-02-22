@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using SIT.Core.Coop.PacketHandlers;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using System.IO;
 using UnityStandardAssets.Water;
 
 namespace StayInTarkov.Coop.NetworkPacket
@@ -10,14 +12,14 @@ namespace StayInTarkov.Coop.NetworkPacket
         public string TemplateId { get; set; }
 
         public byte[] OperationBytes { get; set; }
-        public uint CallbackId { get; set; }
+        public ushort CallbackId { get; set; }
         public string InventoryId { get; set; }
 
         public ItemPlayerPacket(string profileId, string itemId, string templateId, string method)
             : base(new string(profileId.ToCharArray()), method)
         {
-            ItemId = itemId;
-            TemplateId = templateId;
+            ItemId = itemId != null ? new string(itemId.ToCharArray()) : "";
+            TemplateId = templateId != null ? new string(templateId.ToCharArray()) : "";
         }
 
         public override ISITPacket Deserialize(byte[] bytes)
@@ -54,15 +56,15 @@ namespace StayInTarkov.Coop.NetworkPacket
             {
                 OperationBytes = reader.ReadLengthPrefixedBytes();
 
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read OperationBytes [{reader.BaseStream.Position}]");
+                StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read OperationBytes of length {OperationBytes.Length} [{reader.BaseStream.Position}]");
 
-                CallbackId = reader.ReadUInt32();
+                CallbackId = reader.ReadUInt16();
 
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read CallbackId");
+                StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read CallbackId [{CallbackId}]");
 
                 InventoryId = reader.ReadString();
 
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read InventoryId");
+                StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read InventoryId [{InventoryId}]");
 
             }
 
@@ -84,7 +86,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             {
                 writer.WriteLengthPrefixedBytes(OperationBytes);
 
-                //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Serialize)},Written {nameof(OperationBytes)} at Length {OperationBytes.Length}");
+                StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Serialize)},Written {nameof(OperationBytes)} at Length {OperationBytes.Length}");
 
                 writer.Write(CallbackId);
                 writer.Write(InventoryId);
@@ -98,5 +100,21 @@ namespace StayInTarkov.Coop.NetworkPacket
 
             return bytes;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            //base.Dispose(disposing);
+
+            //if (disposing)
+            //{
+            //    TemplateId.Clear();
+            //    TemplateId = null;
+            //    InventoryId.Clear();
+            //    InventoryId = null;
+            //    OperationBytes = null;
+            //}
+        }
+
+        
     }
 }
