@@ -118,6 +118,8 @@ namespace StayInTarkov.Configuration
             public bool ForceHighPingMode { get; set; } = false;
             public bool RunThroughOnServerStop { get; set; } = true;
 
+            public int WaitingTimeBeforeStart { get; private set; }
+
             public int BlackScreenOnDeathTime
             {
                 get
@@ -154,6 +156,9 @@ namespace StayInTarkov.Configuration
 
                 ForceHighPingMode = StayInTarkovPlugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
+
+                WaitingTimeBeforeStart = Config.Bind("Coop", "WaitingTimeBeforeStart", 120
+                        , new ConfigDescription("Time in seconds to wait for players before starting the game automatically")).Value;
 
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;

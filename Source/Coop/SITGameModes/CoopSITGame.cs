@@ -662,45 +662,59 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
+            TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
+
             await Task.Run(async () =>
             {
                 if (coopGameComponent != null)
                 {
+                    System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
+
                     while (coopGameComponent.PlayerUsers == null)
                     {
                         Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
                         await Task.Delay(1000);
                     }
 
-                    var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
                     do
                     {
-                        if (coopGameComponent.PlayerUsers == null)
+    
+                        if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
                         {
-                            Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
-                            await Task.Delay(1000);
-                            continue;
-                        }
-
-                        if (coopGameComponent.PlayerUsers.Count() == 0)
-                        {
-                            Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is empty");
+                            Logger.LogDebug($"{nameof(vmethod_2)}: PlayerUsers is null or empty");
                             await Task.Delay(1000);
                             continue;
                         }
 
                         var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
-                        numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+                        var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+
                         if (SITMatchmaking.TimeHasComeScreenController != null)
                         {
                             SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
                         }
 
+                        if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)
+                        {
+                            Logger.LogInfo("Desired number of players reached. Starting the game.");
+                            break;
+                        }
+
+                        if (stopwatch.Elapsed >= waitTimeout)
+                        {
+                            Logger.LogInfo("Timeout reached. Proceeding with current players.");
+                            break;
+                        }
+
                         await Task.Delay(1000);
 
-                    } while (numbersOfPlayersToWaitFor > 0);
+                    } while (true);
+
+                    stopwatch.Stop();
                 }
             });
+
+
 
             // ---------------------------------------------
 
