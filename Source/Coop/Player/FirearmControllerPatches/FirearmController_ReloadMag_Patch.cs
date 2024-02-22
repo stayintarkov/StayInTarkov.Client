@@ -32,11 +32,10 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static bool Prefix(
-           EFT.Player ____player)
+        public static bool Prefix(EFT.Player ____player)
         {
             //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(____player.ProfileId);
-            return CallLocally.Contains(____player.ProfileId) || CoopGameComponent.GetCoopGameComponent().ProfileIdsAI.Contains(____player.ProfileId);
+            return CallLocally.Contains(____player.ProfileId);
         }
 
         [PatchPostfix]
@@ -232,24 +231,27 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return false;
             }
 
-            if (!CallLocally.Contains(player.ProfileId))
-                CallLocally.Add(player.ProfileId);
-
             try
             {
-                firearmCont.ReloadMag(magazine, address, (IResult) =>
-                {
-                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-                    if (IResult.Failed)
+                firearmCont.CurrentOperation.ReloadMag(magazine, address
+                    , (result) => {
+
+                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:Succeed?:{result.Succeed}");
+                    if (result.Failed)
                     {
-                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:IResult:Error:{IResult.Error}");
+                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:IResult:Error:{result.Error}");
                         failureCallback();
                     }
                     else
                     {
                         successCallback();
                     }
-                });
+
+                }, (result) => { });
+
+                if (CallLocally.Contains(player.ProfileId))
+                    CallLocally.Remove(player.ProfileId);
+
             }
             catch (Exception ex)
             {
@@ -259,49 +261,6 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
             return true;
         }
-
-        bool ReplicatedGridAddressSlot(EFT.Player player, EFT.Player.FirearmController firearmCont, SlotItemAddressDescriptor gridAddressSlot, MagazineClass magazine)
-        {
-            if (gridAddressSlot == null)
-            {
-                Logger.LogDebug("ReplicatedGridAddressGrid.GridAddressSlot is Null");
-                return false;
-            }
-
-            //var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryControllerClass)).GetValue(player);
-            var inventoryController = ItemFinder.GetPlayerInventoryController(player);
-            Logger.LogInfo("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
-
-            //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
-            {
-                //var itemAddress = singlePlayerInventoryController.ToItemAddress(gridAddressSlot);
-
-                StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressSlot.Container.ContainerId, gridAddressSlot.Container.ParentId) as StashGrid;
-                if (grid == null)
-                {
-                    //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-                    return false;
-                }
-
-                if (!CallLocally.Contains(player.ProfileId))
-                    CallLocally.Add(player.ProfileId);
-
-                try
-                {
-
-                    firearmCont.ReloadMag(magazine, grid.FindLocationForItem(magazine), (IResult) =>
-                    {
-                        Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
-                    return false;
-                }
-            }
-
-            return true;
-        }
+      
     }
 }
