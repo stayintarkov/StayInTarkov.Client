@@ -4,16 +4,11 @@ using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using JetBrains.Annotations;
-using Mono.Cecil.Cil;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -49,7 +44,10 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             if(operation is MoveInternalOperation moveInternalOperation)
             {
                 if (moveInternalOperation.Item.QuestItem)
+                {
+                    base.Execute(operation, callback);
                     return;
+                }
             }
 
             // If operation created via this player, then play out that operation
@@ -283,7 +281,21 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
             BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
+
+            // --------------- TODO / FIXME ---------------------------------------------
+            // KNOWN BUG
+            // Paulov: This is 100% a workaround.
+            // The vanilla call to unload each bullet individually causes an issue on other clients
+            // Problem occurs because the bullets are not provided the ItemId that the client knows about so they cannot syncronize properly when it reached them
             return await UnloadAmmoInstantly(magazine);
+
+            // --------------------------------------------------------------------------
+            // HELP / UNDERSTANDING
+            // Use DNSpy/ILSpy to understand more on this process. EFT.Player.PlayerInventoryController.UnloadMagazine
+            // The current process uses an Interfaced class to Start and asyncronously run unloading 1 bullet at a time based on skills etc
+
+
+
             //int retryCount = 3;
             //int delayBetweenRetries = 500;
 
