@@ -17,18 +17,18 @@ using System.Text;
 
 namespace SIT.Core.Coop.PacketHandlers
 {
-    internal class MoveOperationPlayerPacketHandler : IPlayerPacketHandler
+    internal class PlayerInventoryPacketHandler : IPlayerPacketHandler
     {
         private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
 
-        private BepInEx.Logging.ManualLogSource Logger { get; set; }
+        private static BepInEx.Logging.ManualLogSource Logger { get; set; }
 
         private HashSet<string> _processedPackets { get; } = new HashSet<string>();
 
-        public MoveOperationPlayerPacketHandler()
+        public PlayerInventoryPacketHandler()
         {
-            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(MoveOperationPlayerPacketHandler));
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(PlayerInventoryPacketHandler));
         }
 
         public void ProcessPacket(Dictionary<string, object> packet)
@@ -43,13 +43,18 @@ namespace SIT.Core.Coop.PacketHandlers
             if (!packet.ContainsKey("m"))
                 return;
 
+
+
             var packetJson = packet.ToJson();
             if (_processedPackets.Contains(packetJson))
                 return;
 
             _processedPackets.Add(packetJson);
 
+            //Logger.LogInfo(packet.ToJson());
+
             ProcessPolymorphOperation(ref packet);
+            ProcessUnloadMagazine(ref packet);
             //ProcessMoveOperation(ref packet);
             //ProcessThrowOperation(ref packet);
             //ProcessFoldOperation(ref packet);
@@ -57,27 +62,32 @@ namespace SIT.Core.Coop.PacketHandlers
 
         }
 
-        private void ProcessPolymorphOperation(ref Dictionary<string, object> packet)
+        public void ProcessPacket(byte[] packet)
         {
-            if (packet["m"].ToString() != "PolymorphInventoryOperation")
-                return;
-
-            var plyr = Players[packet["profileId"].ToString()];
-            var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
-            if (pic == null)
-            {
-                Logger.LogError("Player Inventory Controller is null");
-                return;
-            }
-
-            if (!packet.ContainsKey("data"))
-                return;
-
-            var data = (byte[])packet["data"];
-            ProcessPolymorphOperation(plyr, data);
+            throw new NotImplementedException();
         }
 
-        public static void ProcessPolymorphOperation(EFT.Player plyr, byte[] data)
+        private void ProcessPolymorphOperation(ref Dictionary<string, object> packet)
+        {
+            //if (packet["m"].ToString() != "PolymorphInventoryOperation")
+            //    return;
+
+            //var plyr = Players[packet["profileId"].ToString()];
+            //var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
+            //if (pic == null)
+            //{
+            //    Logger.LogError("Player Inventory Controller is null");
+            //    return;
+            //}
+
+            //if (!packet.ContainsKey("data"))
+            //    return;
+
+            //var data = (byte[])packet["data"];
+            //ProcessPolymorphOperation(plyr, data);
+        }
+
+        public void ProcessPolymorphOperation(EFT.Player plyr, byte[] data)
         {
 
             if (plyr == null) return;
@@ -105,19 +115,51 @@ namespace SIT.Core.Coop.PacketHandlers
                 return;
             }
 
+            SOperationResult operationResult = default(SOperationResult);
             AbstractDescriptor1 descriptor = null;
             using (MemoryStream memoryStream = new MemoryStream(itemPlayerPacket.OperationBytes))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
+                    // Debug byte number
+                    Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:Byte Number:{binaryReader.ReadByte()}");
+                    // Reset the reader
+                    binaryReader.BaseStream.Position = 0;
                     descriptor = binaryReader.ReadPolymorph<AbstractDescriptor1>();
+                    
                 }
             }
 
-            var operationResult = plyr.ToInventoryOperation(descriptor);
-            if (operationResult.Succeeded)
+
+            if (descriptor is UnloadMagOperationDescriptor unloadMagOperationDesc)
             {
-                pic.ReceiveExecute(operationResult.Value, null);
+                Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:{descriptor.GetType()}:{descriptor}:{descriptor.OperationId}");
+                Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:Has InternalOperationDescriptor:{unloadMagOperationDesc.InternalOperationDescriptor != null}");
+                operationResult = plyr.ToUnloadMagOperation(unloadMagOperationDesc);
+                var ammoMan = operationResult.Value as AbstractAmmoManipulationOperation;
+                if (unloadMagOperationDesc.InternalOperationDescriptor != null && ammoMan != null)
+                {
+                    var internalInvOpResult = plyr.ToInventoryOperation(unloadMagOperationDesc.InternalOperationDescriptor);
+                    if (internalInvOpResult.Failed)
+                    {
+                        Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:{nameof(internalInvOpResult)}:Error:{internalInvOpResult.Error}");
+
+
+                        if (unloadMagOperationDesc.InternalOperationDescriptor is MoveOperationDescriptor mveOpDesc && ItemFinder.TryFindItem(mveOpDesc.ItemId, out Item item))
+                            ItemMovementHandler.AddWithoutRestrictions(item, EFT.Player.ToItemAddress(mveOpDesc.To).Value, pic);
+                    }
+                    ReflectionHelpers.SetFieldOrPropertyFromInstance(ammoMan, "InternalOperation", internalInvOpResult.Value);
+                    Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:operationResult.Value:{operationResult.Value}");
+                    pic.ReceiveExecute(operationResult.Value);
+                    return;
+                }
+            }
+            else
+                operationResult = plyr.ToInventoryOperation(descriptor);
+
+            if (operationResult.Succeeded)
+            { 
+                pic.ReceiveExecute(operationResult.Value);
             }
             else
             {
@@ -130,9 +172,40 @@ namespace SIT.Core.Coop.PacketHandlers
         }
 
 
-        public void ProcessPacket(byte[] packet)
+    
+
+        private void ProcessUnloadMagazine(ref Dictionary<string, object> packet)
         {
-            throw new NotImplementedException();
+            //if (packet["m"].ToString() != "UnloadMagazine")
+            //    return;
+
+            //var plyr = Players[packet["profileId"].ToString()];
+            //var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
+            //if (pic == null)
+            //{
+            //    Logger.LogError("Player Inventory Controller is null");
+            //    return;
+            //}
+
+            //if (!packet.ContainsKey("data"))
+            //    return;
+
+            //var data = (byte[])packet["data"];
+
+            //ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(plyr.ProfileId, "", "", "UnloadMagazine");
+            //itemPlayerPacket = (ItemPlayerPacket)itemPlayerPacket.Deserialize(data);
+
+            //if (ItemFinder.TryFindItem(itemPlayerPacket.ItemId, out var item)) 
+            //{
+            //    if (item is MagazineClass magazine)
+            //        pic.ReceiveUnloadMagazine(magazine);
+            //}
+            //else
+            //{
+            //    Logger.LogError($"Couldnt find item {itemPlayerPacket.ItemId}");
+
+            //    Logger.LogError(packet.ToJson());
+            //}
         }
 
         //private void ProcessFoldOperation(ref Dictionary<string, object> packet)

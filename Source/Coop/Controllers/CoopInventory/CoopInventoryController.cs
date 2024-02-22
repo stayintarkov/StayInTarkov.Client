@@ -8,7 +8,6 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
@@ -23,32 +22,99 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         private EFT.Player Player { get; set; }
 
-        private HashSet<AbstractInventoryOperation> InventoryOperations { get; } = new();
+        private Dictionary<ushort, (AbstractInventoryOperation operation, Callback callback)> InventoryOperations { get; } = new();
 
-        public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
+        public override async void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
-            // If operation created via this player, then play out that operation
-            if (InventoryOperations.Any(x => x.Id == operation.Id))
+            // Taken from ClientPlayer.Execute
+            if (callback == null)
             {
-                base.Execute(InventoryOperations.First(x => x.Id == operation.Id), callback);
+                callback = delegate
+                {
+                };
+            }
+            // Taken from ClientPlayer.Execute
+            if (!vmethod_0(operation))
+            {
+                operation.Dispose();
+                callback.Fail("LOCAL: hands controller can't perform this operation");
+                return;
+            }
+            // Check to see if the item is a Quest Item, if it is, do not send.
+            if(operation is MoveInternalOperation moveInternalOperation)
+            {
+                if (moveInternalOperation.Item.QuestItem)
+                {
+                    base.Execute(operation, callback);
+                    return;
+                }
+            }
+
+            // If operation created via this player, then play out that operation
+            if (InventoryOperations.ContainsKey(operation.Id))
+            {
+                base.Execute(InventoryOperations[operation.Id].operation, InventoryOperations[operation.Id].callback);
                 return;
             }
 
             // Debug the operation
-            // 
             BepInLogger.LogDebug($"{operation}");
+            // Set the operation to "Begin" (flashing)
+            RaiseInvEvents(operation, CommandStatus.Begin);
 
             // Create the packet to send to the Server
+            await Task.Delay(50);
+            SendExecuteOperationToServer(operation);
+            InventoryOperations.Add(operation.Id, (operation, callback));
+
+
+            if (!vmethod_0(operation))
+            {
+                operation.Dispose();
+                callback?.Fail($"Can't execute {operation}", 1);
+                return;
+            }
+            else
+            {
+                callback?.Succeed();
+                //operation.vmethod_0(delegate (IResult result)
+                //{
+                //    if (!result.Succeed)
+                //    {
+                //        Logger.LogError("[{0}][{5}] {1} - Local operation failed: {2} - {3}\r\nError: {4}", Time.frameCount, ID, operation.Id, operation, result.Error, Name);
+                //    }
+                //    callback?.Invoke(result);
+                //});
+            }
+        }
+
+        /// <summary>
+        /// Create the packet to send to the Server
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <returns></returns>
+        private void SendExecuteOperationToServer(AbstractInventoryOperation operation)
+        {
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
             {
+                var ammoManipOp = operation as AbstractAmmoManipulationOperation;
+
                 var desc = OperationToDescriptorHelpers.FromInventoryOperation(operation, false, false);
+                //if (desc is UnloadMagOperationDescriptor unloadMagOpDesc)
+                //{
+                //    BepInLogger.LogDebug($"{nameof(SendExecuteOperationToServer)}:{nameof(unloadMagOpDesc)}:{unloadMagOpDesc}");
+                //    if(unloadMagOpDesc.InternalOperationDescriptor == null)
+                //    {
+                //        BepInLogger.LogDebug($"{nameof(SendExecuteOperationToServer)}:{nameof(unloadMagOpDesc)}:{nameof(unloadMagOpDesc.InternalOperationDescriptor)} is null?");
+                //    }
+                //}
                 binaryWriter.WritePolymorph(desc);
                 var opBytes = memoryStream.ToArray();
 
                 var itemId = "";
                 var templateId = "";
-                if (operation is MoveInternalOperation moveOperation) 
+                if (operation is MoveInternalOperation moveOperation)
                 {
                     itemId = moveOperation.Item.Id;
                     templateId = moveOperation.Item.TemplateId;
@@ -64,7 +130,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 //    templateId = throwOperation.Item.TemplateId;
                 //}
 
-                ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(Player.ProfileId, itemId, templateId, "PolymorphInventoryOperation");
+                PolymorphInventoryOperationPacket itemPlayerPacket = new PolymorphInventoryOperationPacket(Player.ProfileId, itemId, templateId);
                 itemPlayerPacket.OperationBytes = opBytes;
                 itemPlayerPacket.CallbackId = operation.Id;
                 itemPlayerPacket.InventoryId = this.ID;
@@ -76,11 +142,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
                 var s = itemPlayerPacket.Serialize();
                 GameClient.SendData(s);
-                InventoryOperations.Add(operation);
             }
+
+
         }
 
-        public void ReceiveExecute(AbstractInventoryOperation operation, string packetJson)
+        public void ReceiveExecute(AbstractInventoryOperation operation)
         {
             //BepInLogger.LogInfo($"ReceiveExecute");
             //BepInLogger.LogInfo($"{packetJson}");
@@ -88,18 +155,34 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             if (operation == null)
                 return;
 
-            BepInLogger.LogDebug($"ReceiveExecute:{operation}");
+            //BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
-            var cachedOperation = InventoryOperations.FirstOrDefault(x => x.Id == operation.Id);
+            var callback = new Comfort.Common.Callback((result) => {
+                BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result}"); 
+                if(result.Failed)
+                    BepInLogger.LogError($"{result.Error}");
+            });
+            // Taken from ClientPlayer.Execute
+            if (!vmethod_0(operation))
+            {
+                operation.Dispose();
+                callback.Fail("LOCAL: hands controller can't perform this operation");
+                return;
+            }
+
+            var cachedOperation = InventoryOperations.ContainsKey(operation.Id) ? InventoryOperations[operation.Id].operation : null;
             // Operation created via this player
             if (cachedOperation != null)
             {
                 cachedOperation.vmethod_0((executeResult) =>
                 {
+                    var cachedOperationCallback = InventoryOperations[cachedOperation.Id].callback;
 
                     //BepInLogger.LogInfo($"operation.vmethod_0 : {executeResult}");
                     if (executeResult.Succeed)
                     {
+                        //InventoryOperations[cachedOperation.Id].callback?.Succeed();
+
                         RaiseInvEvents(cachedOperation, CommandStatus.Succeed);
                         RaiseInvEvents(operation, CommandStatus.Succeed);
                     }
@@ -107,18 +190,39 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                     {
                         RaiseInvEvents(cachedOperation, CommandStatus.Failed);
                         RaiseInvEvents(operation, CommandStatus.Failed);
+
+                        //InventoryOperations[cachedOperation.Id].callback?.Fail("Fail");
                     }
                     cachedOperation.Dispose();
-
 
                 }, false);
             }
             else
             {
+                var ammoManipOp = operation as AbstractAmmoManipulationOperation;
+                if (ammoManipOp != null)
+                {
+                    //BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:Is Ammo Manipulation");
+                    if (ammoManipOp.InternalOperation != null)
+                    {
+                        _cachedInternalOperation = ammoManipOp.InternalOperation;
+                        ammoManipOp.vmethod_0(callback, false);
+                    }
+                    else
+                    {
+                        BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:Ammo Manipulation has no InternalOperation?");
+                        if (_cachedInternalOperation != null)
+                            _cachedInternalOperation.vmethod_0(callback, false);
+                    }
+                    return;
+                }
+
                 // Operation created by another player
-                base.Execute(operation, (result) => { });
+                base.Execute(operation, callback);
             }
         }
+
+        AbstractInventoryOperation _cachedInternalOperation;
 
         void RaiseInvEvents(object operation, CommandStatus status)
         {
@@ -128,17 +232,17 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", status);
         }
 
-        public void CancelExecute(uint id)
+        public void CancelExecute(ushort id)
         {
             BepInLogger.LogError($"CancelExecute");
             BepInLogger.LogError($"OperationId:{id}");
             // If operation created via this player, then cancel that operation
-            var operation = InventoryOperations.FirstOrDefault(x => x.Id == id);
-            if(operation != null)
+            var cachedOperation = InventoryOperations.ContainsKey(id) ? InventoryOperations[id].operation : null;
+            if (cachedOperation != null)
             {
-                operation.vmethod_0(delegate (IResult result)
+                cachedOperation.vmethod_0(delegate (IResult result)
                 {
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(operation, "commandStatus_0", CommandStatus.Failed);
+                    ReflectionHelpers.SetFieldOrPropertyFromInstance<CommandStatus>(cachedOperation, "commandStatus_0", CommandStatus.Failed);
                 });
             }
         }
@@ -174,17 +278,52 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
         }
 
-        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            Task<IResult> result;
+            BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
 
-            BepInLogger.LogDebug("UnloadMagazine");
-            //ItemPlayerPacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId, "PlayerInventoryController_UnloadMagazine");
-            //var serialized = unloadMagazinePacket.Serialize();
+            // --------------- TODO / FIXME ---------------------------------------------
+            // KNOWN BUG
+            // Paulov: This is 100% a workaround.
+            // The vanilla call to unload each bullet individually causes an issue on other clients
+            // Problem occurs because the bullets are not provided the ItemId that the client knows about so they cannot syncronize properly when it reached them
+            return await UnloadAmmoInstantly(magazine);
 
-            //GameClient.SendDataToServer(serialized);
-            result = base.UnloadMagazine(magazine);
-            return result;
+            // --------------------------------------------------------------------------
+            // HELP / UNDERSTANDING
+            // Use DNSpy/ILSpy to understand more on this process. EFT.Player.PlayerInventoryController.UnloadMagazine
+            // The current process uses an Interfaced class to Start and asyncronously run unloading 1 bullet at a time based on skills etc
+
+
+
+            //int retryCount = 3;
+            //int delayBetweenRetries = 500;
+
+            //while (retryCount-- > 0)
+            //{
+            //    try
+            //    {
+            //        IResult result = await base.UnloadMagazine(magazine);
+            //        if (result.Failed)
+            //        {
+            //            BepInLogger.LogError($"Failed to unload magazine {magazine.Id}: {result.Error}");
+            //            if (retryCount > 0) await Task.Delay(delayBetweenRetries);
+            //            else return result;
+            //        }
+            //        else
+            //        {
+            //            BepInLogger.LogDebug($"Successfully unloaded magazine {magazine.Id}");
+            //            return SuccessfulResult.New;
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        BepInLogger.LogError($"Exception in UnloadMagazine for magazine {magazine.Id}: {ex.Message}");
+            //        if (retryCount <= 0) return new FailedResult($"Exception occurred: {ex.Message}", -1);
+            //        await Task.Delay(delayBetweenRetries);
+            //    }
+            //}
+            //return new FailedResult("Failed to unload magazine after multiple attempts.", -1);
         }
 
         //public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)

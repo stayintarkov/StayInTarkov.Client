@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -12,6 +13,13 @@ namespace StayInTarkov.Coop
 {
     public static class ItemFinder
     {
+        private static ManualLogSource Logger;
+
+        static ItemFinder()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(ItemFinder));
+        }
+
         public static bool TryFindItemOnPlayer(EFT.Player player, string templateId, string itemId, out EFT.InventoryLogic.Item item)
         {
             item = null;
@@ -62,6 +70,7 @@ namespace StayInTarkov.Coop
                 }
             }
 
+            Logger.LogError($"{nameof(TryFindItem)}: Unable to find item {itemId}");
             return false;
         }
 
