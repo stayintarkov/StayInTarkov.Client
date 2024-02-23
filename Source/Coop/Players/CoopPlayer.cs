@@ -4,17 +4,20 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using Sirenix.Utilities;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
 using StayInTarkov.Coop.Player.Proceed;
 using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
+using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -69,18 +72,6 @@ namespace StayInTarkov.Coop.Players
             }
             else
             {
-                // Aki won't allow this to happen here :(
-                //var oldEquipmentId = profile.Inventory.Equipment.Id.ToCharArray().ToString();
-                //var newEquipmentId = new MongoID(true);
-                //profile.Inventory.Equipment.Id = newEquipmentId;
-                //foreach (var eq in profile.Inventory.GetAllEquipmentItems())
-                //{
-                //    if (eq.Parent != null && eq.Parent.Item != null && eq.Parent.Item.Id == oldEquipmentId)
-                //    {
-                //        eq.Parent.Item.Id = newEquipmentId;
-                //    }
-                //}
-
                 player = Create<CoopPlayer>(
                     ResourceBundleConstants.PLAYER_BUNDLE_NAME
                     , playerId
@@ -100,7 +91,7 @@ namespace StayInTarkov.Coop.Players
 
             InventoryControllerClass inventoryController = isYourPlayer && !isClientDrone
                 ? new CoopInventoryController(player, profile, true)
-                : new CoopInventoryControllerForClientDrone(player, profile, true);
+                : new CoopInventoryControllerClient(player, profile, true);
 
             // Quest Controller from 0.13
             //if (questController == null && isYourPlayer)
@@ -116,8 +107,6 @@ namespace StayInTarkov.Coop.Players
                 player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
             }
 
-
-
             // Achievement Controller instantiate
             if (isYourPlayer)
             {
@@ -128,9 +117,12 @@ namespace StayInTarkov.Coop.Players
             IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();
             player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
 
+            IHealthController healthController = isClientDrone ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, aiControl) : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+            player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
+
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
-                , new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
+                , healthController
                 //, new AbstractStatisticsManager1()
                 , statsManager
                 , questController
@@ -140,19 +132,13 @@ namespace StayInTarkov.Coop.Players
                 , aiControl
                 , async: false);
 
-            //statsManager.Init(player);
-
             player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
-            player._handsController.Spawn(1f, delegate
-            {
-            });
+            player._handsController.Spawn(1f, () => { });
             player.AIData = new AIData(null, player);
             player.AggressorFound = false;
             player._animators[0].enabled = true;
             if (!player.IsYourPlayer)
-            {
                 player._armsUpdateQueue = EUpdateQueue.Update;
-            }
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
@@ -173,8 +159,25 @@ namespace StayInTarkov.Coop.Players
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
         public bool IsFriendlyBot { get; internal set; }
 
+        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
+        {
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return null;
+
+            if (!coopGameComponent.GameWorldGameStarted)
+                return null;
+
+            return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
+        }
+
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
+
+            if (!coopGameComponent.GameWorldGameStarted)
+                return;
+
             // Quick check?
             if (PreviousDamageInfos.Any(x =>
                 x.Damage == damageInfo.Damage
@@ -186,19 +189,16 @@ namespace StayInTarkov.Coop.Players
 
             PreviousDamageInfos.Add(damageInfo);
 
-            //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
-            //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
-
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-            {
-                // If we are not using the Client Side Damage, then only run this on the server
-                if (SITMatchmaking.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)
-                    SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
-                else
-                    SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
-            }
+            SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
         }
 
+        /// <summary>
+        /// Paulov: TODO/FIXME: This is an expensive memory leaking operation that runs on both Server & Client. Needs a rewrite.
+        /// </summary>
+        /// <param name="damageInfo"></param>
+        /// <param name="bodyPartType"></param>
+        /// <param name="bodyPartColliderType"></param>
+        /// <param name="absorbed"></param>
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
             Dictionary<string, object> packet = new();
@@ -367,31 +367,6 @@ namespace StayInTarkov.Coop.Players
         }
 
 
-        //public override void Move(Vector2 direction)
-        //{
-        //    var prc = GetComponent<PlayerReplicatedComponent>();
-        //    if (prc == null)
-        //        return;
-
-        //    base.Move(direction);
-
-        //    if (prc.IsClientDrone)
-        //        return;
-
-
-        //}
-
-        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        {
-            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
-
-            //PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
-            //GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
-
-            //BepInLogger.LogInfo($"{nameof(Proceed)} FoodDrink");
-            //BepInLogger.LogInfo($"{playerProceedFoodDrinkPacket.ToJson()}");
-        }
-
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
@@ -441,5 +416,39 @@ namespace StayInTarkov.Coop.Players
             base.UpdateTick();
         }
 
+        public override void OnDead(EDamageType damageType)
+        {
+            base.OnDead(damageType);
+            EFT.Player victim = this;
+
+            var attacker = LastAggressor as EFT.Player;
+            //if (DisplayDeathMessage)
+            DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
+            
+            KillPacket killPacket = new KillPacket(ProfileId, damageType);
+            GameClient.SendData(killPacket.Serialize());
+        }
+
+        public static string GeneratePlayerNameWithSide(EFT.Player player)
+        {
+            if (player == null)
+                return "";
+
+            var side = "Scav";
+
+            if (player.AIData.IAmBoss)
+                side = "Boss";
+            else if (player.Side != EPlayerSide.Savage)
+                side = player.Side.ToString();
+
+            return $"[{side}] {player.Profile.GetCorrectedNickname()}";
+        }
+
+        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+            PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled); 
+            GameClient.SendData(foodDrinkPacket.Serialize());
+        }
     }
 }

@@ -24,6 +24,14 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         private Dictionary<ushort, (AbstractInventoryOperation operation, Callback callback)> InventoryOperations { get; } = new();
 
+        public override void Execute(Operation1 operation, Callback callback)
+        {
+            base.Execute(operation, callback);
+
+            // Debug the operation
+            BepInLogger.LogDebug($"Execute(Operation1 operation,:{operation}");
+        }
+
         public override async void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
             // Taken from ClientPlayer.Execute
@@ -36,6 +44,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))
             {
+                BepInLogger.LogError("LOCAL: hands controller can't perform this operation");
+                BepInLogger.LogError(operation);
                 operation.Dispose();
                 callback.Fail("LOCAL: hands controller can't perform this operation");
                 return;
@@ -158,9 +168,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             //BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
             var callback = new Comfort.Common.Callback((result) => {
-                BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result}"); 
+                BepInLogger.LogError($"{nameof(ReceiveExecute)}:{result}"); 
                 if(result.Failed)
-                    BepInLogger.LogError($"{result.Error}");
+                    BepInLogger.LogError($"{nameof(ReceiveExecute)}:{result.Error}");
             });
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))

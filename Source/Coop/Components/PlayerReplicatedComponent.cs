@@ -1,14 +1,10 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using BepInEx.Logging;
 using EFT;
-using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
-using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +12,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Core.Player
 {
@@ -25,15 +20,15 @@ namespace StayInTarkov.Core.Player
     /// </summary>
     internal class PlayerReplicatedComponent : MonoBehaviour
     {
-        internal const int PacketTimeoutInSeconds = 1;
+        //internal const int PacketTimeoutInSeconds = 1;
         //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
-        internal Dictionary<string, object> LastMovementPacket { get; set; }
+        //internal Dictionary<string, object> LastMovementPacket { get; set; }
         internal EFT.LocalPlayer player { get; set; }
-        public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
+        //public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
         //public float ReplicatedMovementSpeed { get; set; }
-        private float PoseLevelSmoothed { get; set; } = 1;
+        //private float PoseLevelSmoothed { get; set; } = 1;
 
         private HashSet<IPlayerPacketHandler> PacketHandlerComponents { get; } = new();
 
@@ -329,8 +324,8 @@ namespace StayInTarkov.Core.Player
         //    LastReplicatedPlayerStatePacket = ReplicatedPlayerStatePacket;
         //}
 
-        private Dictionary<EBodyPart, BodyPartState> _healthDictionary;
-        private static Array BodyPartEnumValues => Enum.GetValues(typeof(EBodyPart));
+        //private Dictionary<EBodyPart, BodyPartState> _healthDictionary;
+        //private static Array BodyPartEnumValues => Enum.GetValues(typeof(EBodyPart));
 
         //private void ProcessPlayerStateProne(Dictionary<string, object> packet)
         //{
@@ -354,47 +349,47 @@ namespace StayInTarkov.Core.Player
 
         //Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
-        public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.MovementDirection : null;
-        public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Rotation : null;
-        public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Position : null;
-        public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.HeadRotation : null;
-        public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
-        public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
-        private float? PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : null;
-        public PlayerHealthPacket ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PlayerHealth : null;
+        //public Vector2? ReplicatedDirection => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.MovementDirection : null;
+        //public Vector2? ReplicatedRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Rotation : null;
+        //public Vector3? ReplicatedPosition => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Position : null;
+        //public Vector3? ReplicatedHeadRotation => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.HeadRotation : null;
+        //public float? ReplicatedTilt => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.Tilt : null;
+        //public bool ShouldSprint => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.IsSprinting : false;
+        //private float? PoseLevelDesired => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PoseLevel : null;
+        //public PlayerHealthPacket ReplicatedPlayerHealth => ReplicatedPlayerStatePacket != null ? ReplicatedPlayerStatePacket.PlayerHealth : null;
 
-        public bool IsSprinting
-        {
-            get { return player.IsSprintEnabled; }
-        }
-        public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; } = new();
-        public PlayerStatePacket LastReplicatedPlayerStatePacket { get; internal set; } = new();
+        //public bool IsSprinting
+        //{
+        //    get { return player.IsSprintEnabled; }
+        //}
+        //public PlayerStatePacket ReplicatedPlayerStatePacket { get; internal set; } = new();
+        //public PlayerStatePacket LastReplicatedPlayerStatePacket { get; internal set; } = new();
 
         public ManualLogSource Logger { get; private set; }
 
-        public Dictionary<string, object> PreMadeMoveDataPacket = new()
-        {
-            { "dX", "0" },
-            { "dY", "0" },
-            { "rX", "0" },
-            { "rY", "0" },
-            { "m", "Move" }
-        };
-        public Dictionary<string, object> PreMadeTiltDataPacket = new()
-        {
-            { "tilt", "0" },
-            { "m", "Tilt" }
-        };
+        //public Dictionary<string, object> PreMadeMoveDataPacket = new()
+        //{
+        //    { "dX", "0" },
+        //    { "dY", "0" },
+        //    { "rX", "0" },
+        //    { "rY", "0" },
+        //    { "m", "Move" }
+        //};
+        //public Dictionary<string, object> PreMadeTiltDataPacket = new()
+        //{
+        //    { "tilt", "0" },
+        //    { "m", "Tilt" }
+        //};
 
-        public bool IsAI()
-        {
-            return player.IsAI && !player.Profile.Id.StartsWith("pmc");
-        }
+        //public bool IsAI()
+        //{
+        //    return player.IsAI && !player.Profile.Id.StartsWith("pmc");
+        //}
 
-        public bool IsOwnedPlayer()
-        {
-            return player.Profile.Id.StartsWith("pmc") && !IsClientDrone;
-        }
+        //public bool IsOwnedPlayer()
+        //{
+        //    return player.Profile.Id.StartsWith("pmc") && !IsClientDrone;
+        //}
 
         //internal void UpdateTick()
         //{

@@ -362,9 +362,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
                 else
                 {
-                    GCHelpers.ClearGarbage(_SITGCLastIndex == 2, _SITGCLastIndex == 2);
+                    GCHelpers.ClearGarbage(_SITGCLastIndex == 1, _SITGCLastIndex == 1);
                     _SITGCLastIndex++;
-                    if (_SITGCLastIndex == 2)
+                    if (_SITGCLastIndex == 1)
                         _SITGCLastIndex = 0;
                 }
 
@@ -1085,6 +1085,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 // ------------------------------------------------------------------
                 // Create Local Player drone
                 LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
+                if(otherPlayer == null)
+                {
+                    PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawning;
+                    return;
+                }
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
                 //CreateLocalPlayerAsync(profile, position, playerId);
 
@@ -1103,6 +1108,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private LocalPlayer CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
         {
+            Logger.LogInfo($"{nameof(CreateLocalPlayer)}:{nameof(position)}:{position}");
+
             // If this is an actual PLAYER player that we're creating a drone for, when we set
             // aiControl to true then they'll automatically run voice lines (eg when throwing
             // a grenade) so we need to make sure it's set to FALSE for the drone version of them.
@@ -1114,6 +1121,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // perhaps it's more accurate to think of it as an inverse bool of
             // "player controlled", where the engine has to enable a bunch of additional
             // logic when aiControl is turned off (in other words, for players)?
+
 
             //var otherPlayer = LocalPlayer.Create(playerId
             var otherPlayer = CoopPlayer.Create(playerId
@@ -1139,9 +1147,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                , isClientDrone: true
                ).Result;
 
-
             if (otherPlayer == null)
                 return null;
+
+            otherPlayer.Position = position + new Vector3(0, 1, 0);
+            otherPlayer.Transform.position = position + new Vector3(0, 1, 0);
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
@@ -1149,7 +1159,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 Players.TryAdd(profile.ProfileId, (CoopPlayer)otherPlayer);
 
             PlayerClients.Add((CoopPlayerClient)otherPlayer);
-
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
@@ -1167,16 +1176,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (ProfileIdsUser.Contains(otherPlayer.ProfileId))
                 {
                     PlayersForAIToTarget.Enqueue(otherPlayer);
-                    //if (Singleton<ISITGame>.Instantiated)
-                    //{
-                    //    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
-                    //    if (botController != null)
-                    //    {
-                    //        Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
-                    //        botController.AddActivePLayer(otherPlayer);
-                    //        botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
-                    //    }
-                    //}
                 }
             }
 

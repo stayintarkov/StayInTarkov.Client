@@ -2,6 +2,7 @@
 using EFT;
 using EFT.Interactive;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using System;
@@ -27,6 +28,47 @@ namespace StayInTarkov.Coop.Players
         //{
         //    //base.Move(direction);
         //}
+
+        public override void OnDead(EDamageType damageType)
+        {
+            //if (damageType == EDamageType.Fall)
+            //    return;
+
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
+            base.OnDead(damageType);
+            Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
+        }
+
+        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
+        {
+            // Paulov: This creates a server authorative Damage model
+            // I am filtering out Bullet from this model (for now)
+            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
+            {
+                ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
+                return null;
+            }
+
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyShot)}:{damageInfo.DamageType}");
+            return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
+        }
+
+        public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyDamageInfo)}:{damageInfo.DamageType}");
+
+            // Paulov: This creates a server authorative Damage model
+            // I am filtering out Bullet from this model (for now)
+            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
+                return;
+
+            base.ApplyDamageInfo(damageInfo,bodyPartType, colliderType, absorbed);   
+        }
+
+        public override void KillMe(EBodyPartColliderType colliderType, float damage)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(KillMe)}");
+        }
 
         DateTime? LastRPSP = null;
 
@@ -100,22 +142,22 @@ namespace StayInTarkov.Coop.Players
             ApplyReplicatedMotion();
         }
 
+        /// <summary>
+        /// Created by: Lacyway - This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
+        /// Updated by: Paulov
+        /// </summary>
         protected override void Interpolate()
         {
             //BepInLogger.LogInfo(nameof(Interpolate));
 
-            if (MovementContext == null)
-            {
-                BepInLogger.LogInfo($"{nameof(Interpolate)}:{nameof(MovementContext)} is null");
+            if (HealthController == null || !HealthController.IsAlive)
                 return;
-            }
+
+            if (MovementContext == null)
+                return;
 
             var InterpolationRatio = Time.deltaTime * 5;
-            /* 
-            * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
-            * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License
-            */
-
+            
             Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
             HeadRotation = Vector3.Lerp(HeadRotation, NewState.HeadRotation, InterpolationRatio);
@@ -164,12 +206,7 @@ namespace StayInTarkov.Coop.Players
 
             MovementContext.SetBlindFire(NewState.Blindfire);
 
-
-           
-            //else
-            //{
             ApplyReplicatedMotion();
-            //}
 
             LastState = NewState;
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
@@ -177,6 +214,9 @@ namespace StayInTarkov.Coop.Players
 
         private void ApplyReplicatedMotion()
         {
+            if (HealthController == null || !HealthController.IsAlive)
+                return;
+
             if (MovementContext == null) return;
 
             if (NewState == null) return;
@@ -185,7 +225,6 @@ namespace StayInTarkov.Coop.Players
 
             Vector3 lerpedMovement = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 1.33f);
             CharacterController.Move((lerpedMovement + MovementContext.PlatformMotion) - MovementContext.TransformPosition, Time.deltaTime);
-
 
             if (!IsInventoryOpened && LastState.LinearSpeed > 0.25)
             {
@@ -200,6 +239,85 @@ namespace StayInTarkov.Coop.Players
             Interpolate();
         }
 
-      
+        public override void OnSkillExperienceChanged(AbstractSkill skill)
+        {
+        }
+
+        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        {
+        }
+
+        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        {
+        }
+
+
+        public override void StartInflictSelfDamageCoroutine()
+        {
+        }
+
+        public override void AddStateSpeedLimit(float speedDelta, ESpeedLimit cause)
+        {
+        }
+
+        public override void UpdateSpeedLimit(float speedDelta, ESpeedLimit cause)
+        {
+        }
+
+        public override void UpdateSpeedLimitByHealth()
+        {
+        }
+
+        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
+
+            //base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            new Process<MedsController, IMedsController>(
+                this
+                , controllerFactory
+                , foodDrink
+                , false
+                , AbstractProcess.Completion.Async
+                , AbstractProcess.Confirmation.Unknown
+                , false)
+                .method_0(null, (x) => 
+            {
+
+                BepInLogger.LogDebug(foodDrink);
+                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.MaxResource);
+                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.HpPercent);
+                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.RelativeValue);
+                // once complete, remove item?
+                try
+                {
+                    if (amount > 0)
+                    {
+                        if (amount == 1 && foodDrink.FoodDrinkComponent.MaxResource == 1)
+                            foodDrink.FoodDrinkComponent.HpPercent = -1;
+                        else
+                        {
+                            foodDrink.FoodDrinkComponent.HpPercent -= foodDrink.FoodDrinkComponent.MaxResource * amount;
+                            if(foodDrink.FoodDrinkComponent.HpPercent < 1)
+                                foodDrink.FoodDrinkComponent.HpPercent = -1;
+                        }
+
+                        //if (foodDrink.FoodDrinkComponent.HpPercent == -1)
+                        //{
+                        //    _inventoryController.DestroyItem(foodDrink);
+                        //}
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+                callback(x);
+            
+            }, true);
+            
+        }
+
     }
 }

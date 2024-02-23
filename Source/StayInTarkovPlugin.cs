@@ -15,6 +15,7 @@ using StayInTarkov.AkiSupport.SITFixes;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.AI;
+using StayInTarkov.Coop.Player.Health;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.EssentialPatches.Web;
 using StayInTarkov.FileChecker;
@@ -393,7 +394,8 @@ namespace StayInTarkov
             new ChangeHealthPatch().Enable();
             new ChangeHydrationPatch().Enable();
             new ChangeEnergyPatch().Enable();
-            new OnDeadPatch().Enable();
+            //new OnDeadPatch().Enable();
+            new PHC_HandleFall_Patch().Enable();    
             new MainMenuControllerForHealthListenerPatch().Enable();
         }
 
