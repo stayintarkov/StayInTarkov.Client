@@ -35,7 +35,7 @@ namespace StayInTarkov.Networking
 
         private string m_Session;
 
-        public string Session
+        public string ProfileId
         {
             get
             {
@@ -69,7 +69,7 @@ namespace StayInTarkov.Networking
         {
             get
             {
-                if (m_Instance == null || m_Instance.Session == null || m_Instance.RemoteEndPoint == null)
+                if (m_Instance == null || m_Instance.ProfileId == null || m_Instance.RemoteEndPoint == null)
                     m_Instance = new AkiBackendCommunication();
 
                 return m_Instance;
@@ -478,11 +478,11 @@ namespace StayInTarkov.Networking
             {
                 if (arg.Contains("-token="))
                 {
-                    Session = arg.Replace("-token=", string.Empty);
+                    ProfileId = arg.Replace("-token=", string.Empty);
                     m_RequestHeaders = new Dictionary<string, string>()
                         {
-                            { "Cookie", $"PHPSESSID={Session}" },
-                            { "SessionId", Session }
+                            { "Cookie", $"PHPSESSID={ProfileId}" },
+                            { "SessionId", ProfileId }
                         };
                     break;
                 }
@@ -725,7 +725,7 @@ namespace StayInTarkov.Networking
 
         public void Dispose()
         {
-            Session = null;
+            ProfileId = null;
             RemoteEndPoint = null;
         }
     }
