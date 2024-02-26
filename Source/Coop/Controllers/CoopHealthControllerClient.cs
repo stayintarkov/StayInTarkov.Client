@@ -6,12 +6,16 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers
 {
-    internal sealed class CoopHealthControllerClient : ActiveHealthController
+    internal sealed class CoopHealthControllerClient 
+        // Paulov: This should be ActiveHealthController. However, a lot of the patches use PlayerHealthController, need to fix
+        : PlayerHealthController
+        //: ActiveHealthController
     {
         ManualLogSource BepInLogger { get; }
 
         public CoopHealthControllerClient(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
-            : base(healthInfo, inventoryController, skillManager)
+            : base(healthInfo, player, inventoryController, skillManager, false)
+            //: base(healthInfo, inventoryController, skillManager)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopHealthControllerClient));
             BepInLogger.LogInfo(nameof(CoopHealthControllerClient));    

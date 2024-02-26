@@ -108,6 +108,10 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
                 return;
             }
 
+            // Player has no Health Controller = don't do anything
+            if (player.PlayerHealthController == null)
+                return;
+
             if (!player.PlayerHealthController.IsAlive)
             {
                 if (player.HandsController is EFT.Player.FirearmController fc)
