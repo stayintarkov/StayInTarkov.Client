@@ -34,6 +34,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override async void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
+            // Debug the operation
+            BepInLogger.LogDebug($"{operation}");
+
             // Taken from ClientPlayer.Execute
             if (callback == null)
             {
@@ -67,8 +70,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 return;
             }
 
-            // Debug the operation
-            BepInLogger.LogDebug($"{operation}");
+         
             // Set the operation to "Begin" (flashing)
             RaiseInvEvents(operation, CommandStatus.Begin);
 
@@ -103,7 +105,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         /// </summary>
         /// <param name="operation"></param>
         /// <returns></returns>
-        private void SendExecuteOperationToServer(AbstractInventoryOperation operation)
+        protected virtual void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
@@ -170,7 +172,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             var callback = new Comfort.Common.Callback((result) => {
                 BepInLogger.LogError($"{nameof(ReceiveExecute)}:{result}"); 
                 if(result.Failed)
-                    BepInLogger.LogError($"{nameof(ReceiveExecute)}:{result.Error}");
+                    BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result.Error}");
             });
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))

@@ -1,13 +1,17 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using EFT.InventoryLogic;
+using EFT.UI;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Core.Player;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.Remoting.Lifetime;
 using UnityEngine;
 
@@ -62,7 +66,15 @@ namespace StayInTarkov.Coop.Players
             if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
                 return;
 
-            base.ApplyDamageInfo(damageInfo,bodyPartType, colliderType, absorbed);   
+            base.ApplyDamageInfo(damageInfo, bodyPartType, colliderType, absorbed);
+        }
+
+        public override void OnHealthEffectAdded(IEffect effect)
+        {
+        }
+
+        public override void OnHealthEffectRemoved(IEffect effect)
+        {
         }
 
         public override void KillMe(EBodyPartColliderType colliderType, float damage)
@@ -76,7 +88,7 @@ namespace StayInTarkov.Coop.Players
         {
             NewState = playerStatePacket;
             //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent)) 
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
                 coopGameComponent.ServerPingSmooth.Enqueue(ms);
@@ -157,7 +169,7 @@ namespace StayInTarkov.Coop.Players
                 return;
 
             var InterpolationRatio = Time.deltaTime * 5;
-            
+
             Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
             HeadRotation = Vector3.Lerp(HeadRotation, NewState.HeadRotation, InterpolationRatio);
@@ -220,7 +232,7 @@ namespace StayInTarkov.Coop.Players
             if (MovementContext == null) return;
 
             if (NewState == null) return;
-            
+
             if (LastState == null) return;
 
             Vector3 lerpedMovement = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 1.33f);
@@ -271,52 +283,44 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
-
-            //base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            new Process<MedsController, IMedsController>(
-                this
-                , controllerFactory
-                , foodDrink
-                , false
-                , AbstractProcess.Completion.Async
-                , AbstractProcess.Confirmation.Unknown
-                , false)
-                .method_0(null, (x) => 
-            {
+            new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink).method_0(null, null, scheduled);
 
-                BepInLogger.LogDebug(foodDrink);
-                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.MaxResource);
-                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.HpPercent);
-                BepInLogger.LogDebug(foodDrink.FoodDrinkComponent.RelativeValue);
-                // once complete, remove item?
-                try
-                {
-                    if (amount > 0)
-                    {
-                        if (amount == 1 && foodDrink.FoodDrinkComponent.MaxResource == 1)
-                            foodDrink.FoodDrinkComponent.HpPercent = -1;
-                        else
-                        {
-                            foodDrink.FoodDrinkComponent.HpPercent -= foodDrink.FoodDrinkComponent.MaxResource * amount;
-                            if(foodDrink.FoodDrinkComponent.HpPercent < 1)
-                                foodDrink.FoodDrinkComponent.HpPercent = -1;
-                        }
+            //Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            //new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink)
+            //    .method_0(null, (x) =>
+            //{
 
-                        //if (foodDrink.FoodDrinkComponent.HpPercent == -1)
-                        //{
-                        //    _inventoryController.DestroyItem(foodDrink);
-                        //}
-                    }
-                }
-                catch (Exception)
-                {
+            //    if (amount > 0)
+            //    {
+            //        if (amount == 1 && foodDrink.FoodDrinkComponent.MaxResource == 1)
+            //            foodDrink.FoodDrinkComponent.HpPercent = -1;
+            //        else
+            //        {
+            //            foodDrink.FoodDrinkComponent.HpPercent -= foodDrink.FoodDrinkComponent.MaxResource * amount;
+            //            foodDrink.FoodDrinkComponent.HpPercent = (float)Math.Floor(foodDrink.FoodDrinkComponent.HpPercent);
+            //            if (foodDrink.FoodDrinkComponent.HpPercent < 1)
+            //                foodDrink.FoodDrinkComponent.HpPercent = -1;
+            //        }
+            //    }
 
-                }
-                callback(x);
-            
-            }, true);
-            
+            //    if(foodDrink.FoodDrinkComponent.HpPercent == -1)
+            //        StartCoroutine(DeleteItemAfterUseCR(foodDrink));
+
+
+            //}, true);
+
+
+        }
+
+        private IEnumerator DeleteItemAfterUseCR(EFT.InventoryLogic.Item item)
+        {
+            yield return new WaitForSeconds(3);
+
+            //if (item != null)
+            //    _inventoryController.DestroyItem(item, (r) => { });
+
+            yield break;
         }
 
     }

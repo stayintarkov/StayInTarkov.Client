@@ -1,6 +1,8 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using JetBrains.Annotations;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -16,6 +18,19 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         }
 
         public override bool HasDiscardLimits => false;
+
+        protected override void SendExecuteOperationToServer(AbstractInventoryOperation operation)
+        {
+
+        }
+
+        public override void CallUnknownMalfunctionStartRepair(Weapon weapon)
+        {
+        }
+
+        public override void ExamineMalfunction(Weapon weapon, bool clearRest = false)
+        {
+        }
 
         public override void CallMalfunctionRepaired(Weapon weapon)
         {
@@ -43,14 +58,5 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return false;
         }
 
-        public override void StartSearchingAction(SearchableItemClass item)
-        {
-            base.StartSearchingAction(item);
-        }
-
-        public override void StopSearchingAction(SearchableItemClass item)
-        {
-            base.StopSearchingAction(item);
-        }
     }
 }

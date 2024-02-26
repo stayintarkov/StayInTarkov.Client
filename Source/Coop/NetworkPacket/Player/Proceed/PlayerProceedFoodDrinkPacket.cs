@@ -74,7 +74,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
                     // If the player exists, process
                     if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
                     {
-                        client.Proceed(foodDrink, this.Amount, (r) => { }, this.AnimationVariant, this.Scheduled);
+                        client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
                     }
                     else
                     {
@@ -88,7 +88,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
                                 if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
                                 {
-                                    client.Proceed(foodDrink, this.Amount, (r) => { }, this.AnimationVariant, this.Scheduled);
+                                    client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
                                     break;
                                 }
                             }

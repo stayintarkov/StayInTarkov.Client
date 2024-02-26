@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers
 {
-    internal sealed class CoopHealthControllerClient : PlayerHealthController
+    internal sealed class CoopHealthControllerClient : ActiveHealthController
     {
         ManualLogSource BepInLogger { get; }
 
         public CoopHealthControllerClient(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
-            : base(healthInfo, player, inventoryController, skillManager, aiHealth)
+            : base(healthInfo, inventoryController, skillManager)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopHealthControllerClient));
             BepInLogger.LogInfo(nameof(CoopHealthControllerClient));    
@@ -20,22 +20,34 @@ namespace StayInTarkov.Coop.Controllers
 
         public override void SetEncumbered(bool encumbered)
         {
-            base.SetEncumbered(encumbered);
         }
 
         public override void SetOverEncumbered(bool encumbered)
         {
-            base.SetOverEncumbered(encumbered);
         }
 
         public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
         {
-            return base.ApplyItem(item, bodyPart, amount);
+            BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(ApplyItem)}");    
+            return true;
+        }
+
+        public override bool CanApplyItem(Item item, EBodyPart bodyPart)
+        {
+            BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(CanApplyItem)}");    
+            return true;
+        }
+
+        public override void CancelApplyingItem()
+        {
         }
 
         protected override void AddEffectToList(AbstractEffect effect)
         {
-            base.AddEffectToList(effect);
+        }
+
+        public override void AddFatigue()
+        {
         }
 
         public new void Kill(EDamageType damageType)
