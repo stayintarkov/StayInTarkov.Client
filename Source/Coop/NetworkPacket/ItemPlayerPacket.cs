@@ -27,11 +27,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             //File.WriteAllBytes($"DEBUG_{nameof(ItemPlayerPacket)}_{nameof(Deserialize)}.bin", bytes);
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-
-            //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},ReadHeader [{reader.BaseStream.Position}]");
-
-            ProfileId = reader.ReadString();
+            ReadHeaderAndProfileId(reader);
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read {nameof(ProfileId)} {ProfileId} [{reader.BaseStream.Position}]");
 
@@ -75,8 +71,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
+            WriteHeaderAndProfileId(writer);
             writer.Write(ItemId);
             writer.Write(TemplateId);
 
