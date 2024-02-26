@@ -1,5 +1,6 @@
 ﻿using EFT.HealthSystem;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -134,22 +135,5 @@ namespace StayInTarkov.Coop.Player.Health
             return null;
         }
 
-        public class RestoreBodyPartPacket : BasePlayerPacket
-        {
-            public string BodyPart { get; set; }
-            public float HealthPenalty { get; set; }
-
-            public RestoreBodyPartPacket() : base()
-            {
-                Method = "RestoreBodyPart";
-            }
-        }
-
-        //protected sealed class BodyPartState
-        //{
-        //    public bool IsDestroyed;
-
-        //    public HealthValue Health;
-        //}
     }
 }
