@@ -67,11 +67,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public override ISITPacket AutoDeserialize(byte[] serializedPacket)
-        {
-            return base.AutoDeserialize(serializedPacket);
-        }
-
         public override bool Equals(object obj)
         {
             if (obj is PlayerHealthPacket other)

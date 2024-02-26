@@ -1,40 +1,19 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.UI;
-using EFT.Weather;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using Newtonsoft.Json;
-using Open.Nat;
-using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop.NetworkPacket.Backend;
-using StayInTarkov.Coop.NetworkPacket.Communication;
-using StayInTarkov.Coop.NetworkPacket.FirearmController;
-using StayInTarkov.Coop.NetworkPacket.GameWorld;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
-using System;
-
-
-
-//using StayInTarkov.Coop.Players;
-//using StayInTarkov.Networking.Packets;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 /* 
 * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client). 

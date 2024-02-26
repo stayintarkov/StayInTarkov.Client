@@ -35,8 +35,6 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             , EFT.Player ____player
             , bool p)
         {
-            //GetLogger(typeof(FirearmController_Pickup_Patch)).LogDebug("PostPatch");
-
             var player = ____player;
 
             FCPickupPacket pickupPicket = new(player.ProfileId, p);

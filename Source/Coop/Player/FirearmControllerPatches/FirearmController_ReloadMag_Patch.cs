@@ -163,35 +163,31 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             //GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
             //ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            ReplicatedGridAddressGrid(
-                player
-                , firearmCont
-                , gridAddressGrid
-                , magazine
+            if (gridAddressGrid == null)
+            {
+                firearmCont.StopCoroutine(nameof(ReloadCR));
+            }
+            else
+            {
 
-                , () =>
-                {
-                    // Debug log success
-                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("Reloaded magazine successfully");
-                    firearmCont.StopCoroutine(nameof(ReloadCR));
-                }
-                , () =>
-                {
-                    // Try again
-                    firearmCont.StopCoroutine(nameof(ReloadCR));
-                    //if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
-                    //{
-                    //    firearmCont.StopCoroutine(nameof(ReloadCR));
-                    //    GetLogger().LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
-                    //    ItemControllerHandler_Move_Patch.DisableForPlayer.RemoveWhere(x => x == player.ProfileId);
+                ReplicatedGridAddressGrid(
+                    player
+                    , firearmCont
+                    , gridAddressGrid
+                    , magazine
 
-                    //}
-                    //else
-                    //{
-                    //    //firearmCont.StartCoroutine(nameof(Reload));
-                    //}
-                }
-                );
+                    , () =>
+                    {
+                        // Debug log success
+                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("Reloaded magazine successfully");
+                        firearmCont.StopCoroutine(nameof(ReloadCR));
+                    }
+                    , () =>
+                    {
+                        firearmCont.StopCoroutine(nameof(ReloadCR));
+                    }
+                    );
+            }
         }
 
         bool ReplicatedGridAddressGrid(EFT.Player player
