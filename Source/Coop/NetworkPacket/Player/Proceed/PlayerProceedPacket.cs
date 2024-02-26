@@ -1,18 +1,18 @@
 ﻿using System.IO;
 using System;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
     public class PlayerProceedPacket : ItemPlayerPacket
     {
         public bool Scheduled { get; set; }
 
-        public PlayerProceedPacket() : base("","","","")
+        public PlayerProceedPacket() : base("", "", "", "")
         {
 
         }
 
-        public PlayerProceedPacket(string profileId, string itemId, string templateId, bool scheduled, string method) 
+        public PlayerProceedPacket(string profileId, string itemId, string templateId, bool scheduled, string method)
             : base(profileId, itemId, templateId, method)
         {
             Scheduled = scheduled;
@@ -43,6 +43,11 @@ namespace StayInTarkov.Coop.NetworkPacket
             TimeSerializedBetter = reader.ReadString();
 
             return this;
+        }
+
+        public override void Process()
+        {
+            throw new NotImplementedException();
         }
     }
 }
