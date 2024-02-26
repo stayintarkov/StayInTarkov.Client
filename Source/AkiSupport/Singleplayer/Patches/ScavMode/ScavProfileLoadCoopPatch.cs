@@ -10,7 +10,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = typeof(TarkovApplication);
-            var desiredMethod = Array.Find(desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags), IsTargetMethod);
+            var desiredMethod = Array.Find(desiredType.GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags), IsTargetMethod);
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
             Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");

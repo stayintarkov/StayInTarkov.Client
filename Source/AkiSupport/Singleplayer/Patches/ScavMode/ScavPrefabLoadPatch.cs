@@ -1,10 +1,11 @@
 using EFT;
 using HarmonyLib;
+using StayInTarkov.AkiSupport.Singleplayer.Utils;
+using StayInTarkov;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using StayInTarkov.AkiSupport.Singleplayer.Utils;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 {
@@ -13,12 +14,13 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = typeof(TarkovApplication)
-                .GetNestedTypes(BindingFlags.Public)
+                .GetNestedTypes(StayInTarkovHelperConstants.PublicDeclaredFlags)
                 .SingleCustom(x => x.GetField("timeAndWeather") != null
+                                   && x.GetField("tarkovApplication_0") != null
                                    && x.GetField("timeHasComeScreenController") == null
                                    && x.Name.Contains("Struct"));
 
-            var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags)
+            var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags)
                 .FirstOrDefault(x => x.Name == "MoveNext");
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
@@ -32,8 +34,11 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         {
             var codes = new List<CodeInstruction>(instructions);
 
+            Logger.LogInfo($"{nameof(ScavPrefabLoadPatch)}:{nameof(PatchTranspile)}");
+
             // Search for code where backend.Session.getProfile() is called.
             var searchCode = new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_Profile"));
+            Logger.LogInfo($"{nameof(StayInTarkovHelperConstants.BackendProfileInterfaceType)}:{StayInTarkovHelperConstants.BackendProfileInterfaceType}");
             var searchIndex = -1;
 
             for (var i = 0; i < codes.Count; i++)
@@ -48,7 +53,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             // Patch failed.
             if (searchIndex == -1)
             {
-                Logger.LogError($"Patch {MethodBase.GetCurrentMethod()} failed: Could not find reference code.");
+                Logger.LogError($"{nameof(ScavPrefabLoadPatch)}:Patch {MethodBase.GetCurrentMethod()} failed: Could not find reference code.");
                 return instructions;
             }
 
@@ -68,7 +73,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
                 new Code(OpCodes.Brfalse, brFalseLabel),
                 new Code(OpCodes.Callvirt, StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_Profile"),
                 new Code(OpCodes.Br, brLabel),
-                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.BackendProfilePetInterfaceType, "get_ProfileOfPet"),
+                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_ProfileOfPet"),
                 new CodeWithLabel(OpCodes.Ldc_I4_1, brLabel)
             });
 

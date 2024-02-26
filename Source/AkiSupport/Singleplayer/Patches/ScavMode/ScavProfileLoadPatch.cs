@@ -1,12 +1,12 @@
-using System;
 using Comfort.Common;
 using EFT;
 using HarmonyLib;
+using StayInTarkov.AkiSupport.Singleplayer.Utils;
+using StayInTarkov;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using StayInTarkov.AkiSupport.Singleplayer.Utils;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 {
@@ -14,13 +14,14 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
     {
         protected override MethodBase GetTargetMethod()
         {
+            // Struct225 - 20575
             var desiredType = typeof(TarkovApplication)
-                .GetNestedTypes(BindingFlags.Public)
+                .GetNestedTypes(StayInTarkovHelperConstants.PublicDeclaredFlags)
                 .SingleCustom(x => x.GetField("timeAndWeather") != null
-                                   && x.GetField("timeHasComeScreenController") != null
-                                   && x.Name.Contains("Struct"));
+                              && x.GetField("timeHasComeScreenController") != null
+                              && x.Name.Contains("Struct"));
 
-            var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags)
+            var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags)
                 .FirstOrDefault(x => x.Name == "MoveNext");
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
@@ -69,8 +70,8 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
                 new Code(OpCodes.Brfalse, brFalseLabel),
                 new Code(OpCodes.Callvirt, StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_Profile"),
                 new Code(OpCodes.Br, brLabel),
-                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.BackendProfilePetInterfaceType, "get_ProfileOfPet"),
-                new CodeWithLabel(OpCodes.Stfld, brLabel, typeof(TarkovApplication).GetNestedTypes(BindingFlags.Public).Single(IsTargetNestedType), "profile")
+                new CodeWithLabel(OpCodes.Callvirt, brFalseLabel, StayInTarkovHelperConstants.BackendProfileInterfaceType, "get_ProfileOfPet"),
+                new CodeWithLabel(OpCodes.Stfld, brLabel, typeof(TarkovApplication).GetNestedTypes(BindingFlags.Public).SingleCustom(IsTargetNestedType), "profile")
             });
 
             codes.RemoveRange(searchIndex, 4);
@@ -81,7 +82,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 
         private static bool IsTargetNestedType(System.Type nestedType)
         {
-            return nestedType.GetMethods(StayInTarkovHelperConstants.PrivateFlags)
+            return nestedType.GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags)
                 .Count(x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(IResult)) > 0 && nestedType.GetField("savageProfile") != null;
         }
     }
