@@ -1,5 +1,6 @@
 ﻿using ChatShared;
 using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using LiteNetLib.Utils;
@@ -99,121 +100,134 @@ namespace StayInTarkov.Coop.NetworkPacket
                 reader.BaseStream.Position -= 1;
         }
 
-        public byte[] AutoSerialize()
-        {
-            if (string.IsNullOrEmpty(ServerId))
-            {
-                throw new ArgumentNullException($"{GetType()}:{nameof(ServerId)}");
-            }
+        //public byte[] AutoSerialize()
+        //{
+        //    if (string.IsNullOrEmpty(ServerId))
+        //    {
+        //        throw new ArgumentNullException($"{GetType()}:{nameof(ServerId)}");
+        //    }
 
-            if (string.IsNullOrEmpty(Method))
-            {
-                throw new ArgumentNullException($"{GetType()}:{nameof(Method)}");
-            }
+        //    if (string.IsNullOrEmpty(Method))
+        //    {
+        //        throw new ArgumentNullException($"{GetType()}:{nameof(Method)}");
+        //    }
 
-            byte[] result = null;
-            BinaryWriter binaryWriter = new(new MemoryStream());
-            WriteHeader(binaryWriter);
+        //    byte[] result = null;
+        //    BinaryWriter binaryWriter = new(new MemoryStream());
+        //    WriteHeader(binaryWriter);
 
-            var allPropsFiltered = GetPropertyInfos(this);
-            if (allPropsFiltered == null)
-                return null;
+        //    var allPropsFiltered = GetPropertyInfos(this);
+        //    if (allPropsFiltered == null)
+        //        return null;
 
-            // Extremely useful tool for discovering what is calling something else...
-            //#if DEBUG
-            //            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace(true);
-            //                StayInTarkovHelperConstants.Logger.LogInfo($"{t.ToString()}");
-            //#endif
+        //    // Extremely useful tool for discovering what is calling something else...
+        //    //#if DEBUG
+        //    //            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace(true);
+        //    //                StayInTarkovHelperConstants.Logger.LogInfo($"{t.ToString()}");
+        //    //#endif
 
 
-            for (var i = 0; i < allPropsFiltered.Count(); i++)
-            {
-                var prop = allPropsFiltered[i];
-                var propValue = prop.GetValue(this);
-                //StayInTarkovHelperConstants.Logger.LogInfo($"{prop.Name} is {propValue}");
+        //    for (var i = 0; i < allPropsFiltered.Count(); i++)
+        //    {
+        //        var prop = allPropsFiltered[i];
+        //        var propValue = prop.GetValue(this);
+        //        //StayInTarkovHelperConstants.Logger.LogInfo($"{prop.Name} is {propValue}");
 
-                // Process an Array type
-                if (prop.PropertyType.IsArray)
-                {
-                    Array array = (Array)propValue;
-                    binaryWriter.Write(prop.PropertyType.FullName);
-                    binaryWriter.Write(array.Length);
+        //        // Process an Array type
+        //        if (prop.PropertyType.IsArray)
+        //        {
+        //            Array array = (Array)propValue;
+        //            binaryWriter.Write(prop.PropertyType.FullName);
+        //            binaryWriter.Write(array.Length);
 
-                    foreach (var item in array)
-                    {
-                        if (item.GetType().GetInterface(nameof(ISITPacket)) != null)
-                        {
-                            var serializedSITPacket = ((ISITPacket)item).Serialize();
-                            binaryWriter.Write((int)serializedSITPacket.Length);
-                            binaryWriter.Write(serializedSITPacket);
-                        }
-                        else
-                            binaryWriter.Write(item.ToString());
-                    }
+        //            foreach (var item in array)
+        //            {
+        //                if (item.GetType().GetInterface(nameof(ISITPacket)) != null)
+        //                {
+        //                    var serializedSITPacket = ((ISITPacket)item).Serialize();
+        //                    binaryWriter.Write((int)serializedSITPacket.Length);
+        //                    binaryWriter.Write(serializedSITPacket);
+        //                }
+        //                else
+        //                    binaryWriter.Write(item.ToString());
+        //            }
 
-                }
-                // Process an ISITPacket
-                else if (prop.PropertyType.GetInterface(nameof(ISITPacket)) != null)
-                {
-                    binaryWriter.Write(prop.PropertyType.FullName);
-                    var serializedSITPacket = ((ISITPacket)propValue).Serialize();
-                    binaryWriter.Write(serializedSITPacket.Length);
-                    binaryWriter.Write(serializedSITPacket);
-                }
-                else if (prop.PropertyType == typeof(bool))
-                {
-                    binaryWriter.Write((bool)propValue);
-                }
-                else
-                {
-                    binaryWriter.Write(propValue.ToString());
-                }
+        //        }
+        //        // Process an ISITPacket
+        //        else if (prop.PropertyType.GetInterface(nameof(ISITPacket)) != null)
+        //        {
+        //            binaryWriter.Write(prop.PropertyType.FullName);
+        //            var serializedSITPacket = ((ISITPacket)propValue).Serialize();
+        //            binaryWriter.Write(serializedSITPacket.Length);
+        //            binaryWriter.Write(serializedSITPacket);
+        //        }
+        //        else if (prop.PropertyType == typeof(bool))
+        //        {
+        //            binaryWriter.Write((bool)propValue);
+        //        }
+        //        else
+        //        {
+        //            binaryWriter.Write(propValue.ToString());
+        //        }
 
-            }
+        //    }
 
-            if (binaryWriter != null)
-            {
-                result = ((MemoryStream)binaryWriter.BaseStream).ToArray();
-                binaryWriter.Close();
-                binaryWriter.Dispose();
-                binaryWriter = null;
-            }
+        //    if (binaryWriter != null)
+        //    {
+        //        result = ((MemoryStream)binaryWriter.BaseStream).ToArray();
+        //        binaryWriter.Close();
+        //        binaryWriter.Dispose();
+        //        binaryWriter = null;
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
+        /// <summary>
+        /// Serializes the BasePacket header. All inherited Packet classes must override this.
+        /// </summary>
+        /// <returns></returns>
         public virtual byte[] Serialize()
         {
-            return AutoSerialize();
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeader(writer);
+            return ms.ToArray();
         }
 
+        /// <summary>
+        /// Deserializes the BasePacket header. All inherited Packet classes must override this.
+        /// </summary>
+        /// <returns></returns>
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            return this.AutoDeserialize(bytes);
-        }
-
-        public virtual ISITPacket AutoDeserialize(byte[] data)
-        {
-            //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(AutoDeserialize)}:{Encoding.UTF8.GetString(data)}");
-
-            using BinaryReader reader = new BinaryReader(new MemoryStream(data));
-            var headerExists = Encoding.UTF8.GetString(reader.ReadBytes(3)) == "SIT";
-            reader.BaseStream.Position = 0;
-            if (headerExists)
-                ReadHeader(reader);
-
-            //StayInTarkovHelperConstants.Logger.LogInfo(nameof(AutoDeserialize));
-            //StayInTarkovHelperConstants.Logger.LogInfo($"headerExists:{headerExists}");
-            //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Position:{reader.BaseStream.Position}");
-            //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Length:{reader.BaseStream.Length}");
-            //StayInTarkovHelperConstants.Logger.LogInfo(this.ToJson());
-
-            DeserializePacketIntoObj(reader);
-
-            //StayInTarkovHelperConstants.Logger.LogInfo(obj.ToJson());
-
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeader(reader);
             return this;
         }
+
+        //public virtual ISITPacket AutoDeserialize(byte[] data)
+        //{
+        //    //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(AutoDeserialize)}:{Encoding.UTF8.GetString(data)}");
+
+        //    using BinaryReader reader = new BinaryReader(new MemoryStream(data));
+        //    var headerExists = Encoding.UTF8.GetString(reader.ReadBytes(3)) == "SIT";
+        //    reader.BaseStream.Position = 0;
+        //    if (headerExists)
+        //        ReadHeader(reader);
+
+        //    //StayInTarkovHelperConstants.Logger.LogInfo(nameof(AutoDeserialize));
+        //    //StayInTarkovHelperConstants.Logger.LogInfo($"headerExists:{headerExists}");
+        //    //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Position:{reader.BaseStream.Position}");
+        //    //StayInTarkovHelperConstants.Logger.LogInfo($"reader:Length:{reader.BaseStream.Length}");
+        //    //StayInTarkovHelperConstants.Logger.LogInfo(this.ToJson());
+
+        //    DeserializePacketIntoObj(reader);
+
+        //    //StayInTarkovHelperConstants.Logger.LogInfo(obj.ToJson());
+
+        //    return this;
+        //}
 
         //public ISITPacket DeserializePacketSIT(string serializedPacket)
         //{
@@ -477,7 +491,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         /// </summary>
         public virtual void Process()
         {
-
+            Dispose();
         }
     }
 
@@ -589,6 +603,17 @@ namespace StayInTarkov.Coop.NetworkPacket
         public static bool GetBool(this BinaryReader binaryReader)
         {
             return binaryReader.ReadBoolean();
+        }
+
+        public static byte[] GetBytes(this BinaryReader binaryReader, byte[] bytes, int length)
+        {
+            bytes = binaryReader.GetBytes(length);
+            return bytes;
+        }
+
+        public static byte[] GetBytes(this BinaryReader binaryReader, int length)
+        {
+            return binaryReader.ReadBytes(length);
         }
 
 
