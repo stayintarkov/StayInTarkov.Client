@@ -1,11 +1,12 @@
 ﻿using Comfort.Common;
 using EFT;
+using StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode;
+using StayInTarkov;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode;
 using StayInTarkov.Networking;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
@@ -24,7 +25,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = typeof(TarkovApplication);
-            var desiredMethod = Array.Find(desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags), IsTargetMethod);
+            var desiredMethod = Array.Find(desiredType.GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags), IsTargetMethod);
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
             Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
@@ -65,7 +66,6 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             ____raidSettings.SelectedLocation.EscapeTimeLimit = serverResult.RaidTimeMinutes;
 
             // Handle survival time changes
-            /*
             if (serverResult.NewSurviveTimeSeconds.HasValue)
             {
                 AdjustSurviveTimeForExtraction(serverResult.NewSurviveTimeSeconds.Value);
@@ -74,7 +74,6 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             {
                 AdjustSurviveTimeForExtraction(serverResult.OriginalSurvivalTimeSeconds);
             }
-            */
 
             // Handle exit changes
             ResetMapExits(____raidSettings.SelectedLocation, originalLocationSettings[currentMapId]);
@@ -95,11 +94,10 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
             foreach (var exitChange in exitChangesToApply)
             {
                 // Find the client exit we want to make changes to
-                var exitToChange = location.exits.First(x => x.Name == exitChange.Name);
+                var exitToChange = location.exits.FirstOrDefault(x => x.Name == exitChange.Name);
                 if (exitToChange == null)
                 {
                     Logger.LogDebug($"Exit with Id: {exitChange.Name} not found, skipping");
-
                     continue;
                 }
 
@@ -111,6 +109,10 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
                 if (exitChange.MinTime.HasValue)
                 {
                     exitToChange.MinTime = exitChange.MinTime.Value;
+                }
+
+                if (exitChange.MaxTime.HasValue)
+                {
                     exitToChange.MaxTime = exitChange.MaxTime.Value;
                 }
             }
@@ -131,25 +133,15 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
                 }
 
                 // Reset values to those from cache
-                if (clientLocationExit.Chance != cachedExit.Chance)
-                {
-                    clientLocationExit.Chance = cachedExit.Chance;
-                }
-                if (clientLocationExit.MinTime != cachedExit.MinTime)
-                {
-                    clientLocationExit.MinTime = cachedExit.MinTime;
-                }
-
-                if (clientLocationExit.MaxTime != cachedExit.MaxTime)
-                {
-                    clientLocationExit.MaxTime = cachedExit.MaxTime;
-                }
+                clientLocationExit.Chance = cachedExit.Chance;
+                clientLocationExit.MinTime = cachedExit.MinTime;
+                clientLocationExit.MaxTime = cachedExit.MaxTime;
             }
         }
 
         private static void AdjustSurviveTimeForExtraction(int newSurvivalTimeSeconds)
         {
-            var matchEndConfig = Singleton<BackEndConfig>.Instance.Config.Experience.MatchEnd;
+            var matchEndConfig = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
             matchEndConfig.SurvivedTimeRequirement = newSurvivalTimeSeconds;
         }
     }
