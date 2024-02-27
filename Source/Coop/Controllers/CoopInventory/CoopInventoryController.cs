@@ -170,7 +170,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             //BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
             var callback = new Comfort.Common.Callback((result) => {
-                BepInLogger.LogError($"{nameof(ReceiveExecute)}:{result}"); 
                 if(result.Failed)
                     BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result.Error}");
             });

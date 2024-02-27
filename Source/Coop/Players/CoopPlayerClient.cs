@@ -1,11 +1,14 @@
 ﻿using Comfort.Common;
+using Diz.LanguageExtensions;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Core.Player;
 using System;
 using System.Collections;
@@ -71,10 +74,12 @@ namespace StayInTarkov.Coop.Players
 
         public override void OnHealthEffectAdded(IEffect effect)
         {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnHealthEffectAdded)}");
         }
 
         public override void OnHealthEffectRemoved(IEffect effect)
         {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnHealthEffectRemoved)}");
         }
 
         public override void KillMe(EBodyPartColliderType colliderType, float damage)
@@ -280,47 +285,111 @@ namespace StayInTarkov.Coop.Players
         {
         }
 
+        public PlayerProceedMedsPacket ReceivedMedsPacket { get; set; }
+        public PlayerProceedFoodDrinkPacket ReceivedFoodDrinkPacket { get; set; }
+
         public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
-            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink).method_0(null, null, scheduled);
+            Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, (x) => {
 
-            //Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            //new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink)
-            //    .method_0(null, (x) =>
-            //{
+                BepInLogger.LogInfo(x);
+                BepInLogger.LogInfo(x.Value);
+                BepInLogger.LogInfo(x.Complete);
+                BepInLogger.LogInfo(x.Failed);
+                BepInLogger.LogInfo(x.Error);
 
-            //    if (amount > 0)
-            //    {
-            //        if (amount == 1 && foodDrink.FoodDrinkComponent.MaxResource == 1)
-            //            foodDrink.FoodDrinkComponent.HpPercent = -1;
-            //        else
-            //        {
-            //            foodDrink.FoodDrinkComponent.HpPercent -= foodDrink.FoodDrinkComponent.MaxResource * amount;
-            //            foodDrink.FoodDrinkComponent.HpPercent = (float)Math.Floor(foodDrink.FoodDrinkComponent.HpPercent);
-            //            if (foodDrink.FoodDrinkComponent.HpPercent < 1)
-            //                foodDrink.FoodDrinkComponent.HpPercent = -1;
-            //        }
-            //    }
+                if(x.Complete)
+                {
+                    if(x.Value.Item is FoodDrink foodDrink2)
+                    {
+                        foodDrink2.FoodDrinkComponent.HpPercent = Mathf.Max(0f, foodDrink2.FoodDrinkComponent.HpPercent - Mathf.Round(foodDrink2.FoodDrinkComponent.MaxResource * amount));
+                        if (ReceivedFoodDrinkPacket.UsedAll)
+                            foodDrink2.FoodDrinkComponent.HpPercent = 0;
 
-            //    if(foodDrink.FoodDrinkComponent.HpPercent == -1)
-            //        StartCoroutine(DeleteItemAfterUseCR(foodDrink));
+                        if (foodDrink2.FoodDrinkComponent.HpPercent.IsZero() || !foodDrink2.FoodDrinkComponent.HpPercent.Positive())
+                            RemoveItem(foodDrink2);
+                    }
+                }
 
+                if(callback != null)
+                    callback(x);
 
-            //}, true);
-
-
+            }, false);
         }
 
-        private IEnumerator DeleteItemAfterUseCR(EFT.InventoryLogic.Item item)
+        public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
-            yield return new WaitForSeconds(3);
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
+            Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
+            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
 
-            //if (item != null)
-            //    _inventoryController.DestroyItem(item, (r) => { });
+                BepInLogger.LogInfo(x);
+                BepInLogger.LogInfo(x.Value);
+                BepInLogger.LogInfo(x.Complete);
+                BepInLogger.LogInfo(x.Failed);
+                BepInLogger.LogInfo(x.Error);
 
-            yield break;
+                if (x.Complete)
+                {
+                    if (x.Value.Item is MedsClass medsClass2)
+                    {
+                        if(medsClass2.StackObjectsCount > 0 && ReceivedMedsPacket.Amount >= 1)
+                        {
+                            BepInLogger.LogInfo(medsClass2.StackObjectsCount);
+                            BepInLogger.LogInfo(ReceivedMedsPacket.Amount);
+                            medsClass2.StackObjectsCount -= (int)Math.Round(ReceivedMedsPacket.Amount);
+                        }
+
+                        this.Heal(bodyPart, (medsClass2.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount));
+                        medsClass2.MedKitComponent.HpResource -= (medsClass2.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount);
+                        medsClass2.RaiseRefreshEvent();
+
+                        if (medsClass2.MedKitComponent.HpResource.IsZero() || !medsClass2.MedKitComponent.HpResource.Positive())
+                            RemoveItem(medsClass2);
+                    }
+                }
+
+                if (callback != null)
+                    callback(x);
+
+            }, false);
+        }
+
+        public bool RemoveItem(Item item)
+        {
+            TraderControllerClass traderControllerClass = this._inventoryController;
+            IOperationResult value;
+            Error error;
+
+            try
+            {
+                if (item.StackObjectsCount > 1)
+                {
+                    global::SOperationResult12<GIOperationResult1> sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, traderControllerClass, traderControllerClass, simulate: false);
+                    value = sOperationResult.Value;
+                    error = sOperationResult.Error;
+                }
+                else
+                {
+                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, traderControllerClass, false, true);
+                    value = sOperationResult2.Value;
+                    error = sOperationResult2.Error;
+                }
+                if (error != null)
+                {
+                    BepInLogger.LogError($"Couldn't remove item: {error}");
+                    return false;
+                }
+                value.RaiseEvents(traderControllerClass, CommandStatus.Begin);
+                value.RaiseEvents(traderControllerClass, CommandStatus.Succeed);
+            }
+            catch (Exception)
+            {
+
+            }
+            return true;
         }
 
     }

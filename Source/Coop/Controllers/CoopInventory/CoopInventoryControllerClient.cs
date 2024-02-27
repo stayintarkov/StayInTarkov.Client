@@ -58,5 +58,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return false;
         }
 
+
     }
 }

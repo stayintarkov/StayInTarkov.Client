@@ -1,9 +1,14 @@
-﻿using System;
+﻿using EFT.InventoryLogic;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
@@ -15,7 +20,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         public string AIMedicineType { get; set; }
 
-        public PlayerProceedMedsPacket(string profileId, string itemId, string templateId, EBodyPart bodyPart, int animationVariant, bool scheduled, string method) : base(profileId, itemId, templateId, scheduled, method)
+        public float Amount { get; set; }
+
+        public PlayerProceedMedsPacket() : this("","","", EBodyPart.Head, 1, false, 1f) 
+        { 
+        
+        
+        }
+
+        public PlayerProceedMedsPacket(string profileId, string itemId, string templateId, EBodyPart bodyPart, int animationVariant, bool scheduled, float amountUsed) : base(profileId, itemId, templateId, scheduled, nameof(PlayerProceedMedsPacket))
         {
             BodyPart = bodyPart;
             AnimationVariant = animationVariant;
@@ -36,6 +49,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             writer.Write(AnimationVariant);
             writer.Write(TimeSerializedBetter);
             writer.Write(AIMedicineType);
+            writer.Write(Amount);
 
             return ms.ToArray();
         }
@@ -52,8 +66,46 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             AnimationVariant = reader.ReadInt32();
             TimeSerializedBetter = reader.ReadString();
             AIMedicineType = reader.ReadString();
+            Amount = reader.ReadSingle();
 
             return this;
+        }
+
+        public override void Process()
+        {
+            if (Method != nameof(PlayerProceedMedsPacket))
+                return;
+
+            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
+
+            StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
+        }
+
+        private IEnumerator ProceedCoroutine()
+        {
+            bool done = false;
+            while (!done)
+            {
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    break;
+
+                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+                {
+                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is MedsClass meds)
+                    {
+                        yield return new WaitForEndOfFrame();
+                        client.ReceivedMedsPacket = this;
+                        client.Proceed(meds, BodyPart, null, AnimationVariant, Scheduled);
+                        done = true;
+                        break;
+                    }
+                }
+                else
+                    break;
+
+                yield return new WaitForSeconds(10);
+            }
+
         }
     }
 }

@@ -3,11 +3,13 @@ using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Players;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
@@ -17,9 +19,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         public int AnimationVariant { get; set; }
 
+        public bool UsedAll { get; set; }
+
         public PlayerProceedFoodDrinkPacket() { }
 
-        public PlayerProceedFoodDrinkPacket(string profileId, string itemId, string templateId, float amount, int animationVariant, bool scheduled) : base(profileId, itemId, templateId, scheduled, "PlayerProceedFoodDrinkPacket")
+        public PlayerProceedFoodDrinkPacket(string profileId, string itemId, string templateId, float amount, int animationVariant, bool scheduled) : base(profileId, itemId, templateId, scheduled, nameof(PlayerProceedFoodDrinkPacket))
         {
             Amount = amount;
             AnimationVariant = animationVariant;
@@ -31,14 +35,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
+            WriteHeaderAndProfileId(writer);
             writer.Write(ItemId);
             writer.Write(TemplateId);
             writer.Write(Scheduled);
             writer.Write((Single)Amount);
             writer.Write(AnimationVariant);
             writer.Write(TimeSerializedBetter);
+            writer.Write(UsedAll);
 
             return ms.ToArray();
         }
@@ -48,14 +52,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(PlayerProceedFoodDrinkPacket)}:{nameof(Deserialize)}");
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-            ProfileId = reader.ReadString();
+            ReadHeaderAndProfileId(reader);
             ItemId = reader.ReadString();
             TemplateId = reader.ReadString();
             Scheduled = reader.ReadBoolean();
             Amount = reader.ReadSingle();
             AnimationVariant = reader.ReadInt32();
             TimeSerializedBetter = reader.ReadString();
+            UsedAll = reader.ReadBoolean();
 
             return this;
         }
@@ -67,37 +71,36 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
+        }
+
+        private IEnumerator ProceedCoroutine()
+        {
+            bool done = false;
+            while (!done)
             {
-                if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodDrink foodDrink)
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    break;
+
+                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
                 {
-                    // If the player exists, process
-                    if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodDrink foodDrink)
                     {
+                        yield return new WaitForEndOfFrame();
+                        client.ReceivedFoodDrinkPacket = this;
                         client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
+                        done = true;
+                        break;
                     }
                     else
-                    {
-                        // If the player doesn't exist, hold the packet until they do exist
-                        Task.Run(async () =>
-                        {
-
-                            while (true)
-                            {
-                                await Task.Delay(10 * 1000);
-
-                                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-                                {
-                                    client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
-                                    break;
-                                }
-                            }
-
-                        });
-                    }
+                        break;
                 }
-                return;
+                else
+                    break;
+
+                yield return new WaitForSeconds(10);
             }
+
         }
     }
 }

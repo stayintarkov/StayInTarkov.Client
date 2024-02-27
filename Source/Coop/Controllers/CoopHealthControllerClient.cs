@@ -1,7 +1,9 @@
 ﻿using BepInEx.Logging;
+using Diz.LanguageExtensions;
 using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
+using System;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers
@@ -39,7 +41,7 @@ namespace StayInTarkov.Coop.Controllers
         public override bool CanApplyItem(Item item, EBodyPart bodyPart)
         {
             BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(CanApplyItem)}");    
-            return true;
+            return base.CanApplyItem(item, bodyPart);
         }
 
         public override void CancelApplyingItem()
@@ -48,28 +50,57 @@ namespace StayInTarkov.Coop.Controllers
 
         protected override void AddEffectToList(AbstractEffect effect)
         {
+            //base.AddEffectToList(effect);
+
+            if (BepInLogger != null)
+                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(AddEffectToList)}");
+
         }
 
         public override void AddFatigue()
         {
         }
 
-        public new void Kill(EDamageType damageType)
+        protected override bool TryGetBodyPartToApply(Item item, EBodyPart bodyPart, out EBodyPart? damagedBodyPart)
         {
-            BepInLogger.LogInfo(nameof(Kill));
+            if (BepInLogger != null)
+                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(TryGetBodyPartToApply)}");
+
+            damagedBodyPart = bodyPart;
+            return base.TryGetBodyPartToApply(item, bodyPart, out damagedBodyPart);
+
+            //if (item is MedsClass medsClass)
+            //{
+            //    MedsClass medsClass2 = medsClass;
+            //    float num = medsClass2.HealthEffectsComponent.UseTimeFor(bodyPart);
+            //    if (base.Dictionary_0[bodyPart].IsDestroyed && medsClass2.HealthEffectsComponent.AffectsAny(EDamageEffectType.DestroyedPart))
+            //    {
+            //        num /= 1f + (float)skillManager_0.SurgerySpeed;
+            //    }
+            //    AddEffect(bodyPart, 0f, num, null, null, delegate (MedEffect e)
+            //    {
+            //        e.Init(medsClass2, 1f);
+            //    });
+            //}
+            //if (item is FoodDrink foodDrink)
+            //{
+            //    FoodDrink foodDrink2 = foodDrink;
+            //    //float actualAmount = amount ?? (foodDrink2.FoodDrinkComponent.HpPercent / foodDrink2.FoodDrinkComponent.MaxResource);
+            //    float actualAmount = foodDrink2.FoodDrinkComponent.HpPercent / foodDrink2.FoodDrinkComponent.MaxResource;
+            //    AddEffect(bodyPart, 0f, foodDrink2.HealthEffectsComponent.UseTime * actualAmount, null, null, delegate (MedEffect e)
+            //    {
+            //        e.Init(foodDrink2, actualAmount);
+            //    });
+            //}
+            //return false;
         }
 
-        public new float ApplyDamage(EBodyPart bodyPart, float damage, DamageInfo damageInfo)
+        protected override bool RemoveEffectFromList(AbstractEffect effect)
         {
-            BepInLogger.LogInfo(nameof(ApplyDamage));
-            return 0;
+            if (BepInLogger != null)
+                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(RemoveEffectFromList)}");
+
+            return base.RemoveEffectFromList(effect);
         }
-
-        public new void HandleFall(float height)
-        {
-            BepInLogger.LogInfo(nameof(HandleFall));
-        }
-
-
     }
 }

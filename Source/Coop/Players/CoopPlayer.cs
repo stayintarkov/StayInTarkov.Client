@@ -30,7 +30,7 @@ namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayer : LocalPlayer
     {
-        protected ManualLogSource BepInLogger { get; set; }
+        public ManualLogSource BepInLogger { get; private set; }
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -93,6 +93,14 @@ namespace StayInTarkov.Coop.Players
                 ? new CoopInventoryController(player, profile, true)
                 : new CoopInventoryControllerClient(player, profile, true);
 
+            foreach(var item in profile.Inventory.AllRealPlayerItems)
+            {
+                if(item.Owner == null)
+                {
+                    player.BepInLogger.LogInfo("Owner is null. wtf");
+                }
+            }
+
             // Quest Controller from 0.13
             //if (questController == null && isYourPlayer)
             //{
@@ -117,7 +125,9 @@ namespace StayInTarkov.Coop.Players
             IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();
             player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
 
-            IHealthController healthController = isClientDrone ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, aiControl) : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+            IHealthController healthController = isClientDrone
+                ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl)
+                : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl);
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
 
             await player
@@ -446,9 +456,53 @@ namespace StayInTarkov.Coop.Players
 
         public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
-            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
-            PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled); 
-            GameClient.SendData(foodDrinkPacket.Serialize());
+            base.Proceed(foodDrink, amount, (x) => {
+
+                if (x.Complete)
+                {
+                    if (x.Value.Item is FoodDrink food)
+                    {
+                        var usedAll = food.FoodDrinkComponent.RelativeValue <= 0;
+                        PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
+                        foodDrinkPacket.UsedAll = usedAll;
+                        GameClient.SendData(foodDrinkPacket.Serialize());
+                    }
+
+                }
+                callback(x);
+            }, animationVariant, scheduled);
+           
         }
+
+        public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            var startResource = meds.MedKitComponent.HpResource;
+
+            base.Proceed(meds, bodyPart, (x) => { 
+            
+                if(x.Complete)
+                {
+                    if(x.Value.Item is MedsClass meds2)
+                    {
+                        var used = (meds2.MedKitComponent.HpResource - startResource);
+                        var amount = used > 0 ? used : 1f;
+                        var usedAll = meds2.MedKitComponent.HpResource == 0;
+                        PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds2.Id, meds2.TemplateId, bodyPart, animationVariant, scheduled, amount);
+                        GameClient.SendData(medsPacket.Serialize());
+                    }
+                  
+                }
+                callback(x);
+            }, animationVariant, scheduled);
+
+           
+        }
+
+        void Awake()
+        {
+            if(BepInLogger == null)
+                BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
+        }
+
     }
 }
