@@ -9,34 +9,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static GClass648;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
-    public class PlayerProceedMedsPacket : PlayerProceedPacket
+    public sealed class PlayerPostProceedDataSyncPacket : BasePlayerPacket
     {
-        public EBodyPart BodyPart { get; set; }
+        public PlayerPostProceedDataSyncPacket() : base("", nameof(PlayerPostProceedDataSyncPacket)) { }
 
-        public int AnimationVariant { get; set; }
-
-        public string AIMedicineType { get; set; }
-
-        public float Amount { get; set; }
-
-        public bool UsedAll { get; set; }
-
-        public PlayerProceedMedsPacket() : this("","","", EBodyPart.Head, 1, false, 1f) 
-        { 
-        
-        
-        }
-
-        public PlayerProceedMedsPacket(string profileId, string itemId, string templateId, EBodyPart bodyPart, int animationVariant, bool scheduled, float amountUsed) : base(profileId, itemId, templateId, scheduled, nameof(PlayerProceedMedsPacket))
+        public PlayerPostProceedDataSyncPacket(string profileId) : base(new string(profileId.ToCharArray()), nameof(PlayerPostProceedDataSyncPacket))
         {
-            BodyPart = bodyPart;
-            AnimationVariant = animationVariant;
 
-            AIMedicineType = "";
         }
+
+        public PlayerPostProceedDataSyncPacket(string profileId, string itemId, float newValue) : this(new string(profileId.ToCharArray()))
+        {
+            ProfileId = profileId;
+            ItemId = itemId;
+            NewValue = newValue;
+        }
+
+        public string ItemId { get; set; }
+
+        public float NewValue { get; set; }
 
         public override byte[] Serialize()
         {
@@ -45,14 +40,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             WriteHeader(writer);
             writer.Write(ProfileId);
             writer.Write(ItemId);
-            writer.Write(TemplateId);
-            writer.Write(Scheduled);
-            writer.Write(BodyPart.ToString());
-            writer.Write(AnimationVariant);
+            writer.Write(NewValue);
             writer.Write(TimeSerializedBetter);
-            writer.Write(AIMedicineType);
-            writer.Write(Amount);
-            writer.Write(UsedAll);
 
             return ms.ToArray();
         }
@@ -63,21 +52,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             ReadHeader(reader);
             ProfileId = reader.ReadString();
             ItemId = reader.ReadString();
-            TemplateId = reader.ReadString();
-            Scheduled = reader.ReadBoolean();
-            BodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), reader.ReadString());
-            AnimationVariant = reader.ReadInt32();
+            NewValue = reader.ReadSingle();
             TimeSerializedBetter = reader.ReadString();
-            AIMedicineType = reader.ReadString();
-            Amount = reader.ReadSingle();
-            UsedAll = reader.ReadBoolean();
 
             return this;
         }
 
         public override void Process()
         {
-            if (Method != nameof(PlayerProceedMedsPacket))
+            if (Method != nameof(PlayerPostProceedDataSyncPacket))
                 return;
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
@@ -95,11 +78,16 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
                 if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
                 {
-                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is MedsClass meds)
+                    if (ItemFinder.TryFindItem(this.ItemId, out Item item))
                     {
                         yield return new WaitForEndOfFrame();
-                        client.ReceivedMedsPacket = this;
-                        client.Proceed(meds, BodyPart, null, AnimationVariant, Scheduled);
+
+                        if(item is MedsClass meds)
+                        {
+                            meds.MedKitComponent.HpResource = this.NewValue;
+                            meds.RaiseRefreshEvent();
+                        }
+
                         done = true;
                         break;
                     }
@@ -111,5 +99,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             }
 
         }
+
     }
 }

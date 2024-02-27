@@ -25,6 +25,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
+using static GClass648;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -189,15 +190,15 @@ namespace StayInTarkov.Coop.Players
                 return;
 
             // Quick check?
-            if (PreviousDamageInfos.Any(x =>
-                x.Damage == damageInfo.Damage
-                && x.SourceId == damageInfo.SourceId
-                && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
-                && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
-                ))
-                return;
+            //if (PreviousDamageInfos.Any(x =>
+            //    x.Damage == damageInfo.Damage
+            //    && x.SourceId == damageInfo.SourceId
+            //    && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
+            //    && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
+            //    ))
+            //    return;
 
-            PreviousDamageInfos.Add(damageInfo);
+            //PreviousDamageInfos.Add(damageInfo);
 
             SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
         }
@@ -462,9 +463,13 @@ namespace StayInTarkov.Coop.Players
                 {
                     if (x.Value.Item is FoodDrink food)
                     {
+                        if (animationVariant == 0)
+                            animationVariant = 1;
+
                         var usedAll = food.FoodDrinkComponent.RelativeValue <= 0;
                         PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
                         foodDrinkPacket.UsedAll = usedAll;
+                        BepInLogger.LogDebug(foodDrinkPacket.ToJson());
                         GameClient.SendData(foodDrinkPacket.Serialize());
                     }
 
@@ -474,28 +479,85 @@ namespace StayInTarkov.Coop.Players
            
         }
 
+        protected struct SITPostProceedData
+        {
+            public Item UsedItem { get; set; }
+
+            public IHandsController HandsController { get; set; }
+
+            public float? PreviousAmount { get; set; }
+            public float? NewValue { get; set; }
+
+            public override string ToString()
+            {
+                return $"{UsedItem}:{PreviousAmount}:{NewValue}";
+            }
+        } 
+
+        protected SITPostProceedData? PostProceedData { get; set; }
+
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             var startResource = meds.MedKitComponent.HpResource;
 
-            base.Proceed(meds, bodyPart, (x) => { 
-            
-                if(x.Complete)
-                {
-                    if(x.Value.Item is MedsClass meds2)
-                    {
-                        var used = (meds2.MedKitComponent.HpResource - startResource);
-                        var amount = used > 0 ? used : 1f;
-                        var usedAll = meds2.MedKitComponent.HpResource == 0;
-                        PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds2.Id, meds2.TemplateId, bodyPart, animationVariant, scheduled, amount);
-                        GameClient.SendData(medsPacket.Serialize());
-                    }
-                  
-                }
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds, false, AbstractProcess.Completion.Async, AbstractProcess.Confirmation.Succeed, false).method_0(null, (x) => {
+                PostProceedData = new SITPostProceedData { PreviousAmount = meds.MedKitComponent.HpResource, UsedItem = meds, HandsController = x.Value };
                 callback(x);
-            }, animationVariant, scheduled);
+            },false);
+            PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
+            GameClient.SendData(medsPacket.Serialize());
 
-           
+        }
+
+        public override void Proceed(GrenadeClass throwWeap, Callback<IGrenadeQuickUseController> callback, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IGrenadeQuickUseController");
+            base.Proceed(throwWeap, callback, scheduled);
+        }
+
+        public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IThrowableCallback");
+            base.Proceed(throwWeap, callback, scheduled);
+        }
+
+        public override void Proceed(Item item, Callback<IQuickUseController> callback, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(item)}:IQuickUseController");
+            base.Proceed(item, callback, scheduled);
+        }
+
+        public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(DropCurrentController)}");
+
+            // Handle inventory item syncronization AFTER a proceed operation has occurred. 
+            // This will ensure sync of all items after use. No matter what the Clients did on their end.
+            if(PostProceedData.HasValue)
+            {
+                var newValue = PostProceedData.Value.NewValue.HasValue ? PostProceedData.Value.NewValue.Value : 0f;
+                if (!PostProceedData.Value.NewValue.HasValue && PostProceedData.Value.PreviousAmount.HasValue)
+                {
+                    if (PostProceedData.Value.UsedItem is MedsClass meds)
+                    {
+                        newValue = meds.MedKitComponent.HpResource;
+                    }
+                    if (PostProceedData.Value.UsedItem is FoodDrink food)
+                    {
+                        newValue = food.FoodDrinkComponent.HpPercent;
+                    }
+                }
+
+                BepInLogger.LogDebug($"{PostProceedData.Value}");
+                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue);
+                GameClient.SendData(postProceedPacket.Serialize());
+
+                PostProceedData = null;
+            }
+
+            base.DropCurrentController(callback, fastDrop, nextControllerItem);
         }
 
         void Awake()

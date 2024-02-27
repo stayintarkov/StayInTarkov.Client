@@ -322,40 +322,43 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
-            Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
-            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
+            //Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
+            //new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
 
-                BepInLogger.LogInfo(x);
-                BepInLogger.LogInfo(x.Value);
-                BepInLogger.LogInfo(x.Complete);
-                BepInLogger.LogInfo(x.Failed);
-                BepInLogger.LogInfo(x.Error);
+            //    BepInLogger.LogInfo(x);
+            //    BepInLogger.LogInfo(x.Value);
+            //    BepInLogger.LogInfo(x.Complete);
+            //    BepInLogger.LogInfo(x.Failed);
+            //    BepInLogger.LogInfo(x.Error);
 
-                if (x.Complete)
-                {
-                    if (x.Value.Item is MedsClass medsClass2)
-                    {
-                        if(medsClass2.StackObjectsCount > 0 && ReceivedMedsPacket.Amount >= 1)
-                        {
-                            BepInLogger.LogInfo(medsClass2.StackObjectsCount);
-                            BepInLogger.LogInfo(ReceivedMedsPacket.Amount);
-                            medsClass2.StackObjectsCount -= (int)Math.Round(ReceivedMedsPacket.Amount);
-                        }
+            //    if (x.Complete)
+            //    {
+            //        //if (x.Value.Item is MedsClass medsClass2)
+            //        {
+            //            if(meds.StackObjectsCount > 0 && ReceivedMedsPacket.Amount >= 1)
+            //            {
+            //                BepInLogger.LogInfo(meds.StackObjectsCount);
+            //                BepInLogger.LogInfo(ReceivedMedsPacket.Amount);
+            //                meds.StackObjectsCount -= (int)Math.Round(ReceivedMedsPacket.Amount);
+            //            }
+            //            //ActiveHealthController.Heal(meds, bodyPart, Mathf.RoundToInt(a + (float)num));
+            //            this.Heal(bodyPart, (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount));
+            //            meds.MedKitComponent.HpResource -= (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount);
+            //            meds.RaiseRefreshEvent();
 
-                        this.Heal(bodyPart, (medsClass2.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount));
-                        medsClass2.MedKitComponent.HpResource -= (medsClass2.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount);
-                        medsClass2.RaiseRefreshEvent();
+            //            if (meds.MedKitComponent.HpResource.IsZero() || !meds.MedKitComponent.HpResource.Positive())
+            //                RemoveItem(meds);
+            //        }
+            //    }
 
-                        if (medsClass2.MedKitComponent.HpResource.IsZero() || !medsClass2.MedKitComponent.HpResource.Positive())
-                            RemoveItem(medsClass2);
-                    }
-                }
+            //    if (callback != null)
+            //        callback(x);
 
-                if (callback != null)
-                    callback(x);
-
-            }, false);
+            //}, false);
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, callback, scheduled);
         }
+
 
         public bool RemoveItem(Item item)
         {
