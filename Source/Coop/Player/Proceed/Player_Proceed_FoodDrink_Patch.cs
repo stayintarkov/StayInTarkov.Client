@@ -31,7 +31,7 @@ namespace StayInTarkov.Coop.Player.Proceed
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player __instance, FoodDrink foodDrink, float amount, int animationVariant, bool scheduled)
+        public static void PostPatch(EFT.Player __instance, FoodClass foodDrink, float amount, int animationVariant, bool scheduled)
         {
             if (CallLocally.Contains(__instance.ProfileId))
             {
@@ -59,7 +59,7 @@ namespace StayInTarkov.Coop.Player.Proceed
 
             if (ItemFinder.TryFindItem(playerProceedFoodDrinkPacket.ItemId, out Item item))
             {
-                if (item is FoodDrink foodDrink)
+                if (item is FoodClass foodDrink)
                 {
                     CallLocally.Add(player.ProfileId);
 
@@ -89,7 +89,7 @@ namespace StayInTarkov.Coop.Player.Proceed
                 }
                 else
                 {
-                    Logger.LogError($"Player_Proceed_FoodDrink_Patch:Replicated. Item {playerProceedFoodDrinkPacket.ItemId} is not a FoodDrink!");
+                    Logger.LogError($"Player_Proceed_FoodDrink_Patch:Replicated. Item {playerProceedFoodDrinkPacket.ItemId} is not a FoodClass!");
                 }
             }
             else
