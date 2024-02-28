@@ -30,6 +30,35 @@ namespace StayInTarkov.Coop.NetworkPacket
             //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
         }
 
+        
+        public override ISITPacket Deserialize(byte[] bytes)
+        {
+            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeaderAndProfileId(reader);
+            return this;
+        }
+
+        protected void ReadHeaderAndProfileId(BinaryReader reader)
+        {
+            ReadHeader(reader);
+            ProfileId = reader.ReadString();
+        }
+
+        public override byte[] Serialize()
+        {
+            var ms = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(ms);
+            WriteHeaderAndProfileId(writer);
+            return ms.ToArray();
+        }
+
+        protected void WriteHeaderAndProfileId(BinaryWriter writer)
+        {
+            WriteHeader(writer);
+            writer.Write(ProfileId);
+        }
+
+
 
         // -------------------------------------------------------------------------------------
         // Do not override here. This will break any AutoDeserialization on anything inheriting.

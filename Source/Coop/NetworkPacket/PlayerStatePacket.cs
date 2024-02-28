@@ -155,18 +155,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        /// <summary>
-        /// DO NOT AUTODESERIALIZE
-        /// </summary>
-        /// <param name="serializedPacket"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public override ISITPacket AutoDeserialize(byte[] serializedPacket)
-        {
-            //return base.DeserializePacketSIT(serializedPacket);
-            throw new NotImplementedException();    
-        }
-
         void INetSerializable.Serialize(NetDataWriter writer)
         {
             var serializedSIT = Serialize();

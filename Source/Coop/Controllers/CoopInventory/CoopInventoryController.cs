@@ -24,8 +24,19 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         private Dictionary<ushort, (AbstractInventoryOperation operation, Callback callback)> InventoryOperations { get; } = new();
 
+        public override void Execute(Operation1 operation, Callback callback)
+        {
+            base.Execute(operation, callback);
+
+            // Debug the operation
+            BepInLogger.LogDebug($"Execute(Operation1 operation,:{operation}");
+        }
+
         public override async void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
+            // Debug the operation
+            BepInLogger.LogDebug($"{operation}");
+
             // Taken from ClientPlayer.Execute
             if (callback == null)
             {
@@ -36,6 +47,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))
             {
+                BepInLogger.LogError("LOCAL: hands controller can't perform this operation");
+                BepInLogger.LogError(operation);
                 operation.Dispose();
                 callback.Fail("LOCAL: hands controller can't perform this operation");
                 return;
@@ -57,8 +70,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 return;
             }
 
-            // Debug the operation
-            BepInLogger.LogDebug($"{operation}");
+         
             // Set the operation to "Begin" (flashing)
             RaiseInvEvents(operation, CommandStatus.Begin);
 
@@ -93,7 +105,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         /// </summary>
         /// <param name="operation"></param>
         /// <returns></returns>
-        private void SendExecuteOperationToServer(AbstractInventoryOperation operation)
+        protected virtual void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
@@ -158,9 +170,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             //BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
             var callback = new Comfort.Common.Callback((result) => {
-                BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result}"); 
                 if(result.Failed)
-                    BepInLogger.LogError($"{result.Error}");
+                    BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:{result.Error}");
             });
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))

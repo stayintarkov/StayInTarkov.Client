@@ -190,6 +190,15 @@ namespace StayInTarkov.Coop.Components
                 var playerImageRect = playerImage.GetComponent<RectTransform>();
                 playerImageRect.localScale = new Vector3(1.4f, 1.4f, 0);
             }
+
+            DeleteExistingMatches();
+        }
+
+        private void DeleteExistingMatches()
+        {
+            JObject jsonObj = new JObject();
+            jsonObj.Add("serverId", AkiBackendCommunication.Instance.ProfileId);
+            AkiBackendCommunication.Instance.PostJson("/coop/server/delete", jsonObj.ToString());
         }
 
         private void DrawIPAddresses()

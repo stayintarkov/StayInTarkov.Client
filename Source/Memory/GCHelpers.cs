@@ -38,6 +38,7 @@ namespace StayInTarkov.Memory
                 Logger.LogDebug($"EnableGC():Enabled GC");
                 GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
             }
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
         }
 
         public static void DisableGC(bool forceCollect = false)
@@ -81,35 +82,52 @@ namespace StayInTarkov.Memory
         public static void RunHeapPreAllocation()
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            int objectArrayLength = 512;
-            int byteArrayLength = 1024;
-
-            object[] array = new object[objectArrayLength];
-            for (int i = 0; i < array.Length; i++)
+            int num = Math.Max(0, 200);
+            if (num > 0)
             {
-                array[i] = new byte[byteArrayLength];
+                object[] array = new object[1024 * num];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = new byte[1024];
+                }
+                array = null;
+                stopwatch.Stop();
             }
-            array = null;
-            stopwatch.Stop();
-            Logger.LogDebug($"Heap pre-allocation took {stopwatch.ElapsedMilliseconds} ms");
-            stopwatch = null;
-
-            GC.AddMemoryPressure(objectArrayLength * byteArrayLength);
         }
 
         public static void Collect(bool force = false)
         {
             Logger.LogDebug($"Collect({force})");
 
-            Collect(4, force ? GCCollectionMode.Forced : GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
+            Collect(2, GCCollectionMode.Optimized, isBlocking: true, compacting: false, force);
         }
+
+        public static float GetTotalAllocatedMemoryGB()
+        {
+            return (float)GC.GetTotalMemory(forceFullCollection: true) / 1024f / 1024f;
+        }
+
+        public static float PreviousTime { get; set; }
 
         public static void Collect(int generation, GCCollectionMode gcMode, bool isBlocking, bool compacting, bool force)
         {
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect(generation, gcMode, isBlocking, compacting);
+            
+            if (!force && Time.time < PreviousTime + 600f)
+            {
+                return;
+            }
+            if (force)
+            {
+                float totalAllocatedMemoryGB = GetTotalAllocatedMemoryGB();
+                GC.Collect();
+                //if (Settings.AggressiveGC)
+                {
+                    GC.WaitForPendingFinalizers();
+                    GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                    GC.Collect(generation, gcMode, isBlocking, compacting);
+                }
+            }
+            PreviousTime = Time.time;
         }
     }
 }

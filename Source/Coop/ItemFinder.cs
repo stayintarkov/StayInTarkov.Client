@@ -20,24 +20,38 @@ namespace StayInTarkov.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(ItemFinder));
         }
 
-        public static bool TryFindItemOnPlayer(EFT.Player player, string templateId, string itemId, out EFT.InventoryLogic.Item item)
+        public static bool TryFindItemOnPlayer(EFT.Player player, string templateId, string itemId, out Item item)
         {
             item = null;
 
-            if (!string.IsNullOrEmpty(templateId))
+            var result = player.FindItemById(itemId, false, false);
+            if (result.Succeeded)
             {
-                //var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(templateId);
-                var allEquipmentItems = player.Profile.Inventory.GetPlayerItems(EPlayerItems.Equipment);
-
-                if (!allEquipmentItems.Any())
-                    return false;
-
-                item = allEquipmentItems.FirstOrDefault(x => x.Id == itemId);
+                item = result.Value;
+                if(item.Owner == null)
+                {
+                    Logger.LogError($"{nameof(TryFindItemOnPlayer)} item owner is null!");
+                }
             }
             else
             {
-                item = player.Profile.Inventory.AllRealPlayerItems.FirstOrDefault(x => x.Id == itemId);
+                Logger.LogError($"{nameof(TryFindItemOnPlayer)} {result.Error}");
             }
+
+            //if (!string.IsNullOrEmpty(templateId))
+            //{
+            //    //var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(templateId);
+            //    var allEquipmentItems = player.Profile.Inventory.GetPlayerItems(EPlayerItems.Equipment);
+
+            //    if (!allEquipmentItems.Any())
+            //        return false;
+
+            //    item = allEquipmentItems.FirstOrDefault(x => x.Id == itemId);
+            //}
+            //else
+            //{
+            //    item = player.Profile.Inventory.AllRealPlayerItems.FirstOrDefault(x => x.Id == itemId);
+            //}
             return item != null;
         }
 
@@ -57,20 +71,19 @@ namespace StayInTarkov.Coop
 
         public static bool TryFindItem(string itemId, out EFT.InventoryLogic.Item item)
         {
-            if (TryFindItemInWorld(itemId, out item))
-                return item != null;
-            else
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            foreach (var player in coopGC.Players)
             {
-                var coopGC = CoopGameComponent.GetCoopGameComponent();
-
-                foreach (var player in coopGC.Players)
-                {
-                    if (TryFindItemOnPlayer(player.Value, null, itemId, out item))
-                        return true;
-                }
+                if (TryFindItemOnPlayer(player.Value, null, itemId, out item))
+                    return item != null;
             }
 
+            if (TryFindItemInWorld(itemId, out item))
+                return item != null;
+
             Logger.LogError($"{nameof(TryFindItem)}: Unable to find item {itemId}");
+            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
+            Logger.LogError($"{nameof(TryFindItem)}: {t}");
             return false;
         }
 

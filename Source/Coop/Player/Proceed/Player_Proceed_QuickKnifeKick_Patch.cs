@@ -1,7 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;

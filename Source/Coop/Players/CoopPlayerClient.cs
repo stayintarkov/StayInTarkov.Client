@@ -1,12 +1,20 @@
 ﻿using Comfort.Common;
+using Diz.LanguageExtensions;
 using EFT;
 using EFT.Interactive;
+using EFT.InventoryLogic;
+using EFT.UI;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Controllers;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Core.Player;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.Remoting.Lifetime;
 using UnityEngine;
 
@@ -28,13 +36,64 @@ namespace StayInTarkov.Coop.Players
         //    //base.Move(direction);
         //}
 
+        public override void OnDead(EDamageType damageType)
+        {
+            //if (damageType == EDamageType.Fall)
+            //    return;
+
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
+            base.OnDead(damageType);
+            Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
+        }
+
+        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
+        {
+            // Paulov: This creates a server authorative Damage model
+            // I am filtering out Bullet from this model (for now)
+            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
+            {
+                ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
+                return null;
+            }
+
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyShot)}:{damageInfo.DamageType}");
+            return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
+        }
+
+        public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyDamageInfo)}:{damageInfo.DamageType}");
+
+            // Paulov: This creates a server authorative Damage model
+            // I am filtering out Bullet from this model (for now)
+            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
+                return;
+
+            base.ApplyDamageInfo(damageInfo, bodyPartType, colliderType, absorbed);
+        }
+
+        public override void OnHealthEffectAdded(IEffect effect)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnHealthEffectAdded)}");
+        }
+
+        public override void OnHealthEffectRemoved(IEffect effect)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnHealthEffectRemoved)}");
+        }
+
+        public override void KillMe(EBodyPartColliderType colliderType, float damage)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(KillMe)}");
+        }
+
         DateTime? LastRPSP = null;
 
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
             //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent)) 
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
                 coopGameComponent.ServerPingSmooth.Enqueue(ms);
@@ -100,21 +159,21 @@ namespace StayInTarkov.Coop.Players
             ApplyReplicatedMotion();
         }
 
+        /// <summary>
+        /// Created by: Lacyway - This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
+        /// Updated by: Paulov
+        /// </summary>
         protected override void Interpolate()
         {
             //BepInLogger.LogInfo(nameof(Interpolate));
 
-            if (MovementContext == null)
-            {
-                BepInLogger.LogInfo($"{nameof(Interpolate)}:{nameof(MovementContext)} is null");
+            if (HealthController == null || !HealthController.IsAlive)
                 return;
-            }
+
+            if (MovementContext == null)
+                return;
 
             var InterpolationRatio = Time.deltaTime * 5;
-            /* 
-            * This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
-            * You are free to re-use this in your own project, but out of respect please leave credit where it's due according to the MIT License
-            */
 
             Rotation = new Vector2(Mathf.LerpAngle(Yaw, NewState.Rotation.x, InterpolationRatio), Mathf.Lerp(Pitch, NewState.Rotation.y, InterpolationRatio));
 
@@ -164,12 +223,7 @@ namespace StayInTarkov.Coop.Players
 
             MovementContext.SetBlindFire(NewState.Blindfire);
 
-
-           
-            //else
-            //{
             ApplyReplicatedMotion();
-            //}
 
             LastState = NewState;
             //BepInLogger.LogInfo($"{nameof(Interpolate)}:End");
@@ -177,15 +231,17 @@ namespace StayInTarkov.Coop.Players
 
         private void ApplyReplicatedMotion()
         {
+            if (HealthController == null || !HealthController.IsAlive)
+                return;
+
             if (MovementContext == null) return;
 
             if (NewState == null) return;
-            
+
             if (LastState == null) return;
 
             Vector3 lerpedMovement = Vector3.Lerp(MovementContext.TransformPosition, NewState.Position, Time.deltaTime * 1.33f);
             CharacterController.Move((lerpedMovement + MovementContext.PlatformMotion) - MovementContext.TransformPosition, Time.deltaTime);
-
 
             if (!IsInventoryOpened && LastState.LinearSpeed > 0.25)
             {
@@ -200,6 +256,144 @@ namespace StayInTarkov.Coop.Players
             Interpolate();
         }
 
-      
+        public override void OnSkillExperienceChanged(AbstractSkill skill)
+        {
+        }
+
+        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        {
+        }
+
+        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        {
+        }
+
+
+        public override void StartInflictSelfDamageCoroutine()
+        {
+        }
+
+        public override void AddStateSpeedLimit(float speedDelta, ESpeedLimit cause)
+        {
+        }
+
+        public override void UpdateSpeedLimit(float speedDelta, ESpeedLimit cause)
+        {
+        }
+
+        public override void UpdateSpeedLimitByHealth()
+        {
+        }
+
+        public PlayerProceedMedsPacket ReceivedMedsPacket { get; set; }
+        public PlayerProceedFoodDrinkPacket ReceivedFoodDrinkPacket { get; set; }
+
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
+            Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, (x) => {
+
+                BepInLogger.LogInfo(x);
+                BepInLogger.LogInfo(x.Value);
+                BepInLogger.LogInfo(x.Complete);
+                BepInLogger.LogInfo(x.Failed);
+                BepInLogger.LogInfo(x.Error);
+
+                if(x.Complete)
+                {
+                    if(x.Value.Item is FoodClass foodDrink2)
+                    {
+                        foodDrink2.FoodDrinkComponent.HpPercent = Mathf.Max(0f, foodDrink2.FoodDrinkComponent.HpPercent - Mathf.Round(foodDrink2.FoodDrinkComponent.MaxResource * amount));
+                        if (ReceivedFoodDrinkPacket.UsedAll)
+                            foodDrink2.FoodDrinkComponent.HpPercent = 0;
+
+                        if (foodDrink2.FoodDrinkComponent.HpPercent.IsZero() || !foodDrink2.FoodDrinkComponent.HpPercent.Positive())
+                            RemoveItem(foodDrink2);
+                    }
+                }
+
+                if(callback != null)
+                    callback(x);
+
+            }, false);
+        }
+
+        public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
+            //Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
+            //new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
+
+            //    BepInLogger.LogInfo(x);
+            //    BepInLogger.LogInfo(x.Value);
+            //    BepInLogger.LogInfo(x.Complete);
+            //    BepInLogger.LogInfo(x.Failed);
+            //    BepInLogger.LogInfo(x.Error);
+
+            //    if (x.Complete)
+            //    {
+            //        //if (x.Value.Item is MedsClass medsClass2)
+            //        {
+            //            if(meds.StackObjectsCount > 0 && ReceivedMedsPacket.Amount >= 1)
+            //            {
+            //                BepInLogger.LogInfo(meds.StackObjectsCount);
+            //                BepInLogger.LogInfo(ReceivedMedsPacket.Amount);
+            //                meds.StackObjectsCount -= (int)Math.Round(ReceivedMedsPacket.Amount);
+            //            }
+            //            //ActiveHealthController.Heal(meds, bodyPart, Mathf.RoundToInt(a + (float)num));
+            //            this.Heal(bodyPart, (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount));
+            //            meds.MedKitComponent.HpResource -= (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount);
+            //            meds.RaiseRefreshEvent();
+
+            //            if (meds.MedKitComponent.HpResource.IsZero() || !meds.MedKitComponent.HpResource.Positive())
+            //                RemoveItem(meds);
+            //        }
+            //    }
+
+            //    if (callback != null)
+            //        callback(x);
+
+            //}, false);
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, callback, scheduled);
+        }
+
+
+        public bool RemoveItem(Item item)
+        {
+            TraderControllerClass traderControllerClass = this._inventoryController;
+            IOperationResult value;
+            Error error;
+
+            try
+            {
+                if (item.StackObjectsCount > 1)
+                {
+                    global::SOperationResult12<GIOperationResult1> sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, traderControllerClass, traderControllerClass, simulate: false);
+                    value = sOperationResult.Value;
+                    error = sOperationResult.Error;
+                }
+                else
+                {
+                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, traderControllerClass, false, true);
+                    value = sOperationResult2.Value;
+                    error = sOperationResult2.Error;
+                }
+                if (error != null)
+                {
+                    BepInLogger.LogError($"Couldn't remove item: {error}");
+                    return false;
+                }
+                value.RaiseEvents(traderControllerClass, CommandStatus.Begin);
+                value.RaiseEvents(traderControllerClass, CommandStatus.Succeed);
+            }
+            catch (Exception)
+            {
+
+            }
+            return true;
+        }
+
     }
 }

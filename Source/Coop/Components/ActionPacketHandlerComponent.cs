@@ -413,7 +413,7 @@ namespace StayInTarkov.Coop.Components
             if (SITMatchmaking.IsClient)
             {
                 var sessionTime = new TimeSpan(long.Parse(packet["sessionTime"].ToString()));
-                Logger.LogInfo($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
+                Logger.LogDebug($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
 
                 if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
                 {

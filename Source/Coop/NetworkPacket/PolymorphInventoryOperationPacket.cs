@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
+    /// <summary>
+    /// A PolymorphInventoryOperationPacket is a packet that is sent when a character does anything with its inventory or loot
+    /// See CoopInventoryController for more details
+    /// </summary>
     public class PolymorphInventoryOperationPacket : ItemPlayerPacket
     {
         /// <summary>
@@ -18,21 +22,54 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         }
 
+        /// <summary>
+        /// This is called when creating the packet from the InventoryController
+        /// </summary>
+        /// <param name="profileId"></param>
+        /// <param name="itemId"></param>
+        /// <param name="templateId"></param>
         public PolymorphInventoryOperationPacket(string profileId, string itemId, string templateId) : base(profileId, itemId, templateId, "PolymorphInventoryOperationPacket")
         {
 
         }
 
+        /// <summary>
+        /// This is called via Reflection
+        /// Process this Packet by sending the packet back to the InventoryController to do its action
+        /// If the Character doesn't exist (for whatever reason), then hold the packet until they do
+        /// </summary>
         public override void Process()
         {
-            StayInTarkovHelperConstants.Logger.LogInfo($"{GetType()}:{nameof(Process)}");
-            if (Method == "PolymorphInventoryOperationPacket")
+            if (Method != "PolymorphInventoryOperationPacket")
+                return;
+
+            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
+
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                {
+                // If the player exists, process
+                if (coopGameComponent.Players.ContainsKey(ProfileId))
                     PlayerInventoryPacketHandler.ProcessPolymorphOperation(coopGameComponent.Players[ProfileId], this);
-                    return;
+                else
+                {
+                    // If the player doesn't exist, hold the packet until they do exist
+                    Task.Run(async () =>
+                    {
+
+                        while (true)
+                        {
+                            await Task.Delay(10 * 1000);
+
+                            if (coopGameComponent.Players.ContainsKey(ProfileId))
+                            {
+                                PlayerInventoryPacketHandler.ProcessPolymorphOperation(coopGameComponent.Players[ProfileId], this);
+                                break;
+                            }
+                        }
+
+                    });
                 }
+                return;
             }
         }
     }

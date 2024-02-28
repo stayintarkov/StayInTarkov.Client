@@ -4,6 +4,7 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace StayInTarkov.Coop.Player.FirearmControllerPatches
@@ -27,17 +28,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            var result = false;
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-                result = true;
-
-            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
-
-            return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -50,19 +41,7 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
-
-            //Dictionary<string, object> dictionary = new();
-            //dictionary.Add("f", fireMode.ToString());
-            //dictionary.Add("m", "ChangeFireMode");
-            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
-            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
-
-            FireModePacket fireModePacket = new(____player.ProfileId, fireMode);
+            StayInTarkov.Coop.NetworkPacket.Player.Weapons.FireModePacket fireModePacket = new(____player.ProfileId, fireMode);
             GameClient.SendData(fireModePacket.Serialize());
 
         }
@@ -71,25 +50,20 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-
-            FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
+            StayInTarkov.Coop.NetworkPacket.Player.Weapons.FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
 
             if (dict.ContainsKey("data"))
                 fmp.Deserialize((byte[])dict["data"]);
-
-            if (HasProcessed(GetType(), player, fmp))
-                return;
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
-                    CallLocally.Add(player.ProfileId, true);
                     //if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
                     var firemode = (Weapon.EFireMode)fmp.FireMode;
                     {
                         //Logger.LogInfo("Replicated: Calling Change FireMode");
-                        firearmCont.ChangeFireMode(firemode);
+                        firearmCont.CurrentOperation.ChangeFireMode(firemode);
                     }
                 }
                 catch (Exception e)
@@ -99,16 +73,6 @@ namespace StayInTarkov.Coop.Player.FirearmControllerPatches
             }
         }
 
-        public class FireModePacket : BasePlayerPacket
-        {
-            [JsonProperty("f")]
-            public byte FireMode { get; set; }
-
-            public FireModePacket(string profileId, Weapon.EFireMode fireMode)
-                : base(profileId, "ChangeFireMode")
-            {
-                FireMode = (byte)fireMode;
-            }
-        }
+        
     }
 }

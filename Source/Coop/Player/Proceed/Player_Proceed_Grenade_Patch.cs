@@ -1,6 +1,6 @@
 ﻿using Comfort.Common;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -50,7 +50,10 @@ namespace StayInTarkov.Coop.Player.Proceed
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             if (!dict.ContainsKey("data"))
+            {
+                Logger.LogInfo($"{nameof(Player_Proceed_Grenade_Patch)}.{nameof(Replicated)}:{nameof(dict)} doesn't contain data");
                 return;
+            }
 
             PlayerProceedPacket playerProceedPacket = new(player.ProfileId, null, null, true, null);
             playerProceedPacket.Deserialize((byte[])dict["data"]);
