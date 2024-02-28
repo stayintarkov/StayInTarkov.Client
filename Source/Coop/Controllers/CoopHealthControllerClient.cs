@@ -82,9 +82,9 @@ namespace StayInTarkov.Coop.Controllers
             //        e.Init(medsClass2, 1f);
             //    });
             //}
-            //if (item is FoodDrink foodDrink)
+            //if (item is FoodClass foodDrink)
             //{
-            //    FoodDrink foodDrink2 = foodDrink;
+            //    FoodClass foodDrink2 = foodDrink;
             //    //float actualAmount = amount ?? (foodDrink2.FoodDrinkComponent.HpPercent / foodDrink2.FoodDrinkComponent.MaxResource);
             //    float actualAmount = foodDrink2.FoodDrinkComponent.HpPercent / foodDrink2.FoodDrinkComponent.MaxResource;
             //    AddEffect(bodyPart, 0f, foodDrink2.HealthEffectsComponent.UseTime * actualAmount, null, null, delegate (MedEffect e)

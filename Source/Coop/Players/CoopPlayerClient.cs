@@ -288,7 +288,7 @@ namespace StayInTarkov.Coop.Players
         public PlayerProceedMedsPacket ReceivedMedsPacket { get; set; }
         public PlayerProceedFoodDrinkPacket ReceivedFoodDrinkPacket { get; set; }
 
-        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
             Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
@@ -302,7 +302,7 @@ namespace StayInTarkov.Coop.Players
 
                 if(x.Complete)
                 {
-                    if(x.Value.Item is FoodDrink foodDrink2)
+                    if(x.Value.Item is FoodClass foodDrink2)
                     {
                         foodDrink2.FoodDrinkComponent.HpPercent = Mathf.Max(0f, foodDrink2.FoodDrinkComponent.HpPercent - Mathf.Round(foodDrink2.FoodDrinkComponent.MaxResource * amount));
                         if (ReceivedFoodDrinkPacket.UsedAll)

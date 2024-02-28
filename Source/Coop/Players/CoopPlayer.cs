@@ -455,13 +455,13 @@ namespace StayInTarkov.Coop.Players
             return $"[{side}] {player.Profile.GetCorrectedNickname()}";
         }
 
-        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             base.Proceed(foodDrink, amount, (x) => {
 
                 if (x.Complete)
                 {
-                    if (x.Value.Item is FoodDrink food)
+                    if (x.Value.Item is FoodClass food)
                     {
                         if (animationVariant == 0)
                             animationVariant = 1;
@@ -544,7 +544,7 @@ namespace StayInTarkov.Coop.Players
                     {
                         newValue = meds.MedKitComponent.HpResource;
                     }
-                    if (PostProceedData.Value.UsedItem is FoodDrink food)
+                    if (PostProceedData.Value.UsedItem is FoodClass food)
                     {
                         newValue = food.FoodDrinkComponent.HpPercent;
                     }

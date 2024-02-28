@@ -84,7 +84,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
                 if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
                 {
-                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodDrink foodDrink)
+                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodClass foodDrink)
                     {
                         yield return new WaitForEndOfFrame();
                         client.ReceivedFoodDrinkPacket = this;
