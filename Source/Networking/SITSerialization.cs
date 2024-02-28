@@ -1216,7 +1216,7 @@ namespace StayInTarkov.Networking
         public enum EProceedType
         {
             EmptyHands,
-            FoodDrink,
+            FoodClass,
             GrenadeClass,
             MedsClass,
             QuickGrenadeThrow,

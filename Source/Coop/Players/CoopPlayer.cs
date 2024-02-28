@@ -381,14 +381,14 @@ namespace StayInTarkov.Coop.Players
 
         //}
 
-        public override void Proceed(FoodDrink foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
 
             //PlayerProceedFoodDrinkPacket playerProceedFoodDrinkPacket = new(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled, "ProceedFoodDrink");
             //GameClient.SendDataToServer(playerProceedFoodDrinkPacket.Serialize());
 
-            //BepInLogger.LogInfo($"{nameof(Proceed)} FoodDrink");
+            //BepInLogger.LogInfo($"{nameof(Proceed)} FoodClass");
             //BepInLogger.LogInfo($"{playerProceedFoodDrinkPacket.ToJson()}");
         }
 
