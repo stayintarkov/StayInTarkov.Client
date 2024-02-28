@@ -5,6 +5,7 @@ using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using Sirenix.Utilities;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
@@ -434,7 +435,9 @@ namespace StayInTarkov.Coop.Players
 
             var attacker = LastAggressor as EFT.Player;
             //if (DisplayDeathMessage)
-            DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
+
+            if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+                DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
             
             KillPacket killPacket = new KillPacket(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
