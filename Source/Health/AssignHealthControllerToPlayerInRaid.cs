@@ -17,7 +17,7 @@ namespace StayInTarkov.Health
 
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(Player), nameof(Player.Init));
+            return AccessTools.Method(typeof(LocalPlayer), nameof(LocalPlayer.Init));
         }
 
         [PatchPostfix]
