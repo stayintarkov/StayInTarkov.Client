@@ -1,5 +1,6 @@
 using EFT;
 using EFT.UI.SessionEnd;
+using HarmonyLib;
 using System.Linq;
 using System.Reflection;
 
@@ -13,13 +14,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
     {
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(SessionResultExperienceCount);
-            var desiredMethod = ReflectionHelpers.GetAllMethodsForType(desiredType).FirstOrDefault(IsTargetMethod);
-
-            //Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
-            //Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
-
-            return desiredMethod;
+            return AccessTools.Method(typeof(SessionResultExperienceCount), nameof(SessionResultExperienceCount.Show), new[] { typeof(Profile), typeof(bool), typeof(ExitStatus) });
         }
 
         private static bool IsTargetMethod(MethodInfo mi)
@@ -37,7 +32,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         {
             Logger.LogInfo("PatchPrefix");
             //profile = CoopPlayerStatisticsManager.Profile;
-            isOnline = true;
+            isOnline = false;
         }
 
         [PatchPostfix]

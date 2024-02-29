@@ -39,7 +39,8 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
                 throw new IndexOutOfRangeException($"Loyalty level {loyaltyLevel} not found.");
 
             // Backing field of the "CurrentLoyalty" property
-            Traverse.Create(__instance).Field("traderLoyaltyLevel_0").SetValue(loyaltyLevelSettings.Value);
+            // Traverse.Create(__instance).Field("traderLoyaltyLevel_0").SetValue(loyaltyLevelSettings.Value);
+            Traverse.Create(__instance).Field("<CurrentLoyalty>k__BackingField").SetValue(loyaltyLevelSettings.Value);
         }
     }
 }

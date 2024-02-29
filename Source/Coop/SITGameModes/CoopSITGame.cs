@@ -1038,7 +1038,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
             }
 
-            dateTime_0 = DateTime.UtcNow;
+            dateTime_0 = DateTime.Now;
             Status = GameStatus.Started;
             ConsoleScreen.ApplyStartCommands();
         }

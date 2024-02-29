@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Networking;
+using HarmonyLib;
+using System;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
 {
@@ -19,13 +21,10 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         /// <returns></returns>
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(SessionResultExitStatus);
-            var desiredMethod = desiredType.GetMethods(StayInTarkovHelperConstants.PrivateFlags).FirstOrDefault(IsTargetMethod);
-
-            Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
-            Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
-
-            return desiredMethod;
+            return AccessTools.Method(
+                typeof(SessionResultExitStatus),
+                nameof(SessionResultExitStatus.Show),
+                new[] { typeof(Profile), typeof(PlayerVisualRepresentation), typeof(ESideType), typeof(ExitStatus), typeof(TimeSpan), typeof(ISession), typeof(bool) });
         }
 
         private static bool IsTargetMethod(MethodInfo mi)
