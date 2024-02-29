@@ -22,7 +22,7 @@ namespace StayInTarkov.Coop
         {
             Profile_0 = profile;
             IHealthController_0 = healthController;
-            NotificationManagerClass.DisplayMessageNotification($"{nameof(CoopPlayerStatisticsManager)}{nameof(Init)}");
+            //NotificationManagerClass.DisplayMessageNotification($"{nameof(CoopPlayerStatisticsManager)}{nameof(Init)}");
             Logger.LogInfo($"{nameof(CoopPlayerStatisticsManager)}:{nameof(Init)}");
 
         }

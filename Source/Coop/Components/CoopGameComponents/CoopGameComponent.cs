@@ -266,6 +266,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (player == null)
                     continue;
 
+                if (player is CoopPlayerClient)
+                    continue;
+
                 if (!player.TryGetComponent(out PlayerReplicatedComponent prc))
                     continue;
 
@@ -1129,7 +1132,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                , Quaternion.identity
                ,
                "Player",
-               ""
+               "ClientPlayer_" + profile.Nickname + "_"
                , EPointOfView.ThirdPerson
                , profile
                , aiControl: useAiControl
@@ -1300,11 +1303,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 playerHealth.BodyParts[bpIndex].Current = health.Current;
                 playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
                 bpIndex++;
-            }
-
-            if (LastPlayerHealthPackets.ContainsKey(player.ProfileId) && LastPlayerHealthPackets[player.ProfileId].Equals(playerHealth))
-            {
-                playerHealth = null;
             }
 
             if (playerHealth != null)
