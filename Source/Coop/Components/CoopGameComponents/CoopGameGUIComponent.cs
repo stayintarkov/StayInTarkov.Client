@@ -223,6 +223,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (ownPlayer == null)
                 return;
 
+            // Paulov: Do not show labels whilst in Inventory, its annoying!
+            if (ownPlayer.IsInventoryOpened)
+                return;
+
             foreach (var pl in PlayerUsers)
             {
                 if (pl == null)
