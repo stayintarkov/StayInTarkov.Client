@@ -8,7 +8,9 @@ using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -32,10 +34,18 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             BepInLogger.LogDebug($"Execute(Operation1 operation,:{operation}");
         }
 
-        public override async void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
+        public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
             // Debug the operation
+            BepInLogger.LogDebug($"{nameof(Execute)}{nameof(AbstractInventoryOperation)}");
             BepInLogger.LogDebug($"{operation}");
+
+            // Paulov: Fix issue with assigning items to Quick Bar
+            if(operation != null && operation.GetType() == typeof(GAbstractOperation15))
+            {
+                base.Execute(operation, callback);
+                return;
+            }
 
             // Taken from ClientPlayer.Execute
             if (callback == null)
@@ -44,6 +54,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 {
                 };
             }
+
             // Taken from ClientPlayer.Execute
             if (!vmethod_0(operation))
             {
@@ -75,7 +86,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             RaiseInvEvents(operation, CommandStatus.Begin);
 
             // Create the packet to send to the Server
-            await Task.Delay(50);
             SendExecuteOperationToServer(operation);
             InventoryOperations.Add(operation.Id, (operation, callback));
 
@@ -300,41 +310,121 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             // Problem occurs because the bullets are not provided the ItemId that the client knows about so they cannot syncronize properly when it reached them
             return await UnloadAmmoInstantly(magazine);
 
-            // --------------------------------------------------------------------------
-            // HELP / UNDERSTANDING
-            // Use DNSpy/ILSpy to understand more on this process. EFT.Player.PlayerInventoryController.UnloadMagazine
-            // The current process uses an Interfaced class to Start and asyncronously run unloading 1 bullet at a time based on skills etc
+            //    // --------------------------------------------------------------------------
+            //    // HELP / UNDERSTANDING
+            //    // Use DNSpy/ILSpy to understand more on this process. EFT.Player.PlayerInventoryController.UnloadMagazine
+            //    // The current process uses an Interfaced class to Start and asyncronously run unloading 1 bullet at a time based on skills etc
+            //    //float magSkillSpeed = 100f - (float)Profile.Skills.MagDrillsUnloadSpeed + magazine.LoadUnloadModifier;
+            //    //float unloadTime = Singleton<BackendConfigSettingsClass>.Instance.BaseUnloadTime * magSkillSpeed / 100f;
+            //    //var hasBulletsRemaining = true;
 
 
+            //    //GOperationResult5 operationResult;
+            //    //IPopNewAmmoResult unloadLocation = null;
+            //    //Item firstBullet = null;
+            //    //while (hasBulletsRemaining)
+            //    //{
+            //    //    BulletClass currentBullet = (BulletClass)magazine.Cartridges.Items.LastOrDefault();
+            //    //    if (currentBullet == null)
+            //    //        break;
 
-            //int retryCount = 3;
-            //int delayBetweenRetries = 500;
+            //    //    if (firstBullet != null && currentBullet.TemplateId != firstBullet.TemplateId)
+            //    //        firstBullet = null;
 
-            //while (retryCount-- > 0)
-            //{
-            //    try
-            //    {
-            //        IResult result = await base.UnloadMagazine(magazine);
-            //        if (result.Failed)
-            //        {
-            //            BepInLogger.LogError($"Failed to unload magazine {magazine.Id}: {result.Error}");
-            //            if (retryCount > 0) await Task.Delay(delayBetweenRetries);
-            //            else return result;
-            //        }
-            //        else
-            //        {
-            //            BepInLogger.LogDebug($"Successfully unloaded magazine {magazine.Id}");
-            //            return SuccessfulResult.New;
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        BepInLogger.LogError($"Exception in UnloadMagazine for magazine {magazine.Id}: {ex.Message}");
-            //        if (retryCount <= 0) return new FailedResult($"Exception occurred: {ex.Message}", -1);
-            //        await Task.Delay(delayBetweenRetries);
-            //    }
-            //}
-            //return new FailedResult("Failed to unload magazine after multiple attempts.", -1);
+            //    //    //var sourceOption = ItemMovementHandler.QuickFindAppropriatePlace(currentBullet, this, this.Inventory.Equipment.ToEnumerable(), ItemMovementHandler.EMoveItemOrder.UnloadAmmo, simulate: true);
+            //    //    if (firstBullet == null || unloadLocation == null)
+            //    //    {
+            //    //        var result = ItemMovementHandler.QuickFindAppropriatePlace(currentBullet, this, this.Inventory.Equipment.ToEnumerable(), ItemMovementHandler.EMoveItemOrder.UnloadAmmo, false);
+            //    //        if (result.Failed)
+            //    //            break;
+
+            //    //        if (firstBullet == null) 
+            //    //        {
+            //    //            firstBullet = result.Value.ResultItem;
+            //    //        }
+            //    //    }
+
+            //    //    await Task.Delay(Mathf.CeilToInt(unloadTime * 1000f));
+
+            //    //    //BepInLogger.LogDebug($"{nameof(sourceOption)}:{sourceOption}");
+
+            //    //    //if (sourceOption.Failed)
+            //    //    //    return sourceOption.ToResult();
+
+            //    //    //ItemAddress itemAddress = null;
+            //    //    //Item item = null;
+            //    //    //IPopNewAmmoResult value = sourceOption.Value;
+
+            //    //    //BepInLogger.LogDebug($"{nameof(value)}:{value}");
+
+            //    //    //if (value != null)
+            //    //    //{
+            //    //    //    if (!(value is GIPopNewAmmoResult1 gIPopNewAmmoResult))
+            //    //    //    {
+            //    //    //        if (value is GIPopNewAmmoResult2 gIPopNewAmmoResult2)
+            //    //    //        {
+            //    //    //            item = gIPopNewAmmoResult2.TargetItem;
+            //    //    //        }
+            //    //    //    }
+            //    //    //    else
+            //    //    //    {
+            //    //    //        itemAddress = gIPopNewAmmoResult.To;
+            //    //    //        item = currentBullet;
+            //    //    //    }
+            //    //    //}
+
+            //    //    //BepInLogger.LogDebug($"{nameof(itemAddress)}:{itemAddress}");
+            //    //    //BepInLogger.LogDebug($"{nameof(item)}:{item}");
+
+            //    //    //if (itemAddress == null && item == null)
+            //    //    //    break;
+
+            //    //    //await Task.Delay(Mathf.CeilToInt(unloadTime * 1000f));
+            //    //    //global::SOperationResult12<GIOperationResult> sourceOption2 = ((firstBullet != null) ? BulletClass.ApplyToAmmo(item, firstBullet, 1, this, simulate: true) : BulletClass.ApplyToAddress(item, itemAddress, 1, this, simulate: true));
+
+            //    //    //BepInLogger.LogDebug($"{nameof(sourceOption2)}:{sourceOption2.Value}");
+
+            //    //    //if (sourceOption2.Failed)
+            //    //    //{
+            //    //    //    BepInLogger.LogError($"{nameof(sourceOption2)}:{sourceOption2.Error}");
+            //    //    //    return sourceOption2.ToResult();
+            //    //    //}
+            //    //    //var operationResult = new GOperationResult5(sourceOption2.Value);
+            //    //    //if (!operationResult.CanExecute(this))
+            //    //    //    break;
+
+            //    //    //var operation = this.ConvertOperationResultToOperation(operationResult);
+            //    //    //this.ReceiveExecute(operation);
+            //    //    //if (firstBullet == null)
+            //    //    //    firstBullet = item;
+
+            //    //    if (Singleton<GUISounds>.Instantiated)
+            //    //        Singleton<GUISounds>.Instance.PlayUIUnloadSound();
+
+
+            //    //    hasBulletsRemaining = magazine.Cartridges.Items.Count() > 0;
+            //    //    //this.Execute(operation, delegate (IResult executeResult)
+            //    //    //{
+            //    //    //    executionSource.SetResult(executeResult);
+            //    //    //});
+            //    //    //IResult result = await executionSource.Task;
+            //    //    //if (!result.Failed)
+            //    //    //{
+            //    //    //    if (firstBullet == null)
+            //    //    //        firstBullet = item;
+            //    //    //    //int_1--;
+            //    //    //    //item.RaiseRefreshEvent();
+            //    //    //    //magazine.RaiseRefreshEvent();
+            //    //    //    //item_1?.RaiseRefreshEvent();
+
+            //    //    //    if (Singleton<GUISounds>.Instantiated)
+            //    //    //        Singleton<GUISounds>.Instance.PlayUIUnloadSound();
+            //    //    //    continue;
+            //    //    //}
+            //    //    //return result;
+            //    //}
+
+            //    //return null;
         }
 
         //public void ReceiveUnloadMagazineFromServer(ItemPlayerPacket unloadMagazinePacket)
