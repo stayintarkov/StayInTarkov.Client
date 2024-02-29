@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Remoting.Lifetime;
 using UnityEngine;
+using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -98,6 +99,7 @@ namespace StayInTarkov.Coop.Players
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
                 coopGameComponent.ServerPingSmooth.Enqueue(ms);
             }
+            
 
             //BepInLogger.LogInfo(NewState.ToJson());
 
@@ -110,18 +112,88 @@ namespace StayInTarkov.Coop.Players
             LastRPSP = DateTime.Now;
         }
 
+        public Queue<ISITPacket> ReceivedPackets = new Queue<ISITPacket>();
+
         void Update()
         {
-            //BepInLogger.LogDebug("Update");
+            // Run through the Received Packets and Apply the action
+            while (ReceivedPackets.Count > 0)
+            {
+                var packet = ReceivedPackets.Dequeue();
+                if (packet is PlayerProceedFoodDrinkPacket foodDrinkPacket)
+                {
+                    if (ItemFinder.TryFindItem(foodDrinkPacket.ItemId, out Item item) && item is FoodClass foodDrink)
+                    {
+                        Proceed(foodDrink, foodDrinkPacket.Amount, null, foodDrinkPacket.AnimationVariant, foodDrinkPacket.Scheduled);
+                    }
+                }
+                if (packet is PlayerProceedMedsPacket medsPacket)
+                {
+                    if (ItemFinder.TryFindItem(medsPacket.ItemId, out Item item) && item is MedsClass meds)
+                    {
+                        Proceed(meds, medsPacket.BodyPart, null, medsPacket.AnimationVariant, medsPacket.Scheduled);
+                    }
+                }
+            }
 
-            //var prc = GetComponent<PlayerReplicatedComponent>();
-            //if (prc == null || !prc.IsClientDrone)
-            //    return;
+            // Update the Health parts of this character using the packets from the Player State
+            if (NewState != null)
+            {
+                var bodyPartDictionary = GetBodyPartDictionary(this);
+                if (bodyPartDictionary != null)
+                {
+                    //BepInLogger.LogInfo(bodyPartDictionary.ToJson());
+                    if (NewState.PlayerHealth != null)
+                    {
+                        foreach (var bodyPartPacket in NewState.PlayerHealth.BodyParts)
+                        {
+                            if (bodyPartPacket.BodyPart == EBodyPart.Common)
+                                continue;
 
-            //prc.UpdateTick();
+                            if (bodyPartDictionary.ContainsKey(bodyPartPacket.BodyPart))
+                            {
+                                //BepInLogger.LogInfo($"{nameof(Update)} set bodyPart current {bodyPartPacket.ToJson()}");
+                                bodyPartDictionary[bodyPartPacket.BodyPart].Health.Current = bodyPartPacket.Current;
+                            }
+                            else
+                            {
+                                //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(NewState.PlayerHealth)} is null");
+                    }
+                }
+                else
+                {
+                    BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to obtain BodyPartDictionary");
+                }
+            }
+        }
 
-            //Interpolate();
+        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        {
+            try
+            {
+                var bodyPartDict
+                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
+                (player.PlayerHealthController, "Dictionary_0", false);
+                if (bodyPartDict == null)
+                {
+                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State Dictionary");
+                    return null;
+                }
+                //Logger.LogInfo(bodyPartDict.ToJson());
+                return bodyPartDict;
+            }
+            catch (Exception)
+            {
 
+            }
+
+            return null;
         }
 
         new void LateUpdate()
@@ -285,78 +357,50 @@ namespace StayInTarkov.Coop.Players
         {
         }
 
-        public PlayerProceedMedsPacket ReceivedMedsPacket { get; set; }
-        public PlayerProceedFoodDrinkPacket ReceivedFoodDrinkPacket { get; set; }
+        public override void UpdateArmsCondition()
+        {
+        }
+
+        private Item LastUsedItem = null;
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
+            LastUsedItem = foodDrink;
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
             Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, (x) => {
-
-                BepInLogger.LogInfo(x);
-                BepInLogger.LogInfo(x.Value);
-                BepInLogger.LogInfo(x.Complete);
-                BepInLogger.LogInfo(x.Failed);
-                BepInLogger.LogInfo(x.Error);
-
-                if(x.Complete)
-                {
-                    if(x.Value.Item is FoodClass foodDrink2)
-                    {
-                        foodDrink2.FoodDrinkComponent.HpPercent = Mathf.Max(0f, foodDrink2.FoodDrinkComponent.HpPercent - Mathf.Round(foodDrink2.FoodDrinkComponent.MaxResource * amount));
-                        if (ReceivedFoodDrinkPacket.UsedAll)
-                            foodDrink2.FoodDrinkComponent.HpPercent = 0;
-
-                        if (foodDrink2.FoodDrinkComponent.HpPercent.IsZero() || !foodDrink2.FoodDrinkComponent.HpPercent.Positive())
-                            RemoveItem(foodDrink2);
-                    }
-                }
-
-                if(callback != null)
-                    callback(x);
-
-            }, false);
+            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, (x) => { LastUsedItem = x.Value.Item; }, false);
         }
 
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
+            LastUsedItem = meds;
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
-            //Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
-            //new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
-
-            //    BepInLogger.LogInfo(x);
-            //    BepInLogger.LogInfo(x.Value);
-            //    BepInLogger.LogInfo(x.Complete);
-            //    BepInLogger.LogInfo(x.Failed);
-            //    BepInLogger.LogInfo(x.Error);
-
-            //    if (x.Complete)
-            //    {
-            //        //if (x.Value.Item is MedsClass medsClass2)
-            //        {
-            //            if(meds.StackObjectsCount > 0 && ReceivedMedsPacket.Amount >= 1)
-            //            {
-            //                BepInLogger.LogInfo(meds.StackObjectsCount);
-            //                BepInLogger.LogInfo(ReceivedMedsPacket.Amount);
-            //                meds.StackObjectsCount -= (int)Math.Round(ReceivedMedsPacket.Amount);
-            //            }
-            //            //ActiveHealthController.Heal(meds, bodyPart, Mathf.RoundToInt(a + (float)num));
-            //            this.Heal(bodyPart, (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount));
-            //            meds.MedKitComponent.HpResource -= (meds.MedKitComponent.MaxHpResource * ReceivedMedsPacket.Amount);
-            //            meds.RaiseRefreshEvent();
-
-            //            if (meds.MedKitComponent.HpResource.IsZero() || !meds.MedKitComponent.HpResource.Positive())
-            //                RemoveItem(meds);
-            //        }
-            //    }
-
-            //    if (callback != null)
-            //        callback(x);
-
-            //}, false);
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
-            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, callback, scheduled);
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, null, false);
+        }
+
+        public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
+
+            BepInLogger.LogDebug($"{nameof(DropCurrentController)}:{nameof(LastUsedItem)}:{LastUsedItem}");
+            if (LastUsedItem != null)
+            {
+                if(LastUsedItem is FoodClass foodClass)
+                {
+                    BepInLogger.LogDebug("Last used item is food class");
+                }
+                if(LastUsedItem is MedsClass medClass)
+                {
+                    BepInLogger.LogDebug("Last used item is med class");
+                }
+
+
+                LastUsedItem = null;
+            }
+
+            base.DropCurrentController(callback, fastDrop, nextControllerItem);
+
         }
 
 
@@ -394,6 +438,9 @@ namespace StayInTarkov.Coop.Players
             }
             return true;
         }
+
+
+        
 
     }
 }

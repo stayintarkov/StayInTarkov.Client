@@ -458,29 +458,7 @@ namespace StayInTarkov.Coop.Players
             return $"[{side}] {player.Profile.GetCorrectedNickname()}";
         }
 
-        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        {
-            base.Proceed(foodDrink, amount, (x) => {
-
-                if (x.Complete)
-                {
-                    if (x.Value.Item is FoodClass food)
-                    {
-                        if (animationVariant == 0)
-                            animationVariant = 1;
-
-                        var usedAll = food.FoodDrinkComponent.RelativeValue <= 0;
-                        PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
-                        foodDrinkPacket.UsedAll = usedAll;
-                        BepInLogger.LogDebug(foodDrinkPacket.ToJson());
-                        GameClient.SendData(foodDrinkPacket.Serialize());
-                    }
-
-                }
-                callback(x);
-            }, animationVariant, scheduled);
-           
-        }
+       
 
         protected struct SITPostProceedData
         {
@@ -499,13 +477,30 @@ namespace StayInTarkov.Coop.Players
 
         protected SITPostProceedData? PostProceedData { get; set; }
 
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            var startResource = foodDrink.FoodDrinkComponent.RelativeValue;
+            PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = foodDrink };
+
+            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+            PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
+            BepInLogger.LogDebug(foodDrinkPacket.ToJson());
+            GameClient.SendData(foodDrinkPacket.Serialize());
+        }
+
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
+            if (this is CoopPlayerClient)
+            {
+                base.Proceed(meds, bodyPart, callback, animationVariant, scheduled);
+                return;
+            }
+
             var startResource = meds.MedKitComponent.HpResource;
 
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
-            new Process<MedsController, IMedsController>(this, controllerFactory, meds, false, AbstractProcess.Completion.Async, AbstractProcess.Confirmation.Succeed, false).method_0(null, (x) => {
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
                 PostProceedData = new SITPostProceedData { PreviousAmount = meds.MedKitComponent.HpResource, UsedItem = meds, HandsController = x.Value };
                 callback(x);
             },false);
@@ -568,6 +563,8 @@ namespace StayInTarkov.Coop.Players
             if(BepInLogger == null)
                 BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
+
+        
 
     }
 }
