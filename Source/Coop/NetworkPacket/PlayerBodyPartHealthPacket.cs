@@ -22,21 +22,25 @@ namespace StayInTarkov.Coop.NetworkPacket
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
             WriteHeader(writer);
-            writer.Write(BodyPart.ToString());
+            writer.Write((byte)BodyPart);
             writer.Write(Current);
             writer.Write(Maximum);
-            var bytes = ms.ToArray();
-            return bytes;
+            return ms.ToArray();
         }
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeader(reader);
-            BodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), reader.ReadString()); // body part
+            BodyPart = (EBodyPart)reader.ReadByte(); // body part
             Current = reader.ReadSingle();
             Maximum = reader.ReadSingle();
             return this;
+        }
+
+        public override void Process()
+        {
+            // Doesn't do anything
         }
     }
 }
