@@ -1,4 +1,6 @@
 ﻿using EFT;
+using HarmonyLib;
+using StayInTarkov.Networking;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace StayInTarkov.Health
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(LocalPlayer), "Init");
+            return AccessTools.Method(typeof(LocalPlayer), nameof(LocalPlayer.Init));
         }
 
         [PatchPostfix]
@@ -33,15 +35,16 @@ namespace StayInTarkov.Health
             await __result;
 
             var listener = HealthListener.Instance;
-            if (profile?.Id.StartsWith("pmc") == true && __instance.IsYourPlayer)
+
+            if (profile?.Id.Equals(AkiBackendCommunication.Instance.ProfileId, StringComparison.InvariantCultureIgnoreCase) ?? false && __instance.IsYourPlayer)
             {
-                //Logger.LogInfo($"Hooking up health listener to profile: {profile.Id}");
+                Logger.LogDebug($"Hooking up health listener to profile: {profile.Id}");
                 listener.Init(__instance.HealthController, true);
-                //Logger.LogInfo($"HealthController instance: {__instance.HealthController.GetHashCode()}");
+                Logger.LogDebug($"HealthController instance: {__instance.HealthController.GetHashCode()}");
             }
             else
             {
-                //Logger.LogInfo($"Skipped on HealthController instance: {__instance.HealthController.GetHashCode()} for profile id: {profile?.Id}");
+                Logger.LogDebug($"Skipped on HealthController instance: {__instance.HealthController.GetHashCode()} for profile id: {profile?.Id}");
             }
 
         }
