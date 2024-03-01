@@ -127,9 +127,12 @@ namespace StayInTarkov.Coop.Players
             IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();
             player.BepInLogger.LogDebug($"{nameof(statsManager)} Instantiated with type {statsManager.GetType()}");
 
-            IHealthController healthController = isClientDrone
-                ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl)
-                : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl);
+            // TODO: Convert over to own Health Controller. For some reason, something is hard coded to use PlayerHealthController to discard/use items when depleted. I have to use PlayerHealthController for now to fix.
+            //IHealthController healthController = isClientDrone
+            //? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true)//   new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl)
+            //: new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl);
+            IHealthController healthController = new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
 
             await player
@@ -496,12 +499,12 @@ namespace StayInTarkov.Coop.Players
                 return;
             }
 
-            var startResource = meds.MedKitComponent.HpResource;
+            var startResource = meds != null && meds.MedKitComponent != null ? meds.MedKitComponent.HpResource : 1;
 
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
             new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
-                PostProceedData = new SITPostProceedData { PreviousAmount = meds.MedKitComponent.HpResource, UsedItem = meds, HandsController = x.Value };
+                PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = meds, HandsController = x.Value };
                 callback(x);
             },false);
             PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
@@ -540,11 +543,11 @@ namespace StayInTarkov.Coop.Players
                 {
                     if (PostProceedData.Value.UsedItem is MedsClass meds)
                     {
-                        newValue = meds.MedKitComponent.HpResource;
+                        newValue = meds != null && meds.MedKitComponent != null ? meds.MedKitComponent.HpResource : 0;
                     }
                     if (PostProceedData.Value.UsedItem is FoodClass food)
                     {
-                        newValue = food.FoodDrinkComponent.HpPercent;
+                        newValue = food != null && food.FoodDrinkComponent != null ? food.FoodDrinkComponent.HpPercent : 0;
                     }
                 }
 

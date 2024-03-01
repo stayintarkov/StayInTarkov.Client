@@ -4,6 +4,8 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers
@@ -102,5 +104,30 @@ namespace StayInTarkov.Coop.Controllers
 
         //    return base.RemoveEffectFromList(effect);
         //}
+
+    }
+
+    public class CoopHealthControllerRemoveMedEffectPatch : ModuleReplicationPatch
+    {
+        public override Type InstanceType => typeof(CoopHealthControllerClient);
+
+        public override string MethodName => "RemoveMedEffect";
+
+        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
+        {
+        }
+
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
+        }
+
+        [PatchPrefix]
+        public static bool Prefix(object __instance)
+        {
+            var result = __instance.GetType() != typeof(CoopHealthControllerClient);
+            GetLogger(typeof(CoopHealthControllerRemoveMedEffectPatch)).LogDebug($"{nameof(Prefix)}:result={result}");
+            return result;
+        }
     }
 }

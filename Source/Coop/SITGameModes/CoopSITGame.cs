@@ -35,20 +35,6 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
-    public sealed class FriendlyAIPMCSystem
-    {
-        /// <summary>
-        /// This spawns bots but does nothing. DO NOT USE!
-        /// </summary>
-        [JsonProperty("shouldSpawnFriendlyAI")]
-        public bool? ShouldSpawnFriendlyAI { get; set; } = false;
-
-        public int? CurrentNumberOfFriendlies { get; set; } = 0;
-
-        [JsonProperty("maxNumberOfFriendlies")]
-        public int? MaxNumberOfFriendlies { get; set; } = 1;
-    }
-
     /// <summary>
     /// A custom Game Type
     /// </summary>
@@ -56,7 +42,6 @@ namespace StayInTarkov.Coop.SITGameModes
     {
         public new bool InRaid { get { return true; } }
 
-        public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
         public ISession BackEndSession { get { return StayInTarkovHelperConstants.BackEndSession; } }
 
@@ -720,50 +705,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             CoopPatches.EnableDisablePatches();
 
-            // ---------------------------------------------
-            // Create friendly bots
-            if (FriendlyAIPMCSystem != null
-                && FriendlyAIPMCSystem.ShouldSpawnFriendlyAI.HasValue
-                && FriendlyAIPMCSystem.ShouldSpawnFriendlyAI.Value
-                && FriendlyAIPMCSystem.MaxNumberOfFriendlies.HasValue
-                && FriendlyAIPMCSystem.MaxNumberOfFriendlies.Value > 0)
-            {
-                for (var indexOfFriendly = 0; indexOfFriendly < FriendlyAIPMCSystem.MaxNumberOfFriendlies.Value; indexOfFriendly++)
-                {
-                    var profileClone = profile.Clone();
-                    profileClone.AccountId = new System.Random().Next(1000000000, int.MaxValue).ToString();
-                    profileClone.Id = "ai" + new MongoID(true);
-                    profileClone.Skills.StartClientMode();
-
-                    CoopPlayer friendlyBot = (CoopPlayer)await CoopPlayer
-                       .Create(
-                       playerId + 90 + indexOfFriendly
-                       , position
-                       , rotation
-                       , "Player"
-                       , ""
-                       , EPointOfView.ThirdPerson
-                       , profileClone
-                       , aiControl: true
-                       , UpdateQueue
-                       , armsUpdateMode
-                       , EFT.Player.EUpdateMode.Auto
-                       , BackendConfigManager.Config.CharacterController.BotPlayerMode
-                       , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                       , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                       , new FilterCustomizationClass()
-                       , null
-                       , isYourPlayer: false);
-                    friendlyBot.IsFriendlyBot = true;
-                    //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
-                    //companionComponent.CoopPlayer = friendlyBot;
-                    if (!FriendlyPlayers.ContainsKey(profileClone.Id))
-                        FriendlyPlayers.Add(profileClone.Id, friendlyBot);
-
-
-                }
-            }
-
             return myPlayer;
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
@@ -784,7 +725,7 @@ namespace StayInTarkov.Coop.SITGameModes
                         {
                         "isAI",
                             //player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
-                            !player.IsYourPlayer
+                            !player.IsYourPlayer && (player as CoopPlayerClient == null)
                         },
                         {
                             "profileId",

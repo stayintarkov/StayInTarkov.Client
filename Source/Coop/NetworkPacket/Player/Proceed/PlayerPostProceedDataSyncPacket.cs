@@ -65,13 +65,19 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
+
+            if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+            {
+                client.ReceivedPackets.Enqueue(this);
+            }
+            //StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
         }
 
         private IEnumerator ProceedCoroutine()
         {
-            bool done = false;
-            while (!done)
+            while (true)
             {
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     break;
@@ -80,16 +86,26 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
                 {
                     if (ItemFinder.TryFindItem(this.ItemId, out Item item))
                     {
-                        yield return new WaitForEndOfFrame();
-
                         if(item is MedsClass meds)
                         {
-                            meds.MedKitComponent.HpResource = this.NewValue;
-                            meds.RaiseRefreshEvent();
+                            if (meds.MedKitComponent != null)
+                            {
+                                meds.MedKitComponent.HpResource = this.NewValue;
+                            }
+
+                            break;
+                        }
+                        if (item is FoodClass food)
+                        {
+                            if (food.FoodDrinkComponent != null)
+                            {
+                                food.FoodDrinkComponent.HpPercent = this.NewValue;
+                            }
+
+                            break;
                         }
 
-                        done = true;
-                        break;
+                        item.RaiseRefreshEvent(true, true);
                     }
                 }
                 else

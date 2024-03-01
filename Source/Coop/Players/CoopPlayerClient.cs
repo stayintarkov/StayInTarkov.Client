@@ -1,21 +1,14 @@
 ﻿using Comfort.Common;
 using Diz.LanguageExtensions;
 using EFT;
-using EFT.Interactive;
 using EFT.InventoryLogic;
-using EFT.UI;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
-using StayInTarkov.Core.Player;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Runtime.Remoting.Lifetime;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
@@ -120,6 +113,8 @@ namespace StayInTarkov.Coop.Players
             while (ReceivedPackets.Count > 0)
             {
                 var packet = ReceivedPackets.Dequeue();
+                BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Dequeue:{packet.GetType().Name}");
+
                 if (packet is PlayerProceedFoodDrinkPacket foodDrinkPacket)
                 {
                     if (ItemFinder.TryFindItem(foodDrinkPacket.ItemId, out Item item) && item is FoodClass foodDrink)
@@ -134,6 +129,77 @@ namespace StayInTarkov.Coop.Players
                         Proceed(meds, medsPacket.BodyPart, null, medsPacket.AnimationVariant, medsPacket.Scheduled);
                     }
                 }
+                //if (packet is PlayerPostProceedDataSyncPacket postProceedDataSyncPacket)
+                //{
+                //    BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}");
+
+                //    if (ItemFinder.TryFindItem(postProceedDataSyncPacket.ItemId, out Item item))
+                //    {
+                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:Item:{item}");
+                //        var shouldRemoveItem = false;
+                //        if (item is MedsClass meds)
+                //        {
+                //            if (meds.MedKitComponent != null)
+                //            {
+                //                meds.MedKitComponent.HpResource = postProceedDataSyncPacket.NewValue;
+                //                shouldRemoveItem = (meds.MedKitComponent.HpResource <= 0);
+                //            }
+                //            // one time use
+                //            else
+                //            {
+                //                shouldRemoveItem = true;
+                //            }
+                //        }
+                //        if (item is FoodClass food)
+                //        {
+                //            if (food.FoodDrinkComponent != null)
+                //            {
+                //                food.FoodDrinkComponent.HpPercent = postProceedDataSyncPacket.NewValue;
+                //                shouldRemoveItem = (food.FoodDrinkComponent.HpPercent <= 0);
+
+                //            }
+                //            // one time use
+                //            else
+                //            {
+                //                shouldRemoveItem = true;
+                //            }
+                //        }
+
+                //        item.RaiseRefreshEvent();
+
+                //        //base.DropCurrentController(() => { }, false, null);
+                //        if (HandsController is SITMedsControllerClient medsController)
+                //        {
+                //            BepInLogger.LogDebug($"AbstractProcess_0: {AbstractProcess_0}");
+
+                //            //medsController.Drop(1f, () => {
+                //            if (AbstractProcess_0 != null)
+                //            {
+
+                //                AbstractProcess_0.Abort();
+                //                if (shouldRemoveItem)
+                //                {
+                //                    BepInLogger.LogDebug($"Discard Requested {item}");
+                //                    var discardAttempt = ItemMovementHandler.Discard(item, this._inventoryController, true, false);
+                //                    if (discardAttempt.Succeeded)
+                //                        RemoveItem(item);
+                //                    else
+                //                    {
+                //                        BepInLogger.LogError($"Unable to Discard {item}. Reason: {discardAttempt.Error}");
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    BepInLogger.LogDebug($"Not Discard {item}. Reason: Not Requested");
+                //                }
+                //            }
+
+                //            //}, false, null);
+                //        }
+
+                        
+                //    }
+                //}
             }
 
             // Update the Health parts of this character using the packets from the Player State
@@ -363,64 +429,95 @@ namespace StayInTarkov.Coop.Players
 
         private Item LastUsedItem = null;
 
-        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        {
-            LastUsedItem = foodDrink;
-            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
-            Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, (x) => { LastUsedItem = x.Value.Item; }, false);
-        }
+        //public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        //{
+        //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
+        //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+        //    AbstractProcess_0 = new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink);
+        //    AbstractProcess_0.Execute();
+        //    //AbstractProcess_0.method_0(null, (x) => { LastUsedItem = x.Value.Item; }, true);
+        //}
 
-        public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        {
-            LastUsedItem = meds;
-            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
-            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
-            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, null, false);
-        }
+        //public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        //{
+        //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
+        //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
+        //    var p = new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds);
+        //    p.method_0(null, (x) => 
+        //    { 
+        //        LastUsedItem = x.Value.Item;
+        //        meds.RaiseRefreshEvent();
+        //    }, true);
+        //}
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
+            // just use normal
+            //if(LastUsedItem == null || nextControllerItem == LastUsedItem)
+            //{
+            //    base.DropCurrentController(callback, fastDrop, nextControllerItem);
+            //    return;
+            //}
+
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
+            ////base.DropCurrentController(callback, fastDrop, nextControllerItem);
 
-            BepInLogger.LogDebug($"{nameof(DropCurrentController)}:{nameof(LastUsedItem)}:{LastUsedItem}");
-            if (LastUsedItem != null)
-            {
-                if(LastUsedItem is FoodClass foodClass)
-                {
-                    BepInLogger.LogDebug("Last used item is food class");
-                }
-                if(LastUsedItem is MedsClass medClass)
-                {
-                    BepInLogger.LogDebug("Last used item is med class");
-                }
+            //BepInLogger.LogDebug($"{nameof(DropCurrentController)}:{nameof(LastUsedItem)}:{LastUsedItem}");
+            //if (LastUsedItem != null)
+            //{
+            //    if (LastUsedItem.StackObjectsCount <= 0)
+            //        RemoveItem(LastUsedItem);
+            //    else
+            //    {
+            //        if (LastUsedItem is FoodClass foodClass)
+            //        {
+            //            BepInLogger.LogDebug("Last used item is food class");
+
+            //        }
+            //        else if (LastUsedItem is MedsClass medClass)
+            //        {
+            //            BepInLogger.LogDebug("Last used item is med class");
+            //            if (medClass.MedKitComponent != null)
+            //            {
+            //                if (medClass.MedKitComponent.HpResource <= 0)
+            //                    RemoveItem(medClass);
+            //            }
+            //            else
+            //            {
+            //                RemoveItem(medClass);
+            //            }
+            //        }
+            //    }
 
 
-                LastUsedItem = null;
-            }
-
+            //    LastUsedItem = null;
+            //}
             base.DropCurrentController(callback, fastDrop, nextControllerItem);
-
         }
 
 
         public bool RemoveItem(Item item)
         {
-            TraderControllerClass traderControllerClass = this._inventoryController;
+            TraderControllerClass invController = this._inventoryController;
             IOperationResult value;
             Error error;
+
+            if(item.Owner == null)
+            {
+                ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
+            }
 
             try
             {
                 if (item.StackObjectsCount > 1)
                 {
-                    global::SOperationResult12<GIOperationResult1> sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, traderControllerClass, traderControllerClass, simulate: false);
+                    global::SOperationResult12<GIOperationResult1> sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
                     value = sOperationResult.Value;
                     error = sOperationResult.Error;
                 }
                 else
                 {
-                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, traderControllerClass, false, true);
+                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, invController, false, false);
                     value = sOperationResult2.Value;
                     error = sOperationResult2.Error;
                 }
@@ -429,8 +526,12 @@ namespace StayInTarkov.Coop.Players
                     BepInLogger.LogError($"Couldn't remove item: {error}");
                     return false;
                 }
-                value.RaiseEvents(traderControllerClass, CommandStatus.Begin);
-                value.RaiseEvents(traderControllerClass, CommandStatus.Succeed);
+                if (item.Owner == null)
+                {
+                    ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
+                }
+                value.RaiseEvents(invController, CommandStatus.Begin);
+                value.RaiseEvents(invController, CommandStatus.Succeed);
             }
             catch (Exception)
             {
