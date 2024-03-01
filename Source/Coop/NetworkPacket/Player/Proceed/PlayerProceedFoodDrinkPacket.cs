@@ -42,7 +42,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             writer.Write((Single)Amount);
             writer.Write(AnimationVariant);
             writer.Write(TimeSerializedBetter);
-            writer.Write(UsedAll);
 
             return ms.ToArray();
         }
@@ -59,7 +58,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             Amount = reader.ReadSingle();
             AnimationVariant = reader.ReadInt32();
             TimeSerializedBetter = reader.ReadString();
-            UsedAll = reader.ReadBoolean();
 
             return this;
         }

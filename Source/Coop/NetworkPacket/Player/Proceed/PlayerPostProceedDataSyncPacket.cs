@@ -75,45 +75,50 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             //StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
         }
 
-        private IEnumerator ProceedCoroutine()
+        //private IEnumerator ProceedCoroutine()
+        //{
+        //    while (true)
+        //    {
+        //        if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+        //            break;
+
+        //        if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+        //        {
+        //            if (ItemFinder.TryFindItem(this.ItemId, out Item item))
+        //            {
+        //                if(item is MedsClass meds)
+        //                {
+        //                    if (meds.MedKitComponent != null)
+        //                    {
+        //                        meds.MedKitComponent.HpResource = this.NewValue;
+        //                    }
+
+        //                    break;
+        //                }
+        //                if (item is FoodClass food)
+        //                {
+        //                    if (food.FoodDrinkComponent != null)
+        //                    {
+        //                        food.FoodDrinkComponent.HpPercent = this.NewValue;
+        //                    }
+
+        //                    break;
+        //                }
+
+        //                item.RaiseRefreshEvent(true, true);
+        //            }
+        //        }
+        //        else
+        //            break;
+
+        //        yield return new WaitForSeconds(10);
+        //    }
+
+        //}
+
+        public override string ToString()
         {
-            while (true)
-            {
-                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    break;
-
-                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-                {
-                    if (ItemFinder.TryFindItem(this.ItemId, out Item item))
-                    {
-                        if(item is MedsClass meds)
-                        {
-                            if (meds.MedKitComponent != null)
-                            {
-                                meds.MedKitComponent.HpResource = this.NewValue;
-                            }
-
-                            break;
-                        }
-                        if (item is FoodClass food)
-                        {
-                            if (food.FoodDrinkComponent != null)
-                            {
-                                food.FoodDrinkComponent.HpPercent = this.NewValue;
-                            }
-
-                            break;
-                        }
-
-                        item.RaiseRefreshEvent(true, true);
-                    }
-                }
-                else
-                    break;
-
-                yield return new WaitForSeconds(10);
-            }
-
+            return this.ToJson();
         }
 
     }

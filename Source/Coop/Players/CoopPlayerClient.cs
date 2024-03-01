@@ -136,6 +136,7 @@ namespace StayInTarkov.Coop.Players
                 //    if (ItemFinder.TryFindItem(postProceedDataSyncPacket.ItemId, out Item item))
                 //    {
                 //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:Item:{item}");
+                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:packet:{packet}");
                 //        var shouldRemoveItem = false;
                 //        if (item is MedsClass meds)
                 //        {
@@ -168,15 +169,9 @@ namespace StayInTarkov.Coop.Players
                 //        item.RaiseRefreshEvent();
 
                 //        //base.DropCurrentController(() => { }, false, null);
-                //        if (HandsController is SITMedsControllerClient medsController)
+                //        //var medsController = HandsController as MedsController;
+                //        //if (medsController != null)
                 //        {
-                //            BepInLogger.LogDebug($"AbstractProcess_0: {AbstractProcess_0}");
-
-                //            //medsController.Drop(1f, () => {
-                //            if (AbstractProcess_0 != null)
-                //            {
-
-                //                AbstractProcess_0.Abort();
                 //                if (shouldRemoveItem)
                 //                {
                 //                    BepInLogger.LogDebug($"Discard Requested {item}");
@@ -192,12 +187,9 @@ namespace StayInTarkov.Coop.Players
                 //                {
                 //                    BepInLogger.LogDebug($"Not Discard {item}. Reason: Not Requested");
                 //                }
-                //            }
-
-                //            //}, false, null);
                 //        }
 
-                        
+
                 //    }
                 //}
             }
@@ -431,33 +423,31 @@ namespace StayInTarkov.Coop.Players
 
         //public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         //{
+        //    // Override CoopPlayer implemetation to ensure we don't get infinite loop of sent packets
+
         //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
         //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-        //    AbstractProcess_0 = new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink);
-        //    AbstractProcess_0.Execute();
-        //    //AbstractProcess_0.method_0(null, (x) => { LastUsedItem = x.Value.Item; }, true);
+        //    new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, callback, scheduled);
         //}
 
         //public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         //{
+        //    // Override CoopPlayer implemetation to ensure we don't get infinite loop of sent packets
+
         //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
         //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
-        //    var p = new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds);
-        //    p.method_0(null, (x) => 
-        //    { 
-        //        LastUsedItem = x.Value.Item;
-        //        meds.RaiseRefreshEvent();
-        //    }, true);
+        //    new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, callback, scheduled);
+
         //}
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
             // just use normal
-            //if(LastUsedItem == null || nextControllerItem == LastUsedItem)
-            //{
-            //    base.DropCurrentController(callback, fastDrop, nextControllerItem);
-            //    return;
-            //}
+            if (LastUsedItem == null || nextControllerItem == LastUsedItem)
+            {
+                base.DropCurrentController(callback, fastDrop, nextControllerItem);
+                return;
+            }
 
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
             ////base.DropCurrentController(callback, fastDrop, nextControllerItem);

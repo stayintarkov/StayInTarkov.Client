@@ -131,7 +131,10 @@ namespace StayInTarkov.Coop.Players
             //IHealthController healthController = isClientDrone
             //? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true)//   new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl)
             //: new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl);
-            IHealthController healthController = new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+            IHealthController healthController = 
+                // aiControl = true is VITAL, otherwise items will not be used!
+                isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
 
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
 
@@ -482,17 +485,30 @@ namespace StayInTarkov.Coop.Players
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
+            // Protection
+            if (this is CoopPlayerClient)
+            {
+                base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+                return;
+            }
+
             var startResource = foodDrink.FoodDrinkComponent.RelativeValue;
             PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = foodDrink };
 
             base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
-            PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
-            BepInLogger.LogDebug(foodDrinkPacket.ToJson());
-            GameClient.SendData(foodDrinkPacket.Serialize());
+
+            // Extra unneccessary protection
+            if (this is CoopPlayer)
+            {
+                PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
+                BepInLogger.LogDebug(foodDrinkPacket.ToJson());
+                GameClient.SendData(foodDrinkPacket.Serialize());
+            }
         }
 
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
+            // Protection
             if (this is CoopPlayerClient)
             {
                 base.Proceed(meds, bodyPart, callback, animationVariant, scheduled);
@@ -507,8 +523,13 @@ namespace StayInTarkov.Coop.Players
                 PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = meds, HandsController = x.Value };
                 callback(x);
             },false);
-            PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
-            GameClient.SendData(medsPacket.Serialize());
+
+            // Extra unneccessary protection
+            if (this is CoopPlayer)
+            {
+                PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
+                GameClient.SendData(medsPacket.Serialize());
+            }
 
         }
 
