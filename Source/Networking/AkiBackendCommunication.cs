@@ -55,6 +55,10 @@ namespace StayInTarkov.Networking
                 if (string.IsNullOrEmpty(m_RemoteEndPoint))
                     m_RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
 
+                // Remove ending slash on URI for SIT.Manager.Avalonia
+                if(m_RemoteEndPoint.EndsWith("/"))
+                    m_RemoteEndPoint = m_RemoteEndPoint.Substring(0, m_RemoteEndPoint.Length - 1);
+
                 return m_RemoteEndPoint;
 
             }
