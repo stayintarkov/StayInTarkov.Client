@@ -48,6 +48,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new ScavSellAllPriceStorePatch().Enable();
                 new ScavEncyclopediaPatch().Enable();
                 new ScavItemCheckmarkPatch().Enable();
+                new IsHostileToEverybodyPatch().Enable();
                 
                 // Unused Patches
                 //new OfflineSaveProfilePatch().Enable();
