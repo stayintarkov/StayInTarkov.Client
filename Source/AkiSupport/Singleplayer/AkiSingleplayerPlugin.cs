@@ -29,6 +29,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new GetNewBotTemplatesPatch().Enable();
                 new DogtagPatch().Enable();
                 new PostRaidHealingPricePatch().Enable();
+                new EndByTimerPatch().Enable();
                 new PostRaidHealScreenPatch().Enable();
                 new LighthouseBridgePatch().Enable();
                 new LighthouseTransmitterPatch().Enable();
@@ -47,6 +48,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new ScavSellAllPriceStorePatch().Enable();
                 new ScavEncyclopediaPatch().Enable();
                 new ScavItemCheckmarkPatch().Enable();
+                new IsHostileToEverybodyPatch().Enable();
                 
                 // Unused Patches
                 //new OfflineSaveProfilePatch().Enable();
@@ -59,7 +61,6 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 //new TinnitusFixPatch().Enable();
                 //new MaxBotPatch().Enable();
                 //new SpawnPmcPatch().Enable();
-                //new EndByTimerPatch().Enable();
                 //new VoIPTogglerPatch().Enable();
                 //new MidRaidQuestChangePatch().Enable();
                 //new HealthControllerPatch().Enable();

@@ -71,7 +71,7 @@ namespace StayInTarkov.UI
         public static void SaveProfileProgress(ExitStatus exitStatus, Profile profileData, PlayerHealth currentHealth, bool isPlayerScav)
         {
             // "Disconnecting" from your game in Single Player shouldn't result in losing your gear. This is stupid.
-            if (exitStatus == ExitStatus.Left || exitStatus == ExitStatus.MissingInAction)
+            if (exitStatus == ExitStatus.Left)
                 exitStatus = ExitStatus.Runner;
 
             // TODO: Remove uneccessary data
