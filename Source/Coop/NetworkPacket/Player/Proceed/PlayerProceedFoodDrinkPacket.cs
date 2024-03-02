@@ -42,7 +42,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             writer.Write((Single)Amount);
             writer.Write(AnimationVariant);
             writer.Write(TimeSerializedBetter);
-            writer.Write(UsedAll);
 
             return ms.ToArray();
         }
@@ -59,7 +58,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             Amount = reader.ReadSingle();
             AnimationVariant = reader.ReadInt32();
             TimeSerializedBetter = reader.ReadString();
-            UsedAll = reader.ReadBoolean();
 
             return this;
         }
@@ -71,36 +69,60 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
+
+            if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+            {
+                if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodClass foodDrink)
+                {
+                    client.ReceivedPackets.Enqueue(this);
+                }
+            }
+            //StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
         }
 
-        private IEnumerator ProceedCoroutine()
+        //private IEnumerator ProceedCoroutine()
+        //{
+        //    bool done = false;
+        //    while (!done)
+        //    {
+        //        if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+        //            break;
+
+        //        if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+        //        {
+        //            if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodClass foodDrink)
+        //            {
+        //                //client.ReceivedFoodDrinkPacket = this;
+        //                //client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
+        //                done = true;
+        //                client.ReceivedPackets.Enqueue(this);
+        //            }
+        //            else
+        //                break;
+        //        }
+        //        else
+        //            break;
+
+        //        yield return new WaitForSeconds(10);
+        //    }
+
+        //}
+
+        public override bool Equals(object obj)
         {
-            bool done = false;
-            while (!done)
+            if(obj is PlayerProceedFoodDrinkPacket foodDrinkPacket)
             {
-                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    break;
-
-                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-                {
-                    if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is FoodClass foodDrink)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        client.ReceivedFoodDrinkPacket = this;
-                        client.Proceed(foodDrink, this.Amount, null, this.AnimationVariant, this.Scheduled);
-                        done = true;
-                        break;
-                    }
-                    else
-                        break;
-                }
-                else
-                    break;
-
-                yield return new WaitForSeconds(10);
+                if(TimeSerializedBetter == foodDrinkPacket.TimeSerializedBetter) 
+                    return true;  
             }
+            return base.Equals(obj);
+        }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

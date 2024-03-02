@@ -87,8 +87,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         private IEnumerator ProceedCoroutine()
         {
-            bool done = false;
-            while (!done)
+            // will continue to run until a break is hit
+            while (true)
             {
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     break;
@@ -97,10 +97,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
                 {
                     if (ItemFinder.TryFindItem(this.ItemId, out Item item) && item is MedsClass meds)
                     {
-                        yield return new WaitForEndOfFrame();
-                        client.ReceivedMedsPacket = this;
-                        client.Proceed(meds, BodyPart, null, AnimationVariant, Scheduled);
-                        done = true;
+                        client.ReceivedPackets.Enqueue(this);
                         break;
                     }
                 }

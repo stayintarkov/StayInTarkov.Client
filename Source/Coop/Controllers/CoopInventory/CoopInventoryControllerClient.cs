@@ -19,6 +19,16 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override bool HasDiscardLimits => false;
 
+        public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
+        {
+
+        }
+
+        public override void Execute(Operation1 operation, Callback callback)
+        {
+
+        }
+
         protected override void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
 
