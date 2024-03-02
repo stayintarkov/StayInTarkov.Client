@@ -68,53 +68,53 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
-            if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-            {
-                client.ReceivedPackets.Enqueue(this);
-            }
-            //StayInTarkovPlugin.Instance.StartCoroutine(ProceedCoroutine());
+            //if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+            //{
+            //    client.ReceivedPackets.Enqueue(this);
+            //}
+            StayInTarkovPlugin.Instance.StartCoroutine(ProcessCoroutine());
         }
 
-        //private IEnumerator ProceedCoroutine()
-        //{
-        //    while (true)
-        //    {
-        //        if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-        //            break;
+        private IEnumerator ProcessCoroutine()
+        {
+            while (true)
+            {
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    break;
 
-        //        if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-        //        {
-        //            if (ItemFinder.TryFindItem(this.ItemId, out Item item))
-        //            {
-        //                if(item is MedsClass meds)
-        //                {
-        //                    if (meds.MedKitComponent != null)
-        //                    {
-        //                        meds.MedKitComponent.HpResource = this.NewValue;
-        //                    }
+                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+                {
+                    if (ItemFinder.TryFindItem(this.ItemId, out Item item))
+                    {
+                        if (item is MedsClass meds)
+                        {
+                            if (meds.MedKitComponent != null)
+                            {
+                                meds.MedKitComponent.HpResource = this.NewValue;
+                            }
 
-        //                    break;
-        //                }
-        //                if (item is FoodClass food)
-        //                {
-        //                    if (food.FoodDrinkComponent != null)
-        //                    {
-        //                        food.FoodDrinkComponent.HpPercent = this.NewValue;
-        //                    }
+                            break;
+                        }
+                        if (item is FoodClass food)
+                        {
+                            if (food.FoodDrinkComponent != null)
+                            {
+                                food.FoodDrinkComponent.HpPercent = this.NewValue;
+                            }
 
-        //                    break;
-        //                }
+                            break;
+                        }
 
-        //                item.RaiseRefreshEvent(true, true);
-        //            }
-        //        }
-        //        else
-        //            break;
+                        item.RaiseRefreshEvent(true, true);
+                    }
+                }
+                else
+                    break;
 
-        //        yield return new WaitForSeconds(10);
-        //    }
+                yield return new WaitForSeconds(10);
+            }
 
-        //}
+        }
 
         public override string ToString()
         {

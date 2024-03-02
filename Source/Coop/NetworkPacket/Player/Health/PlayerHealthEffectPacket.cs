@@ -80,6 +80,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
             {
                 //client.ReceivedPackets.Enqueue(this);
                 //var effect = AbstractEffect.Create(client.ActiveHealthController, this.Effect.ToString(), this.Effect.BodyPart, new EFT.Profile.ProfileHealth.RestoreInfo() { Time = this.Effect.TimeLeft });
+
             }
 
 
