@@ -133,6 +133,7 @@ namespace StayInTarkov.Coop.Players
             //: new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, isClientDrone ? false : aiControl);
             IHealthController healthController = 
                 // aiControl = true is VITAL, otherwise items will not be used!
+                // found the fault is caused by aiControl allows ManualUpdate to be used
                 isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
                 : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
 
