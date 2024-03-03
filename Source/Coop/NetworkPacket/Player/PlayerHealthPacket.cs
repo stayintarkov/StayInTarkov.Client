@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityStandardAssets.Water;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class PlayerHealthPacket : BasePlayerPacket
     {
-        public bool IsAlive { get; set; }   
+        public bool IsAlive { get; set; }
         public float Energy { get; set; }
         public float Hydration { get; set; }
         public float Radiation { get; set; }
@@ -19,11 +19,11 @@ namespace StayInTarkov.Coop.NetworkPacket
         public PlayerBodyPartHealthPacket[] BodyParts { get; } = new PlayerBodyPartHealthPacket[Enum.GetValues(typeof(EBodyPart)).Length];
 
         public PlayerHealthPacket() : base("", "PlayerHealth")
-        { 
+        {
         }
 
-        public PlayerHealthPacket(string profileId) : base(new string(profileId.ToCharArray()), "PlayerHealth") 
-        { 
+        public PlayerHealthPacket(string profileId) : base(new string(profileId.ToCharArray()), "PlayerHealth")
+        {
         }
 
         public override byte[] Serialize()
@@ -47,18 +47,18 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            if(bytes == null) 
+            if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader); 
+            ReadHeader(reader);
             ProfileId = reader.ReadString();
             IsAlive = reader.ReadBoolean();
             Energy = reader.ReadSingle();
             Hydration = reader.ReadSingle();
             Radiation = reader.ReadSingle();
             Poison = reader.ReadSingle();
-            for(var i = 0; i < BodyParts.Length; i++)
+            for (var i = 0; i < BodyParts.Length; i++)
             {
                 BodyParts[i] = new PlayerBodyPartHealthPacket();
                 BodyParts[i] = (PlayerBodyPartHealthPacket)BodyParts[i].Deserialize(reader.ReadLengthPrefixedBytes());
@@ -75,12 +75,12 @@ namespace StayInTarkov.Coop.NetworkPacket
 
                 if (
                     other.ProfileId == ProfileId &&
-                    other.Energy == this.Energy &&
-                    other.Hydration == this.Hydration &&
-                    other.IsAlive == this.IsAlive &&
+                    other.Energy == Energy &&
+                    other.Hydration == Hydration &&
+                    other.IsAlive == IsAlive &&
                     other.BodyParts != null &&
-                    this.BodyParts != null &&
-                    other.BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current == this.BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current
+                    BodyParts != null &&
+                    other.BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current == BodyParts.First(x => x.BodyPart == EBodyPart.Common).Current
                     )
                 {
                     //StayInTarkovHelperConstants.Logger.LogInfo("PlayerHealthPacket is the same");

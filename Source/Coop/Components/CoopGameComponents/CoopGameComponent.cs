@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
@@ -1165,6 +1165,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
+
+            if (!Singleton<GameWorld>.Instance.allAlivePlayersByID.ContainsKey(profile.ProfileId))
+                Singleton<GameWorld>.Instance.RegisterPlayer(otherPlayer);
+
 
             if (!SpawnedPlayers.ContainsKey(profile.ProfileId))
                 SpawnedPlayers.Add(profile.ProfileId, otherPlayer);

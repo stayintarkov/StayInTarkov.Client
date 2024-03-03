@@ -13,6 +13,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using Mono.Cecil;
 using StayInTarkov.Coop.SITGameModes;
+using StayInTarkov.Coop.NetworkPacket.Player;
 
 namespace StayInTarkov.Networking
 {

@@ -11,6 +11,7 @@ using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Player.FirearmControllerPatches;
@@ -201,54 +202,59 @@ namespace StayInTarkov.Coop.Players
         /// <param name="absorbed"></param>
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            Dictionary<string, object> packet = new();
-            damageInfo.HitCollider = null;
-            damageInfo.HittedBallisticCollider = null;
-            Dictionary<string, string> playerDict = new();
+            ApplyDamagePacket damagePacket = new ApplyDamagePacket();
+            damagePacket.ProfileId = this.ProfileId;
+            damagePacket.Damage = damageInfo.Damage;
+            damagePacket.DamageType = damageInfo.DamageType;
+            damagePacket.BodyPart = bodyPartType;
+            damagePacket.ColliderType = bodyPartColliderType;
+            damagePacket.Absorbed = absorbed;
             if (damageInfo.Player != null)
             {
-                playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+                damagePacket.AggressorProfileId = damageInfo.Player.iPlayer.ProfileId;
+                if (damageInfo.Weapon != null)
+                    damagePacket.AggressorWeaponId = damageInfo.Weapon.Id;
             }
+            GameClient.SendData(damagePacket.Serialize());
 
-            damageInfo.Player = null;
-            Dictionary<string, string> weaponDict = new();
+            //Dictionary<string, object> packet = new();
+            //damageInfo.HitCollider = null;
+            //damageInfo.HittedBallisticCollider = null;
+            //Dictionary<string, string> playerDict = new();
+            //if (damageInfo.Player != null)
+            //{
+            //    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+            //    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+            //}
 
-            if (damageInfo.Weapon != null)
-            {
-                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                packet.Add("d.w.id", damageInfo.Weapon.Id);
-            }
-            damageInfo.Weapon = null;
+            //damageInfo.Player = null;
+            //Dictionary<string, string> weaponDict = new();
 
-            packet.Add("d", damageInfo.SITToJson());
-            packet.Add("d.p", playerDict);
-            packet.Add("d.w", weaponDict);
-            packet.Add("bpt", bodyPartType.ToString());
-            packet.Add("bpct", bodyPartColliderType.ToString());
-            packet.Add("ab", absorbed.ToString());
-            packet.Add("m", "ApplyDamageInfo");
+            //if (damageInfo.Weapon != null)
+            //{
+            //    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+            //    packet.Add("d.w.id", damageInfo.Weapon.Id);
+            //}
+            //damageInfo.Weapon = null;
 
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+            //packet.Add("d", damageInfo.SITToJson());
+            //packet.Add("d.p", playerDict);
+            //packet.Add("d.w", weaponDict);
+            //packet.Add("bpt", bodyPartType.ToString());
+            //packet.Add("bpct", bodyPartColliderType.ToString());
+            //packet.Add("ab", absorbed.ToString());
+            //packet.Add("m", "ApplyDamageInfo");
+
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
-        public void ReceiveDamageFromServer(Dictionary<string, object> dict)
+        public void ReceiveDamageFromServer(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            StartCoroutine(ReceiveDamageFromServerCR(dict));
+            StartCoroutine(ReceiveDamageFromServerCR(damageInfo, bodyPartType, bodyPartColliderType, absorbed));
         }
 
-        public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
+        public IEnumerator ReceiveDamageFromServerCR(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            //BepInLogger.LogDebug("ReceiveDamageFromServer");
-            //BepInLogger.LogDebug(dict.ToJson());
-
-            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
-            var absorbed = float.Parse(dict["ab"].ToString());
-
-            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
-            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
-
             if (damageInfo.DamageType == EDamageType.Bullet && IsYourPlayer)
             {
                 float handsShake = 0.05f;
@@ -280,8 +286,8 @@ namespace StayInTarkov.Coop.Players
                 }
             }
 
+            BepInLogger.LogDebug($"{nameof(ApplyDamageInfo)}:{ProfileId}:{damageInfo.DamageType}:{damageInfo.Damage}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, bodyPartColliderType, absorbed);
-            //base.ShotReactions(damageInfo, bodyPartType);
 
             yield break;
 

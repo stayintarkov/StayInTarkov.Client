@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public sealed class PlayerStatePacket : BasePlayerPacket, INetSerializable
     {
@@ -174,10 +174,10 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             if (obj is PlayerStatePacket other)
             {
-                return (other.ProfileId == ProfileId
+                return other.ProfileId == ProfileId
                     && other.Position.IsEqual(Position, 1)
                     && other.Rotation.Equals(Rotation)
-                    );
+                    ;
             }
             return base.Equals(obj);
         }

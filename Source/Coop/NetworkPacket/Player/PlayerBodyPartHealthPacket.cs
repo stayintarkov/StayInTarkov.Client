@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class PlayerBodyPartHealthPacket : BasePacket
     {
@@ -13,8 +13,8 @@ namespace StayInTarkov.Coop.NetworkPacket
         public float Current { get; set; }
         public float Maximum { get; set; }
 
-        public PlayerBodyPartHealthPacket() : base("PlayerBodyPartHealth") 
-        { 
+        public PlayerBodyPartHealthPacket() : base("PlayerBodyPartHealth")
+        {
         }
 
         public override byte[] Serialize()

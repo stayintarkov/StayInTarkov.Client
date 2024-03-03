@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public sealed class PlayerStatesPacket : BasePacket
     {
@@ -40,7 +40,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             ReadHeader(reader);
             var length = reader.ReadInt32();
             PlayerStates = new PlayerStatePacket[length];
-            for(var i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 PlayerStates[i] = new PlayerStatePacket().Deserialize(reader.ReadLengthPrefixedBytes()) as PlayerStatePacket;
             }
