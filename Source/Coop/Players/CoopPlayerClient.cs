@@ -532,7 +532,17 @@ namespace StayInTarkov.Coop.Players
         }
 
 
-        
+
+
+        public override void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
+        {
+            BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{mask})");
+
+            Speaker.PlayDirect(trigger, index);
+
+            ETagStatus eTagStatus = ((!aggressive && !(Awareness > Time.time)) ? ETagStatus.Unaware : ETagStatus.Combat);
+            Speaker.Play(trigger, HealthStatus | mask | eTagStatus, true, 100);
+        }
 
     }
 }

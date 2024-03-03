@@ -27,7 +27,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
+using static ChartAndGraph.ChartItemEvents;
+using UnityEngine.UI;
 using static GClass648;
+using static GripPose;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -360,32 +363,65 @@ namespace StayInTarkov.Coop.Players
         }
 
 
+      
+
+        #region Speaking
+
+        public override void Say(EPhraseTrigger @event, bool demand = false, float delay = 0, ETagStatus mask = 0, int probability = 100, bool aggressive = false)
+        {
+            base.Say(@event, demand, delay, mask, probability, aggressive);
+
+            if (this is CoopPlayerClient)
+                return;
+
+            if (@event == EPhraseTrigger.Cooperation)
+            {
+                //vmethod_3(EGesture.Hello);
+            }
+            if (@event == EPhraseTrigger.MumblePhrase)
+            {
+                @event = ((aggressive || Time.time < Awareness) ? EPhraseTrigger.OnFight : EPhraseTrigger.OnMutter);
+            }
+
+            //PlayerSayPacket sayPacket = new PlayerSayPacket();
+            //sayPacket.ProfileId = this.ProfileId;
+            //sayPacket.Trigger = @event;
+            //sayPacket.Delay = delay;
+            //sayPacket.Mask = mask;
+            //sayPacket.Aggressive = aggressive;
+            ////sayPacket.Index = clip.NetId;
+            //GameClient.SendData(sayPacket.Serialize());
+        }
+
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
 
-            if (IsYourPlayer)
-            {
-                Dictionary<string, object> packet = new()
-                {
-                    { "event", @event.ToString() },
-                    { "index", clip.NetId },
-                    { "m", "Say" }
-                };
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
-            }
-        }
-
-        public void ReceiveSay(EPhraseTrigger trigger, int index)
-        {
-            BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
-
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
+            // If a client. Do not send a packet.
+            if (this is CoopPlayerClient)
                 return;
 
-            Speaker.PlayDirect(trigger, index);
+            PlayerSayPacket sayPacket = new PlayerSayPacket();
+            sayPacket.ProfileId = this.ProfileId;
+            sayPacket.Trigger = @event;
+            sayPacket.Index = clip.NetId;
+            GameClient.SendData(sayPacket.Serialize());
         }
+
+        public virtual void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
+        {
+            //BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{mask})");
+
+            //if (this is CoopPlayer)
+            //    return;
+
+            ////Speaker.PlayDirect(trigger, index);
+
+            //ETagStatus eTagStatus = ((!aggressive && !(Awareness > Time.time)) ? ETagStatus.Unaware : ETagStatus.Combat);
+            //Speaker.Play(trigger, HealthStatus | mask | eTagStatus, true, 100);
+        }
+
+        #endregion
 
         public override void OnDestroy()
         {
