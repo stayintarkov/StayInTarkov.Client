@@ -134,7 +134,8 @@ namespace StayInTarkov.Coop.Players
             IHealthController healthController = 
                 // aiControl = true is VITAL, otherwise items will not be used!
                 // found the fault is caused by aiControl allows ManualUpdate to be used
-                isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                //isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                isClientDrone ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills)  // new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
                 : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
 
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
@@ -169,15 +170,6 @@ namespace StayInTarkov.Coop.Players
             return player;
         }
 
-        /// <summary>
-        /// A way to block the same Damage Info being run multiple times on this Character
-        /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
-        /// </summary>
-        private HashSet<DamageInfo> PreviousDamageInfos { get; } = new();
-        private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
-        private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
-        public bool IsFriendlyBot { get; internal set; }
-
         public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
@@ -196,17 +188,6 @@ namespace StayInTarkov.Coop.Players
 
             if (!coopGameComponent.GameWorldGameStarted)
                 return;
-
-            // Quick check?
-            //if (PreviousDamageInfos.Any(x =>
-            //    x.Damage == damageInfo.Damage
-            //    && x.SourceId == damageInfo.SourceId
-            //    && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
-            //    && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
-            //    ))
-            //    return;
-
-            //PreviousDamageInfos.Add(damageInfo);
 
             SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
         }
@@ -248,14 +229,6 @@ namespace StayInTarkov.Coop.Players
             packet.Add("ab", absorbed.ToString());
             packet.Add("m", "ApplyDamageInfo");
 
-            // -----------------------------------------------------------
-            // An attempt to stop the same packet being sent multiple times
-            if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
-                return;
-
-            PreviousSentDamageInfoPackets.Add(packet.ToJson());
-            // -----------------------------------------------------------
-
             AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
@@ -266,11 +239,6 @@ namespace StayInTarkov.Coop.Players
 
         public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
         {
-            if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
-                yield break;
-
-            PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
-
             //BepInLogger.LogDebug("ReceiveDamageFromServer");
             //BepInLogger.LogDebug(dict.ToJson());
 
