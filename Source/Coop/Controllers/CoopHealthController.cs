@@ -16,7 +16,7 @@ namespace StayInTarkov.Coop.Controllers
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopHealthController));
-            BepInLogger.LogInfo(nameof(CoopHealthController));
+            BepInLogger.LogDebug(nameof(CoopHealthController));
         }
 
         //public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
@@ -27,27 +27,47 @@ namespace StayInTarkov.Coop.Controllers
         protected override void AddEffectToList(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthController)}:{nameof(AddEffectToList)}");
-
-            PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
-            packet.Add = true;
-            packet.Effect = effect;
-            GameClient.SendData(packet.Serialize());
+                BepInLogger.LogDebug($"{nameof(CoopHealthController)}:{nameof(AddEffectToList)}");
 
             base.AddEffectToList(effect);
+
+            if (effect == null)
+                return;
+
+            try
+            {
+                PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
+                packet.ProfileId = Player.ProfileId;
+                packet.Add = true;
+                packet.EffectType = effect.GetType().Name;
+                packet.TimeLeft = effect.TimeLeft;
+                packet.BodyPart = effect.BodyPart;
+                GameClient.SendData(packet.Serialize());
+            }
+            catch { }
+
         }
 
         protected override bool RemoveEffectFromList(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthController)}:{nameof(RemoveEffectFromList)}");
+                BepInLogger.LogDebug($"{nameof(CoopHealthController)}:{nameof(RemoveEffectFromList)}");
 
-            PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
-            packet.Add = false;
-            packet.Effect = effect;
-            GameClient.SendData(packet.Serialize());
+            var result = base.RemoveEffectFromList(effect);
 
-            return base.RemoveEffectFromList(effect);
+            try
+            {
+                PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
+                packet.ProfileId = Player.ProfileId;
+                packet.Add = false;
+                packet.EffectType = effect.GetType().Name;
+                packet.TimeLeft = effect.TimeLeft;
+                packet.BodyPart = effect.BodyPart;
+                GameClient.SendData(packet.Serialize());
+            }
+            catch { }
+
+            return result;
         }
 
         //public override void SetEncumbered(bool encumbered)
