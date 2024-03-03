@@ -59,5 +59,76 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 base.ReloadWithAmmo(ammoPack, callback);
             }
         }
+
+        public override bool CheckAmmo()
+        {
+            return base.CheckAmmo();
+        }
+
+        public override bool CheckChamber()
+        {
+            return base.CheckChamber();
+        }
+
+        public override bool CheckFireMode()
+        {
+            return base.CheckFireMode();
+        }
+
+        public override void BlindFire(int b)
+        {
+            base.BlindFire(b);
+        }
+
+        public override void ChangeAimingMode()
+        {
+            base.ChangeAimingMode();
+        }
+
+        public override bool ChangeFireMode(Weapon.EFireMode fireMode)
+        {
+            return base.ChangeFireMode(fireMode);
+        }
+
+        public override bool ExamineWeapon()
+        {
+            return base.ExamineWeapon();
+        }
+
+        public override void Loot(bool p)
+        {
+            base.Loot(p);
+        }
+
+        public override void Pickup(bool p)
+        {
+            base.Pickup(p);
+        }
+
+        public override void SetLightsState(LightsStates[] lightsStates, bool force = false)
+        {
+            base.SetLightsState(lightsStates, force);
+        }
+
+        public override void SetScopeMode(ScopeStates[] scopeStates)
+        {
+            base.SetScopeMode(scopeStates);
+        }
+
+        public override void SetTriggerPressed(bool pressed)
+        {
+            base.SetTriggerPressed(pressed);
+        }
+
+        public override void ToggleAim()
+        {
+            base.ToggleAim();
+        }
+
+        public override bool ToggleLauncher()
+        {
+            return base.ToggleLauncher();
+        }
+
     }
 }

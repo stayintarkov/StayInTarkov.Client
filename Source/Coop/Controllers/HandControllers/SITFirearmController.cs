@@ -70,5 +70,87 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 GameClient.SendData(packet.Serialize());
             }
         }
+
+        public override bool CheckAmmo()
+        {
+            StayInTarkov.Coop.NetworkPacket.Player.Weapons.CheckAmmoPacket packet = new(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
+            return base.CheckAmmo();
+        }
+
+        public override bool CheckChamber()
+        {
+            StayInTarkov.Coop.NetworkPacket.Player.Weapons.CheckChamberPacket packet = new(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
+            return base.CheckChamber();
+        }
+
+        public override bool CheckFireMode()
+        {
+            StayInTarkov.Coop.NetworkPacket.Player.Weapons.CheckFireModePacket packet = new(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
+            return base.CheckFireMode();
+        }
+
+        public override void BlindFire(int b)
+        {
+            base.BlindFire(b);
+        }
+
+        public override void ChangeAimingMode()
+        {
+            ChangeAimingModePacket packet = new(_player.ProfileId, Item.AimIndex.Value);
+            GameClient.SendData(packet.Serialize());
+            base.ChangeAimingMode();
+        }
+
+        public override bool ChangeFireMode(Weapon.EFireMode fireMode)
+        {
+            ChangeFireModePacket packet = new(_player.ProfileId, fireMode);
+            GameClient.SendData(packet.Serialize());
+            return base.ChangeFireMode(fireMode);
+        }
+
+        public override bool ExamineWeapon()
+        {
+            return base.ExamineWeapon();
+        }
+
+        public override void Loot(bool p)
+        {
+            base.Loot(p);
+        }
+
+        public override void Pickup(bool p)
+        {
+            base.Pickup(p);
+        }
+
+        public override void SetLightsState(LightsStates[] lightsStates, bool force = false)
+        {
+            base.SetLightsState(lightsStates, force);
+        }
+
+        public override void SetScopeMode(ScopeStates[] scopeStates)
+        {
+            base.SetScopeMode(scopeStates);
+        }
+
+        public override void SetTriggerPressed(bool pressed)
+        {
+            base.SetTriggerPressed(pressed);
+        }
+
+        public override void ToggleAim()
+        {
+            ToggleAimPacket packet = new ToggleAimPacket(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
+            base.ToggleAim();
+        }
+
+        public override bool ToggleLauncher()
+        {
+            return base.ToggleLauncher();
+        }
     }
 }
