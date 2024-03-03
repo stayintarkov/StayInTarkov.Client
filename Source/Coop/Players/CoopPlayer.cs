@@ -9,6 +9,7 @@ using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
+using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player;
@@ -27,10 +28,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChartAndGraph.ChartItemEvents;
-using UnityEngine.UI;
-using static GClass648;
-using static GripPose;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -562,6 +559,23 @@ namespace StayInTarkov.Coop.Players
             base.Proceed(item, callback, scheduled);
         }
 
+        public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
+        {
+            Func<FirearmController> controllerFactory = ((!IsAI) ? ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmController>(this, weapon))) : ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerAI>(this, weapon))));
+            bool fastHide = false;
+            if (_handsController is FirearmController firearmController)
+            {
+                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
+            }
+            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
+            
+            PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
+            weaponPacket.ProfileId = this.ProfileId;
+            weaponPacket.ItemId = weapon.Id;
+            weaponPacket.Scheduled = scheduled;
+            GameClient.SendData(weaponPacket.Serialize());
+        }
+
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(DropCurrentController)}");
@@ -599,7 +613,9 @@ namespace StayInTarkov.Coop.Players
                 BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
 
-        
+       
+
+
 
     }
 }

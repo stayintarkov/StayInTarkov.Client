@@ -4,6 +4,7 @@ using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
+using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player;
@@ -542,6 +543,17 @@ namespace StayInTarkov.Coop.Players
 
             ETagStatus eTagStatus = ((!aggressive && !(Awareness > Time.time)) ? ETagStatus.Unaware : ETagStatus.Combat);
             Speaker.Play(trigger, HealthStatus | mask | eTagStatus, true, 100);
+        }
+
+        public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
+        {
+            Func<FirearmController> controllerFactory = (Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerClient>(this, weapon));
+            bool fastHide = false;
+            if (_handsController is FirearmController firearmController)
+            {
+                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
+            }
+            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
         }
 
     }

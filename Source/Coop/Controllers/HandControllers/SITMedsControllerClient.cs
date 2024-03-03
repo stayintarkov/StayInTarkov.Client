@@ -3,15 +3,10 @@ using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static EFT.Player;
 
-namespace StayInTarkov.Coop.Controllers
+namespace StayInTarkov.Coop.Controllers.HandControllers
 {
-    public class SITMedsControllerClient : MedsController
+    public class SITMedsControllerClient : EFT.Player.MedsController
     {
         ManualLogSource BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITMedsControllerClient));
 
@@ -19,7 +14,7 @@ namespace StayInTarkov.Coop.Controllers
         {
             get
             {
-                return base.CurrentHandsOperation as GAbstractNextOperation1;
+                return CurrentHandsOperation as GAbstractNextOperation1;
             }
         }
 
