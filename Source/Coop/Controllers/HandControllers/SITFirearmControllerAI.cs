@@ -8,10 +8,8 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers.HandControllers
 {
-    public sealed class SITFirearmControllerAI : EFT.Player.FirearmController
+    public sealed class SITFirearmControllerAI : SITFirearmController
     {
-        ManualLogSource BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITFirearmControllerAI));
-
         public override Vector3 WeaponDirection => _player.LookDirection;
     }
 }

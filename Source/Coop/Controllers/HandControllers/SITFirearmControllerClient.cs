@@ -43,5 +43,21 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 base.QuickReloadMag(magazine, callback);
             }
         }
+
+        public override void ReloadMag(MagazineClass magazine, GridItemAddress gridItemAddress, Callback callback)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadMag(magazine, gridItemAddress, callback);
+            }
+        }
+
+        public override void ReloadWithAmmo(AmmoPack ammoPack, Callback callback)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadWithAmmo(ammoPack, callback);
+            }
+        }
     }
 }

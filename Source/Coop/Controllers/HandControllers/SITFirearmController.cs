@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Controllers.HandControllers
 {
-    public sealed class SITFirearmController : EFT.Player.FirearmController
+    public class SITFirearmController : EFT.Player.FirearmController
     {
         ManualLogSource BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITFirearmController));
 
@@ -45,6 +45,29 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 quickReloadMagPacket.ProfileId = _player.ProfileId;
                 quickReloadMagPacket.ItemId = magazine.Id;
                 GameClient.SendData(quickReloadMagPacket.Serialize());
+            }
+        }
+
+        public override void ReloadMag(MagazineClass magazine, GridItemAddress gridItemAddress, Callback callback)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadMag(magazine, gridItemAddress, callback);
+                ReloadMagPacket reloadMagPacket = new ReloadMagPacket(_player.ProfileId, magazine.Id, gridItemAddress);
+                reloadMagPacket.ProfileId = _player.ProfileId;
+                reloadMagPacket.ItemId = magazine.Id;
+                reloadMagPacket.GridItemAddress = gridItemAddress;
+                GameClient.SendData(reloadMagPacket.Serialize());
+            }
+        }
+
+        public override void ReloadWithAmmo(AmmoPack ammoPack, Callback callback)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadWithAmmo(ammoPack, callback);
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadWithAmmoPacket packet = new (_player.ProfileId, ammoPack.GetReloadingAmmoIds());
+                GameClient.SendData(packet.Serialize());
             }
         }
     }

@@ -9,16 +9,19 @@ namespace StayInTarkov.Coop
         private static string DICTNAMES_GridItemAddressDescriptor { get; } = "grad";
         private static string DICTNAMES_StackSlotItemAddressDescriptor { get; } = "ssad";
 
-        public static void ConvertItemAddressToDescriptor(ItemAddress location, ref Dictionary<string, object> dictionary)
+        public static void ConvertItemAddressToDescriptor(ItemAddress location, ref Dictionary<string, object> dictionary, out AbstractDescriptor descriptor)
         {
+            descriptor = null;
             if (location is GridItemAddress gridItemAddress)
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = new();
-                gridItemAddressDescriptor.Container = new ContainerDescriptor();
-                gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
-                gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
-                gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
-                dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
+                descriptor = new GridItemAddressDescriptor();
+                ((GridItemAddressDescriptor)descriptor).Container = new ContainerDescriptor();
+                ((GridItemAddressDescriptor)descriptor).Container.ContainerId = location.Container.ID;
+                ((GridItemAddressDescriptor)descriptor).Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
+                ((GridItemAddressDescriptor)descriptor).LocationInGrid = gridItemAddress.LocationInGrid;
+
+                if(dictionary != null)
+                    dictionary.Add(DICTNAMES_GridItemAddressDescriptor, descriptor);
             }
             else if (location is SlotItemAddress slotItemAddress)
             {
@@ -27,7 +30,8 @@ namespace StayInTarkov.Coop
                 slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
 
-                dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
+                if(dictionary != null)
+                    dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
             }
             else if (location is StackSlotItemAddress StackSlotItemAddress)
             {
@@ -35,7 +39,39 @@ namespace StayInTarkov.Coop
                 stackSlotItemAddressDescriptor.Container = new();
                 stackSlotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 stackSlotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
-                dictionary.Add(DICTNAMES_StackSlotItemAddressDescriptor, stackSlotItemAddressDescriptor);
+                
+                if(dictionary != null)
+                    dictionary.Add(DICTNAMES_StackSlotItemAddressDescriptor, stackSlotItemAddressDescriptor);
+            }
+        }
+
+        public static void ConvertItemAddressToDescriptor(ItemAddress location, out AbstractDescriptor descriptor)
+        {
+            descriptor = null;
+            if (location is GridItemAddress gridItemAddress)
+            {
+                descriptor = new GridItemAddressDescriptor();
+                ((GridItemAddressDescriptor)descriptor).Container = new ContainerDescriptor();
+                ((GridItemAddressDescriptor)descriptor).Container.ContainerId = location.Container.ID;
+                ((GridItemAddressDescriptor)descriptor).Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
+                ((GridItemAddressDescriptor)descriptor).LocationInGrid = gridItemAddress.LocationInGrid;
+            }
+            else if (location is SlotItemAddress slotItemAddress)
+            {
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new();
+                slotItemAddressDescriptor.Container = new ContainerDescriptor();
+                slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
+                slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
+                descriptor = slotItemAddressDescriptor;
+
+            }
+            else if (location is StackSlotItemAddress StackSlotItemAddress)
+            {
+                StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor = new();
+                stackSlotItemAddressDescriptor.Container = new();
+                stackSlotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
+                stackSlotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
+                descriptor = stackSlotItemAddressDescriptor;
             }
         }
 
@@ -57,7 +93,9 @@ namespace StayInTarkov.Coop
                 gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
                 gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
-                dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
+
+                if (dictionary != null)
+                    dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
             }
             else if (location is SlotItemAddress slotItemAddress)
             {
@@ -66,7 +104,8 @@ namespace StayInTarkov.Coop
                 slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
 
-                dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
+                if (dictionary != null)
+                    dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
             }
             else if (location is StackSlotItemAddress StackSlotItemAddress)
             {
@@ -74,7 +113,9 @@ namespace StayInTarkov.Coop
                 stackSlotItemAddressDescriptor.Container = new();
                 stackSlotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 stackSlotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
-                dictionary.Add(DICTNAMES_StackSlotItemAddressDescriptor, stackSlotItemAddressDescriptor);
+
+                if (dictionary != null)
+                    dictionary.Add(DICTNAMES_StackSlotItemAddressDescriptor, stackSlotItemAddressDescriptor);
             }
         }
 
