@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using EFT.InventoryLogic;
+using Newtonsoft.Json;
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
+using StayInTarkov.Coop.Players;
 using System.IO;
 
 namespace StayInTarkov.Coop.NetworkPacket
@@ -58,34 +62,30 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(ProfileId);
         }
 
+        /// <summary>
+        /// Auto discover Client Player object and Process on them
+        /// </summary>
+        public override void Process()
+        {
+            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}:{Method}");
 
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
 
-        // -------------------------------------------------------------------------------------
-        // Do not override here. This will break any AutoDeserialization on anything inheriting.
-        // If you want to Serialize differently. Do so in the inherited class
+            if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
+            {
+                Process(client);
+            }
+        }
 
-        //public override ISITPacket Deserialize(byte[] bytes)
-        //{
-        //    using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-        //    ReadHeader(reader);
+        /// <summary>
+        /// Process on Discovered Client object
+        /// </summary>
+        /// <param name="client">Client entity</param>
+        protected virtual void Process(CoopPlayerClient client)
+        {
 
-        //    // This is not a BasePlayerPacket?
-        //    if (reader.BaseStream.Position >= reader.BaseStream.Length)
-        //        return this;
+        }
 
-        //    ProfileId = reader.ReadString();
-        //    TimeSerializedBetter = reader.ReadString();
-        //    return this;
-        //}
-
-        //public override byte[] Serialize()
-        //{
-        //    var ms = new MemoryStream();
-        //    using BinaryWriter writer = new BinaryWriter(ms);
-        //    WriteHeader(writer);
-        //    writer.Write(ProfileId);
-        //    writer.Write(TimeSerializedBetter);
-        //    return ms.ToArray();
-        //}
     }
 }
