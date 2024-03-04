@@ -2,7 +2,9 @@
 using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
+using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player.Weapons;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -138,7 +140,17 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void SetTriggerPressed(bool pressed)
         {
+            TriggerPressedPacket packet = new TriggerPressedPacket(_player.ProfileId);
+            packet.Pressed = pressed;
+            packet.RotationX = _player.Rotation.x;
+            packet.RotationY = _player.Rotation.y;
+            GameClient.SendData(packet.Serialize());
+
+            ((CoopPlayer)_player).TriggerPressed = pressed;
+
+
             base.SetTriggerPressed(pressed);
+
         }
 
         public override void ToggleAim()

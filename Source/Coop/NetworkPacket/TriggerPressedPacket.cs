@@ -9,14 +9,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityStandardAssets.Water;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
     public sealed class TriggerPressedPacket : BasePlayerPacket
     {
-        public bool pr { get; set; }
-        public float rX { get; set; }
-        public float rY { get; set; }
+        public bool Pressed { get; set; }
+        public float RotationX { get; set; }
+        public float RotationY { get; set; }
 
         public TriggerPressedPacket() {  }
 
@@ -28,11 +29,11 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
-            writer.Write(pr);
-            writer.Write(rX);
-            writer.Write(rY);
+            WriteHeaderAndProfileId(writer);
+            writer.Write(Pressed);
+            writer.Write(RotationX);
+            writer.Write(RotationY);
+            writer.Write(TimeSerializedBetter);
 
             return ms.ToArray();
         }
@@ -43,11 +44,11 @@ namespace StayInTarkov.Coop.NetworkPacket
                 throw new ArgumentNullException(nameof(bytes));
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-            ProfileId = reader.ReadString();
-            pr = reader.ReadBoolean();
-            rX = reader.ReadSingle();
-            rY = reader.ReadSingle();
+            ReadHeaderAndProfileId(reader);
+            Pressed = reader.ReadBoolean();
+            RotationX = reader.ReadSingle();
+            RotationY = reader.ReadSingle();
+            TimeSerializedBetter = reader.ReadString();
 
             return this;
         }
@@ -66,7 +67,7 @@ namespace StayInTarkov.Coop.NetworkPacket
                 {
                     if (client.HandsController is EFT.Player.FirearmController fc)
                     {
-                        fc.CurrentOperation.SetTriggerPressed(pr);
+                        fc.CurrentOperation.SetTriggerPressed(Pressed);
                         Dispose();
                     }
                 }
@@ -84,8 +85,9 @@ namespace StayInTarkov.Coop.NetworkPacket
                             {
                                 if (client.HandsController is EFT.Player.FirearmController fc)
                                 {
-                                    fc.CurrentOperation.SetTriggerPressed(pr);
+                                    fc.CurrentOperation.SetTriggerPressed(Pressed);
                                     Dispose();
+                                    break;
                                 }
                             }
                         }

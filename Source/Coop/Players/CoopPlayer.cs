@@ -327,40 +327,23 @@ namespace StayInTarkov.Coop.Players
             base.OnItemAddedOrRemoved(item, location, added);
         }
 
-        private Vector2 LastRotationSent = Vector2.zero;
 
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
             if (
-                FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[ProfileId] == true
+                TriggerPressed
                 && LastRotationSent != Rotation
                 )
             {
-                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-                rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", Rotation.x);
-                rotationPacket.Add("y", Rotation.y);
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
+                PlayerRotatePacket packet = new PlayerRotatePacket(this.ProfileId);
+                packet.RotationX = Rotation.x;
+                packet.RotationY = Rotation.y;
+                GameClient.SendData(packet.Serialize());
                 LastRotationSent = Rotation;
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
         }
-
-        public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
-        {
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
-                return;
-
-            Rotation = rotation;
-            //prc.ReplicatedRotation = rotation; 
-
-        }
-
-
-      
 
         #region Speaking
 
@@ -490,6 +473,9 @@ namespace StayInTarkov.Coop.Players
         } 
 
         protected SITPostProceedData? PostProceedData { get; set; }
+        public bool TriggerPressed { get; internal set; }
+
+        private Vector2 LastRotationSent = Vector2.zero;
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
