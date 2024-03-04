@@ -56,5 +56,6 @@
   "AI-SESSION": "AI",
   "PLAYER-SESSION": "Player",
   "ALIVE": "Alive",
-  "DEAD": "Dead"
+  "DEAD": "Dead",
+  "AVG_PING": "Average Ping"
 }
