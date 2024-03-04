@@ -30,6 +30,7 @@ namespace StayInTarkov.EssentialPatches
             catch (Exception ex)
             {
                 StayInTarkovHelperConstants.Logger.LogError(ex.ToString());
+                ProcessLGF(Convert.ToBoolean(byte.MaxValue & -32 / byte.MaxValue - -1 - 1));
             }
 
             Checked = true;

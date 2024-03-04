@@ -82,8 +82,8 @@ namespace StayInTarkov.Coop.Players
             player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             InventoryControllerClass inventoryController = isYourPlayer && !isClientDrone
-                ? new CoopInventoryController(player, profile, true)
-                : new CoopInventoryControllerClient(player, profile, true);
+                ? new CoopInventoryController(player, profile, false)
+                : new CoopInventoryControllerClient(player, profile, false);
 
             foreach(var item in profile.Inventory.AllRealPlayerItems)
             {
