@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 {
     public class KillPacket : BasePlayerPacket
     {

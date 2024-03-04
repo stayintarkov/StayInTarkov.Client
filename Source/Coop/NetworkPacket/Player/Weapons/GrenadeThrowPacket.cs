@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 {
     public class GrenadeThrowPacket : BasePlayerPacket
     {

@@ -5,7 +5,7 @@ using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Coop.Players;
 using System.IO;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class BasePlayerPacket : BasePacket
     {
@@ -18,7 +18,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public BasePlayerPacket(string profileId, string method) : base(method)
         {
-            if(profileId != null)
+            if (profileId != null)
                 ProfileId = new string(profileId.ToCharArray());
         }
 
@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             //StayInTarkovHelperConstants.Logger.LogDebug("PlayerMovePacket.Dispose");
         }
 
-        
+
         public override ISITPacket Deserialize(byte[] bytes)
         {
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));

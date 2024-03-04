@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace StayInTarkov.Coop.NetworkPacket.Player
+namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 {
     internal class PlayerHealthCollectionPacket : BasePacket
     {

@@ -7,7 +7,7 @@ using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers.CoopInventory;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
 using System;
 using System.Collections.Concurrent;

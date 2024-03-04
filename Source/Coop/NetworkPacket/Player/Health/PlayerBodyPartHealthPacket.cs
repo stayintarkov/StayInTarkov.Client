@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StayInTarkov.Coop.NetworkPacket.Player
+namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 {
     public class PlayerBodyPartHealthPacket : BasePacket
     {

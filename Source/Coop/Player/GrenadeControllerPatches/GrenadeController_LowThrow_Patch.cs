@@ -1,4 +1,4 @@
-﻿using StayInTarkov.Coop.NetworkPacket;
+﻿using StayInTarkov.Coop.NetworkPacket.Player.Weapons;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;

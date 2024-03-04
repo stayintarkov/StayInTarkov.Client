@@ -1,5 +1,6 @@
 ﻿using SIT.Core.Coop.PacketHandlers;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;

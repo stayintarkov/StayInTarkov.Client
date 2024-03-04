@@ -3,7 +3,7 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using System.IO;
 using UnityStandardAssets.Water;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class ItemPlayerPacket : BasePlayerPacket
     {
@@ -89,9 +89,9 @@ namespace StayInTarkov.Coop.NetworkPacket
 
             var bytes = ms.ToArray();
 
-//#if DEBUG
-//            File.WriteAllBytes($"DEBUG_{nameof(ItemPlayerPacket)}_{nameof(Serialize)}.bin", bytes);
-//#endif
+            //#if DEBUG
+            //            File.WriteAllBytes($"DEBUG_{nameof(ItemPlayerPacket)}_{nameof(Serialize)}.bin", bytes);
+            //#endif
 
             return bytes;
         }
@@ -110,6 +110,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             //}
         }
 
-        
+
     }
 }

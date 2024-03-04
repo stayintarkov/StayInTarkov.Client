@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityStandardAssets.Water;
 
-namespace StayInTarkov.Coop.NetworkPacket.Player
+namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 {
     public class PlayerHealthPacket : BasePlayerPacket
     {

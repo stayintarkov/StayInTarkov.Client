@@ -8,6 +8,7 @@ using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;

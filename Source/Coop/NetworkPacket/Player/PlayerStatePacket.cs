@@ -1,5 +1,6 @@
 ﻿using LiteNetLib.Utils;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.ThirdParty;
 using System;
