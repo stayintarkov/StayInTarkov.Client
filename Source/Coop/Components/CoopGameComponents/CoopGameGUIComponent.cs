@@ -151,9 +151,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // PING ------
             GUI.contentColor = Color.white;
             GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["RTT"]}:{(ServerPing)}");
-            rect.y += 15;
-            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["HOST_RTT"]}:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["AVG_PING"]}:{(ServerPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 

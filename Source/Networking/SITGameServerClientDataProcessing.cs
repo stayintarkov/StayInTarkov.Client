@@ -114,10 +114,7 @@ namespace StayInTarkov.Networking
                     var pongRaw = long.Parse(packet["pong"].ToString());
                     var dtPong = new DateTime(pongRaw);
                     var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                    if (coopGameComponent.ServerPingSmooth.Count > 60)
-                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
-                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
-                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
+                    coopGameComponent.UpdatePing(serverPing);
                     return;
                 }
 

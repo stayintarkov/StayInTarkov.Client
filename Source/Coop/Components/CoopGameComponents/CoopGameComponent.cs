@@ -1359,8 +1359,18 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         //public const int PING_LIMIT_HIGH = 125;
         //public const int PING_LIMIT_MID = 100;
 
-        public int ServerPing { get; set; } = 1;
+        public int ServerPing { get; private set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
+
+        public void UpdatePing(int ms)
+        {
+            //Logger.LogDebug($"{nameof(UpdatePing)}:Updating with:{ms}");
+
+            if (ServerPingSmooth.Count > 60)
+                ServerPingSmooth.TryDequeue(out _);
+            ServerPingSmooth.Enqueue(ms);
+            ServerPing = ServerPingSmooth.Count > 0 ? (int)Math.Round(ServerPingSmooth.Average()) : 1;
+        }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
