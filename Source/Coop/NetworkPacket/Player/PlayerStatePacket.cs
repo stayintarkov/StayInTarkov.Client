@@ -187,11 +187,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             return base.GetHashCode();
         }
 
-        public override void Process()
+        protected override void Process(CoopPlayerClient client)
         {
-            var players = CoopGameComponent.GetCoopGameComponent().Players;
-            if (players.ContainsKey(ProfileId))
-                players[ProfileId].ReceivePlayerStatePacket(this);
+            client.ReceivePlayerStatePacket(this);
         }
     }
 }

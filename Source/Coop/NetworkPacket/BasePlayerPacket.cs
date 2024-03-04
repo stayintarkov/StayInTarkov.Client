@@ -67,7 +67,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         /// </summary>
         public override void Process()
         {
-            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}:{Method}");
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}:{Method}");
 
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;

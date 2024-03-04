@@ -2,7 +2,6 @@
 using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
-using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player.Weapons;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Networking;
@@ -89,7 +88,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override bool CheckFireMode()
         {
-            StayInTarkov.Coop.NetworkPacket.Player.Weapons.CheckFireModePacket packet = new(_player.ProfileId);
+            CheckFireModePacket packet = new(_player.ProfileId);
             GameClient.SendData(packet.Serialize());
             return base.CheckFireMode();
         }
@@ -115,26 +114,41 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override bool ExamineWeapon()
         {
+            ExamineWeaponPacket packet = new(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
             return base.ExamineWeapon();
         }
 
         public override void Loot(bool p)
         {
+            LootPacket packet = new(_player.ProfileId, p);
+            GameClient.SendData(packet.Serialize());
             base.Loot(p);
         }
 
         public override void Pickup(bool p)
         {
+            PickupPacket packet = new(_player.ProfileId, p);
+            GameClient.SendData(packet.Serialize());
             base.Pickup(p);
         }
 
         public override void SetLightsState(LightsStates[] lightsStates, bool force = false)
         {
+            LightStatesPacket packet = new();
+            packet.ProfileId = _player.ProfileId;
+            packet.LightStates = lightsStates;
+            GameClient.SendData(packet.Serialize());
             base.SetLightsState(lightsStates, force);
         }
 
         public override void SetScopeMode(ScopeStates[] scopeStates)
         {
+            ScopeStatesPacket packet = new();
+            packet.ProfileId = _player.ProfileId;
+            packet.ScopeStates = scopeStates;
+            GameClient.SendData(packet.Serialize());
+
             base.SetScopeMode(scopeStates);
         }
 
@@ -144,13 +158,24 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             packet.Pressed = pressed;
             packet.RotationX = _player.Rotation.x;
             packet.RotationY = _player.Rotation.y;
+
+            // TODO: After release, sync amount of bullets used
+            if (!pressed)
+            {
+            }
+
             GameClient.SendData(packet.Serialize());
 
             ((CoopPlayer)_player).TriggerPressed = pressed;
 
-
             base.SetTriggerPressed(pressed);
 
+        }
+
+        public override void IEventsConsumerOnFiringBullet()
+        {
+            Logger.LogInfo(nameof(IEventsConsumerOnFiringBullet));
+            base.IEventsConsumerOnFiringBullet();
         }
 
         public override void ToggleAim()
@@ -162,6 +187,8 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override bool ToggleLauncher()
         {
+            ToggleLauncherPacket packet = new ToggleLauncherPacket(_player.ProfileId);
+            GameClient.SendData(packet.Serialize());
             return base.ToggleLauncher();
         }
     }

@@ -1,4 +1,5 @@
-﻿using EFT.InventoryLogic;
+﻿using EFT;
+using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Players;
 using System;
@@ -10,19 +11,21 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
-    public class PlayerProceedWeaponPacket : ItemPlayerPacket
+    public sealed class PlayerProceedKnifePacket : ItemPlayerPacket
     {
         public bool Scheduled { get; set; }
+        public bool QuickKnife { get; set; }
 
-        public PlayerProceedWeaponPacket() : base("", "", "", nameof(PlayerProceedWeaponPacket))
+        public PlayerProceedKnifePacket() : base("", "", "", nameof(PlayerProceedKnifePacket))
         {
 
         }
 
-        public PlayerProceedWeaponPacket(string profileId, string itemId, bool scheduled)
-            : base(profileId, itemId, "", nameof(PlayerProceedWeaponPacket))
+        public PlayerProceedKnifePacket(string profileId, string itemId, bool scheduled, bool quickKnife)
+            : base(profileId, itemId, "", nameof(PlayerProceedKnifePacket))
         {
             Scheduled = scheduled;
+            QuickKnife = quickKnife;
         }
 
         public override byte[] Serialize()
@@ -32,6 +35,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             WriteHeaderAndProfileId(writer);
             writer.Write(ItemId);
             writer.Write(Scheduled);
+            writer.Write(QuickKnife);
             writer.Write(TimeSerializedBetter);
 
             return ms.ToArray();
@@ -43,6 +47,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             ReadHeaderAndProfileId(reader);
             ItemId = reader.ReadString();
             Scheduled = reader.ReadBoolean();
+            QuickKnife = reader.ReadBoolean();
             TimeSerializedBetter = reader.ReadString();
 
             return this;
@@ -55,7 +60,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             if (ItemFinder.TryFindItem(ItemId, out var item))
             {
-                client.Proceed((Weapon)item, (x) => { }, Scheduled);
+                if(QuickKnife)
+                    client.Proceed(item.GetItemComponent<KnifeComponent>(), (Comfort.Common.Result<IQuickKnifeKickController> x) => { }, Scheduled);
+                else
+                    client.Proceed(item.GetItemComponent<KnifeComponent>(), (Comfort.Common.Result<IKnifeController> x) => { }, Scheduled);
             }
         }
     }

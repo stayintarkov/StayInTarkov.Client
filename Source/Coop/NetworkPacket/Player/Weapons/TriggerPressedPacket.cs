@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityStandardAssets.Water;
 
-namespace StayInTarkov.Coop.NetworkPacket
+namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 {
     public sealed class TriggerPressedPacket : BasePlayerPacket
     {
@@ -19,7 +19,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public float RotationX { get; set; }
         public float RotationY { get; set; }
 
-        public TriggerPressedPacket() {  }
+        public TriggerPressedPacket() { }
 
         public TriggerPressedPacket(string profileId) : base(new string(profileId.ToCharArray()), nameof(TriggerPressedPacket))
         {
@@ -53,48 +53,17 @@ namespace StayInTarkov.Coop.NetworkPacket
             return this;
         }
 
-        public override void Process()
+        protected override void Process(CoopPlayerClient client)
         {
-            if (Method != nameof(TriggerPressedPacket))
-                return;
-
-            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
-
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                // If the player exists, process
-                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayer client)
+                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
+                if (client.HandsController is EFT.Player.FirearmController fc)
                 {
-                    if (client.HandsController is EFT.Player.FirearmController fc)
-                    {
-                        fc.CurrentOperation.SetTriggerPressed(Pressed);
-                        Dispose();
-                    }
-                }
-                else
-                {
-                    // If the player doesn't exist, hold the packet until they do exist
-                    Task.Run(async () =>
-                    {
-
-                        while (true)
-                        {
-                            await Task.Delay(10 * 1000);
-
-                            if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayer client)
-                            {
-                                if (client.HandsController is EFT.Player.FirearmController fc)
-                                {
-                                    fc.CurrentOperation.SetTriggerPressed(Pressed);
-                                    Dispose();
-                                    break;
-                                }
-                            }
-                        }
-
-                    });
+                    fc.SetTriggerPressed(Pressed);
                 }
             }
         }
+
     }
 }

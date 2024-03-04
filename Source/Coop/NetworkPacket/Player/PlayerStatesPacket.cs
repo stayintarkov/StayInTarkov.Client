@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,9 +29,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             WriteHeader(binaryWriter);
             binaryWriter.Write(PlayerStates.Length);
             foreach (var state in PlayerStates)
-            {
                 binaryWriter.WriteLengthPrefixedBytes(state.Serialize());
-            }
+            binaryWriter.Write(TimeSerializedBetter);
             return ms.ToArray();
         }
 
@@ -41,18 +41,18 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             var length = reader.ReadInt32();
             PlayerStates = new PlayerStatePacket[length];
             for (var i = 0; i < length; i++)
-            {
                 PlayerStates[i] = new PlayerStatePacket().Deserialize(reader.ReadLengthPrefixedBytes()) as PlayerStatePacket;
-            }
+            TimeSerializedBetter = reader.ReadString();
             return this;
         }
 
         public override void Process()
         {
-            foreach (var psp in PlayerStates)
-            {
-                psp.Process();
-            }
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
+
+            for (var i = 0; i < PlayerStates.Length; i++)
+                PlayerStates[i].Process();
         }
     }
 }

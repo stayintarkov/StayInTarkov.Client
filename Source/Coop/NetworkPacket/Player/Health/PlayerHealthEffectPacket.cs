@@ -105,5 +105,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 
 
         }
+
+        protected override void Process(CoopPlayerClient client)
+        {
+            base.Process(client);
+        }
     }
 }

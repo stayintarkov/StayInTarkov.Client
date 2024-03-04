@@ -4,28 +4,17 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using Sirenix.Utilities;
-using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Controllers.HandControllers;
-using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
-using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Player.FirearmControllerPatches;
-using StayInTarkov.Coop.Player.Proceed;
-using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
-using StayInTarkov.UI;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -431,29 +420,29 @@ namespace StayInTarkov.Coop.Players
             EFT.Player victim = this;
 
             var attacker = LastAggressor as EFT.Player;
-            //if (DisplayDeathMessage)
 
-            if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
-                DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
+            // Paulov: Unknown / Unable to replicate issue where some User's feed would cause a crash
+            //if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+            //    DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
             
             KillPacket killPacket = new KillPacket(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
         }
 
-        public static string GeneratePlayerNameWithSide(EFT.Player player)
-        {
-            if (player == null)
-                return "";
+        //public static string GeneratePlayerNameWithSide(EFT.Player player)
+        //{
+        //    if (player == null)
+        //        return "";
 
-            var side = "Scav";
+        //    var side = "Scav";
 
-            if (player.AIData.IAmBoss)
-                side = "Boss";
-            else if (player.Side != EPlayerSide.Savage)
-                side = player.Side.ToString();
+        //    if (player.AIData.IAmBoss)
+        //        side = "Boss";
+        //    else if (player.Side != EPlayerSide.Savage)
+        //        side = player.Side.ToString();
 
-            return $"[{side}] {player.Profile.GetCorrectedNickname()}";
-        }
+        //    return $"[{side}] {player.Profile.GetCorrectedNickname()}";
+        //}
 
        
 
@@ -561,6 +550,50 @@ namespace StayInTarkov.Coop.Players
             weaponPacket.Scheduled = scheduled;
             GameClient.SendData(weaponPacket.Serialize());
         }
+
+        public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
+        {
+            Func<SITKnifeController> controllerFactory = () => KnifeController.smethod_8<SITKnifeController>(this, knife);
+            new Process<SITKnifeController, IKnifeController>(this, controllerFactory, knife.Item, fastHide: true)
+                .method_0((IResult result) => {
+
+                    // Check if the Proceed was successful before sending packet
+                    if (result.Succeed)
+                    {
+                        PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                        knifePacket.ProfileId = this.ProfileId;
+                        knifePacket.ItemId = knife.Item.Id;
+                        knifePacket.Scheduled = scheduled;
+                        GameClient.SendData(knifePacket.Serialize());
+                    }
+
+                }, callback, scheduled);
+
+            
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
+        {
+            Func<SITQuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<SITQuickKnifeKickController>(this, knife);
+            Process<SITQuickKnifeKickController, IQuickKnifeKickController> process = new Process<SITQuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            process.method_0(delegate (IResult result)
+            {
+                // Check if the Proceed was successful before sending packet
+                if (result.Succeed)
+                {
+                    PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                    knifePacket.ProfileId = this.ProfileId;
+                    knifePacket.ItemId = knife.Item.Id;
+                    knifePacket.Scheduled = scheduled;
+                    knifePacket.QuickKnife = true;
+                    GameClient.SendData(knifePacket.Serialize());
+                }
+
+            }, callback, scheduled);
+
+            
+        }
+
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {

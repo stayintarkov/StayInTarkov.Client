@@ -556,5 +556,28 @@ namespace StayInTarkov.Coop.Players
             new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
         }
 
+        public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
+        {
+            Func<SITKnifeControllerClient> controllerFactory = () => KnifeController.smethod_8<SITKnifeControllerClient>(this, knife);
+            new Process<SITKnifeControllerClient, IKnifeController>(this, controllerFactory, knife.Item, fastHide: true).method_0(null, callback, scheduled);
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
+        {
+            Func<QuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<QuickKnifeKickController>(this, knife);
+            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            Action confirmCallback = delegate
+            {
+                
+            };
+            process.method_0(delegate (IResult result)
+            {
+                if (result.Succeed)
+                {
+
+                }
+            }, callback, scheduled);
+        }
+
     }
 }

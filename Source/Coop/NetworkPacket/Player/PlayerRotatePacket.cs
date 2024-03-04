@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Players;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,6 +51,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         protected override void Process(CoopPlayerClient client)
         {
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
+
             client.Rotation = new UnityEngine.Vector2(RotationX, RotationY);
         }
     }

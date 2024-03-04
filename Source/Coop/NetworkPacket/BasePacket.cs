@@ -36,6 +36,18 @@ namespace StayInTarkov.Coop.NetworkPacket
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; }
 
+        public TimeSpan GetTimeSinceSent()
+        {
+            if (!string.IsNullOrEmpty(TimeSerializedBetter) && TimeSerializedBetter != "0")
+            {
+                var ticks = long.Parse(TimeSerializedBetter);
+                var result = DateTime.Now - new DateTime(ticks);
+                return result;
+            }
+
+            return TimeSpan.Zero;
+        }
+
         //[JsonProperty(PropertyName = "pong")]
         //public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
 
