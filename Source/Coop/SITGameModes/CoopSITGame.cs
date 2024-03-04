@@ -7,6 +7,7 @@
 using Aki.Custom.Airdrops;
 using BepInEx.Logging;
 using Comfort.Common;
+using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.Bots;
 using EFT.Game.Spawning;
@@ -82,6 +83,14 @@ namespace StayInTarkov.Coop.SITGameModes
             }
         }
 
+        public EndByExitTrigerScenario EndByExitTrigerScenario
+        {
+            get
+            {
+                return ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(EndByExitTrigerScenario)).GetValue(this) as EndByExitTrigerScenario;
+            }
+        }
+
         private static ManualLogSource Logger;
 
         internal static CoopSITGame Create(
@@ -149,10 +158,10 @@ namespace StayInTarkov.Coop.SITGameModes
             coopGame.CreateCoopGameComponent();
             CoopGameComponent.GetCoopGameComponent().LocalGameInstance = coopGame;
 
+
+
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
-            // TODO: Switch to GameClientTCP/GameClientUDP
-
             switch (SITMatchmaking.SITProtocol)
             {
                 case ESITProtocol.RelayTcp:
@@ -854,62 +863,51 @@ namespace StayInTarkov.Coop.SITGameModes
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
             Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
 
-            PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
-            PBotsController.AddActivePLayer(PlayerOwner.Player);
-
-            //foreach (var friendlyB in FriendlyPlayers.Values)
-            //{
-            //    //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
-            //    //botOwner.GetComponentsInChildren<Collider>();
-            //    //botOwner.GetPlayer.CharacterController.isEnabled = false;
-            //    Logger.LogDebug("Attempting to Activate friendly bot");
-            //    //botCreator.ActivateBot(friendlyB.Profile, botZones[0], false, (bot, zone) =>
-            //    //{
-            //    //    Logger.LogDebug("group action");
-            //    //    return new BotsGroup(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
-            //    //}, (owner) =>
-            //    //{
-
-            //    //    Logger.LogDebug("Bot Owner created");
-
-            //    //    owner.GetComponentsInChildren<Collider>();
-            //    //    owner.GetPlayer.CharacterController.isEnabled = false;
-
-            //    //}, cancellationToken: CancellationToken.None);
-            //}
+            try
+            {
+                PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
+                PBotsController.AddActivePLayer(PlayerOwner.Player);
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
+            }
 
             yield return new WaitForSeconds(startDelay);
-            if (shouldSpawnBots)
+
+            try
             {
-                BossWaveManager.Run(EBotsSpawnMode.Anyway);
-
-                //if (this.nonWavesSpawnScenario_0 != null)
-                //    this.nonWavesSpawnScenario_0.Run();
-
-                //Logger.LogDebug($"Running Wave Scenarios");
-
-                if (wavesSpawnScenario_0.SpawnWaves != null && wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                if (shouldSpawnBots && wavesSpawnScenario_0 != null && wavesSpawnScenario_0.SpawnWaves != null && BossWaveManager != null)
                 {
-                    Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
-                    wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                    BossWaveManager.Run(EBotsSpawnMode.Anyway);
+
+                    if (wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                    {
+                        Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
+                        wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                    }
+
                 }
-
+                else
+                {
+                    if (wavesSpawnScenario_0 != null)
+                        wavesSpawnScenario_0.Stop();
+                    if (nonWavesSpawnScenario_0 != null)
+                        nonWavesSpawnScenario_0.Stop();
+                    if (BossWaveManager != null)
+                        BossWaveManager.Stop();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                if (wavesSpawnScenario_0 != null)
-                    wavesSpawnScenario_0.Stop();
-                if (nonWavesSpawnScenario_0 != null)
-                    nonWavesSpawnScenario_0.Stop();
-                if (BossWaveManager != null)
-                    BossWaveManager.Stop();
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
             }
-
 
 
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");
-            CreateExfiltrationPointAndInitDeathHandler();
 
             // No longer need this ping. Load complete and all other data should keep happening after this point.
             StopCoroutine(ClientLoadingPinger());
@@ -919,14 +917,20 @@ namespace StayInTarkov.Coop.SITGameModes
             for (int i = 0; i < magazines.Count(); i++)
                 Profile_0.CheckMagazines(magazines[i].Id, 2);
 
-
-
             // ------------------------------------------------------------------------
             // Setup Winter
-            bool isWinter = BackEndSession.IsWinter;
-            WinterEventController winterEventController = new WinterEventController();
-            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
-            winterEventController.Run(isWinter).Wait();
+            try
+            {
+                bool isWinter = BackEndSession.IsWinter;
+                WinterEventController winterEventController = new WinterEventController();
+                ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
+                winterEventController.Run(isWinter).ContinueWith(x => { if (x.IsFaulted) Logger.LogError(x.Exception); return Task.CompletedTask; });
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
+            }
 
             if (shouldSpawnBots)
             {
@@ -942,6 +946,12 @@ namespace StayInTarkov.Coop.SITGameModes
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
 
+            using (TokenStarter.StartWithToken("SessionRun"))
+            {
+                //vmethod_5();
+                // below is vmethod_5
+                CreateExfiltrationPointAndInitDeathHandler();
+            }
             runCallback.Succeed();
 
         }
@@ -949,39 +959,55 @@ namespace StayInTarkov.Coop.SITGameModes
         public override void vmethod_5()
         {
             Logger.LogDebug(nameof(vmethod_5));
-            base.vmethod_5();
+            //base.vmethod_5();
         }
 
-        /// <summary>
-        /// Died event handler
-        /// </summary>
         public void CreateExfiltrationPointAndInitDeathHandler()
         {
-            Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
-
-            GameTimer.Start();
-            gparam_0.vmethod_0();
-            gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
-
-            InfiltrationPoint = spawnPoint.Infiltration;
-            Profile_0.Info.EntryPoint = InfiltrationPoint;
-
-            //Logger.LogDebug(InfiltrationPoint);
-
-            ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
-            ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
-            GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, GameTimer.SessionSeconds(), exfilPoints);
-            foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
+            try
             {
-                exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
-                exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
-                exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
-                UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
-            }
+                Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
 
-            dateTime_0 = DateTime.Now;
-            Status = GameStatus.Started;
-            ConsoleScreen.ApplyStartCommands();
+                GameTimer.Start();
+                gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
+                gparam_0.vmethod_0();
+
+                InfiltrationPoint = spawnPoint.Infiltration;
+                Profile_0.Info.EntryPoint = InfiltrationPoint;
+
+                //Logger.LogDebug(InfiltrationPoint);
+
+                ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
+                ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
+                GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, GameTimer.SessionSeconds(), exfilPoints);
+                foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
+                {
+                    exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
+                    exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
+                    exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
+                    UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
+                }
+
+                // Paulov: You don't want this to run on Coop Game's
+                //try
+                //{
+                //    EndByExitTrigerScenario.Run();
+                //}
+                //catch (Exception ex)
+                //{
+                //    ConsoleScreen.LogException(ex);
+                //    Logger.LogError(ex);
+                //}
+
+                dateTime_0 = DateTime.Now;
+                Status = GameStatus.Started;
+                ConsoleScreen.ApplyStartCommands();
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
+            }
         }
 
         public Dictionary<string, (float, long, string)> ExtractingPlayers { get; } = new();
