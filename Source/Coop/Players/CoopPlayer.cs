@@ -8,6 +8,7 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Controllers.HandControllers;
+using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
@@ -125,8 +126,8 @@ namespace StayInTarkov.Coop.Players
                 // aiControl = true is VITAL, otherwise items will not be used!
                 // found the fault is caused by aiControl allows ManualUpdate to be used
                 //isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
-                isClientDrone ? new CoopHealthControllerClient(profile.Health, player, inventoryController, profile.Skills)  // new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
-                : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+                isClientDrone ? new SITHealthControllerClient(profile.Health, player, inventoryController, profile.Skills)  // new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                : new SITHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
 
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
 

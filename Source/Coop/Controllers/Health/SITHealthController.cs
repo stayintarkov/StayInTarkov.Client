@@ -6,17 +6,17 @@ using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Networking;
 using System.IO;
 
-namespace StayInTarkov.Coop.Controllers
+namespace StayInTarkov.Coop.Controllers.Health
 {
-    public sealed class CoopHealthController : PlayerHealthController
+    public sealed class SITHealthController : PlayerHealthController
     {
         public ManualLogSource BepInLogger { get; private set; }
 
-        public CoopHealthController(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
+        public SITHealthController(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)
         {
-            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopHealthController));
-            BepInLogger.LogDebug(nameof(CoopHealthController));
+            BepInLogger = Logger.CreateLogSource(nameof(SITHealthController));
+            BepInLogger.LogDebug(nameof(SITHealthController));
         }
 
         //public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
@@ -27,7 +27,7 @@ namespace StayInTarkov.Coop.Controllers
         protected override void AddEffectToList(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogDebug($"{nameof(CoopHealthController)}:{nameof(AddEffectToList)}");
+                BepInLogger.LogDebug($"{nameof(SITHealthController)}:{nameof(AddEffectToList)}");
 
             base.AddEffectToList(effect);
 
@@ -51,7 +51,7 @@ namespace StayInTarkov.Coop.Controllers
         protected override bool RemoveEffectFromList(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogDebug($"{nameof(CoopHealthController)}:{nameof(RemoveEffectFromList)}");
+                BepInLogger.LogDebug($"{nameof(SITHealthController)}:{nameof(RemoveEffectFromList)}");
 
             var result = base.RemoveEffectFromList(effect);
 

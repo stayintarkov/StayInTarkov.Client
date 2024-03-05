@@ -8,20 +8,20 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace StayInTarkov.Coop.Controllers
+namespace StayInTarkov.Coop.Controllers.Health
 {
-    internal sealed class CoopHealthControllerClient
+    internal sealed class SITHealthControllerClient
         // Paulov: This should be ActiveHealthController. However, a lot of the patches use PlayerHealthController, need to fix
         : PlayerHealthController
     //: ActiveHealthController
     {
         ManualLogSource BepInLogger { get; }
 
-        public CoopHealthControllerClient(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager)
+        public SITHealthControllerClient(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager)
             : base(healthInfo, player, inventoryController, skillManager, true)
         {
-            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopHealthControllerClient));
-            BepInLogger.LogInfo(nameof(CoopHealthControllerClient));
+            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITHealthControllerClient));
+            BepInLogger.LogInfo(nameof(SITHealthControllerClient));
         }
 
 
@@ -35,13 +35,13 @@ namespace StayInTarkov.Coop.Controllers
 
         public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
         {
-            BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(ApplyItem)}");
+            BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(ApplyItem)}");
             return base.ApplyItem(item, bodyPart, amount);
         }
 
         public override bool CanApplyItem(Item item, EBodyPart bodyPart)
         {
-            BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(CanApplyItem)}");
+            BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(CanApplyItem)}");
             return base.CanApplyItem(item, bodyPart);
         }
 
@@ -54,7 +54,7 @@ namespace StayInTarkov.Coop.Controllers
             base.AddEffectToList(effect);
 
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(AddEffectToList)}");
+                BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(AddEffectToList)}");
 
         }
 
@@ -65,7 +65,7 @@ namespace StayInTarkov.Coop.Controllers
         protected override bool TryGetBodyPartToApply(Item item, EBodyPart bodyPart, out EBodyPart? damagedBodyPart)
         {
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(TryGetBodyPartToApply)}");
+                BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(TryGetBodyPartToApply)}");
 
             damagedBodyPart = bodyPart;
             return base.TryGetBodyPartToApply(item, bodyPart, out damagedBodyPart);
@@ -99,7 +99,7 @@ namespace StayInTarkov.Coop.Controllers
         protected override bool RemoveEffectFromList(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(RemoveEffectFromList)}");
+                BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(RemoveEffectFromList)}");
 
             return base.RemoveEffectFromList(effect);
         }
@@ -107,12 +107,12 @@ namespace StayInTarkov.Coop.Controllers
         public void ReceiveEffect(AbstractEffect effect)
         {
             if (BepInLogger != null)
-                BepInLogger.LogInfo($"{nameof(CoopHealthControllerClient)}:{nameof(ReceiveEffect)}:{effect}");
+                BepInLogger.LogInfo($"{nameof(SITHealthControllerClient)}:{nameof(ReceiveEffect)}:{effect}");
 
             //base.AddEffectToList(effect);
         }
 
     }
 
-   
+
 }
