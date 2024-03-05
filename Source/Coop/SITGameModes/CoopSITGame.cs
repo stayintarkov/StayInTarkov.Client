@@ -811,67 +811,71 @@ namespace StayInTarkov.Coop.SITGameModes
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
-            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
-
-            LocalGameBotCreator profileCreator =
-                new(BackEndSession
-                , wavesSpawnScenario_0.SpawnWaves
-                , Location_0.BossLocationSpawn
-                , nonwaves
-                , true);
-
-            BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
-            BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
-            PBotsController.Init(this
-                , botCreator
-                , botZones
-                , spawnSystem
-                , wavesSpawnScenario_0.BotLocationModifier
-                , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
-                , false // controllerSettings.IsScavWars
-                , true
-                , false
-                , false
-                , Singleton<GameWorld>.Instance
-                , Location_0.OpenZones)
-                ;
-
-            Logger.LogInfo($"Location: {Location_0.Name}");
-
-            MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
+            if (!SITMatchmaking.IsClient)
             {
-                EBotAmount.AsOnline => 10,
-                EBotAmount.Low => 11,
-                EBotAmount.Medium => 12,
-                EBotAmount.High => 14,
-                EBotAmount.Horde => 15,
-                _ => 16,
-            };
-            switch (controllerSettings.BotAmount)
-            {
-                case EBotAmount.Low:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
-                    break;
-                case EBotAmount.High:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.1);
-                    break;
-                case EBotAmount.Horde:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.25);
-                    break;
-            };
 
-            int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
-            Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
+                var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
 
-            try
-            {
-                PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
-                PBotsController.AddActivePLayer(PlayerOwner.Player);
-            }
-            catch (Exception ex)
-            {
-                ConsoleScreen.LogException(ex);
-                Logger.LogError(ex);
+                LocalGameBotCreator profileCreator =
+                    new(BackEndSession
+                    , wavesSpawnScenario_0.SpawnWaves
+                    , Location_0.BossLocationSpawn
+                    , nonwaves
+                    , true);
+
+                BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
+                BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
+                PBotsController.Init(this
+                    , botCreator
+                    , botZones
+                    , spawnSystem
+                    , wavesSpawnScenario_0.BotLocationModifier
+                    , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
+                    , false // controllerSettings.IsScavWars
+                    , true
+                    , false
+                    , false
+                    , Singleton<GameWorld>.Instance
+                    , Location_0.OpenZones)
+                    ;
+
+                Logger.LogInfo($"Location: {Location_0.Name}");
+
+                MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
+                {
+                    EBotAmount.AsOnline => 10,
+                    EBotAmount.Low => 11,
+                    EBotAmount.Medium => 12,
+                    EBotAmount.High => 14,
+                    EBotAmount.Horde => 15,
+                    _ => 16,
+                };
+                switch (controllerSettings.BotAmount)
+                {
+                    case EBotAmount.Low:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
+                        break;
+                    case EBotAmount.High:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 1.1);
+                        break;
+                    case EBotAmount.Horde:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 1.25);
+                        break;
+                };
+
+                int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
+                Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
+
+                try
+                {
+                    PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
+                    PBotsController.AddActivePLayer(PlayerOwner.Player);
+                }
+                catch (Exception ex)
+                {
+                    ConsoleScreen.LogException(ex);
+                    Logger.LogError(ex);
+                }
             }
 
             yield return new WaitForSeconds(startDelay);

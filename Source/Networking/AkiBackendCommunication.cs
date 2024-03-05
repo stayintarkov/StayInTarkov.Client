@@ -27,7 +27,7 @@ namespace StayInTarkov.Networking
 {
     public class AkiBackendCommunication : IDisposable
     {
-        public const int DEFAULT_TIMEOUT_MS = 5000;
+        public const int DEFAULT_TIMEOUT_MS = 9999;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
         public const string PACKET_TAG_METHOD = "m";
         public const string PACKET_TAG_SERVERID = "serverId";
@@ -808,6 +808,8 @@ namespace StayInTarkov.Networking
         public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false, int retryAttempts = 5)
         {
             int attempt = 0;
+            Task<MemoryStream> sendReceiveTask;
+
             while (attempt++ < retryAttempts)
             {
                 try
@@ -816,15 +818,22 @@ namespace StayInTarkov.Networking
                     if (!url.StartsWith("/"))
                         url = "/" + url;
 
-                    using (MemoryStream stream = await SendAndReceiveAsync(url, "POST", data, compress, timeout, debug))
+                    sendReceiveTask = SendAndReceiveAsync(url, "POST", data, compress, timeout, debug);
+                    using (MemoryStream stream = await sendReceiveTask)
                     {
+                        sendReceiveTask.Dispose();
+                        sendReceiveTask = null;
                         return ConvertStreamToString(compress, stream);
                     }
                 }
                 catch (Exception ex)
                 {
+#if DEBUG
+                    StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
                     StayInTarkovHelperConstants.Logger.LogError(ex);
+#endif
                 }
+                await Task.Delay(1000);
             }
             throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
