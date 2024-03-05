@@ -772,8 +772,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ------------------------------------------------------------------------------------
             // Send the information to the server
-            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJson");
-            AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.SITToJson());
+            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
+            await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
         }
 
         /// <summary>

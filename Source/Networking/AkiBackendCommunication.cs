@@ -532,6 +532,44 @@ namespace StayInTarkov.Networking
             throw new ArgumentException($"Unknown method {method}");
         }
 
+        // <summary>
+        /// Send request to the server and get Stream of data back
+        /// </summary>
+        /// <param name="url">String url endpoint example: /start</param>
+        /// <param name="method">POST or GET</param>
+        /// <param name="data">string json data</param>
+        /// <param name="compress">Should use compression gzip?</param>
+        /// <returns>Stream or null</returns>
+        private async Task<MemoryStream> SendAndReceiveAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
+        {
+            // Force to DEBUG mode if not Compressing.
+            debug = debug || !compress;
+
+            HttpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
+
+
+            method = method.ToUpper();
+
+            var fullUri = url;
+            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+                fullUri = RemoteEndPoint + fullUri;
+
+            if (method == "GET")
+            {
+                var ms = new MemoryStream();
+                var stream = await HttpClient.GetStreamAsync(fullUri);
+                stream.CopyTo(ms);
+                return ms;
+            }
+            else if (method == "POST" || method == "PUT")
+            {
+                var uri = new Uri(fullUri);
+                return await SendAndReceivePostAsync(uri, method, data, compress, timeout, debug);
+            }
+
+            throw new ArgumentException($"Unknown method {method}");
+        }
+
         /// <summary>
         /// Send request to the server and get Stream of data back by post
         /// </summary>
@@ -625,6 +663,89 @@ namespace StayInTarkov.Networking
             }
         }
 
+        async Task<MemoryStream> SendAndReceivePostAsync(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
+        {
+            using (HttpClientHandler handler = new HttpClientHandler())
+            {
+                using (HttpClient httpClient = new HttpClient(handler))
+                {
+                    handler.UseCookies = true;
+                    handler.CookieContainer = new CookieContainer();
+                    httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
+                    Uri baseAddress = new Uri(RemoteEndPoint);
+                    foreach (var item in GetHeaders())
+                    {
+                        if (item.Key == "Cookie")
+                        {
+                            string[] pairs = item.Value.Split(';');
+                            var keyValuePairs = pairs
+                                .Select(p => p.Split(new[] { '=' }, 2))
+                                .Where(kvp => kvp.Length == 2)
+                                .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
+                            foreach (var kvp in keyValuePairs)
+                            {
+                                handler.CookieContainer.Add(baseAddress, new Cookie(kvp.Key, kvp.Value));
+                            }
+                        }
+                        else
+                        {
+                            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
+                        }
+
+                    }
+                    if (!debug && method == "POST")
+                    {
+                        httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+                    }
+
+                    HttpContent byteContent = null;
+                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
+                    {
+                        if (debug)
+                        {
+                            compress = false;
+                            httpClient.DefaultRequestHeaders.Add("debug", "1");
+                        }
+                        var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                        byte[] bytes = compress ? Zlib.Compress(inputDataBytes) : inputDataBytes;
+                        byteContent = new ByteArrayContent(bytes);
+                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                        if (compress)
+                        {
+                            byteContent.Headers.ContentEncoding.Add("deflate");
+                        }
+                    }
+
+                    HttpResponseMessage response;
+                    if (byteContent != null)
+                    {
+                        response = await httpClient.PostAsync(uri, byteContent);
+                    }
+                    else
+                    {
+                        response = method.Equals("POST", StringComparison.OrdinalIgnoreCase)
+                            ? await httpClient.PostAsync(uri, null)
+                            : await httpClient.GetAsync(uri);
+                    }
+
+                    var ms = new MemoryStream();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Stream responseStream = await response.Content.ReadAsStreamAsync();
+                        responseStream.CopyTo(ms);
+                        responseStream.Dispose();
+                    }
+                    else
+                    {
+                        StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
+                    }
+
+                    return ms;
+                }
+
+            }
+        }
+
         public byte[] GetData(string url, bool hasHost = false)
         {
             using (var dataStream = SendAndReceive(url, "GET"))
@@ -657,26 +778,31 @@ namespace StayInTarkov.Networking
 
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
             {
-                if (stream == null)
-                    return "";
-
-                var bytes = stream.ToArray();
-                string resultString;
-
-                if (compress)
-                {
-                    if (Zlib.IsCompressed(bytes))
-                        resultString = Zlib.Decompress(bytes);
-                    else
-                        resultString = Encoding.UTF8.GetString(bytes);
-                }
-                else
-                {
-                    resultString = Encoding.UTF8.GetString(bytes);
-                }
-
-                return resultString;
+                return ConvertStreamToString(compress, stream);
             }
+        }
+
+        private static string ConvertStreamToString(bool compress, MemoryStream stream)
+        {
+            if (stream == null)
+                return "";
+
+            var bytes = stream.ToArray();
+            string resultString;
+
+            if (compress)
+            {
+                if (Zlib.IsCompressed(bytes))
+                    resultString = Zlib.Decompress(bytes);
+                else
+                    resultString = Encoding.UTF8.GetString(bytes);
+            }
+            else
+            {
+                resultString = Encoding.UTF8.GetString(bytes);
+            }
+
+            return resultString;
         }
 
         public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false, int retryAttempts = 5)
@@ -686,7 +812,14 @@ namespace StayInTarkov.Networking
             {
                 try
                 {
-                    return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
+                    // people forget the /
+                    if (!url.StartsWith("/"))
+                        url = "/" + url;
+
+                    using (MemoryStream stream = await SendAndReceiveAsync(url, "POST", data, compress, timeout, debug))
+                    {
+                        return ConvertStreamToString(compress, stream);
+                    }
                 }
                 catch (Exception ex)
                 {
