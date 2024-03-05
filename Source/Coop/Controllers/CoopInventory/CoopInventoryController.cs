@@ -5,6 +5,8 @@ using EFT.InventoryLogic;
 using EFT.UI;
 using JetBrains.Annotations;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
+using StayInTarkov.Coop.Players;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +25,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public HashSet<string> AlreadySent = new();
 
         private EFT.Player Player { get; set; }
+
+        public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base (player, profile, examined) 
+        { 
+            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
+            Player = player;
+        }
 
         private Dictionary<ushort, (AbstractInventoryOperation operation, Callback callback)> InventoryOperations { get; } = new();
 
@@ -99,14 +107,21 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             else
             {
                 callback?.Succeed();
-                //operation.vmethod_0(delegate (IResult result)
-                //{
-                //    if (!result.Succeed)
-                //    {
-                //        Logger.LogError("[{0}][{5}] {1} - Local operation failed: {2} - {3}\r\nError: {4}", Time.frameCount, ID, operation.Id, operation, result.Error, Name);
-                //    }
-                //    callback?.Invoke(result);
-                //});
+            }
+
+            // Perform Inventory Sync
+            if (this.Player != null && this.Player is CoopPlayer coopPlayer)
+            {
+                foreach (var item in this.Player.Inventory.AllRealPlayerItems.Where(x => x != null))
+                {
+                    float newValue = 0;
+                    if (item is MedsClass meds)
+                        newValue = meds.MedKitComponent != null ? meds.MedKitComponent.HpResource : 0;
+                    else if (item is FoodClass food)
+                        newValue = food.FoodDrinkComponent != null ? food.FoodDrinkComponent.HpPercent : 0;
+                    PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(coopPlayer.ProfileId, item.Id, newValue, item.StackObjectsCount);
+                    GameClient.SendData(postProceedPacket.Serialize());
+                }
             }
         }
 
@@ -282,14 +297,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 return;
             }
             base.InProcess(executor, item, to, succeed, operation, callback);
-        }
-
-        public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
-        {
-            BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
-            Player = player;
-            /*if (player.Side != EPlayerSide.Savage && !IsDiscardLimitsFine(DiscardLimits))
-                ResetDiscardLimits();*/
         }
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)

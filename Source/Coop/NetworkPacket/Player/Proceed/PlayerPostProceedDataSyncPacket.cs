@@ -22,16 +22,19 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         }
 
-        public PlayerPostProceedDataSyncPacket(string profileId, string itemId, float newValue) : this(new string(profileId.ToCharArray()))
+        public PlayerPostProceedDataSyncPacket(string profileId, string itemId, float newValue, int stackItemCount) : this(new string(profileId.ToCharArray()))
         {
             ProfileId = profileId;
             ItemId = itemId;
             NewValue = newValue;
+            StackObjectsCount = stackItemCount;
         }
 
         public string ItemId { get; set; }
 
         public float NewValue { get; set; }
+
+        public int StackObjectsCount { get; set; }
 
         public override byte[] Serialize()
         {
@@ -41,6 +44,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             writer.Write(ProfileId);
             writer.Write(ItemId);
             writer.Write(NewValue);
+            writer.Write((byte)StackObjectsCount);
             writer.Write(TimeSerializedBetter);
 
             return ms.ToArray();
@@ -53,67 +57,20 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             ProfileId = reader.ReadString();
             ItemId = reader.ReadString();
             NewValue = reader.ReadSingle();
+            StackObjectsCount = reader.ReadByte();
             TimeSerializedBetter = reader.ReadString();
 
             return this;
         }
 
-        public override void Process()
+        protected override void Process(CoopPlayerClient client)
         {
             if (Method != nameof(PlayerPostProceedDataSyncPacket))
                 return;
 
-            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
+            //StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                return;
-
-            //if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-            //{
-            //    client.ReceivedPackets.Enqueue(this);
-            //}
-            StayInTarkovPlugin.Instance.StartCoroutine(ProcessCoroutine());
-        }
-
-        private IEnumerator ProcessCoroutine()
-        {
-            while (true)
-            {
-                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    break;
-
-                if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
-                {
-                    if (ItemFinder.TryFindItem(this.ItemId, out Item item))
-                    {
-                        if (item is MedsClass meds)
-                        {
-                            if (meds.MedKitComponent != null)
-                            {
-                                meds.MedKitComponent.HpResource = this.NewValue;
-                            }
-
-                            break;
-                        }
-                        if (item is FoodClass food)
-                        {
-                            if (food.FoodDrinkComponent != null)
-                            {
-                                food.FoodDrinkComponent.HpPercent = this.NewValue;
-                            }
-
-                            break;
-                        }
-
-                        item.RaiseRefreshEvent(true, true);
-                    }
-                }
-                else
-                    break;
-
-                yield return new WaitForSeconds(10);
-            }
-
+            client.ReplicatedPostProceedData.Enqueue(this);
         }
 
         public override string ToString()
