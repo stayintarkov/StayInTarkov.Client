@@ -1,5 +1,4 @@
-﻿using EFT;
-using EFT.InventoryLogic;
+﻿using EFT.InventoryLogic;
 using StayInTarkov.Coop.Players;
 using System;
 using System.Collections.Generic;
@@ -10,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 {
-    public class ReloadWithAmmoPacket : BasePlayerPacket
+    public sealed class ReloadGrenadeLauncherPacket : BasePlayerPacket
     {
         public string[] AmmoIds { get; set; }
 
-        public ReloadWithAmmoPacket() : base ("", nameof (ReloadWithAmmoPacket)) { }
+        public ReloadGrenadeLauncherPacket() : base("", nameof(ReloadGrenadeLauncherPacket)) { }
 
-        public ReloadWithAmmoPacket(string profileId, string[] ammoIds) : base(profileId, nameof(ReloadWithAmmoPacket))
+        public ReloadGrenadeLauncherPacket(string profileId, string[] ammoIds) : base(profileId, nameof(ReloadGrenadeLauncherPacket))
         {
             ProfileId = profileId;
             AmmoIds = ammoIds;
@@ -40,9 +39,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
 
-            var length = reader.ReadInt32();  
+            var length = reader.ReadInt32();
             AmmoIds = new string[length];
-            for(var i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
                 AmmoIds[i] = reader.ReadString();
 
             return this;
@@ -71,7 +70,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             if (firearmController != null)
             {
                 AmmoPack ammoPack = new(ammoList);
-                firearmController.ReloadWithAmmo(ammoPack, (x) => { });
+                firearmController.ReloadGrenadeLauncher(ammoPack, (x) => { });
             }
         }
 

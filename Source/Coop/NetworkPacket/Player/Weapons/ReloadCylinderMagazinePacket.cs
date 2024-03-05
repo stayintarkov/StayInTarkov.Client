@@ -1,6 +1,6 @@
-﻿using EFT;
-using EFT.InventoryLogic;
+﻿using EFT.InventoryLogic;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,16 +10,19 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 {
-    public class ReloadWithAmmoPacket : BasePlayerPacket
+    internal class ReloadCylinderMagazinePacket : BasePlayerPacket
     {
         public string[] AmmoIds { get; set; }
 
-        public ReloadWithAmmoPacket() : base ("", nameof (ReloadWithAmmoPacket)) { }
+        public bool QuickReload { get; set; }
 
-        public ReloadWithAmmoPacket(string profileId, string[] ammoIds) : base(profileId, nameof(ReloadWithAmmoPacket))
+        public ReloadCylinderMagazinePacket() : base("", nameof(ReloadCylinderMagazinePacket)) { }
+
+        public ReloadCylinderMagazinePacket(string profileId, string[] ammoIds, bool quickReload) : base(profileId, nameof(ReloadCylinderMagazinePacket))
         {
             ProfileId = profileId;
             AmmoIds = ammoIds;
+            QuickReload = quickReload;
         }
 
         public override byte[] Serialize()
@@ -31,6 +34,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             foreach (var ammo in AmmoIds)
                 writer.Write(ammo);
 
+            writer.Write(QuickReload);
+
             return ms.ToArray();
         }
 
@@ -40,10 +45,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
 
-            var length = reader.ReadInt32();  
+            var length = reader.ReadInt32();
             AmmoIds = new string[length];
-            for(var i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
                 AmmoIds[i] = reader.ReadString();
+
+            QuickReload = reader.ReadBoolean();
 
             return this;
         }
@@ -57,9 +64,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             {
                 var findItem = client.FindItemById(ammoId, false, true);
                 if (findItem.Failed)
-                {
                     continue;
-                }
+
                 Item item = client.FindItemById(ammoId, false, true).Value;
                 BulletClass bulletClass = findItem.Value as BulletClass;
                 if (bulletClass == null)
@@ -71,9 +77,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             if (firearmController != null)
             {
                 AmmoPack ammoPack = new(ammoList);
-                firearmController.ReloadWithAmmo(ammoPack, (x) => { });
+                firearmController.ReloadCylinderMagazine(ammoPack, (x) => { }, QuickReload);
             }
         }
-
     }
 }

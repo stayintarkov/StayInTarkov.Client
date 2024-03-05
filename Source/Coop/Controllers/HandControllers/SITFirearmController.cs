@@ -26,7 +26,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Execute(IOperation1 operation, Callback callback)
         {
-            BepInLogger.LogDebug($"{nameof(SITFirearmController)}:{nameof(Execute)}");
+            BepInLogger.LogDebug($"{nameof(SITFirearmController)}:{nameof(Execute)}:{operation}");
             base.Execute(operation, callback);
         }
 
@@ -69,6 +69,43 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 base.ReloadWithAmmo(ammoPack, callback);
                 StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadWithAmmoPacket packet = new (_player.ProfileId, ammoPack.GetReloadingAmmoIds());
                 GameClient.SendData(packet.Serialize());
+            }
+        }
+
+        public override void ReloadBarrels(AmmoPack ammoPack, GridItemAddress placeToPutContainedAmmoMagazine, Callback callback)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadBarrels(ammoPack, placeToPutContainedAmmoMagazine, callback);
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadBarrelsPacket packet = new(_player.ProfileId, ammoPack.GetReloadingAmmoIds(), placeToPutContainedAmmoMagazine);
+                GameClient.SendData(packet.Serialize());
+            }
+        }
+
+        public override void ReloadCylinderMagazine(AmmoPack ammoPack, Callback callback, bool quickReload = false)
+        {
+            if (CanStartReload())
+            {
+                base.ReloadCylinderMagazine(ammoPack, callback, quickReload);
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadCylinderMagazinePacket packet = new(_player.ProfileId, ammoPack.GetReloadingAmmoIds(), quickReload);
+                GameClient.SendData(packet.Serialize());
+            }
+        }
+
+        public override void ReloadGrenadeLauncher(AmmoPack foundItem, Callback callback)
+        {
+            if (!Blindfire)
+            {
+                if (CanStartReload())
+                {
+                    CurrentOperation.ReloadGrenadeLauncher(foundItem, callback);
+                    StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadGrenadeLauncherPacket packet = new(_player.ProfileId, foundItem.GetReloadingAmmoIds());
+                    GameClient.SendData(packet.Serialize());
+                }
+                else
+                {
+                    callback?.Fail("Cant StartReload");
+                }
             }
         }
 
