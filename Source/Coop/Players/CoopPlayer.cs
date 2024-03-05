@@ -526,13 +526,21 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IThrowableCallback");
-            base.Proceed(throwWeap, callback, scheduled);
+            //base.Proceed(throwWeap, callback, scheduled);
+
+            Func<SITGrenadeController> controllerFactory = () => GrenadeController.smethod_8<SITGrenadeController>(this, throwWeap);
+            new Process<SITGrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
+
+            PlayerProceedGrenadePacket packet = new PlayerProceedGrenadePacket(ProfileId, throwWeap.Id, scheduled);
+            GameClient.SendData(packet.Serialize());    
         }
 
         public override void Proceed(Item item, Callback<IQuickUseController> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(item)}:IQuickUseController");
             base.Proceed(item, callback, scheduled);
+
+
         }
 
         public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
@@ -618,7 +626,7 @@ namespace StayInTarkov.Coop.Players
                 }
 
                 BepInLogger.LogDebug($"{PostProceedData.Value}");
-                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue);
+                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue, PostProceedData.Value.UsedItem.StackObjectsCount);
                 GameClient.SendData(postProceedPacket.Serialize());
 
                 PostProceedData = null;

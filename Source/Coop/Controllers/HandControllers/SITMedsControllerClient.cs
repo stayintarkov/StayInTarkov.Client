@@ -27,7 +27,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Execute(IOperation1 operation, Callback callback)
         {
-            BepInLogger.LogDebug($"{nameof(SITMedsControllerClient)}:{nameof(Execute)}");
+            BepInLogger.LogDebug($"{nameof(SITMedsControllerClient)}:{nameof(Execute)}:{operation}");
             base.Execute(operation, callback);
         }
 
