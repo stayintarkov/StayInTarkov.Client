@@ -34,8 +34,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             WriteHeaderAndProfileId(writer);
             writer.Write(ItemId);
             writer.Write(TimeSerializedBetter);
+
+            // Get Descriptor
             ItemAddressHelpers.ConvertItemAddressToDescriptor(GridItemAddress, out var descriptor);
-            SITSerialization.AddressUtils.SerializeGridItemAddressDescriptor(writer, (GridItemAddressDescriptor)descriptor);
+            // Write bit check
+            writer.Write(descriptor != null);
+            // Write descriptor if its not null
+            if (descriptor != null)
+                SITSerialization.AddressUtils.SerializeGridItemAddressDescriptor(writer, (GridItemAddressDescriptor)descriptor);
 
             return ms.ToArray();
         }
@@ -46,6 +52,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             ReadHeaderAndProfileId(reader);
             ItemId = reader.ReadString();
             TimeSerializedBetter = reader.ReadString();
+
+            // Check Descriptor Exists
+            var descriptorExists = reader.ReadBoolean();
+            if (!descriptorExists)
+                return this;
 
             var gridItemAddressDescriptor = SITSerialization.AddressUtils.DeserializeGridItemAddressDescriptor(reader);
 
