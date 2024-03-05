@@ -3,6 +3,7 @@ using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
 using StayInTarkov.Coop.NetworkPacket.Player.Weapons;
+using StayInTarkov.Coop.NetworkPacket.Player.Weapons.Knife;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -38,11 +39,15 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Loot(bool p)
         {
+            LootPacket packet = new(_player.ProfileId, p);
+            GameClient.SendData(packet.Serialize());
             base.Loot(p);
         }
 
         public override void Pickup(bool p)
         {
+            PickupPacket packet = new(_player.ProfileId, p);
+            GameClient.SendData(packet.Serialize());
             base.Pickup(p);
         }
     }
