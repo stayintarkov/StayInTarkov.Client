@@ -16,30 +16,26 @@ An Escape From Tarkov BepInEx module designed to be used with the [SIT.Aki-Serve
 
 ---
 
-## State of Stay In Tarkov
-
-* Stay In Tarkov is in active development by the SIT team
-* Pull Requests and Contributions will always be accepted (if they work!)
-
---- 
-
 ## About
 
 The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance to create the pure PvE version of Escape from Tarkov. 
 The project's aim is simple, create a Cooperation PvE experience that retains progression. 
-If BSG decide to create the ability to do this on live OR I receive a DCMA request, this project will be shut down immediately.
+If BSG decide to create the ability to do this on live OR we receive a DCMA request, this project will be shut down immediately.
 
+## Warning
+
+Due to the popularity of the project. There are numerous forks and scam projects appearing online of Stay in Tarkov. Please be aware of these scams. SIT will always be free and open source. Any projects that are closed source and requiring payment are a scam.
 
 ## Disclaimer
 
 * You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
 * This is by no means designed for illegally downloading the game (and has blocks for people that do!)
-* This is purely for educational purposes. I am using this to learn Unity and TCP/UDP/Web Socket Networking and I learnt a lot from BattleState Games \o/.
-* I am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit or Discord about this project.
-* This project is not affiliated with SPTarkov (SPT-Aki) but uses its excellent Server.
-* This project is not affiliated with any other Escape from Tarkov emulator.
-* This project comes "as-is". It either works for you or it doesn't.
+* This is purely for educational purposes. We can learn a lot from BattleState Games \o/
+* I (Paulov) am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit or Discord about this project
+* This project is not affiliated with SPTarkov (SPT-Aki) but uses its excellent Server
+* This project is not affiliated with any other Escape from Tarkov emulator
+* This project does not want forks to release closed source and paygated emulators
 
 ## Support
 
@@ -55,7 +51,6 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 **The Wiki is has been constructed by various contributors. All instructions are also kept within the source in the wiki directory.**
   - ### [Setup Manuals](https://github.com/stayintarkov/StayInTarkov.Client/wiki/Guides-English)
   - ### [FAQs](https://github.com/stayintarkov/StayInTarkov.Client/wiki/FAQs-English)
-
 
 ## Installation
 
@@ -174,16 +169,20 @@ SPT-Aki DLLs are written specifically for SPT-Aki own Deobfuscation technique an
 [Compiling Document](COMPILE.md)
 
 ## Thanks List
-- [Paulov](https://github.com/paulov-t) (original creator of Stay in Tarkov)
-- SPT-Aki team (Credits provided on each code file used and much love to their Dev team for their support)
-- SPT-Aki Modding Community
-- [DrakiaXYZ](https://github.com/DrakiaXYZ/) ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain) & [Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints) are integrated with this project)
-- SIT team and the original contributors of Paulov's SIT.Core
+- [Paulov](https://github.com/paulov-t) [Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
+- [Mihai](https://github.com/mihaicm93) [Ko-Fi Donations](https://ko-fi.com/mmihai)
+- [Trippy](https://github.com/trippyone)
+- [Bullet](https://github.com/devbence)
+- [Dounai](https://github.com/dounai2333)
+- [Lacyway](https://github.com/Lacyway)
+- [SPT-Aki](https://www.sp-tarkov.com/) team (Credits provided on each code file used and much love to their Dev team for their support)
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/)
+- [Contributors](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) and the original contributors of Paulov's SIT.Core
 - [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 ## License
-- [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License
 - 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
 - Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
 - SIT team's work is MIT licensed
 - [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed
+- [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License (as of 1.10, Drakia's projects are no longer embedded)
