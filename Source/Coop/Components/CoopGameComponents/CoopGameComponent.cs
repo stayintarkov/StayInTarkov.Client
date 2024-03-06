@@ -6,6 +6,7 @@ using EFT.UI;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
@@ -1230,6 +1231,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
 
+            // Assign the SIT GroupId to the Users in the Raid
+            if (ProfileIdsUser.Contains(otherPlayer.ProfileId))
+                otherPlayer.Profile.Info.GroupId = "SIT";
+
             return otherPlayer;
         }
 
@@ -1290,8 +1295,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private void CreatePlayerStatePacketFromPRC(ref List<PlayerStatePacket> playerStates, EFT.Player player)
         {
-            // Build up the SEX MOD player dick Health Packet /s
-            // Actually.
             // What this does is create a ISITPacket for the Character's health that can be SIT Serialized.
             PlayerHealthPacket playerHealth = new PlayerHealthPacket(player.ProfileId);
             playerHealth.Method = "53xMOD";
@@ -1308,6 +1311,16 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 playerHealth.BodyParts[bpIndex].Current = health.Current;
                 playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
                 bpIndex++;
+            }
+            if (player.HealthController is SITHealthController sitHealthController)
+            {
+                // Paulov: TODO: Continue from here in another branch
+                var tmpHealthEffectPacketList = new List<PlayerHealthEffectPacket>();
+                while (sitHealthController.PlayerHealthEffectPackets.TryDequeue(out var p))
+                {
+                    tmpHealthEffectPacketList.Add(p);
+                }
+                playerHealth.HealthEffectPackets = tmpHealthEffectPacketList.ToArray();
             }
 
             if (playerHealth != null)
