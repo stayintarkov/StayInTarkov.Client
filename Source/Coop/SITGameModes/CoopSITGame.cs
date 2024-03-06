@@ -10,11 +10,13 @@ using Comfort.Common;
 using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.Bots;
+using EFT.EnvironmentEffect;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
 using EFT.MovingPlatforms;
 using EFT.UI;
+using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;
@@ -90,6 +92,15 @@ namespace StayInTarkov.Coop.SITGameModes
                 return ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(EndByExitTrigerScenario)).GetValue(this) as EndByExitTrigerScenario;
             }
         }
+
+        public EndByTimerScenario EndByTimerScenario
+        {
+            get
+            {
+                return ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(EndByTimerScenario)).GetValue(this) as EndByTimerScenario;
+            }
+        }
+
 
         private static ManualLogSource Logger;
 
@@ -1147,7 +1158,54 @@ namespace StayInTarkov.Coop.SITGameModes
 
 
             CoopPatches.EnableDisablePatches();
-            base.Stop(profileId, exitStatus, exitName, delay);
+            //base.Stop(profileId, exitStatus, exitName, delay);
+
+            // -----------------------------------------------------------------------------------------------
+            // Paulov: This is BaseLocalGame Stop method
+            if (profileId != Profile_0.Id || base.Status == GameStatus.Stopped || base.Status == GameStatus.Stopping)
+            {
+                return;
+            }
+            if (base.Status == GameStatus.Starting || base.Status == GameStatus.Started)
+            {
+                ReflectionHelpers.GetFieldFromType(EndByTimerScenario.GetType(), "GameStatus_0").SetValue(EndByTimerScenario, GameStatus.SoftStopping);
+            }
+            base.Status = GameStatus.Stopping;
+            base.GameTimer.TryStop();
+            EndByExitTrigerScenario.Stop();
+            GameUi.TimerPanel.Close();
+            if (!SITMatchmaking.IsClient)
+            {
+                botsController_0.Stop();
+                botsController_0.DestroyInfo(gparam_0.Player);
+            }
+            if (EnvironmentManager.Instance != null)
+            {
+                EnvironmentManager.Instance.Stop();
+            }
+            MonoBehaviourSingleton<PreloaderUI>.Instance.StartBlackScreenShow(1f, 1f, delegate
+            {
+                ScreenManager instance = ScreenManager.Instance;
+                if (instance.CheckCurrentScreen(EEftScreenType.Reconnect))
+                {
+                    instance.CloseAllScreensForced();
+                }
+                gparam_0.Player.OnGameSessionEnd(exitStatus, base.PastTime, Location_0.Id, exitName);
+                CleanUp();
+                base.Status = GameStatus.Stopped;
+                TimeSpan timeSpan = DateTime.Now - dateTime_0;
+                _ = BackEndSession.OfflineRaidEnded(exitStatus, exitName, timeSpan.TotalSeconds);
+                MonoBehaviourSingleton<BetterAudio>.Instance.FadeOutVolumeAfterRaid();
+                StaticManager.Instance.WaitSeconds(delay, delegate
+                {
+                    Callback<ExitStatus, TimeSpan, MetricsClass> callback = ReflectionHelpers.GetFieldFromType(this.GetType(), "callback_0").GetValue(this) as Callback<ExitStatus, TimeSpan, MetricsClass>;
+                    callback(new Result<ExitStatus, TimeSpan, MetricsClass>(exitStatus, DateTime.Now - dateTime_0, new MetricsClass()));
+                    UIEventSystem.Instance.Enable();
+                });
+            });
+            // end of BaseLocalGame Stop method
+            // -----------------------------------------------------------------------------------------------
+
             CoopPatches.LeftGameDestroyEverything();
         }
 
