@@ -120,7 +120,7 @@ namespace StayInTarkov.Networking
                         SITIPAddresses.ExternalAddresses.ProcessIPAddressResult(result);
                         return !string.IsNullOrEmpty(SITIPAddresses.ExternalAddresses.IPAddressV4);
                     }
-                    catch (WebException e)
+                    catch (WebException)
                     {
                     }
                 }

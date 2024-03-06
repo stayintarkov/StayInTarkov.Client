@@ -309,7 +309,7 @@ namespace StayInTarkov.Networking
 
         public int HostPing { get; private set; } = 1;
 
-        private Task PeriodicallySendPooledDataTask;
+        //private Task PeriodicallySendPooledDataTask;
 
         //private void PeriodicallySendPooledData()
         //{
