@@ -641,8 +641,17 @@ namespace StayInTarkov.Coop.Players
                 BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
 
-       
-
+        public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
+        {
+            try
+            {
+                base.ComplexLateUpdate(queue, deltaTime);
+            }
+            catch (Exception ex)
+            {
+                BepInLogger.LogError(ex);
+            }
+        }
 
 
     }

@@ -24,6 +24,8 @@ namespace StayInTarkov.Coop.Players
 
         public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new ();
 
+        protected AbstractHealth NetworkHealthController => base.HealthController as AbstractHealth;
+
         //public override void InitVoip(EVoipState voipState)
         //{
         //    //base.InitVoip(voipState);
@@ -567,5 +569,10 @@ namespace StayInTarkov.Coop.Players
             new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
         }
 
+        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+        {
+            Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
+            new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+        }
     }
 }
