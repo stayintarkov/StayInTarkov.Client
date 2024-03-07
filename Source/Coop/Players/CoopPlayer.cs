@@ -4,29 +4,20 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using Sirenix.Utilities;
-using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
-using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.Controllers.HandControllers;
+using StayInTarkov.Coop.Controllers.Health;
+using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
-using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Player.FirearmControllerPatches;
-using StayInTarkov.Coop.Player.Proceed;
-using StayInTarkov.Coop.Web;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
-using StayInTarkov.UI;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using static GClass648;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -134,8 +125,9 @@ namespace StayInTarkov.Coop.Players
             IHealthController healthController = 
                 // aiControl = true is VITAL, otherwise items will not be used!
                 // found the fault is caused by aiControl allows ManualUpdate to be used
-                isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
-                : new CoopHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
+                //isClientDrone ? new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                isClientDrone ? new SITHealthControllerClient(profile.Health, player, inventoryController, profile.Skills)  // new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, true) 
+                : new SITHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl);
 
             player.BepInLogger.LogDebug($"{nameof(healthController)} Instantiated with type {healthController.GetType()}");
 
@@ -169,15 +161,6 @@ namespace StayInTarkov.Coop.Players
             return player;
         }
 
-        /// <summary>
-        /// A way to block the same Damage Info being run multiple times on this Character
-        /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
-        /// </summary>
-        private HashSet<DamageInfo> PreviousDamageInfos { get; } = new();
-        private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
-        private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
-        public bool IsFriendlyBot { get; internal set; }
-
         public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
@@ -197,17 +180,6 @@ namespace StayInTarkov.Coop.Players
             if (!coopGameComponent.GameWorldGameStarted)
                 return;
 
-            // Quick check?
-            //if (PreviousDamageInfos.Any(x =>
-            //    x.Damage == damageInfo.Damage
-            //    && x.SourceId == damageInfo.SourceId
-            //    && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
-            //    && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
-            //    ))
-            //    return;
-
-            //PreviousDamageInfos.Add(damageInfo);
-
             SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
         }
 
@@ -220,67 +192,59 @@ namespace StayInTarkov.Coop.Players
         /// <param name="absorbed"></param>
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            Dictionary<string, object> packet = new();
-            damageInfo.HitCollider = null;
-            damageInfo.HittedBallisticCollider = null;
-            Dictionary<string, string> playerDict = new();
+            ApplyDamagePacket damagePacket = new ApplyDamagePacket();
+            damagePacket.ProfileId = this.ProfileId;
+            damagePacket.Damage = damageInfo.Damage;
+            damagePacket.DamageType = damageInfo.DamageType;
+            damagePacket.BodyPart = bodyPartType;
+            damagePacket.ColliderType = bodyPartColliderType;
+            damagePacket.Absorbed = absorbed;
             if (damageInfo.Player != null)
             {
-                playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+                damagePacket.AggressorProfileId = damageInfo.Player.iPlayer.ProfileId;
+                if (damageInfo.Weapon != null)
+                    damagePacket.AggressorWeaponId = damageInfo.Weapon.Id;
             }
+            GameClient.SendData(damagePacket.Serialize());
 
-            damageInfo.Player = null;
-            Dictionary<string, string> weaponDict = new();
+            //Dictionary<string, object> packet = new();
+            //damageInfo.HitCollider = null;
+            //damageInfo.HittedBallisticCollider = null;
+            //Dictionary<string, string> playerDict = new();
+            //if (damageInfo.Player != null)
+            //{
+            //    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+            //    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+            //}
 
-            if (damageInfo.Weapon != null)
-            {
-                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                packet.Add("d.w.id", damageInfo.Weapon.Id);
-            }
-            damageInfo.Weapon = null;
+            //damageInfo.Player = null;
+            //Dictionary<string, string> weaponDict = new();
 
-            packet.Add("d", damageInfo.SITToJson());
-            packet.Add("d.p", playerDict);
-            packet.Add("d.w", weaponDict);
-            packet.Add("bpt", bodyPartType.ToString());
-            packet.Add("bpct", bodyPartColliderType.ToString());
-            packet.Add("ab", absorbed.ToString());
-            packet.Add("m", "ApplyDamageInfo");
+            //if (damageInfo.Weapon != null)
+            //{
+            //    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+            //    packet.Add("d.w.id", damageInfo.Weapon.Id);
+            //}
+            //damageInfo.Weapon = null;
 
-            // -----------------------------------------------------------
-            // An attempt to stop the same packet being sent multiple times
-            if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
-                return;
+            //packet.Add("d", damageInfo.SITToJson());
+            //packet.Add("d.p", playerDict);
+            //packet.Add("d.w", weaponDict);
+            //packet.Add("bpt", bodyPartType.ToString());
+            //packet.Add("bpct", bodyPartColliderType.ToString());
+            //packet.Add("ab", absorbed.ToString());
+            //packet.Add("m", "ApplyDamageInfo");
 
-            PreviousSentDamageInfoPackets.Add(packet.ToJson());
-            // -----------------------------------------------------------
-
-            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
         }
 
-        public void ReceiveDamageFromServer(Dictionary<string, object> dict)
+        public void ReceiveDamageFromServer(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            StartCoroutine(ReceiveDamageFromServerCR(dict));
+            StartCoroutine(ReceiveDamageFromServerCR(damageInfo, bodyPartType, bodyPartColliderType, absorbed));
         }
 
-        public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
+        public IEnumerator ReceiveDamageFromServerCR(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
         {
-            if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
-                yield break;
-
-            PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
-
-            //BepInLogger.LogDebug("ReceiveDamageFromServer");
-            //BepInLogger.LogDebug(dict.ToJson());
-
-            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
-            var absorbed = float.Parse(dict["ab"].ToString());
-
-            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
-            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
-
             if (damageInfo.DamageType == EDamageType.Bullet && IsYourPlayer)
             {
                 float handsShake = 0.05f;
@@ -312,8 +276,8 @@ namespace StayInTarkov.Coop.Players
                 }
             }
 
+            BepInLogger.LogDebug($"{nameof(ApplyDamageInfo)}:{ProfileId}:{damageInfo.DamageType}:{damageInfo.Damage}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, bodyPartColliderType, absorbed);
-            //base.ShotReactions(damageInfo, bodyPartType);
 
             yield break;
 
@@ -353,65 +317,81 @@ namespace StayInTarkov.Coop.Players
             base.OnItemAddedOrRemoved(item, location, added);
         }
 
-        private Vector2 LastRotationSent = Vector2.zero;
 
         public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
         {
             if (
-                FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(ProfileId)
-                && FirearmController_SetTriggerPressed_Patch.LastPress[ProfileId] == true
+                TriggerPressed
                 && LastRotationSent != Rotation
                 )
             {
-                Dictionary<string, object> rotationPacket = new Dictionary<string, object>();
-                rotationPacket.Add("m", "PlayerRotate");
-                rotationPacket.Add("x", Rotation.x);
-                rotationPacket.Add("y", Rotation.y);
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, rotationPacket);
+                PlayerRotatePacket packet = new PlayerRotatePacket(this.ProfileId);
+                packet.RotationX = Rotation.x;
+                packet.RotationY = Rotation.y;
+                GameClient.SendData(packet.Serialize());
                 LastRotationSent = Rotation;
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
         }
 
-        public void ReceiveRotate(Vector2 rotation, bool ignoreClamp = false)
+        #region Speaking
+
+        public override void Say(EPhraseTrigger @event, bool demand = false, float delay = 0, ETagStatus mask = 0, int probability = 100, bool aggressive = false)
         {
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
+            base.Say(@event, demand, delay, mask, probability, aggressive);
+
+            if (this is CoopPlayerClient)
                 return;
 
-            Rotation = rotation;
-            //prc.ReplicatedRotation = rotation; 
+            if (@event == EPhraseTrigger.Cooperation)
+            {
+                //vmethod_3(EGesture.Hello);
+            }
+            if (@event == EPhraseTrigger.MumblePhrase)
+            {
+                @event = ((aggressive || Time.time < Awareness) ? EPhraseTrigger.OnFight : EPhraseTrigger.OnMutter);
+            }
 
+            //PlayerSayPacket sayPacket = new PlayerSayPacket();
+            //sayPacket.ProfileId = this.ProfileId;
+            //sayPacket.Trigger = @event;
+            //sayPacket.Delay = delay;
+            //sayPacket.Mask = mask;
+            //sayPacket.Aggressive = aggressive;
+            ////sayPacket.Index = clip.NetId;
+            //GameClient.SendData(sayPacket.Serialize());
         }
-
 
         public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
 
-            if (IsYourPlayer)
-            {
-                Dictionary<string, object> packet = new()
-                {
-                    { "event", @event.ToString() },
-                    { "index", clip.NetId },
-                    { "m", "Say" }
-                };
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet);
-            }
-        }
-
-        public void ReceiveSay(EPhraseTrigger trigger, int index)
-        {
-            BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{index})");
-
-            var prc = GetComponent<PlayerReplicatedComponent>();
-            if (prc == null || !prc.IsClientDrone)
+            // If a client. Do not send a packet.
+            if (this is CoopPlayerClient)
                 return;
 
-            Speaker.PlayDirect(trigger, index);
+            PlayerSayPacket sayPacket = new PlayerSayPacket();
+            sayPacket.ProfileId = this.ProfileId;
+            sayPacket.Trigger = @event;
+            sayPacket.Index = clip.NetId;
+            GameClient.SendData(sayPacket.Serialize());
         }
+
+        public virtual void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
+        {
+            //BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{mask})");
+
+            //if (this is CoopPlayer)
+            //    return;
+
+            ////Speaker.PlayDirect(trigger, index);
+
+            //ETagStatus eTagStatus = ((!aggressive && !(Awareness > Time.time)) ? ETagStatus.Unaware : ETagStatus.Combat);
+            //Speaker.Play(trigger, HealthStatus | mask | eTagStatus, true, 100);
+        }
+
+        #endregion
 
         public override void OnDestroy()
         {
@@ -441,29 +421,29 @@ namespace StayInTarkov.Coop.Players
             EFT.Player victim = this;
 
             var attacker = LastAggressor as EFT.Player;
-            //if (DisplayDeathMessage)
 
-            if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
-                DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
+            // Paulov: Unknown / Unable to replicate issue where some User's feed would cause a crash
+            //if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+            //    DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
             
             KillPacket killPacket = new KillPacket(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
         }
 
-        public static string GeneratePlayerNameWithSide(EFT.Player player)
-        {
-            if (player == null)
-                return "";
+        //public static string GeneratePlayerNameWithSide(EFT.Player player)
+        //{
+        //    if (player == null)
+        //        return "";
 
-            var side = "Scav";
+        //    var side = "Scav";
 
-            if (player.AIData.IAmBoss)
-                side = "Boss";
-            else if (player.Side != EPlayerSide.Savage)
-                side = player.Side.ToString();
+        //    if (player.AIData.IAmBoss)
+        //        side = "Boss";
+        //    else if (player.Side != EPlayerSide.Savage)
+        //        side = player.Side.ToString();
 
-            return $"[{side}] {player.Profile.GetCorrectedNickname()}";
-        }
+        //    return $"[{side}] {player.Profile.GetCorrectedNickname()}";
+        //}
 
        
 
@@ -483,6 +463,9 @@ namespace StayInTarkov.Coop.Players
         } 
 
         protected SITPostProceedData? PostProceedData { get; set; }
+        public bool TriggerPressed { get; internal set; }
+
+        private Vector2 LastRotationSent = Vector2.zero;
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
@@ -543,14 +526,83 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IThrowableCallback");
-            base.Proceed(throwWeap, callback, scheduled);
+            //base.Proceed(throwWeap, callback, scheduled);
+
+            Func<SITGrenadeController> controllerFactory = () => GrenadeController.smethod_8<SITGrenadeController>(this, throwWeap);
+            new Process<SITGrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
+
+            PlayerProceedGrenadePacket packet = new PlayerProceedGrenadePacket(ProfileId, throwWeap.Id, scheduled);
+            GameClient.SendData(packet.Serialize());    
         }
 
         public override void Proceed(Item item, Callback<IQuickUseController> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(item)}:IQuickUseController");
             base.Proceed(item, callback, scheduled);
+
+
         }
+
+        public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
+        {
+            Func<FirearmController> controllerFactory = ((!IsAI) ? ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmController>(this, weapon))) : ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerAI>(this, weapon))));
+            bool fastHide = false;
+            if (_handsController is FirearmController firearmController)
+            {
+                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
+            }
+            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
+            
+            PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
+            weaponPacket.ProfileId = this.ProfileId;
+            weaponPacket.ItemId = weapon.Id;
+            weaponPacket.Scheduled = scheduled;
+            GameClient.SendData(weaponPacket.Serialize());
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
+        {
+            Func<SITKnifeController> controllerFactory = () => KnifeController.smethod_8<SITKnifeController>(this, knife);
+            new Process<SITKnifeController, IKnifeController>(this, controllerFactory, knife.Item, fastHide: true)
+                .method_0((IResult result) => {
+
+                    // Check if the Proceed was successful before sending packet
+                    if (result.Succeed)
+                    {
+                        PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                        knifePacket.ProfileId = this.ProfileId;
+                        knifePacket.ItemId = knife.Item.Id;
+                        knifePacket.Scheduled = scheduled;
+                        GameClient.SendData(knifePacket.Serialize());
+                    }
+
+                }, callback, scheduled);
+
+            
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
+        {
+            Func<SITQuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<SITQuickKnifeKickController>(this, knife);
+            Process<SITQuickKnifeKickController, IQuickKnifeKickController> process = new Process<SITQuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            process.method_0(delegate (IResult result)
+            {
+                // Check if the Proceed was successful before sending packet
+                if (result.Succeed)
+                {
+                    PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                    knifePacket.ProfileId = this.ProfileId;
+                    knifePacket.ItemId = knife.Item.Id;
+                    knifePacket.Scheduled = scheduled;
+                    knifePacket.QuickKnife = true;
+                    GameClient.SendData(knifePacket.Serialize());
+                }
+
+            }, callback, scheduled);
+
+            
+        }
+
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
@@ -574,7 +626,7 @@ namespace StayInTarkov.Coop.Players
                 }
 
                 BepInLogger.LogDebug($"{PostProceedData.Value}");
-                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue);
+                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue, PostProceedData.Value.UsedItem.StackObjectsCount);
                 GameClient.SendData(postProceedPacket.Serialize());
 
                 PostProceedData = null;
@@ -589,7 +641,18 @@ namespace StayInTarkov.Coop.Players
                 BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
 
-        
+        public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
+        {
+            try
+            {
+                base.ComplexLateUpdate(queue, deltaTime);
+            }
+            catch (Exception ex)
+            {
+                BepInLogger.LogError(ex);
+            }
+        }
+
 
     }
 }

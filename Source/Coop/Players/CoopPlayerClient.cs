@@ -4,10 +4,13 @@ using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
+using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
@@ -18,6 +21,10 @@ namespace StayInTarkov.Coop.Players
     {
         public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
+
+        public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new ();
+
+        protected AbstractHealth NetworkHealthController => base.HealthController as AbstractHealth;
 
         //public override void InitVoip(EVoipState voipState)
         //{
@@ -193,6 +200,8 @@ namespace StayInTarkov.Coop.Players
                 //    }
                 //}
             }
+
+            
 
             // Update the Health parts of this character using the packets from the Player State
             if (NewState != null)
@@ -421,25 +430,6 @@ namespace StayInTarkov.Coop.Players
 
         private Item LastUsedItem = null;
 
-        //public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        //{
-        //    // Override CoopPlayer implemetation to ensure we don't get infinite loop of sent packets
-
-        //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(foodDrink)}:{amount}");
-        //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-        //    new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, foodDrink).method_0(null, callback, scheduled);
-        //}
-
-        //public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
-        //{
-        //    // Override CoopPlayer implemetation to ensure we don't get infinite loop of sent packets
-
-        //    BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
-        //    Func<SITMedsControllerClient> controllerFactory = () => MedsController.smethod_5<SITMedsControllerClient>(this, meds, bodyPart, 1f, animationVariant);
-        //    new Process<SITMedsControllerClient, IMedsController>(this, controllerFactory, meds).method_0(null, callback, scheduled);
-
-        //}
-
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
             // just use normal
@@ -450,39 +440,35 @@ namespace StayInTarkov.Coop.Players
             }
 
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
-            ////base.DropCurrentController(callback, fastDrop, nextControllerItem);
-
-            //BepInLogger.LogDebug($"{nameof(DropCurrentController)}:{nameof(LastUsedItem)}:{LastUsedItem}");
-            //if (LastUsedItem != null)
-            //{
-            //    if (LastUsedItem.StackObjectsCount <= 0)
-            //        RemoveItem(LastUsedItem);
-            //    else
-            //    {
-            //        if (LastUsedItem is FoodClass foodClass)
-            //        {
-            //            BepInLogger.LogDebug("Last used item is food class");
-
-            //        }
-            //        else if (LastUsedItem is MedsClass medClass)
-            //        {
-            //            BepInLogger.LogDebug("Last used item is med class");
-            //            if (medClass.MedKitComponent != null)
-            //            {
-            //                if (medClass.MedKitComponent.HpResource <= 0)
-            //                    RemoveItem(medClass);
-            //            }
-            //            else
-            //            {
-            //                RemoveItem(medClass);
-            //            }
-            //        }
-            //    }
-
-
-            //    LastUsedItem = null;
-            //}
+            
             base.DropCurrentController(callback, fastDrop, nextControllerItem);
+
+
+            // Sync up Equipment items
+            while (ReplicatedPostProceedData.TryDequeue(out var postPostProceedPacket))
+            {
+                if (ItemFinder.TryFindItem(postPostProceedPacket.ItemId, out Item item))
+                {
+                    if (item is MedsClass meds)
+                    {
+                        if (meds.MedKitComponent != null)
+                        {
+                            meds.MedKitComponent.HpResource = postPostProceedPacket.NewValue;
+                            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}:Updating Item:{item}");
+                        }
+                    }
+                    if (item is FoodClass food)
+                    {
+                        if (food.FoodDrinkComponent != null)
+                        {
+                            food.FoodDrinkComponent.HpPercent = postPostProceedPacket.NewValue;
+                            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}:Updating Item:{item}");
+                        }
+                    }
+                    item.StackObjectsCount = postPostProceedPacket.StackObjectsCount;
+                    item.RaiseRefreshEvent(true, true);
+                }
+            }
         }
 
 
@@ -531,7 +517,62 @@ namespace StayInTarkov.Coop.Players
         }
 
 
-        
 
+
+        public override void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
+        {
+            BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{mask})");
+
+            Speaker.PlayDirect(trigger, index);
+
+            ETagStatus eTagStatus = ((!aggressive && !(Awareness > Time.time)) ? ETagStatus.Unaware : ETagStatus.Combat);
+            Speaker.Play(trigger, HealthStatus | mask | eTagStatus, true, 100);
+        }
+
+        public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
+        {
+            Func<FirearmController> controllerFactory = (Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerClient>(this, weapon));
+            bool fastHide = false;
+            if (_handsController is FirearmController firearmController)
+            {
+                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
+            }
+            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
+        {
+            Func<SITKnifeControllerClient> controllerFactory = () => KnifeController.smethod_8<SITKnifeControllerClient>(this, knife);
+            new Process<SITKnifeControllerClient, IKnifeController>(this, controllerFactory, knife.Item, fastHide: true).method_0(null, callback, scheduled);
+        }
+
+        public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
+        {
+            Func<QuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<QuickKnifeKickController>(this, knife);
+            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            Action confirmCallback = delegate
+            {
+                
+            };
+            process.method_0(delegate (IResult result)
+            {
+                if (result.Succeed)
+                {
+
+                }
+            }, callback, scheduled);
+        }
+
+        public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
+        {
+            Func<GrenadeController> controllerFactory = () => GrenadeController.smethod_8<GrenadeController>(this, throwWeap);
+            new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
+        }
+
+        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+        {
+            Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
+            new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+        }
     }
 }

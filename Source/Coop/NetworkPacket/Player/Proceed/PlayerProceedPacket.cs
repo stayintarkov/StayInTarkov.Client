@@ -45,9 +45,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             return this;
         }
 
-        public override void Process()
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }

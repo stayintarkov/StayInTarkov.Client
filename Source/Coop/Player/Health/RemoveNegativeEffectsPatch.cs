@@ -1,5 +1,5 @@
 ﻿using EFT.HealthSystem;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;

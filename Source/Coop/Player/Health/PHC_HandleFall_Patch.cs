@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.HealthSystem;
-using StayInTarkov.Coop.Controllers;
+using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Networking;
@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop.Player.Health
                 return true;
             
             if (SITMatchmaking.IsClient)
-                return __instance.GetType() == typeof(CoopHealthController);
+                return __instance.GetType() == typeof(SITHealthController);
 
             return false;
         }

@@ -1,5 +1,5 @@
 ﻿using EFT.InventoryLogic;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;

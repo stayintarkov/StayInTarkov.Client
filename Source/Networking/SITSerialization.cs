@@ -102,16 +102,18 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public class AddressUtils
+        public static class AddressUtils
         {
             public static void SerializeGridItemAddressDescriptor(NetDataWriter writer, GridItemAddressDescriptor gridItemAddressDescriptor)
             {
                 SerializeLocationInGrid(writer, gridItemAddressDescriptor.LocationInGrid);
+                SerializeContainerDescriptor(writer, gridItemAddressDescriptor.Container);
             }
 
             public static void SerializeGridItemAddressDescriptor(BinaryWriter writer, GridItemAddressDescriptor gridItemAddressDescriptor)
             {
                 SerializeLocationInGrid(writer, gridItemAddressDescriptor.LocationInGrid);
+                SerializeContainerDescriptor(writer, gridItemAddressDescriptor.Container);
             }
 
             public static GridItemAddressDescriptor DeserializeGridItemAddressDescriptor(NetDataReader reader)

@@ -78,7 +78,7 @@ namespace StayInTarkov.Health
             SetCurrent(MyHealthController, CurrentHealth, "Energy");
             SetCurrent(MyHealthController, CurrentHealth, "Hydration");
 
-            AkiBackendCommunication.Instance.PostJson("/player/health/sync", Instance.CurrentHealth.ToJson());
+            _ = AkiBackendCommunication.Instance.PostJsonAsync("/player/health/sync", Instance.CurrentHealth.ToJson());
         }
 
         public static void SetCurrent(object healthController, PlayerHealth currentHealth, string v)

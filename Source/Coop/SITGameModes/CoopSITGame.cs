@@ -7,13 +7,16 @@
 using Aki.Custom.Airdrops;
 using BepInEx.Logging;
 using Comfort.Common;
+using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.Bots;
+using EFT.EnvironmentEffect;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
 using EFT.MovingPlatforms;
 using EFT.UI;
+using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json;
@@ -82,6 +85,23 @@ namespace StayInTarkov.Coop.SITGameModes
             }
         }
 
+        public EndByExitTrigerScenario EndByExitTrigerScenario
+        {
+            get
+            {
+                return ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(EndByExitTrigerScenario)).GetValue(this) as EndByExitTrigerScenario;
+            }
+        }
+
+        public EndByTimerScenario EndByTimerScenario
+        {
+            get
+            {
+                return ReflectionHelpers.GetFieldFromTypeByFieldType(GetType(), typeof(EndByTimerScenario)).GetValue(this) as EndByTimerScenario;
+            }
+        }
+
+
         private static ManualLogSource Logger;
 
         internal static CoopSITGame Create(
@@ -149,10 +169,10 @@ namespace StayInTarkov.Coop.SITGameModes
             coopGame.CreateCoopGameComponent();
             CoopGameComponent.GetCoopGameComponent().LocalGameInstance = coopGame;
 
+
+
             // ---------------------------------------------------------------------------------
             // Create GameClient(s)
-            // TODO: Switch to GameClientTCP/GameClientUDP
-
             switch (SITMatchmaking.SITProtocol)
             {
                 case ESITProtocol.RelayTcp:
@@ -763,8 +783,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ------------------------------------------------------------------------------------
             // Send the information to the server
-            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJson");
-            AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.SITToJson());
+            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
+            await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
         }
 
         /// <summary>
@@ -802,114 +822,107 @@ namespace StayInTarkov.Coop.SITGameModes
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
-            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
-
-            LocalGameBotCreator profileCreator =
-                new(BackEndSession
-                , wavesSpawnScenario_0.SpawnWaves
-                , Location_0.BossLocationSpawn
-                , nonwaves
-                , true);
-
-            BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
-            BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
-            PBotsController.Init(this
-                , botCreator
-                , botZones
-                , spawnSystem
-                , wavesSpawnScenario_0.BotLocationModifier
-                , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
-                , false // controllerSettings.IsScavWars
-                , true
-                , false
-                , false
-                , Singleton<GameWorld>.Instance
-                , Location_0.OpenZones)
-                ;
-
-            Logger.LogInfo($"Location: {Location_0.Name}");
-
-            MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
+            if (!SITMatchmaking.IsClient)
             {
-                EBotAmount.AsOnline => 10,
-                EBotAmount.Low => 11,
-                EBotAmount.Medium => 12,
-                EBotAmount.High => 14,
-                EBotAmount.Horde => 15,
-                _ => 16,
-            };
-            switch (controllerSettings.BotAmount)
-            {
-                case EBotAmount.Low:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
-                    break;
-                case EBotAmount.High:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.1);
-                    break;
-                case EBotAmount.Horde:
-                    MaxBotCount = (int)Math.Floor(MaxBotCount * 1.25);
-                    break;
-            };
 
-            int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
-            Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
+                var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
 
-            PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
-            PBotsController.AddActivePLayer(PlayerOwner.Player);
+                LocalGameBotCreator profileCreator =
+                    new(BackEndSession
+                    , wavesSpawnScenario_0.SpawnWaves
+                    , Location_0.BossLocationSpawn
+                    , nonwaves
+                    , true);
 
-            //foreach (var friendlyB in FriendlyPlayers.Values)
-            //{
-            //    //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
-            //    //botOwner.GetComponentsInChildren<Collider>();
-            //    //botOwner.GetPlayer.CharacterController.isEnabled = false;
-            //    Logger.LogDebug("Attempting to Activate friendly bot");
-            //    //botCreator.ActivateBot(friendlyB.Profile, botZones[0], false, (bot, zone) =>
-            //    //{
-            //    //    Logger.LogDebug("group action");
-            //    //    return new BotsGroup(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
-            //    //}, (owner) =>
-            //    //{
+                BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
+                BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
+                PBotsController.Init(this
+                    , botCreator
+                    , botZones
+                    , spawnSystem
+                    , wavesSpawnScenario_0.BotLocationModifier
+                    , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
+                    , false // controllerSettings.IsScavWars
+                    , true
+                    , false
+                    , false
+                    , Singleton<GameWorld>.Instance
+                    , Location_0.OpenZones)
+                    ;
 
-            //    //    Logger.LogDebug("Bot Owner created");
+                Logger.LogInfo($"Location: {Location_0.Name}");
 
-            //    //    owner.GetComponentsInChildren<Collider>();
-            //    //    owner.GetPlayer.CharacterController.isEnabled = false;
+                MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
+                {
+                    EBotAmount.AsOnline => 10,
+                    EBotAmount.Low => 11,
+                    EBotAmount.Medium => 12,
+                    EBotAmount.High => 14,
+                    EBotAmount.Horde => 15,
+                    _ => 16,
+                };
+                switch (controllerSettings.BotAmount)
+                {
+                    case EBotAmount.Low:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 0.9);
+                        break;
+                    case EBotAmount.High:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 1.1);
+                        break;
+                    case EBotAmount.Horde:
+                        MaxBotCount = (int)Math.Floor(MaxBotCount * 1.25);
+                        break;
+                };
 
-            //    //}, cancellationToken: CancellationToken.None);
-            //}
+                int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
+                Logger.LogDebug($"Max Number of Bots: {numberOfBots}");
+
+                try
+                {
+                    PBotsController.SetSettings(numberOfBots, BackEndSession.BackEndConfig.BotPresets, BackEndSession.BackEndConfig.BotWeaponScatterings);
+                    PBotsController.AddActivePLayer(PlayerOwner.Player);
+                }
+                catch (Exception ex)
+                {
+                    ConsoleScreen.LogException(ex);
+                    Logger.LogError(ex);
+                }
+            }
 
             yield return new WaitForSeconds(startDelay);
-            if (shouldSpawnBots)
+
+            try
             {
-                BossWaveManager.Run(EBotsSpawnMode.Anyway);
-
-                //if (this.nonWavesSpawnScenario_0 != null)
-                //    this.nonWavesSpawnScenario_0.Run();
-
-                //Logger.LogDebug($"Running Wave Scenarios");
-
-                if (wavesSpawnScenario_0.SpawnWaves != null && wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                if (shouldSpawnBots && wavesSpawnScenario_0 != null && wavesSpawnScenario_0.SpawnWaves != null && BossWaveManager != null)
                 {
-                    Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
-                    wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                    BossWaveManager.Run(EBotsSpawnMode.Anyway);
+
+                    if (wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                    {
+                        Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
+                        wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                    }
+
                 }
-
+                else
+                {
+                    if (wavesSpawnScenario_0 != null)
+                        wavesSpawnScenario_0.Stop();
+                    if (nonWavesSpawnScenario_0 != null)
+                        nonWavesSpawnScenario_0.Stop();
+                    if (BossWaveManager != null)
+                        BossWaveManager.Stop();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                if (wavesSpawnScenario_0 != null)
-                    wavesSpawnScenario_0.Stop();
-                if (nonWavesSpawnScenario_0 != null)
-                    nonWavesSpawnScenario_0.Stop();
-                if (BossWaveManager != null)
-                    BossWaveManager.Stop();
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
             }
-
 
 
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");
-            CreateExfiltrationPointAndInitDeathHandler();
 
             // No longer need this ping. Load complete and all other data should keep happening after this point.
             StopCoroutine(ClientLoadingPinger());
@@ -919,14 +932,20 @@ namespace StayInTarkov.Coop.SITGameModes
             for (int i = 0; i < magazines.Count(); i++)
                 Profile_0.CheckMagazines(magazines[i].Id, 2);
 
-
-
             // ------------------------------------------------------------------------
             // Setup Winter
-            bool isWinter = BackEndSession.IsWinter;
-            WinterEventController winterEventController = new WinterEventController();
-            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
-            winterEventController.Run(isWinter).Wait();
+            try
+            {
+                bool isWinter = BackEndSession.IsWinter;
+                WinterEventController winterEventController = new WinterEventController();
+                ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
+                winterEventController.Run(isWinter).ContinueWith(x => { if (x.IsFaulted) Logger.LogError(x.Exception); return Task.CompletedTask; });
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
+            }
 
             if (shouldSpawnBots)
             {
@@ -942,6 +961,12 @@ namespace StayInTarkov.Coop.SITGameModes
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<SITAirdropsManager>();
 
+            using (TokenStarter.StartWithToken("SessionRun"))
+            {
+                //vmethod_5();
+                // below is vmethod_5
+                CreateExfiltrationPointAndInitDeathHandler();
+            }
             runCallback.Succeed();
 
         }
@@ -949,39 +974,55 @@ namespace StayInTarkov.Coop.SITGameModes
         public override void vmethod_5()
         {
             Logger.LogDebug(nameof(vmethod_5));
-            base.vmethod_5();
+            //base.vmethod_5();
         }
 
-        /// <summary>
-        /// Died event handler
-        /// </summary>
         public void CreateExfiltrationPointAndInitDeathHandler()
         {
-            Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
-
-            GameTimer.Start();
-            gparam_0.vmethod_0();
-            gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
-
-            InfiltrationPoint = spawnPoint.Infiltration;
-            Profile_0.Info.EntryPoint = InfiltrationPoint;
-
-            //Logger.LogDebug(InfiltrationPoint);
-
-            ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
-            ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
-            GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, GameTimer.SessionSeconds(), exfilPoints);
-            foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
+            try
             {
-                exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
-                exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
-                exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
-                UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
-            }
+                Logger.LogInfo("CreateExfiltrationPointAndInitDeathHandler");
 
-            dateTime_0 = DateTime.Now;
-            Status = GameStatus.Started;
-            ConsoleScreen.ApplyStartCommands();
+                GameTimer.Start();
+                gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
+                gparam_0.vmethod_0();
+
+                InfiltrationPoint = spawnPoint.Infiltration;
+                Profile_0.Info.EntryPoint = InfiltrationPoint;
+
+                //Logger.LogDebug(InfiltrationPoint);
+
+                ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
+                ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
+                GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, GameTimer.SessionSeconds(), exfilPoints);
+                foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
+                {
+                    exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
+                    exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
+                    exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
+                    UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
+                }
+
+                // Paulov: You don't want this to run on Coop Game's
+                //try
+                //{
+                //    EndByExitTrigerScenario.Run();
+                //}
+                //catch (Exception ex)
+                //{
+                //    ConsoleScreen.LogException(ex);
+                //    Logger.LogError(ex);
+                //}
+
+                dateTime_0 = DateTime.Now;
+                Status = GameStatus.Started;
+                ConsoleScreen.ApplyStartCommands();
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+                Logger.LogError(ex);
+            }
         }
 
         public Dictionary<string, (float, long, string)> ExtractingPlayers { get; } = new();
@@ -1117,7 +1158,54 @@ namespace StayInTarkov.Coop.SITGameModes
 
 
             CoopPatches.EnableDisablePatches();
-            base.Stop(profileId, exitStatus, exitName, delay);
+            //base.Stop(profileId, exitStatus, exitName, delay);
+
+            // -----------------------------------------------------------------------------------------------
+            // Paulov: This is BaseLocalGame Stop method
+            if (profileId != Profile_0.Id || base.Status == GameStatus.Stopped || base.Status == GameStatus.Stopping)
+            {
+                return;
+            }
+            if (base.Status == GameStatus.Starting || base.Status == GameStatus.Started)
+            {
+                ReflectionHelpers.GetFieldFromType(EndByTimerScenario.GetType(), "GameStatus_0").SetValue(EndByTimerScenario, GameStatus.SoftStopping);
+            }
+            base.Status = GameStatus.Stopping;
+            base.GameTimer.TryStop();
+            EndByExitTrigerScenario.Stop();
+            GameUi.TimerPanel.Close();
+            if (!SITMatchmaking.IsClient)
+            {
+                botsController_0.Stop();
+                botsController_0.DestroyInfo(gparam_0.Player);
+            }
+            if (EnvironmentManager.Instance != null)
+            {
+                EnvironmentManager.Instance.Stop();
+            }
+            MonoBehaviourSingleton<PreloaderUI>.Instance.StartBlackScreenShow(1f, 1f, delegate
+            {
+                ScreenManager instance = ScreenManager.Instance;
+                if (instance.CheckCurrentScreen(EEftScreenType.Reconnect))
+                {
+                    instance.CloseAllScreensForced();
+                }
+                gparam_0.Player.OnGameSessionEnd(exitStatus, base.PastTime, Location_0.Id, exitName);
+                CleanUp();
+                base.Status = GameStatus.Stopped;
+                TimeSpan timeSpan = DateTime.Now - dateTime_0;
+                _ = BackEndSession.OfflineRaidEnded(exitStatus, exitName, timeSpan.TotalSeconds);
+                MonoBehaviourSingleton<BetterAudio>.Instance.FadeOutVolumeAfterRaid();
+                StaticManager.Instance.WaitSeconds(delay, delegate
+                {
+                    Callback<ExitStatus, TimeSpan, MetricsClass> callback = ReflectionHelpers.GetFieldFromType(this.GetType(), "callback_0").GetValue(this) as Callback<ExitStatus, TimeSpan, MetricsClass>;
+                    callback(new Result<ExitStatus, TimeSpan, MetricsClass>(exitStatus, DateTime.Now - dateTime_0, new MetricsClass()));
+                    UIEventSystem.Instance.Enable();
+                });
+            });
+            // end of BaseLocalGame Stop method
+            // -----------------------------------------------------------------------------------------------
+
             CoopPatches.LeftGameDestroyEverything();
         }
 

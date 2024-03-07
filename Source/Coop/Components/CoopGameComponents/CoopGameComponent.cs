@@ -6,8 +6,10 @@ using EFT.UI;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
+using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
+using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
@@ -1166,6 +1168,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
 
+            if (!Singleton<GameWorld>.Instance.allAlivePlayersByID.ContainsKey(profile.ProfileId))
+                Singleton<GameWorld>.Instance.RegisterPlayer(otherPlayer);
+
+
             if (!SpawnedPlayers.ContainsKey(profile.ProfileId))
                 SpawnedPlayers.Add(profile.ProfileId, otherPlayer);
 
@@ -1224,6 +1230,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger.LogDebug($"CreateLocalPlayer::{profile.Info.Nickname}::Spawned.");
 
             SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
+
+            // Assign the SIT GroupId to the Users in the Raid
+            if (ProfileIdsUser.Contains(otherPlayer.ProfileId))
+                otherPlayer.Profile.Info.GroupId = "SIT";
 
             return otherPlayer;
         }
@@ -1285,8 +1295,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private void CreatePlayerStatePacketFromPRC(ref List<PlayerStatePacket> playerStates, EFT.Player player)
         {
-            // Build up the SEX MOD player dick Health Packet /s
-            // Actually.
             // What this does is create a ISITPacket for the Character's health that can be SIT Serialized.
             PlayerHealthPacket playerHealth = new PlayerHealthPacket(player.ProfileId);
             playerHealth.Method = "53xMOD";
@@ -1303,6 +1311,16 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 playerHealth.BodyParts[bpIndex].Current = health.Current;
                 playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
                 bpIndex++;
+            }
+            if (player.HealthController is SITHealthController sitHealthController)
+            {
+                // Paulov: TODO: Continue from here in another branch
+                var tmpHealthEffectPacketList = new List<PlayerHealthEffectPacket>();
+                while (sitHealthController.PlayerHealthEffectPackets.TryDequeue(out var p))
+                {
+                    tmpHealthEffectPacketList.Add(p);
+                }
+                playerHealth.HealthEffectPackets = tmpHealthEffectPacketList.ToArray();
             }
 
             if (playerHealth != null)
@@ -1355,8 +1373,18 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         //public const int PING_LIMIT_HIGH = 125;
         //public const int PING_LIMIT_MID = 100;
 
-        public int ServerPing { get; set; } = 1;
+        public int ServerPing { get; private set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
+
+        public void UpdatePing(int ms)
+        {
+            //Logger.LogDebug($"{nameof(UpdatePing)}:Updating with:{ms}");
+
+            if (ServerPingSmooth.Count > 60)
+                ServerPingSmooth.TryDequeue(out _);
+            ServerPingSmooth.Enqueue(ms);
+            ServerPing = ServerPingSmooth.Count > 0 ? (int)Math.Round(ServerPingSmooth.Average()) : 1;
+        }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
