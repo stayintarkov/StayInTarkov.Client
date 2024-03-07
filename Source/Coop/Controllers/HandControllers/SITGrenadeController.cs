@@ -18,7 +18,6 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Spawn(float animationSpeed, Action callback)
         {
-            ConsoleScreen.Log($"{this.GetType().Name}:{nameof(Spawn)}");
             BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(Spawn)}");
             base.Spawn(animationSpeed, callback);
         }

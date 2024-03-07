@@ -19,7 +19,6 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Spawn(float animationSpeed, Action callback)
         {
-            ConsoleScreen.Log($"{nameof(SITFirearmControllerClient)}:{nameof(Spawn)}");
             BepInLogger.LogDebug($"{nameof(SITFirearmControllerClient)}:{nameof(Spawn)}");
             base.Spawn(animationSpeed, callback);
         }
