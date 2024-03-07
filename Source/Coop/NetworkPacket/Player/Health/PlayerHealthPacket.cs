@@ -18,6 +18,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 
         public PlayerBodyPartHealthPacket[] BodyParts { get; } = new PlayerBodyPartHealthPacket[Enum.GetValues(typeof(EBodyPart)).Length];
 
+        public PlayerHealthEffectPacket[] HealthEffectPackets { get; set; }
+
         public PlayerHealthPacket() : base("", "PlayerHealth")
         {
         }
@@ -30,8 +32,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
         {
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
+            WriteHeaderAndProfileId(writer);
             writer.Write(IsAlive);
             writer.Write(Energy);
             writer.Write(Hydration);
@@ -51,8 +52,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
                 throw new ArgumentNullException(nameof(bytes));
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-            ProfileId = reader.ReadString();
+            ReadHeaderAndProfileId(reader);
             IsAlive = reader.ReadBoolean();
             Energy = reader.ReadSingle();
             Hydration = reader.ReadSingle();

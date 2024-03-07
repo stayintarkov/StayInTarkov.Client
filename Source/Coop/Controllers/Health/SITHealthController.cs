@@ -4,81 +4,60 @@ using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Networking;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 
 namespace StayInTarkov.Coop.Controllers.Health
 {
     public sealed class SITHealthController : PlayerHealthController
     {
-        public ManualLogSource BepInLogger { get; private set; }
+        public ManualLogSource BepInLogger { get; } = Logger.CreateLogSource(nameof(SITHealthController));
+        public ConcurrentQueue<PlayerHealthEffectPacket> PlayerHealthEffectPackets { get; } = new();
+
+        /// <summary>
+        /// This system relies on EffectMakerPatch and EffectResolvePatch. Please DO NOT remove them!
+        /// </summary>
+        public override bool _sendNetworkSyncPackets { get { return true; } }
+
+        public EFT.Player _Player;
 
         public SITHealthController(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)
         {
-            BepInLogger = Logger.CreateLogSource(nameof(SITHealthController));
-            BepInLogger.LogDebug(nameof(SITHealthController));
+            BepInLogger.LogDebug(this.GetType().Name);
+            _Player = player;
         }
 
-        //public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
-        //{
-        //    return base.ApplyItem(item, bodyPart, amount);
-        //}
-
-        protected override void AddEffectToList(AbstractEffect effect)
+        /// <summary>
+        /// Ignore the NetworkSyncPacket from BSG and create our own to send
+        /// </summary>
+        /// <param name="packet"></param>
+        public override void SendNetworkSyncPacket(HealthSyncPacket packet)
         {
-            if (BepInLogger != null)
-                BepInLogger.LogDebug($"{nameof(SITHealthController)}:{nameof(AddEffectToList)}");
-
-            base.AddEffectToList(effect);
-
-            if (effect == null)
-                return;
-
-            try
+            try 
             {
-                PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
-                packet.ProfileId = Player.ProfileId;
-                packet.Add = true;
-                packet.EffectType = effect.GetType().Name;
-                packet.TimeLeft = effect.TimeLeft;
-                packet.BodyPart = effect.BodyPart;
-                GameClient.SendData(packet.Serialize());
-            }
-            catch { }
+                if (BepInLogger != null)
+                    BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(SendNetworkSyncPacket)}");
 
+                if (_Player == null || _Player.ProfileId == null)
+                {
+                    if (BepInLogger != null)
+                        BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(SendNetworkSyncPacket)}:Player or ProfileId is null?");
+                    return;
+                }
+
+                PlayerHealthEffectPacket healthPacket = new (_Player.ProfileId);
+                PlayerHealthEffectPackets.Enqueue(healthPacket);
+            }
+            catch(Exception ex)
+            {
+                if (BepInLogger != null)
+                    BepInLogger.LogError($"{nameof(SendNetworkSyncPacket)}:{ex}");
+            }
         }
 
-        protected override bool RemoveEffectFromList(AbstractEffect effect)
-        {
-            if (BepInLogger != null)
-                BepInLogger.LogDebug($"{nameof(SITHealthController)}:{nameof(RemoveEffectFromList)}");
-
-            var result = base.RemoveEffectFromList(effect);
-
-            try
-            {
-                PlayerHealthEffectPacket packet = new PlayerHealthEffectPacket();
-                packet.ProfileId = Player.ProfileId;
-                packet.Add = false;
-                packet.EffectType = effect.GetType().Name;
-                packet.TimeLeft = effect.TimeLeft;
-                packet.BodyPart = effect.BodyPart;
-                GameClient.SendData(packet.Serialize());
-            }
-            catch { }
-
-            return result;
-        }
-
-        //public override void SetEncumbered(bool encumbered)
-        //{
-        //    base.SetEncumbered(encumbered);
-        //}
-
-        //public override void SetOverEncumbered(bool encumbered)
-        //{
-        //    base.SetOverEncumbered(encumbered);
-        //}
 
     }
 }
