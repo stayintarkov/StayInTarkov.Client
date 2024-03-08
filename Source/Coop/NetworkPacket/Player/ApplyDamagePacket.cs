@@ -4,11 +4,13 @@ using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Spawners;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,6 +34,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public string AggressorProfileId { get; set; }
         public string AggressorWeaponId { get; set; }
+        public string AggressorWeaponTpl { get; set; }
 
         public override byte[] Serialize()
         {
@@ -49,6 +52,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             {
                 writer.Write(AggressorProfileId);
                 writer.Write(AggressorWeaponId);
+                writer.Write(AggressorWeaponTpl);
             }
             return ms.ToArray();
         }
@@ -68,6 +72,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             {
                 AggressorProfileId = reader.ReadString();
                 AggressorWeaponId = reader.ReadString();
+                AggressorWeaponTpl = reader.ReadString();
             }
 
             return this;
@@ -94,8 +99,25 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                     if (aggressorPlayer == null)
                         aggressorPlayer = CoopGameComponent.GetCoopGameComponent().Players[AggressorProfileId];
 
-                    if (aggressorPlayer.HandsController.Item is Weapon weapon)
-                        damageInfo.Weapon = weapon;
+                    // Get the correct killing weapon and return.
+                    string itemId = "";
+                    using (SHA256 sha256 = SHA256.Create())
+                    {
+                        StringBuilder sb = new();
+
+                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(AggressorWeaponId + aggressorPlayer.ProfileId));
+                        for (int i = 0; i < hashes.Length; i++)
+                            sb.Append(hashes[i].ToString("x2"));
+
+                        itemId = sb.ToString().Substring(0, 24);
+                    }
+
+                    Item tempItem = Spawners.ItemFactory.CreateItem(itemId, AggressorWeaponTpl);
+
+                    if (tempItem != null)
+                    {
+                        damageInfo.Weapon = tempItem;
+                    }
                 }
             }
 
