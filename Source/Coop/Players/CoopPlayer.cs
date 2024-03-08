@@ -203,7 +203,10 @@ namespace StayInTarkov.Coop.Players
             {
                 damagePacket.AggressorProfileId = damageInfo.Player.iPlayer.ProfileId;
                 if (damageInfo.Weapon != null)
+                {
                     damagePacket.AggressorWeaponId = damageInfo.Weapon.Id;
+                    damagePacket.AggressorWeaponTpl = damageInfo.Weapon.TemplateId;
+                }
             }
             GameClient.SendData(damagePacket.Serialize());
 
