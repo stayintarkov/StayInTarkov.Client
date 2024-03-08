@@ -584,7 +584,7 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
         {
             Func<SITQuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<SITQuickKnifeKickController>(this, knife);
-            Process<SITQuickKnifeKickController, IQuickKnifeKickController> process = new Process<SITQuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            var process = new Process<SITQuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
             process.method_0(delegate (IResult result)
             {
                 // Check if the Proceed was successful before sending packet
