@@ -91,14 +91,10 @@ namespace StayInTarkov.Coop
 
         public override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
         {
+            if (value > 0)
+            {
+                NotificationManagerClass.DisplayNotification(new LocalizedNotification(localizationKey1, localizationKey2, value));
+            }
         }
-
-        //public override void ShowStatNotification(LocalizationKey localizationKey1, LocalizationKey localizationKey2, int value)
-        //{
-        //    if (value > 0)
-        //    {
-        //        NotificationManagerClass.DisplayNotification(new NotificationClass(localizationKey1, localizationKey2, value));
-        //    }
-        //}
     }
 }
