@@ -161,7 +161,7 @@ namespace StayInTarkov.Coop.Players
             return player;
         }
 
-        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
+        public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
             if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return null;

@@ -5,14 +5,11 @@ using UnityEngine;
 
 namespace StayInTarkov.UI
 {
-    /// <summary>
-    /// Created by: Lacyway
-    /// </summary>
     public class RemoveReadyButtonPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(MatchMakerSelectionLocationScreen).GetMethod("method_7", BindingFlags.NonPublic | BindingFlags.Instance);
+            return ReflectionHelpers.GetMethodForType(typeof(MatchMakerSelectionLocationScreen), "method_7");
         }
 
         [PatchPostfix]

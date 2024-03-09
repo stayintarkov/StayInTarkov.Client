@@ -11,8 +11,6 @@ namespace StayInTarkov.Coop.Matchmaker
 {
     public class MatchmakerAcceptScreenShowPatch : ModulePatch
     {
-        static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-
         public static Type GetThisType()
         {
             return StayInTarkovHelperConstants.EftTypes
@@ -24,7 +22,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
             var methodName = "Show";
 
-            return GetThisType().GetMethods(privateFlags)
+            return GetThisType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .First(x => x.Name == methodName && x.GetParameters()[0].Name == "session");
 
         }

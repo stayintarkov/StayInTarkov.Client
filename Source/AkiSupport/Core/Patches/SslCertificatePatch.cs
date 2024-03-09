@@ -15,7 +15,7 @@ namespace Aki.Core.Patches
         protected override MethodBase GetTargetMethod()
         {
             return StayInTarkovHelperConstants.EftTypes.Single(x => x.BaseType == typeof(CertificateHandler))
-                .GetMethod("ValidateCertificate", StayInTarkovHelperConstants.PrivateFlags);
+                .GetMethod("ValidateCertificate", StayInTarkovHelperConstants.PublicDeclaredFlags);
         }
 
         [PatchPrefix]

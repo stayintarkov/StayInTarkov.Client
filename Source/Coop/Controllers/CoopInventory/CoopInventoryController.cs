@@ -476,10 +476,10 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         private float GetMalfunctionGlowAlphaMultiplier()
         {
             float result = 0.5f;
-            if (Player.HealthController.FindActiveEffect<IEffect21>() != null)
-            {
-                result = 1f;
-            }
+            //if (Player.HealthController.FindActiveEffect<IEffect21>() != null)
+            //{
+            //    result = 1f;
+            //}
             return result;
         }
     }
