@@ -22,6 +22,8 @@ namespace StayInTarkov.AkiSupport.Airdrops.Models
         public float Timer { get; set; }
         public int DropHeight { get; set; }
         public int TimeToStart { get; set; }
+        public UnityEngine.Vector3 PlaneSpawnPoint { get; set; }
+        public UnityEngine.Vector3 PlaneLookAt { get; set; }
 
         [JsonIgnore]
         public UnityEngine.Vector3 RandomAirdropPoint { get; set; } = UnityEngine.Vector3.zero;

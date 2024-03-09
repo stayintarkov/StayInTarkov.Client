@@ -134,7 +134,10 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
 
                 RandomAirdropPoint = isFlare && allAirdropPoints.Count > 0
                     ? flareAirdropPoints.OrderBy(_ => Guid.NewGuid()).First().transform.position
-                    : allAirdropPoints.OrderBy(_ => Guid.NewGuid()).First().transform.position
+                    : allAirdropPoints.OrderBy(_ => Guid.NewGuid()).First().transform.position,
+
+                PlaneSpawnPoint = default(Vector3),
+                PlaneLookAt = default(Vector3)
             };
         }
     }
