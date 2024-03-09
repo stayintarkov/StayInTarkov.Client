@@ -661,6 +661,9 @@ namespace StayInTarkov.Coop.SITGameModes
             coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)myPlayer);
             coopGameComponent.ProfileIdsUser.Add(profile.Id);
 
+            // Set Group Id for host
+            myPlayer.Profile.Info.GroupId = "SIT";
+
             SendPlayerDataToServer(myPlayer);
 
             //SendOrReceiveSpawnPoint(myPlayer);
