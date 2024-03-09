@@ -25,7 +25,7 @@ namespace Aki.Custom.Airdrops.Utils
             if (itemFactory.ItemTemplates.TryGetValue(containerId, out var template))
             {
                 Item item = itemFactory.CreateItem(containerId, template._id, null);
-                LootItem.CreateLootContainer(container, item, "CRATE", Singleton<GameWorld>.Instance);
+                LootItem.CreateLootContainer(container, item, item.LocalizedName(), Singleton<GameWorld>.Instance);
             }
             else
             {

@@ -1,6 +1,8 @@
 ﻿using Comfort.Common;
 using EFT;
+using EFT.Airdrop;
 using EFT.SynchronizableObjects;
+using StayInTarkov.Coop.Matchmaker;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -22,15 +24,24 @@ namespace StayInTarkov.AkiSupport.Airdrops
         private float flaresCooldown;
         private bool flaresDeployed;
         private bool headingChanged;
+        public Vector3 planeServerPosition;
+        public Vector3 planeServerLookAt;
 
-        public static async Task<AirdropPlane> Init(Vector3 airdropPoint, int dropHeight, float planeVolume, float speed)
+        public static async Task<AirdropPlane> Init(Vector3 airdropPoint, int dropHeight, float planeVolume, float speed, Vector3 airplaneLookAt)
         {
             var instance = (await LoadPlane()).AddComponent<AirdropPlane>();
 
             instance.airplaneSync = instance.GetComponent<AirplaneSynchronizableObject>();
             instance.airplaneSync.SetLogic(new AirplaneLogicClass());
 
-            instance.SetPosition(dropHeight, airdropPoint);
+            if (SITMatchmaking.IsServer)
+            {
+                instance.SetPosition(dropHeight, airdropPoint);
+            }
+            else 
+            {
+                instance.SetServerPosition(airplaneLookAt, airdropPoint);
+            }
             instance.SetAudio(planeVolume);
             instance.speed = speed;
             instance.gameObject.SetActive(false);
@@ -71,7 +82,16 @@ namespace StayInTarkov.AkiSupport.Airdrops
             var pointOnCircle = Random.insideUnitCircle.normalized * RADIUS_TO_PICK_RANDOM_POINT;
 
             transform.position = new Vector3(pointOnCircle.x, dropHeight, pointOnCircle.y);
-            transform.LookAt(new Vector3(airdropPoint.x, dropHeight, airdropPoint.z));
+            planeServerPosition = transform.position;
+            Vector3 lookAt = new Vector3(airdropPoint.x, dropHeight, airdropPoint.z);
+            transform.LookAt(lookAt);
+            planeServerLookAt = lookAt;
+        }
+
+        private void SetServerPosition(Vector3 airplaneLookAt, Vector3 airdropPoint)
+        {
+            transform.position = airdropPoint;
+            transform.LookAt(airplaneLookAt);
         }
 
         public void ManualUpdate(float distance)

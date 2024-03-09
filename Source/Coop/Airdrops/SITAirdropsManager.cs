@@ -3,6 +3,7 @@ using Aki.Custom.Airdrops.Utils;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.Game.Spawning;
 using StayInTarkov;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
@@ -80,9 +81,12 @@ namespace Aki.Custom.Airdrops
                     AirdropParameters.RandomAirdropPoint,
                     AirdropParameters.DropHeight,
                     AirdropParameters.Config.PlaneVolume,
-                    AirdropParameters.Config.PlaneSpeed);
+                    AirdropParameters.Config.PlaneSpeed,
+                    AirdropParameters.PlaneLookAt);
                 AirdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
+                AirdropParameters.PlaneSpawnPoint = airdropPlane.planeServerPosition;
+                AirdropParameters.PlaneLookAt = airdropPlane.planeServerLookAt;
             }
             catch
             {
@@ -132,10 +136,11 @@ namespace Aki.Custom.Airdrops
                 Logger.LogInfo("Client::Building Plane, Box, Factory and Loot.");
 
                 airdropPlane = await AirdropPlane.Init(
-                    AirdropParameters.RandomAirdropPoint,
+                    AirdropParameters.PlaneSpawnPoint,
                     AirdropParameters.DropHeight,
                     AirdropParameters.Config.PlaneVolume,
-                    AirdropParameters.Config.PlaneSpeed);
+                    AirdropParameters.Config.PlaneSpeed,
+                    AirdropParameters.PlaneLookAt);
                 AirdropBox = await AirdropBox.Init(AirdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
 
@@ -155,6 +160,7 @@ namespace Aki.Custom.Airdrops
 
                 if (AirdropParameters.Timer >= AirdropParameters.TimeToStart && !AirdropParameters.PlaneSpawned)
                 {
+                    SendParamsToClients();
                     StartPlane();
                 }
 
