@@ -47,7 +47,7 @@ namespace StayInTarkov.Coop.Players
             Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
         }
 
-        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
+        public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
             // Paulov: This creates a server authorative Damage model
             // I am filtering out Bullet from this model (for now)
@@ -399,11 +399,11 @@ namespace StayInTarkov.Coop.Players
         {
         }
 
-        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        public override void OnSkillLevelChanged(AbstractSkill skill)
         {
         }
 
-        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        public override void OnWeaponMastered(MasterSkill masterSkill)
         {
         }
 
@@ -487,7 +487,7 @@ namespace StayInTarkov.Coop.Players
             {
                 if (item.StackObjectsCount > 1)
                 {
-                    global::SOperationResult12<GIOperationResult1> sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
+                    var sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
                     value = sOperationResult.Value;
                     error = sOperationResult.Error;
                 }

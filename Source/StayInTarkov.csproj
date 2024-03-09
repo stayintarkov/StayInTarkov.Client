@@ -144,6 +144,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Folder Include="Coop\Matchmaker\MatchmakerAccept\Grouping\" />
     <Folder Include="Networking\Nat\" />
     <Folder Include="Properties\" />
   </ItemGroup>

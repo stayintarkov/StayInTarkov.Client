@@ -115,7 +115,6 @@ namespace SIT.Core.Coop.PacketHandlers
                 return;
             }
 
-            SOperationResult operationResult = default(SOperationResult);
             AbstractDescriptor1 descriptor = null;
             using (MemoryStream memoryStream = new MemoryStream(itemPlayerPacket.OperationBytes))
             {
@@ -129,33 +128,7 @@ namespace SIT.Core.Coop.PacketHandlers
                     
                 }
             }
-
-
-            if (descriptor is UnloadMagOperationDescriptor unloadMagOperationDesc)
-            {
-                Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:{descriptor.GetType()}:{descriptor}:{descriptor.OperationId}");
-                Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:Has InternalOperationDescriptor:{unloadMagOperationDesc.InternalOperationDescriptor != null}");
-                operationResult = plyr.ToUnloadMagOperation(unloadMagOperationDesc);
-                var ammoMan = operationResult.Value as AbstractAmmoManipulationOperation;
-                if (unloadMagOperationDesc.InternalOperationDescriptor != null && ammoMan != null)
-                {
-                    var internalInvOpResult = plyr.ToInventoryOperation(unloadMagOperationDesc.InternalOperationDescriptor);
-                    if (internalInvOpResult.Failed)
-                    {
-                        Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:{nameof(internalInvOpResult)}:Error:{internalInvOpResult.Error}");
-
-
-                        if (unloadMagOperationDesc.InternalOperationDescriptor is MoveOperationDescriptor mveOpDesc && ItemFinder.TryFindItem(mveOpDesc.ItemId, out Item item))
-                            ItemMovementHandler.AddWithoutRestrictions(item, EFT.Player.ToItemAddress(mveOpDesc.To).Value, pic);
-                    }
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance(ammoMan, "InternalOperation", internalInvOpResult.Value);
-                    Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:operationResult.Value:{operationResult.Value}");
-                    pic.ReceiveExecute(operationResult.Value);
-                    return;
-                }
-            }
-            else
-                operationResult = plyr.ToInventoryOperation(descriptor);
+            var operationResult = plyr.ToInventoryOperation(descriptor);
 
             if (operationResult.Succeeded)
             { 

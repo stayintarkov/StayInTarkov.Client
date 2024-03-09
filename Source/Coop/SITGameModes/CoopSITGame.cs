@@ -827,7 +827,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
                 var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
 
-                LocalGameBotCreator profileCreator =
+                BotsPresets profileCreator =
                     new(BackEndSession
                     , wavesSpawnScenario_0.SpawnWaves
                     , Location_0.BossLocationSpawn

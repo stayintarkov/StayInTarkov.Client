@@ -10,14 +10,6 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
     {
         ManualLogSource BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITMedsControllerClient));
 
-        public GAbstractNextOperation1 NextOperation
-        {
-            get
-            {
-                return CurrentHandsOperation as GAbstractNextOperation1;
-            }
-        }
-
         public override void Spawn(float animationSpeed, Action callback)
         {
             BepInLogger.LogDebug($"{nameof(SITMedsControllerClient)}:{nameof(Spawn)}");

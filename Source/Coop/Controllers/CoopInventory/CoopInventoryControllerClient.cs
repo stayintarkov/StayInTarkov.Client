@@ -68,11 +68,11 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return false;
         }
 
-        public override GAbstractOperation129 ToggleItem(TogglableComponent togglable)
+        public override ToggleItem ToggleItem(TogglableComponent togglable)
         {
-            return base.ToggleItem(togglable);
+            var result = base.ToggleItem(togglable);
+            return result;
         }
-
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HarmonyLib;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -17,21 +18,9 @@ namespace StayInTarkov.Coop.Matchmaker
             public string status { get; set; }
         }
 
-        static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-
-        public static Type GetThisType()
-        {
-            return StayInTarkovHelperConstants.EftTypes
-                 .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
-        }
-
         protected override MethodBase GetTargetMethod()
         {
-
-            var methodName = "Awake";
-
-            return GetThisType().GetMethods(privateFlags).First(x => x.Name == methodName);
-
+            return AccessTools.Method(typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen), "Awake");
         }
 
         [PatchPrefix]
