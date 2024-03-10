@@ -549,7 +549,7 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
         {
             Func<QuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<QuickKnifeKickController>(this, knife);
-            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Unknown, skippable: false);
+            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
             Action confirmCallback = delegate
             {
                 
