@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             if (!string.IsNullOrEmpty(TimeSerializedBetter) && TimeSerializedBetter != "0")
             {
                 var ticks = long.Parse(TimeSerializedBetter);
-                var result = DateTime.Now - new DateTime(ticks);
+                var result = DateTime.UtcNow - new DateTime(ticks);
                 return result;
             }
 
@@ -55,7 +55,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         {
             Method = method;
             ServerId = CoopGameComponent.GetServerId();
-            TimeSerializedBetter = DateTime.Now.Ticks.ToString("G");
+            TimeSerializedBetter = DateTime.UtcNow.Ticks.ToString("G");
         }
 
         public static Dictionary<Type, PropertyInfo[]> TypeProperties = new ();
