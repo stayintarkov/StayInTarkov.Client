@@ -837,11 +837,11 @@ namespace StayInTarkov.Coop.Components
                     {
                         musclePain.Remove();
                     }
-                    HealthControllerClass.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthControllerClass.SevereMusclePain>(EBodyPart.Common);
-                    if (severeMusclePain != null)
-                    {
-                        severeMusclePain.Remove();
-                    }
+                    //HealthControllerClass.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthControllerClass.SevereMusclePain>(EBodyPart.Common);
+                    //if (severeMusclePain != null)
+                    //{
+                    //    severeMusclePain.Remove();
+                    //}
                     break;
                 }
             }

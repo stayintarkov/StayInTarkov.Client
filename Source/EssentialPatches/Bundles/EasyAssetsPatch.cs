@@ -1,4 +1,5 @@
-﻿using Diz.Jobs;
+﻿using Aki.Custom.Utils;
+using Diz.Jobs;
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -52,7 +53,7 @@ namespace Aki.Custom.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(EasyAssets).GetMethods(StayInTarkovHelperConstants.PrivateFlags).Single(IsTargetMethod);
+            return typeof(EasyAssets).GetMethods(StayInTarkovHelperConstants.PublicDeclaredFlags).Single(IsTargetMethod);
         }
 
         private static bool IsTargetMethod(MethodInfo mi)
