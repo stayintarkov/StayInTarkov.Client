@@ -38,8 +38,8 @@ namespace StayInTarkov.Coop.Controllers.Health
         {
             try 
             {
-                if (BepInLogger != null)
-                    BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(SendNetworkSyncPacket)}");
+                //if (BepInLogger != null)
+                //    BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(SendNetworkSyncPacket)}");
 
                 if (_Player == null || _Player.ProfileId == null)
                 {

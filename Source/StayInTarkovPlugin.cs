@@ -394,10 +394,8 @@ namespace StayInTarkov
             new ChangeHealthPatch().Enable();
             new ChangeHydrationPatch().Enable();
             new ChangeEnergyPatch().Enable();
-            //new OnDeadPatch().Enable();
             new PHC_HandleFall_Patch().Enable();    
             new MainMenuControllerForHealthListenerPatch().Enable();
-            new EffectMakerPatch().Enable();
         }
 
         private static void EnableSPPatches_Bots(BepInEx.Configuration.ConfigFile config)

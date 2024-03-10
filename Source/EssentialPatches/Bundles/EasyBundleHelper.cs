@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StayInTarkov;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,13 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using BindableState = BindableState<Diz.DependencyManager.ELoadState>;
 
-
-/***
- * Full Credit for this patch goes to SPT-Aki team
- * Original Source is found here - https://dev.sp-tarkov.com/SPT-AKI/Modules
- * Paulov. Made changes to have better reflection and less hardcoding
- */
-namespace StayInTarkov
+namespace Aki.Custom.Utils
 {
     public class EasyBundleHelper
     {
