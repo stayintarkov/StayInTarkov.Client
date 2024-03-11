@@ -95,7 +95,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
         {
-            errorMessage = $"No server matches the data provided or the server no longer exists";
+            errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["NO-SERVER-MATCH"]; ;
             Logger.LogInfo("CheckForMatch");
             outJson = string.Empty;
 
@@ -126,7 +126,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
                         if (outJObject.ContainsKey("invalidPassword"))
                         {
-                            errorMessage = "Invalid password";
+                            errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["INVALID-PASSWORD"];
                             return false;
                         }
 
@@ -134,7 +134,7 @@ namespace StayInTarkov.Coop.Matchmaker
                         {
                             if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
                             {
-                                errorMessage = $"You are attempting to use a different version of EFT {StayInTarkovPlugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
+                                errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-EFT"]} {StayInTarkovPlugin.EFTVersionMajor} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["gameVersion"]}";
                                 return false;
                             }
                         }
@@ -143,7 +143,7 @@ namespace StayInTarkov.Coop.Matchmaker
                         {
                             if (JObject.Parse(outJson)["sitVersion"].ToString() != Assembly.GetExecutingAssembly().GetName().Version.ToString())
                             {
-                                errorMessage = $"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}";
+                                errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-SIT"]} {Assembly.GetExecutingAssembly().GetName().Version.ToString()} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["sitVersion"]}";
                                 return false;
                             }
                         }
@@ -160,7 +160,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         public static bool TryJoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
         {
-            errorMessage = $"No server matches the data provided or the server no longer exists";
+            errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["NO-SERVER-MATCH"];
             Logger.LogDebug("JoinMatch");
             outJson = string.Empty;
 
@@ -178,7 +178,7 @@ namespace StayInTarkov.Coop.Matchmaker
                 {
                     if (outJson.Equals("null", StringComparison.OrdinalIgnoreCase))
                     {
-                        errorMessage = $"An unknown SPT-Aki Server error has occurred";
+                        errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["SPT-AKI-SERVER-ERROR"];
                         return false;
                     }
 
@@ -191,13 +191,13 @@ namespace StayInTarkov.Coop.Matchmaker
 
                     if (outJObject.ContainsKey("invalidPassword"))
                     {
-                        errorMessage = "Invalid password";
+                        errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["INVALID-PASSWORD"];
                         return false;
                     }
 
                     if (outJObject.ContainsKey("alreadyConnected"))
                     {
-                        errorMessage = "Your profile is already connected to this server";
+                        errorMessage = (string)StayInTarkovPlugin.LanguageDictionary["PROFILE-IS-ALREADY"];
                         return false;
                     }
 
@@ -205,7 +205,7 @@ namespace StayInTarkov.Coop.Matchmaker
                     {
                         if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
                         {
-                            errorMessage = $"You are attempting to use a different version of EFT {StayInTarkovPlugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
+                            errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-EFT"]} {StayInTarkovPlugin.EFTVersionMajor} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["gameVersion"]}";
                             return false;
                         }
                     }
@@ -214,7 +214,7 @@ namespace StayInTarkov.Coop.Matchmaker
                     {
                         if (JObject.Parse(outJson)["sitVersion"].ToString() != Assembly.GetExecutingAssembly().GetName().Version.ToString())
                         {
-                            errorMessage = $"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}";
+                            errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-SIT"]} {Assembly.GetExecutingAssembly().GetName().Version.ToString()} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["sitVersion"]}";
                             return false;
                         }
                     }
