@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayer : LocalPlayer
     {
-        public ManualLogSource BepInLogger { get; private set; }
+        public virtual ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -80,9 +80,8 @@ namespace StayInTarkov.Coop.Players
                
             }
             player.IsYourPlayer = isYourPlayer;
-            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
-            InventoryControllerClass inventoryController = isYourPlayer && !isClientDrone
+            InventoryControllerClass inventoryController = isYourPlayer || player is CoopPlayer
                 ? new CoopInventoryController(player, profile, false)
                 : new CoopInventoryControllerClient(player, profile, false);
 
@@ -93,13 +92,6 @@ namespace StayInTarkov.Coop.Players
                     player.BepInLogger.LogInfo("Owner is null. wtf");
                 }
             }
-
-            // Quest Controller from 0.13
-            //if (questController == null && isYourPlayer)
-            //{
-            //    questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
-            //    questController.Run();
-            //}
 
             // Quest Controller instantiate
             if (isYourPlayer)
@@ -640,8 +632,6 @@ namespace StayInTarkov.Coop.Players
 
         void Awake()
         {
-            if(BepInLogger == null)
-                BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
 
         public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
