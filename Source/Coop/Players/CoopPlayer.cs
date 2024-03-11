@@ -80,6 +80,7 @@ namespace StayInTarkov.Coop.Players
                
             }
             player.IsYourPlayer = isYourPlayer;
+            player.Position = position;
 
             InventoryControllerClass inventoryController = isYourPlayer || player is CoopPlayer
                 ? new CoopInventoryController(player, profile, false)
@@ -126,7 +127,6 @@ namespace StayInTarkov.Coop.Players
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , healthController
-                //, new AbstractStatisticsManager1()
                 , statsManager
                 , questController
                 , achievementsController
@@ -142,6 +142,7 @@ namespace StayInTarkov.Coop.Players
             player._animators[0].enabled = true;
             if (!player.IsYourPlayer)
                 player._armsUpdateQueue = EUpdateQueue.Update;
+            player.Position = position;
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
