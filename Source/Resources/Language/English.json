@@ -57,5 +57,16 @@
   "PLAYER-SESSION": "Player",
   "ALIVE": "Alive",
   "DEAD": "Dead",
-  "AVG_PING": "Average Ping"
+  "AVG_PING": "Average Ping",
+  "ENTER-PASSWORD": "Enter Password",
+  "USE-A-DIFFERENT-VERSION-OF-EFT": "You are trying a different version of EFT",
+  "USE-A-DIFFERENT-VERSION-OF-SIT": "You are trying a different version of SIT",
+  "THAN-SERVER-RUNNING": "Compared to the version the server is running",
+  "PROFILE-IS-ALREADY": "Your account is connected to this server",
+  "INVALID-PASSWORD": "incorrect password",
+  "PASSWORD-REQUIRED": "Password protection enabled",
+  "SPT-AKI-SERVER-ERROR": "SPT-Aki Server Feedback Unknown Error",
+  "NO-SERVER-MATCH": "There is no match for the provided data or the match no longer exists.",
+  "CLOSE": "Close",
+  "PASSWORD-YES": "Yes"
 }
