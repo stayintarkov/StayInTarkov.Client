@@ -48,32 +48,9 @@ namespace StayInTarkov.Configuration
                 GetSettings();
             }
 
-            public bool UseSITGarbageCollector { get; set; }
-
-            public long SITGCMemoryThreshold { get; internal set; }
-
-            public bool SITGCClearAssets { get; internal set; }
-
-            public bool SITGCAggressiveClean { get; internal set; }
 
             public void GetSettings()
             {
-                UseSITGarbageCollector = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
-
-                SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorMemoryThreshold", 768, new ConfigDescription("The SIT Garbage Collector memory threshold (in megabytes) between ticks before forcing a garbage collection")).Value;
-
-                SITGCClearAssets = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorClearAssets", false, new ConfigDescription("Set SIT Garbage Collector to clear Unity assets. Reduces RAM usage but can be unstable!")).Value;
-
-                SITGCAggressiveClean = StayInTarkovPlugin.Instance.Config.Bind
-                ("Advanced", "SITGarbageCollectorAggressiveClean", false, new ConfigDescription("Set SIT Garbage Collector to aggresively clean RAM. This will signficantly reduce in Raid RAM usage at the expense of a 1-5s freeze.")).Value;
-
-                Logger.LogInfo($"UseSITGarbageCollector:{UseSITGarbageCollector}");
-                Logger.LogInfo($"SITGCMemoryThreshold:{SITGCMemoryThreshold}");
-                Logger.LogInfo($"SITGCClearAssets:{SITGCClearAssets}");
-                Logger.LogInfo($"SITGCAggressiveClean:{SITGCAggressiveClean}");
 
             }
         }

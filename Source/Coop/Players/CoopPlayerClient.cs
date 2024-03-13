@@ -41,10 +41,11 @@ namespace StayInTarkov.Coop.Players
         {
             //if (damageType == EDamageType.Fall)
             //    return;
-
+#if DEBUG
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
+#endif
             base.OnDead(damageType);
-            Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
+            //Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
         }
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
