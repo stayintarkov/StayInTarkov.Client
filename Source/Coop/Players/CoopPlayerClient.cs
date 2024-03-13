@@ -45,10 +45,6 @@ namespace StayInTarkov.Coop.Players
 
         public override void OnDead(EDamageType damageType)
         {
-            //if (damageType == EDamageType.Fall)
-            //    return;
-
-            BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
             base.OnDead(damageType);
             Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
         }
