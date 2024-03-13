@@ -411,7 +411,7 @@ namespace StayInTarkov.Coop.Components
 
             GUI.Label(new UnityEngine.Rect(20, 20, 200, 200), ErrorMessage);
 
-            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), StayInTarkovPlugin.LanguageDictionary["CLOSE"].ToString()))
             {
                 showErrorMessageWindow = false;
                 showServerBrowserWindow = true;
@@ -426,11 +426,11 @@ namespace StayInTarkov.Coop.Components
             var halfWindowWidth = windowInnerRect.width / 2;
             var halfWindowHeight = windowInnerRect.height / 2;
 
-            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Enter password")).x;
+            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["ENTER-PASSWORD"].ToString())).x;
 
             var textX = halfWindowWidth - PasswordTextWidth / 2;
 
-            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), "Enter password");
+            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["ENTER-PASSWORD"].ToString());
 
             var passwordFieldWidth = 200;
             var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
@@ -439,13 +439,13 @@ namespace StayInTarkov.Coop.Components
 
             var buttonX = halfWindowWidth - PasswordTextWidth / 2;
 
-            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), "Back"))
+            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString()))
             {
                 showPasswordRequiredWindow = false;
                 showServerBrowserWindow = true;
             }
 
-            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
+            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString()))
             {
                 JoinMatch(SITMatchmaking.Profile.ProfileId, pendingServerId, passwordClientInput);
             }
@@ -536,7 +536,7 @@ namespace StayInTarkov.Coop.Components
                     GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
 
                     // Display Password Locked
-                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "Yes" : "", labelStyle);
+                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? (string)StayInTarkovPlugin.LanguageDictionary["PASSWORD-YES"] : "", labelStyle);
 
                     // Calculate the width of the combined server information (Host Name, Player Count, Location)
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;

@@ -421,12 +421,8 @@ namespace StayInTarkov.Coop.Players
             // Paulov: Unknown / Unable to replicate issue where some User's feed would cause a crash
             //if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
             //    DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
-
-#if DEBUG
-            BepInLogger.LogInfo($"{GeneratePlayerNameWithSide(victim)} has died because of {("DamageType_" + damageType.ToString()).Localized()}");
-#endif
-
-            KillPacket killPacket = new KillPacket(ProfileId, damageType);
+            
+            using KillPacket killPacket = new KillPacket(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
         }
 

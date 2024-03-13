@@ -12,19 +12,19 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
     public sealed class PlayerStatesPacket : BasePacket
     {
         public PlayerStatePacket[] PlayerStates { get; set; }
-        public PlayerStatesPacket() : base("PlayerStatesPacket")
+        public PlayerStatesPacket() : base(nameof(PlayerStatesPacket))
         {
 
         }
 
-        public PlayerStatesPacket(in PlayerStatePacket[] statePackets) : base("PlayerStatesPacket")
+        public PlayerStatesPacket(in PlayerStatePacket[] statePackets) : base(nameof(PlayerStatesPacket))
         {
             PlayerStates = statePackets;
         }
 
         public override byte[] Serialize()
         {
-            var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             using BinaryWriter binaryWriter = new BinaryWriter(ms);
             WriteHeader(binaryWriter);
             binaryWriter.Write(PlayerStates.Length);
@@ -53,6 +53,21 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
             for (var i = 0; i < PlayerStates.Length; i++)
                 PlayerStates[i].Process();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatesPacket)}:{nameof(Dispose)}");
+                for (var i = 0; i < PlayerStates.Length; i++)
+                {
+                    PlayerStates[i].Dispose();
+                    PlayerStates[i] = null;
+                }
+                PlayerStates = null;
+            }
+            base.Dispose(disposing);
         }
     }
 }

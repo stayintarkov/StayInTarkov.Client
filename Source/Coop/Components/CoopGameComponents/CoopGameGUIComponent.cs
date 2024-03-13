@@ -105,7 +105,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (coopGame == null)
                 return;
 
-            rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
+            //rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
 
             var quitState = CoopGameComponent.GetQuitState();
             switch (quitState)

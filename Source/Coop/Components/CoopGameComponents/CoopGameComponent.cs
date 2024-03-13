@@ -1,5 +1,6 @@
 ﻿using Comfort.Common;
 using EFT;
+using EFT.Communications;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
@@ -30,6 +31,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 using Rect = UnityEngine.Rect;
+using BSGMemoryGC = GClass772;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -235,10 +237,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             StartCoroutine(SendPlayerStatePacket());
 
-            // Start the SIT Garbage Collector
-            StartCoroutine(PeriodicEnableDisableGC());
-            GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
-
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
 
@@ -260,7 +258,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private IEnumerator SendPlayerStatePacket()
         {
-            PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
+            using PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
            
             List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
             foreach (var player in Players.Values)
@@ -329,63 +327,14 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 // Send My Player to Aki, so that other clients know about me
                 CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
             }
-        }
 
-        /// <summary>
-        /// Last stored memory allocation from the SIT Garbage Collector
-        /// </summary>
-        private long? _SITGCLastMemory;
+            // Start the SIT Garbage Collector
+            BSGMemoryGC.RunHeapPreAllocation();
+            BSGMemoryGC.Collect(force: true);
+            BSGMemoryGC.EmptyWorkingSet();
+            BSGMemoryGC.GCEnabled = true;
+            Resources.UnloadUnusedAssets();
 
-        private int _SITGCLastIndex;
-
-        /// <summary>
-        /// This clears out the RAM usage very effectively.
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerator PeriodicEnableDisableGC()
-        {
-            if (!PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector)
-                yield break;
-
-            var memory = GC.GetTotalMemory(false);
-            if (!_SITGCLastMemory.HasValue)
-                _SITGCLastMemory = memory;
-
-            long memoryThreshold = PluginConfigSettings.Instance.AdvancedSettings.SITGCMemoryThreshold;
-
-            if (_SITGCLastMemory.HasValue && memory > _SITGCLastMemory.Value + memoryThreshold * 1024 * 1024)
-            {
-                _SITGCLastMemory = memory;
-#if DEBUG
-                Logger.LogDebug($"Current Memory Allocated:{memory / 1024 / 1024}mb");
-                Stopwatch sw = Stopwatch.StartNew();
-#endif
-
-                if (PluginConfigSettings.Instance.AdvancedSettings.SITGCAggressiveClean)
-                {
-                    GCHelpers.ClearGarbage(true, PluginConfigSettings.Instance.AdvancedSettings.SITGCClearAssets);
-                }
-                else
-                {
-                    GCHelpers.ClearGarbage(_SITGCLastIndex == 1, _SITGCLastIndex == 1);
-                    _SITGCLastIndex++;
-                    if (_SITGCLastIndex == 1)
-                        _SITGCLastIndex = 0;
-                }
-
-#if DEBUG
-                var freedMemory = GC.GetTotalMemory(false);
-                Logger.LogDebug($"Freed {(freedMemory > 0 ? freedMemory / 1024 / 1024 : 0)}mb in memory");
-                Logger.LogDebug($"Garbage Collection took {sw.ElapsedMilliseconds}ms");
-                sw.Stop();
-                sw = null;
-#endif
-
-            }
-
-            yield return new WaitForSeconds(60);
-
-            StartCoroutine(PeriodicEnableDisableGC());
         }
 
         /// <summary>
@@ -465,11 +414,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                             player.ActiveHealthController.DisableMetabolism();
                             player.ActiveHealthController.PauseAllEffects();
 
-                            player.SwitchRenderer(false);
+                            //player.SwitchRenderer(false);
 
                             // TODO: Currently. Destroying your own Player just breaks the game and it appears to be "frozen". Need to learn a new way to do a FreeCam!
-                            if (Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
-                                Destroy(player);
+                            //if (Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
+                            //    Destroy(player);
                         }
                     }
                 }
@@ -524,6 +473,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         Stopwatch swActionPackets { get; } = new Stopwatch();
         bool PerformanceCheck_ActionPackets { get; set; } = false;
         public bool RequestQuitGame { get; set; }
+        int ForceQuitGamePressed = 0;
 
         /// <summary>
         /// The state your character or game is in to Quit.
@@ -654,6 +604,41 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
                 return;
             }
+            else if (
+                Input.GetKeyDown(KeyCode.F7)
+                &&
+                quitState != EQuitState.NONE
+                && !RequestQuitGame
+                )
+            {
+                RequestQuitGame = true;
+
+                // If you are the server / host
+                if (SITMatchmaking.IsServer)
+                {
+                    // A host needs to wait for the team to extract or die!
+                    if (ForceQuitGamePressed < 1)
+                    {
+                        NotificationManagerClass.DisplayWarningNotification("HOSTING: Press again to force stop the game!");
+                        ForceQuitGamePressed += 1;
+                        RequestQuitGame = false;
+                        return;
+                    }
+                    else
+                    {
+                        if (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost || quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead)
+                        {
+                            ForceQuitGamePressed = 0;
+                            Singleton<ISITGame>.Instance.Stop(
+                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                , Singleton<ISITGame>.Instance.MyExitStatus
+                                , Singleton<ISITGame>.Instance.MyExitLocation
+                                , 0);
+                        }
+                    }
+                }
+                return;
+            }
         }
 
         /// <summary>
@@ -666,7 +651,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 ServerHasStoppedActioned = true;
                 try
                 {
-                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation, 0);
+                    Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , Singleton<ISITGame>.Instance.MyExitLocation
+                            , 0);
                 }
                 catch { }
                 return;
@@ -681,7 +670,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return;
 
             ProcessQuitting();
-            //ProcessServerHasStopped();
+            ProcessServerHasStopped();
 
             if (ActionPackets == null)
                 return;
