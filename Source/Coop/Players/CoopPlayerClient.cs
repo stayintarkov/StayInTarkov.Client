@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using Diz.LanguageExtensions;
 using EFT;
 using EFT.InventoryLogic;
@@ -12,13 +13,18 @@ using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 using UnityEngine;
+using UnityEngine.Networking;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
+using static UnityEngine.SendMouseEvents;
 
 namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayerClient : CoopPlayer
     {
+        public override ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopPlayerClient));
+
         public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
 
@@ -299,6 +305,93 @@ namespace StayInTarkov.Coop.Players
             ApplyReplicatedMotion();
         }
 
+        void FixedUpdate()
+        {
+            base.FixedUpdate();
+
+            if (FPSCamera.Instance == null)
+                return;
+
+            var mainCamera = FPSCamera.Instance.Camera;
+            if (mainCamera == null)
+            {
+                return;
+            }
+
+            var startPosition = mainCamera.transform.position + (mainCamera.transform.TransformDirection(Vector3.forward) * 0.1f);
+
+            var headPosition = this.MainParts[BodyPartType.head].Position;
+            var dir = (headPosition - mainCamera.transform.position);
+            var distanceFromCamera = Vector3.Distance(startPosition, headPosition);
+            
+            RaycastHit hit;
+            // Does the ray intersect any objects excluding the player layer
+            if (Physics.Raycast(startPosition, dir, out hit, Mathf.Infinity, LayerMaskClass.LowPolyColliderLayerMask))
+            {
+                _isTeleporting = false;
+
+                foreach (var c in this._hitColliders) 
+                {
+                    if (hit.collider == c)
+                        return;
+                }
+
+                foreach (var c in this._armorPlateColliders)
+                {
+                    if (hit.collider == c)
+                        return;
+                }
+
+                var objName = hit.transform.parent?.gameObject?.name;
+
+                if (objName == this.gameObject.name)
+                    return;
+
+                if (Vector3.Distance(hit.point, this.Position) < 1f)
+                    return;
+
+                if (Vector3.Distance(hit.point, startPosition) > distanceFromCamera)
+                    return;
+
+                //if (_raycastHitCube == null)
+                //{
+                //    _raycastHitCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                //    _raycastHitCube.GetComponent<Collider>().enabled = false;
+                //}
+                //_raycastHitCube.transform.position = hit.point;
+                 
+                // If the guy is further than 40m away. Use the Teleportation system.
+                if (NewState != null && distanceFromCamera > 40)
+                {
+                    Teleport(NewState.Position);
+                    this.Position = NewState.Position;
+                    this.Rotation = NewState.Rotation;
+                    //BepInLogger.LogDebug($"Teleporting {ProfileId}");
+                    _isTeleporting = true;
+                }
+            }
+            else
+            {
+                _isTeleporting = false;
+            }
+
+            if (!_isTeleporting)
+            {
+                //GameObject.Destroy(_raycastHitCube);
+            }
+
+              
+        }
+
+        bool _isTeleporting = false;
+        //GameObject _raycastHitCube;
+
+        public void InterpolateOrTeleport()
+        {
+            if(!_isTeleporting)
+                Interpolate();
+        }
+
         /// <summary>
         /// Created by: Lacyway - This code has been written by Lacyway (https://github.com/Lacyway) for the SIT Project (https://github.com/stayintarkov/StayInTarkov.Client).
         /// Updated by: Paulov
@@ -393,7 +486,7 @@ namespace StayInTarkov.Coop.Players
         {
             base.UpdateTick();
 
-            Interpolate();
+            InterpolateOrTeleport();
         }
 
         public override void OnSkillExperienceChanged(AbstractSkill skill)

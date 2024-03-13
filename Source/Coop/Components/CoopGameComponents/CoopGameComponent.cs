@@ -1117,7 +1117,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // logic when aiControl is turned off (in other words, for players)?
 
 
-            //var otherPlayer = LocalPlayer.Create(playerId
             var otherPlayer = CoopPlayer.Create(playerId
                , position
                , Quaternion.identity

@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.Players
 {
     public class CoopPlayer : LocalPlayer
     {
-        public ManualLogSource BepInLogger { get; private set; }
+        public virtual ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
         public static async Task<LocalPlayer>
             Create(int playerId
@@ -80,9 +80,9 @@ namespace StayInTarkov.Coop.Players
                
             }
             player.IsYourPlayer = isYourPlayer;
-            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+            player.Position = position;
 
-            InventoryControllerClass inventoryController = isYourPlayer && !isClientDrone
+            InventoryControllerClass inventoryController = isYourPlayer || player is CoopPlayer
                 ? new CoopInventoryController(player, profile, false)
                 : new CoopInventoryControllerClient(player, profile, false);
 
@@ -93,13 +93,6 @@ namespace StayInTarkov.Coop.Players
                     player.BepInLogger.LogInfo("Owner is null. wtf");
                 }
             }
-
-            // Quest Controller from 0.13
-            //if (questController == null && isYourPlayer)
-            //{
-            //    questController = new QuestController(profile, inventoryController, StayInTarkovHelperConstants.BackEndSession, fromServer: true);
-            //    questController.Run();
-            //}
 
             // Quest Controller instantiate
             if (isYourPlayer)
@@ -134,7 +127,6 @@ namespace StayInTarkov.Coop.Players
             await player
                 .Init(rotation, layerName, pointOfView, profile, inventoryController
                 , healthController
-                //, new AbstractStatisticsManager1()
                 , statsManager
                 , questController
                 , achievementsController
@@ -150,6 +142,7 @@ namespace StayInTarkov.Coop.Players
             player._animators[0].enabled = true;
             if (!player.IsYourPlayer)
                 player._armsUpdateQueue = EUpdateQueue.Update;
+            player.Position = position;
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
@@ -433,22 +426,22 @@ namespace StayInTarkov.Coop.Players
             GameClient.SendData(killPacket.Serialize());
         }
 
-        //public static string GeneratePlayerNameWithSide(EFT.Player player)
-        //{
-        //    if (player == null)
-        //        return "";
+        public static string GeneratePlayerNameWithSide(EFT.Player player)
+        {
+            if (player == null)
+                return "";
 
-        //    var side = "Scav";
+            var side = "Scav";
 
-        //    if (player.AIData.IAmBoss)
-        //        side = "Boss";
-        //    else if (player.Side != EPlayerSide.Savage)
-        //        side = player.Side.ToString();
+            if (player.AIData.IAmBoss)
+                side = "Boss";
+            else if (player.Side != EPlayerSide.Savage)
+                side = player.Side.ToString();
 
-        //    return $"[{side}] {player.Profile.GetCorrectedNickname()}";
-        //}
+            return $"[{side}] {player.Profile.Nickname}";
+        }
 
-       
+
 
         protected struct SITPostProceedData
         {
@@ -640,8 +633,6 @@ namespace StayInTarkov.Coop.Players
 
         void Awake()
         {
-            if(BepInLogger == null)
-                BepInLogger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
         }
 
         public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
