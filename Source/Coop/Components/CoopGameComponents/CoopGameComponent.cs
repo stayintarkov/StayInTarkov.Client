@@ -1,5 +1,6 @@
 ﻿using Comfort.Common;
 using EFT;
+using EFT.Communications;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
@@ -524,6 +525,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         Stopwatch swActionPackets { get; } = new Stopwatch();
         bool PerformanceCheck_ActionPackets { get; set; } = false;
         public bool RequestQuitGame { get; set; }
+        int ForceQuitGamePressed = 0;
 
         /// <summary>
         /// The state your character or game is in to Quit.
@@ -654,6 +656,41 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
                 return;
             }
+            else if (
+                Input.GetKeyDown(KeyCode.F7)
+                &&
+                quitState != EQuitState.NONE
+                && !RequestQuitGame
+                )
+            {
+                RequestQuitGame = true;
+
+                // If you are the server / host
+                if (SITMatchmaking.IsServer)
+                {
+                    // A host needs to wait for the team to extract or die!
+                    if (ForceQuitGamePressed < 1)
+                    {
+                        NotificationManagerClass.DisplayWarningNotification("HOSTING: Press again to force stop the game!");
+                        ForceQuitGamePressed += 1;
+                        RequestQuitGame = false;
+                        return;
+                    }
+                    else
+                    {
+                        if (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost || quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead)
+                        {
+                            ForceQuitGamePressed = 0;
+                            Singleton<ISITGame>.Instance.Stop(
+                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                , Singleton<ISITGame>.Instance.MyExitStatus
+                                , Singleton<ISITGame>.Instance.MyExitLocation
+                                , 0);
+                        }
+                    }
+                }
+                return;
+            }
         }
 
         /// <summary>
@@ -666,7 +703,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 ServerHasStoppedActioned = true;
                 try
                 {
-                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation, 0);
+                    Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , Singleton<ISITGame>.Instance.MyExitLocation
+                            , 0);
                 }
                 catch { }
                 return;
@@ -681,7 +722,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return;
 
             ProcessQuitting();
-            //ProcessServerHasStopped();
+            ProcessServerHasStopped();
 
             if (ActionPackets == null)
                 return;
