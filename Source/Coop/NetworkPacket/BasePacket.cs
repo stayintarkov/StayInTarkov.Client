@@ -59,7 +59,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         }
 
         public static Dictionary<Type, PropertyInfo[]> TypeProperties = new ();
-        private bool disposedValue;
+        protected bool disposedValue;
 
         public static PropertyInfo[] GetPropertyInfos(ISITPacket packet)
         {
