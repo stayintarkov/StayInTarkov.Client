@@ -18,10 +18,10 @@
   "ILLEGAL_MESSAGE": "检测到您未持有逃离塔科夫的正版游戏! 您需要一份正版的逃离塔科夫才能使用SIT. 如您持有正版, 请下载, 并将其启动一次.",
   "RAID_TEAM_DEAD": "所有玩家均已在行动中阵亡, 按下 F8 键即可退出当前战局",
   "RAID_PLAYER_DEAD_SOLO": "您已在行动中阵亡, 按下 F8 键即可退出当前战局",
-  "RAID_PLAYER_DEAD_HOST": "您已在行动中阵亡, 请等待其他玩家死亡或撤离",
+  "RAID_PLAYER_DEAD_HOST": "您已在行动中阵亡, 请等待其他玩家死亡或撤离 (双击 F7 可强制退出当前战局)",
   "RAID_PLAYER_DEAD_CLIENT": "您已在行动中阵亡, 按下 F8 键即可退出当前战局",
   "RAID_TEAM_EXTRACTED": "所有玩家均已幸存并撤离, 按下 F8 键即可退出当前战局",
-  "RAID_PLAYER_EXTRACTED_HOST": "您已幸存并撤离, 请等待其他玩家死亡或撤离",
+  "RAID_PLAYER_EXTRACTED_HOST": "您已幸存并撤离, 请等待其他玩家死亡或撤离 (双击 F7 可强制退出当前战局)",
   "RAID_PLAYER_EXTRACTED_CLIENT": "您已幸存并撤离, 按下 F8 键即可退出当前战局",
   "PROTOCOL": "协议",
   "PROTOCOL_OPTIONS": [ "中继", "P2P" ],
@@ -68,5 +68,5 @@
   "SPT-AKI-SERVER-ERROR": "SPT-Aki 服务器反馈未知错误",
   "NO-SERVER-MATCH": "没有与所提供数据匹配的战局或战局已不存在",
   "CLOSE": "关闭",
-  "PASSWORD-YES":"开启"
+  "PASSWORD-YES": "开启"
 }
