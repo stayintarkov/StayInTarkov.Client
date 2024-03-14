@@ -19,7 +19,6 @@ using EFT.UI;
 using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
-using Newtonsoft.Json;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -35,6 +34,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
@@ -125,11 +125,15 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             BotsController = null;
 
-            Logger = BepInEx.Logging.Logger.CreateLogSource("Coop Game Mode");
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopSITGame));
             Logger.LogInfo("CoopGame.Create");
 
             if (wavesSettings.BotAmount == EBotAmount.NoBots && SITMatchmaking.IsServer)
                 wavesSettings.BotAmount = EBotAmount.Medium;
+
+            location.OfflineNewSpawn = false;
+            location.OfflineOldSpawn = true;
+            location.OldSpawn = true;
 
             CoopSITGame coopGame = 
                 smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
@@ -137,25 +141,22 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ---------------------------------------------------------------------------------
             // Non Waves Scenario setup
-            coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] { coopGame, location, coopGame.PBotsController });
+            coopGame.nonWavesSpawnScenario_0 = NonWavesSpawnScenario.smethod_0(coopGame, location, coopGame.PBotsController);
             coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
 
             // ---------------------------------------------------------------------------------
             // Waves Scenario setup
-            coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] {
+            coopGame.wavesSpawnScenario_0 = WavesSpawnScenario.smethod_0(
                     coopGame.gameObject
                     , location.waves
                     , new Action<BotSpawnWave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
-                    , location });
+                    , location);
 
             // ---------------------------------------------------------------------------------
             // Setup Boss Wave Manager
-            var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
-                (null, new object[] { location.BossLocationSpawn, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
-            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopSITGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
-            coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
+            coopGame.BossWaves = FixBossWaveSettings(wavesSettings, location, timeAndWeather);
+            var bosswavemanagerValue = BossWaveManager.smethod_0(coopGame.BossWaves, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }));
+            coopGame.BossWaveManager = bosswavemanagerValue;
 
             coopGame.func_1 = (player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
@@ -401,6 +402,58 @@ namespace StayInTarkov.Coop.SITGameModes
                     Networking.GameClient.SendData(dict.ToJson());
                 }
             }
+        }
+
+        public static BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location, TimeAndWeatherSettings timeAndWeather)
+        {
+            var bossLocationSpawns = location.BossLocationSpawn;
+            if (!wavesSettings.IsBosses)
+            {
+                Logger.LogDebug($"{nameof(CoopSITGame)}:{nameof(FixBossWaveSettings)}: Bosses are disabled");
+                return new BossLocationSpawn[0];
+            }
+            foreach (BossLocationSpawn bossLocationSpawn in bossLocationSpawns)
+            {
+                List<int> source;
+                try
+                {
+                    source = bossLocationSpawn.BossEscortAmount.Split(',').Select(int.Parse).ToList();
+                    bossLocationSpawn.ParseMainTypesTypes();
+                }
+                catch (Exception)
+                {
+                    Logger.LogError($"{nameof(CoopSITGame)}:{nameof(FixBossWaveSettings)}: Unable to parse BossEscortAmount");
+                    continue;
+                }
+                //float bossChance = bossLocationSpawn.BossChance;
+                float bossChance = 100f;
+                Logger.LogDebug($"{nameof(FixBossWaveSettings)}:{bossLocationSpawn.BossName}:{bossChance}");
+                if (timeAndWeather.HourOfDay < 21 && (bossLocationSpawn.BossType == WildSpawnType.sectantPriest || bossLocationSpawn.BossType == WildSpawnType.sectantWarrior))
+                {
+                    Logger.LogDebug("Block spawn of Sectant (Cultist) in day time!");
+                    bossChance = -1f;
+                }
+                bossLocationSpawn.BossChance = bossChance;
+                switch (wavesSettings.BotAmount)
+                {
+                    case EBotAmount.Low:
+                        bossLocationSpawn.BossEscortAmount = source.Min((int x) => x).ToString();
+                        break;
+                    case EBotAmount.AsOnline:
+                    case EBotAmount.Medium:
+                        {
+                            int num = source.Max((int x) => x);
+                            int num2 = source.Min((int x) => x);
+                            bossLocationSpawn.BossEscortAmount = ((num - num2) / 2).ToString();
+                            break;
+                        }
+                    case EBotAmount.High:
+                    case EBotAmount.Horde:
+                        bossLocationSpawn.BossEscortAmount = source.Max((int x) => x).ToString();
+                        break;
+                }
+            }
+            return bossLocationSpawns;
         }
 
         public Dictionary<string, EFT.Player> Bots { get; } = new();
@@ -833,7 +886,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 BotsPresets profileCreator =
                     new(BackEndSession
                     , wavesSpawnScenario_0.SpawnWaves
-                    , Location_0.BossLocationSpawn
+                    , this.BossWaves
                     , nonwaves
                     , true);
 
@@ -847,8 +900,8 @@ namespace StayInTarkov.Coop.SITGameModes
                     , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
                     , false // controllerSettings.IsScavWars
                     , true
-                    , false
-                    , false
+                    , false // online
+                    , GameDateTime.DateTime_0.Hour > 21 // have sectants
                     , Singleton<GameWorld>.Instance
                     , Location_0.OpenZones)
                     ;
@@ -857,12 +910,12 @@ namespace StayInTarkov.Coop.SITGameModes
 
                 MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
                 {
-                    EBotAmount.AsOnline => 10,
-                    EBotAmount.Low => 11,
-                    EBotAmount.Medium => 12,
-                    EBotAmount.High => 14,
-                    EBotAmount.Horde => 15,
-                    _ => 16,
+                    EBotAmount.AsOnline => 20,
+                    EBotAmount.Low => 15,
+                    EBotAmount.Medium => 17,
+                    EBotAmount.High => 19,
+                    EBotAmount.Horde => 22,
+                    _ => 22,
                 };
                 switch (controllerSettings.BotAmount)
                 {
@@ -896,11 +949,15 @@ namespace StayInTarkov.Coop.SITGameModes
 
             try
             {
-                if (shouldSpawnBots && wavesSpawnScenario_0 != null && wavesSpawnScenario_0.SpawnWaves != null && BossWaveManager != null)
+                if (shouldSpawnBots)
                 {
-                    BossWaveManager.Run(EBotsSpawnMode.Anyway);
+                    if (BossWaveManager != null)
+                    {
+                        Logger.LogDebug($"Running {nameof(BossWaveManager)}");
+                        BossWaveManager.Run(EBotsSpawnMode.Anyway);
+                    }
 
-                    if (wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                    if (wavesSpawnScenario_0 != null && wavesSpawnScenario_0.SpawnWaves != null && wavesSpawnScenario_0.SpawnWaves.Length != 0)
                     {
                         Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {wavesSpawnScenario_0.SpawnWaves.Length}");
                         wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
@@ -952,10 +1009,14 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (shouldSpawnBots)
             {
+                Logger.LogDebug($"Running Wave Scenarios");
+
                 if (nonWavesSpawnScenario_0 != null)
                     nonWavesSpawnScenario_0.Run();
 
-                Logger.LogDebug($"Running Wave Scenarios");
+                if(wavesSpawnScenario_0 != null)
+                    wavesSpawnScenario_0.Run();
+
             }
 
             yield return new WaitForEndOfFrame();
@@ -1236,6 +1297,8 @@ namespace StayInTarkov.Coop.SITGameModes
         private BossWaveManager BossWaveManager;
 
         private WavesSpawnScenario wavesSpawnScenario_0;
+
+        public BossLocationSpawn[] BossWaves { get; private set; }
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 

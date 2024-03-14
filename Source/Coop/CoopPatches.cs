@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using StayInTarkov.Coop.Session;
 //using StayInTarkov.Coop.ItemControllerPatches;
-using StayInTarkov.Coop.LocalGame;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Sounds;
@@ -40,8 +39,6 @@ namespace StayInTarkov.Coop
             Logger.LogInfo("Stay in Tarkov - Enabling Coop Patches");
 
             new TarkovApplication_LocalGameCreator_Patch().Enable();
-            new NonWaveSpawnScenarioPatch(m_Config).Enable();
-            new WaveSpawnScenarioPatch(m_Config).Enable();
             new LoadLocationLootPatch().Enable();
 
 
