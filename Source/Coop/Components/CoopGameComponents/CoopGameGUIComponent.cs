@@ -30,9 +30,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent?.Players;
 
-        private IEnumerable<EFT.Player> PlayerUsers => CoopGameComponent?.PlayerUsers;
+        private IEnumerable<EFT.Player> Users => CoopGameComponent?.PlayerUsers;
 
-        private EFT.Player[] PlayerBots => CoopGameComponent?.PlayerBots;
+        private EFT.Player[] Bots => CoopGameComponent?.PlayerBots;
 
         private SITConfig SITConfig => CoopGameComponent?.SITConfig;
 
@@ -96,7 +96,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             rectEndOfGameMessage.width = Screen.width * w;
             rectEndOfGameMessage.height = Screen.height * h;
 
-            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
+            var numberOfPlayersDead = Users.Count(x => !x.HealthController.IsAlive);
 
             if (LocalGameInstance == null)
                 return;
@@ -135,7 +135,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
-            //OnGUI_DrawPlayerEnemyTags(rect);
+            OnGUI_DrawPlayerEnemyTags(rect);
 
         }
 
@@ -171,7 +171,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;
 
-            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            var numberOfPlayersAlive = Users.Count(x => x.HealthController.IsAlive);
             // gathering extracted
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
             GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_ALIVE"]}: {numberOfPlayersAlive}");
@@ -180,7 +180,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             rect.y += 15;
             GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_EXTRACTED"]}: {numberOfPlayersExtracted}");
             rect.y += 15;
-            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["BOTS"]}: {PlayerBots.Length}");
+            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["BOTS"]}: {Bots.Length}");
             rect.y += 15;
             return rect;
         }
@@ -204,7 +204,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Players == null)
                 return;
 
-            if (PlayerUsers == null)
+            if (Users == null)
                 return;
 
             if (Camera.current == null)
@@ -225,7 +225,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (ownPlayer.IsInventoryOpened)
                 return;
 
-            foreach (var pl in PlayerUsers)
+            foreach (var pl in Users)
             {
                 if (pl == null)
                     continue;
@@ -294,7 +294,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Players == null)
                 return;
 
-            if (PlayerUsers == null)
+            if (Users == null)
                 return;
 
             if (Camera.current == null)
@@ -311,7 +311,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (ownPlayer == null)
                 return;
 
-            foreach (var pl in PlayerBots)
+            foreach (var pl in Bots)
             {
                 if (pl == null)
                     continue;

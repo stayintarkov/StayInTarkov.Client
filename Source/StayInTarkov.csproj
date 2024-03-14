@@ -12,8 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Coop\Matchmaker\MatchmakerAccept\Grouping\**" />
     <Compile Remove="Networking\Packets\**" />
+    <EmbeddedResource Remove="Coop\Matchmaker\MatchmakerAccept\Grouping\**" />
     <EmbeddedResource Remove="Networking\Packets\**" />
+    <None Remove="Coop\Matchmaker\MatchmakerAccept\Grouping\**" />
     <None Remove="Networking\Packets\**" />
   </ItemGroup>
 
@@ -144,7 +147,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Coop\Matchmaker\MatchmakerAccept\Grouping\" />
     <Folder Include="Networking\Nat\" />
     <Folder Include="Properties\" />
   </ItemGroup>
