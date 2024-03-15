@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnloadAmmoOperation = GClass2863;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -36,11 +37,13 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override void Execute(Operation1 operation, Callback callback)
         {
-            base.Execute(operation, callback);
-
             // Debug the operation
             BepInLogger.LogDebug($"Execute(Operation1 operation,:{operation}");
+
+            base.Execute(operation, callback);
         }
+
+        private HashSet<ushort> IgnoreOperations = new();
 
         public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
@@ -52,6 +55,16 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             if(operation != null && operation.GetType() == typeof(GAbstractOperation15))
             {
                 base.Execute(operation, callback);
+                return;
+            }
+
+            // Paulov: Fix issue with unload magazines
+            if (operation != null && operation.GetType() == typeof(UnloadAmmoOperation))
+            {
+                IgnoreOperations.Add(operation.Id);
+
+                base.Execute(operation, callback);
+                SendExecuteOperationToServer(operation);
                 return;
             }
 
@@ -192,6 +205,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             if (operation == null)
                 return;
 
+            if (IgnoreOperations.Contains(operation.Id))
+            {
+                BepInLogger.LogDebug($"{nameof(ReceiveExecute)}:Ignoring:{operation}");
+                return;
+            }
+
             //BepInLogger.LogDebug($"ReceiveExecute:{operation}");
 
             var callback = new Comfort.Common.Callback((result) => {
@@ -285,37 +304,54 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override void OutProcess(TraderControllerClass executor, Item item, ItemAddress from, ItemAddress to, IOperation1 operation, Callback callback)
         {
-            base.OutProcess(executor, item, from, to, operation, callback);
+            //bool hasRootItemError = false;
+            //try
+            //{
+            //    item.GetRootItem();
+            //}
+            //catch
+            //{
+            //    hasRootItemError = true;
+            //}
+
+
+            //if (!hasRootItemError)
+                base.OutProcess(executor, item, from, to, operation, callback);
         }
 
         public override void InProcess(TraderControllerClass executor, Item item, ItemAddress to, bool succeed, IOperation1 operation, Callback callback)
         {
             // Taken from EFT.Player.PlayerInventoryController
-            if (!succeed)
-            {
-                callback.Succeed();
-                return;
-            }
+            //if (!succeed)
+            //{
+            //    callback.Succeed();
+            //    return;
+            //}
             base.InProcess(executor, item, to, succeed, operation, callback);
         }
 
-        public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
+        public override async Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
             BepInLogger.LogDebug("LoadMagazine");
             BepInLogger.LogDebug($"{sourceAmmo}:{magazine}:{loadCount}:{ignoreRestrictions}");
-            return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
+            StopProcesses();
+            //return await base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
+            return await base.LoadMagazine(sourceAmmo, magazine, loadCount, true);
         }
 
         public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
             BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
+            StopProcesses();
 
             // --------------- TODO / FIXME ---------------------------------------------
             // KNOWN BUG
             // Paulov: This is 100% a workaround.
             // The vanilla call to unload each bullet individually causes an issue on other clients
             // Problem occurs because the bullets are not provided the ItemId that the client knows about so they cannot syncronize properly when it reached them
-            return await UnloadAmmoInstantly(magazine);
+            //return await UnloadAmmoInstantly(magazine);
+
+            return await base.UnloadMagazine(magazine);
 
             //    // --------------------------------------------------------------------------
             //    // HELP / UNDERSTANDING
