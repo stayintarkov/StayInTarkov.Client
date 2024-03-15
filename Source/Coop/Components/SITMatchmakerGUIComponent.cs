@@ -287,7 +287,8 @@ namespace StayInTarkov.Coop.Components
                 {
                     FixesHideoutMusclePain();
                     SITMatchmaking.MatchingType = EMatchmakerType.Single;
-                    OriginalAcceptButton.OnClick.Invoke();
+                    //OriginalAcceptButton.OnClick.Invoke();
+                    HostSoloRaidAndJoin();
                     DestroyThis();
                 }
             }
@@ -820,6 +821,34 @@ namespace StayInTarkov.Coop.Components
             DestroyThis();
         }
 
+        private void HostSoloRaidAndJoin()
+        {
+            FixesHideoutMusclePain();
+
+            RaidSettings.BotSettings.BotAmount = EBotAmount.AsOnline;
+            RaidSettings.WavesSettings.BotAmount = EBotAmount.AsOnline;
+            RaidSettings.WavesSettings.BotDifficulty = EBotDifficulty.AsOnline;
+            RaidSettings.WavesSettings.IsBosses = true;
+
+            SITMatchmaking.CreateMatch(
+                SITMatchmaking.Profile.ProfileId
+                , RaidSettings
+                , ""
+                , ESITProtocol.RelayTcp
+                , null
+                , PortInput);
+            OriginalAcceptButton.OnClick.Invoke();
+
+            JObject joinPacket = new();
+            joinPacket.Add("profileId", SITMatchmaking.Profile.ProfileId);
+            joinPacket.Add("serverId", SITMatchmaking.Profile.ProfileId);
+            joinPacket.Add("m", "JoinMatch");
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+            //AkiBackendCommunication.Instance.PostJson("coop/server/update", joinPacket.SITToJson());
+
+            DestroyThis();
+        }
+
         void FixesHideoutMusclePain()
         {
             // Check if hideout world exists
@@ -851,9 +880,12 @@ namespace StayInTarkov.Coop.Components
         {
             StopAllTasks = true;
 
-            TMPManager.DestroyObjects();
+            if (this.TMPManager != null)
+                TMPManager.DestroyObjects();
 
-            GameObject.DestroyImmediate(this.gameObject);
+            if (this.gameObject != null)
+                GameObject.DestroyImmediate(this.gameObject);
+
             GameObject.DestroyImmediate(this);
         }
     }
