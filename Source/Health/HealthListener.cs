@@ -143,5 +143,40 @@ namespace StayInTarkov.Health
             dictionary[bodyPart].Initialize(float.Parse(current), float.Parse(maximum));
 
         }
+        public static void HealHalfHealth(object healthController, IReadOnlyDictionary<EBodyPart, BodyPartHealth> dictionary, EBodyPart bodyPart)
+        {
+            if (healthController == null)
+            {
+                StayInTarkovHelperConstants.Logger.LogInfo("HealthListener:GetBodyPartHealth:HealthController is NULL");
+                return;
+            }
+
+            //PatchConstants.Logger.LogInfo("HealthListener:GetBodyPartHealth");
+
+            var getbodyparthealthmethod = healthController.GetType().GetMethod("GetBodyPartHealth"
+                , System.Reflection.BindingFlags.Instance
+                | System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.FlattenHierarchy
+                );
+            if (getbodyparthealthmethod == null)
+            {
+                StayInTarkovHelperConstants.Logger.LogInfo("HealthListener:GetBodyPartHealth not found!");
+                return;
+            }
+
+            //PatchConstants.Logger.LogInfo("GetBodyPartHealth found!");
+
+            var bodyPartHealth = getbodyparthealthmethod.Invoke(healthController, new object[] { bodyPart, false });
+            var current = ReflectionHelpers.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Current").GetValue(bodyPartHealth).ToString();
+            var maximum = ReflectionHelpers.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Maximum").GetValue(bodyPartHealth).ToString();
+            var halfHealth = float.Parse(maximum) / 2;
+
+            if (float.Parse(current) < halfHealth)
+            {
+                dictionary[bodyPart].Initialize(halfHealth, float.Parse(maximum));
+            }
+
+        }
     }
 }
