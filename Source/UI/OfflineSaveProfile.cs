@@ -71,7 +71,6 @@ namespace StayInTarkov.UI
 
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
 
-
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC != null)
             {
