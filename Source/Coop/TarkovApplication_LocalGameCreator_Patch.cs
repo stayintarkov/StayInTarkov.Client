@@ -112,9 +112,9 @@ namespace StayInTarkov.Coop
             await session.SendRaidSettings(____raidSettings);
 
             if (SITMatchmaking.IsClient)
-                timeHasComeScreenController.ChangeStatus("Joining Coop Game");
+                timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["JOINING_COOP_GAME"].ToString());
             else
-                timeHasComeScreenController.ChangeStatus("Creating Coop Game");
+                timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());
 
             await Task.Delay(1000);
             CoopSITGame localGame = CoopSITGame.Create(
@@ -162,7 +162,7 @@ namespace StayInTarkov.Coop
             //}
             );
             Singleton<AbstractGame>.Create(localGame);
-            timeHasComeScreenController.ChangeStatus("Created Coop Game");
+            timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());
 
 
             GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("Wait for localGame method 4");
