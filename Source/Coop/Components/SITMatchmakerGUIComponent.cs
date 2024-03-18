@@ -285,8 +285,8 @@ namespace StayInTarkov.Coop.Components
                 buttonX += buttonWidth + 10;
                 if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"].ToString(), gamemodeButtonStyle))
                 {
+                    Logger.LogDebug("Click Play Single Player Button");
                     FixesHideoutMusclePain();
-                    SITMatchmaking.MatchingType = EMatchmakerType.Single;
                     //OriginalAcceptButton.OnClick.Invoke();
                     HostSoloRaidAndJoin();
                     DestroyThis();
@@ -567,7 +567,6 @@ namespace StayInTarkov.Coop.Components
                 SITMatchmaking.Port = int.Parse(result["port"].ToString());
                 SITMatchmaking.SetGroupId(result["serverId"].ToString());
                 SITMatchmaking.SetTimestamp(long.Parse(result["timestamp"].ToString()));
-                SITMatchmaking.MatchingType = EMatchmakerType.GroupPlayer;
                 SITMatchmaking.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
                 
                 if(result.ContainsKey("ipAddress"))
@@ -782,6 +781,7 @@ namespace StayInTarkov.Coop.Components
             // Back button
             if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString(), smallButtonStyle))
             {
+                Logger.LogDebug("Click Back Button");
                 showHostGameWindow = false;
                 showServerBrowserWindow = true;
             }
@@ -789,6 +789,7 @@ namespace StayInTarkov.Coop.Components
             // Start button
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"].ToString(), smallButtonStyle))
             {
+                Logger.LogDebug("Click Start Button");
                 HostRaidAndJoin();
             }
         }
@@ -808,7 +809,8 @@ namespace StayInTarkov.Coop.Components
                 , passwordInput
                 , (ESITProtocol)protocolInput
                 , ((ESITProtocol)protocolInput) == ESITProtocol.PeerToPeerUdp && p2pAddressOptionInput == 1 ? IpAddressInput : null
-                , PortInput);
+                , PortInput
+                , EMatchmakerType.GroupLeader);
             OriginalAcceptButton.OnClick.Invoke();
 
             JObject joinPacket = new();
@@ -836,7 +838,8 @@ namespace StayInTarkov.Coop.Components
                 , ""
                 , ESITProtocol.RelayTcp
                 , null
-                , PortInput);
+                , PortInput,
+                EMatchmakerType.Single);
             OriginalAcceptButton.OnClick.Invoke();
 
             JObject joinPacket = new();
