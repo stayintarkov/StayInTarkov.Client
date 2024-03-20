@@ -67,6 +67,7 @@ namespace StayInTarkov.UI
                 HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.RightArm);
                 HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.LeftLeg);
                 HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.RightLeg);
+                currentHealth = HealthListener.Instance.CurrentHealth;
             }
 
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
