@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Utils.TraderServices
 {
+    /// <summary>
+    /// Created by: SPT-Aki team
+    /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/3.8.0/project/Aki.SinglePlayer/Utils/TraderServices/LightKeeperServicesManager.cs
+    /// Modified by: KWJimWails. Modified to use SIT ModulePatch
+    /// </summary>
     internal class LightKeeperServicesManager : MonoBehaviour
     {
         private static ManualLogSource logger;

@@ -8,6 +8,9 @@ using static LocationSettingsClass;
 namespace StayInTarkov.AkiSupport.Custom
 {
     /// <summary>
+    /// Created by: SPT-Aki team
+    /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/3.8.0/project/Aki.Custom/Patches/SetLocationIdOnRaidStartPatch.cs
+    /// Modified by: KWJimWails. Converted to use StayInTarkovHelperConstants
     /// Local games do not set the locationId property like a network game does, `LocationId` is used by various bsg systems
     /// e.g. btr/lightkeeper services
     /// </summary>
