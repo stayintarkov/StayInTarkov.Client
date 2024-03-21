@@ -717,8 +717,8 @@ namespace StayInTarkov.Coop.SITGameModes
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                , new FilterCustomizationClass()
-               , null // Let the CoopPlayer Create handle this
-               , null // Let the CoopPlayer Create handle this
+               , questController // Can not let the CoopPlayer Create handle this, cause LK missions got null and unable to finish
+               , achievementsController // Can not let the CoopPlayer Create handle this, cause LK missions got null and unable to finish
                , isYourPlayer: true);
             // Inventory is FIR if Scav
             profile.SetSpawnedInSession(value: profile.Side == EPlayerSide.Savage);
