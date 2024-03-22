@@ -38,7 +38,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
     /// <summary>
     /// Coop Game Component is the User 1-2-1 communication to the Server. This can be seen as an extension component to CoopGame.
     /// </summary>
-    public class CoopGameComponent : MonoBehaviour
+    public class SITGameComponent : MonoBehaviour
     {
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
@@ -130,19 +130,19 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         #region Public Voids
 
-        public static CoopGameComponent GetCoopGameComponent()
+        public static SITGameComponent GetCoopGameComponent()
         {
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
 
-            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             if (coopGameComponent != null)
                 return coopGameComponent;
 
             return null;
         }
 
-        public static bool TryGetCoopGameComponent(out CoopGameComponent coopGameComponent)
+        public static bool TryGetCoopGameComponent(out SITGameComponent coopGameComponent)
         {
             coopGameComponent = GetCoopGameComponent();
             return coopGameComponent != null;
@@ -170,7 +170,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            gameObject.AddComponent<CoopGameGUIComponent>();
+            gameObject.AddComponent<SITGameGUIComponent>();
 
             SITCheck();
         }
@@ -749,6 +749,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Dictionary<string, object> d = new();
             d.Add("serverId", GetServerId());
             d.Add("pL", new List<string>());
+
+
 
             // -----------------------------------------------------------------------------------------------------------
             // We must filter out characters that already exist on this match!

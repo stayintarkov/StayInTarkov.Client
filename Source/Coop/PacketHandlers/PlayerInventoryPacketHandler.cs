@@ -19,7 +19,7 @@ namespace SIT.Core.Coop.PacketHandlers
 {
     internal class PlayerInventoryPacketHandler : IPlayerPacketHandler
     {
-        private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
+        private SITGameComponent CoopGameComponent { get { SITGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
 
         private static BepInEx.Logging.ManualLogSource Logger { get; set; }

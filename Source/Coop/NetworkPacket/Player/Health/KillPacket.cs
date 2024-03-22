@@ -51,7 +51,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // If the player exists, process
                 if (coopGameComponent.Players.ContainsKey(ProfileId))

@@ -90,7 +90,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             // will continue to run until a break is hit
             while (true)
             {
-                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     break;
 
                 if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)

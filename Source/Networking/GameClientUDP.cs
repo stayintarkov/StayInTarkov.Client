@@ -46,7 +46,7 @@ namespace StayInTarkov.Networking
         private NetDataWriter _dataWriter = new();
         public CoopPlayer MyPlayer { get; set; }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
-        private CoopGameComponent CoopGameComponent { get; set; }
+        private SITGameComponent CoopGameComponent { get; set; }
         public NetPacketProcessor _packetProcessor = new();
         public int Ping = 0;
         public int ConnectedClients = 0;
@@ -55,7 +55,7 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameClientUDP));
 
             //PublicEndPoint = new IPEndPoint(IPAddress.Parse(StayInTarkovPlugin.SITIPAddresses.ExternalAddresses.IPAddressV4), PluginConfigSettings.Instance.CoopSettings.SITUdpPort);

@@ -37,7 +37,7 @@ namespace StayInTarkov.Coop.Web
             }
             if (!data.ContainsKey("serverId"))
             {
-                data.Add("serverId", CoopGameComponent.GetServerId());
+                data.Add("serverId", SITGameComponent.GetServerId());
             }
             if (!data.ContainsKey("profileId"))
             {

@@ -452,7 +452,7 @@ namespace StayInTarkov.Networking
                     if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
                         continue;
 
-                    if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                         continue;
 
                     // PatchConstants.Logger.LogDebug($"WS:Ping Send");

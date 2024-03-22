@@ -14,11 +14,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static StayInTarkov.Coop.Components.CoopGameComponents.CoopGameComponent;
+using static StayInTarkov.Coop.Components.CoopGameComponents.SITGameComponent;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
-    public class CoopGameGUIComponent : MonoBehaviour
+    public class SITGameGUIComponent : MonoBehaviour
     {
 
         GUIStyle middleLabelStyle;
@@ -26,7 +26,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         GUIStyle normalLabelStyle;
 
         private ISITGame LocalGameInstance { get; } = Singleton<ISITGame>.Instance;
-        private CoopGameComponent CoopGameComponent { get { return CoopGameComponent.GetCoopGameComponent(); } }
+        private SITGameComponent CoopGameComponent { get { return SITGameComponent.GetCoopGameComponent(); } }
 
         private ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent?.Players;
 
@@ -52,8 +52,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             // ----------------------------------------------------
             // Create a BepInEx Logger for CoopGameComponent
-            Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(CoopGameGUIComponent)}");
-            Logger.LogDebug($"{nameof(CoopGameGUIComponent)}:Awake");
+            Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(SITGameGUIComponent)}");
+            Logger.LogDebug($"{nameof(SITGameGUIComponent)}:Awake");
 
             _endGameMessageGO = TMPManager.InstantiateTarkovTextLabel("_EndGameMessage", "", 20, new Vector3(0, (Screen.height / 2) - 120, 0));
         }

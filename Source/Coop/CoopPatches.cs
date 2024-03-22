@@ -55,7 +55,7 @@ namespace StayInTarkov.Coop
         {
             var enablePatches = true;
 
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            var coopGC = SITGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
                 Logger.LogDebug($"CoopPatches:CoopGameComponent is null, Patches wont be Applied");
@@ -68,7 +68,7 @@ namespace StayInTarkov.Coop
                 enablePatches = false;
             }
 
-            if (string.IsNullOrEmpty(CoopGameComponent.GetServerId()))
+            if (string.IsNullOrEmpty(SITGameComponent.GetServerId()))
             {
                 Logger.LogDebug($"CoopPatches:CoopGameComponent ServerId is not set, Patches wont be Applied");
                 enablePatches = false;
@@ -131,7 +131,7 @@ namespace StayInTarkov.Coop
         {
             EnableDisablePatches();
 
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 foreach (var p in coopGameComponent.Players)
                 {

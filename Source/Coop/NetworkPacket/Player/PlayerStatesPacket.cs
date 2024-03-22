@@ -48,7 +48,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public override void Process()
         {
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
 
             for (var i = 0; i < PlayerStates.Length; i++)

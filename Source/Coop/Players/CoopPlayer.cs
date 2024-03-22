@@ -97,29 +97,15 @@ namespace StayInTarkov.Coop.Players
             // Quest Controller instantiate
             if (isYourPlayer)
             {
-                if (questController == null)
-                {
-                    questController = PlayerFactory.GetQuestController(profile, inventoryController);
-                    player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
-                }
-                else
-                {
-                    player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
-                }
+                questController = PlayerFactory.GetQuestController(profile, inventoryController);
+                player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
             }
 
             // Achievement Controller instantiate
             if (isYourPlayer)
             {
-                if (achievementsController == null)
-                {
-                    achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);
-                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
-                }
-                else
-                {
-                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
-                }
+                achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);
+                player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
             }
 
             IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();
@@ -170,7 +156,7 @@ namespace StayInTarkov.Coop.Players
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return null;
 
             if (!coopGameComponent.GameWorldGameStarted)
@@ -181,7 +167,7 @@ namespace StayInTarkov.Coop.Players
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
             if (!coopGameComponent.GameWorldGameStarted)

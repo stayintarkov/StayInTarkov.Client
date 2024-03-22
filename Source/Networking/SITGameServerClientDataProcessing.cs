@@ -81,7 +81,7 @@ namespace StayInTarkov.Networking
                     Logger.LogInfo("GOT :" + sData);
                 }
 
-                var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+                var coopGameComponent = SITGameComponent.GetCoopGameComponent();
 
                 if (coopGameComponent == null)
                 {
@@ -182,7 +182,7 @@ namespace StayInTarkov.Networking
         {
             packet = null;
 
-            var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            var coopGameComponent = SITGameComponent.GetCoopGameComponent();
             if (coopGameComponent == null)
             {
                 Logger.LogError($"{nameof(ProcessSITPacket)}. coopGameComponent is Null");
@@ -249,7 +249,7 @@ namespace StayInTarkov.Networking
 
         public static bool ProcessDataListPacket(ref Dictionary<string, object> packet)
         {
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            var coopGC = SITGameComponent.GetCoopGameComponent();
             if (coopGC == null)
                 return false;
 

@@ -12,7 +12,7 @@ namespace StayInTarkov.Coop.PacketHandlers
     /// </summary>
     internal class ExamplePlayerPacketHandler : IPlayerPacketHandler
     {
-        private CoopGameComponent CoopGameComponent { get { CoopGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
+        private SITGameComponent CoopGameComponent { get { SITGameComponent.TryGetCoopGameComponent(out var coopGC); return coopGC; } }
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
 
         private BepInEx.Logging.ManualLogSource Logger { get; set; }

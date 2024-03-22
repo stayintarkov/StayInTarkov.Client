@@ -53,7 +53,6 @@ namespace StayInTarkov.Coop.Matchmaker
             }
         }
 
-        public static GameObject EnvironmentUIRoot { get; internal set; }
         public static MatchmakerTimeHasCome.TimeHasComeScreenController TimeHasComeScreenController { get; internal set; }
         public static ESITProtocol SITProtocol { get; internal set; }
         public static string IPAddress { get; internal set; }
@@ -68,7 +67,6 @@ namespace StayInTarkov.Coop.Matchmaker
 
         public static void Run()
         {
-            new EnvironmentUIRootPatch().Enable();
             new MatchmakerAcceptScreenAwakePatch().Enable();
             new MatchmakerAcceptScreenShowPatch().Enable();
         }

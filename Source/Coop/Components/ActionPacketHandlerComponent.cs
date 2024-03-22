@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop.Components
 
         private CoopSITGame CoopGame { get; } = (CoopSITGame)Singleton<AbstractGame>.Instance;
 
-        private CoopGameComponent CoopGameComponent { get; set; }
+        private SITGameComponent CoopGameComponent { get; set; }
 
         void Awake()
         {
@@ -50,13 +50,13 @@ namespace StayInTarkov.Coop.Components
             Logger = BepInEx.Logging.Logger.CreateLogSource("ActionPacketHandlerComponent");
             Logger.LogDebug("Awake");
 
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             ActionPacketsMovement = new();
         }
 
         void Start()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             ActionPacketsMovement = new();
         }
 
@@ -90,7 +90,7 @@ namespace StayInTarkov.Coop.Components
             {
                 if (CoopPatches.CoopGameComponentParent != null)
                 {
-                    CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+                    CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
                     if (CoopGameComponent == null)
                         return;
                 }
@@ -407,7 +407,7 @@ namespace StayInTarkov.Coop.Components
 
         void ReplicateRaidTimer(Dictionary<string, object> packet)
         {
-            CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
             if (coopGameComponent == null)
                 return;
 
@@ -448,7 +448,7 @@ namespace StayInTarkov.Coop.Components
 
         void ReplicateTimeAndWeather(Dictionary<string, object> packet)
         {
-            CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
             if (coopGameComponent == null)
                 return;
 
@@ -546,7 +546,7 @@ namespace StayInTarkov.Coop.Components
 
         void ReplicateArmoredTrainTime(Dictionary<string, object> packet)
         {
-            CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
             if (coopGameComponent == null)
                 return;
 

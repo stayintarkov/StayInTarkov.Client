@@ -97,28 +97,26 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                     damageInfo.Player = bridge;
                     var aggressorPlayer = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(AggressorProfileId);
                     if (aggressorPlayer == null)
-                        aggressorPlayer = CoopGameComponent.GetCoopGameComponent().Players[AggressorProfileId];
+                        aggressorPlayer = SITGameComponent.GetCoopGameComponent().Players[AggressorProfileId];
 
-                    if (aggressorPlayer.HandsController.Item is Weapon weapon)
-                        damageInfo.Weapon = weapon;
-
-                    if (damageInfo.Weapon == null)
+                    // Get the correct killing weapon and return.
+                    string itemId = "";
+                    using (SHA256 sha256 = SHA256.Create())
                     {
-                        Item tempItem = Spawners.ItemFactory.CreateItem(AggressorWeaponId, AggressorWeaponTpl);
-                        if (tempItem != null)
-                        {
-                            damageInfo.Weapon = tempItem;
-                        }
+                        StringBuilder sb = new();
+
+                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(AggressorWeaponId + aggressorPlayer.ProfileId));
+                        for (int i = 0; i < hashes.Length; i++)
+                            sb.Append(hashes[i].ToString("x2"));
+
+                        itemId = sb.ToString().Substring(0, 24);
                     }
-                    else {
-                        if (damageInfo.Weapon.TemplateId != AggressorWeaponTpl)
-                        {
-                            Item tempItem = Spawners.ItemFactory.CreateItem(AggressorWeaponId, AggressorWeaponTpl);
-                            if (tempItem != null)
-                            {
-                                damageInfo.Weapon = tempItem;
-                            }
-                        }
+
+                    Item tempItem = Spawners.ItemFactory.CreateItem(itemId, AggressorWeaponTpl);
+
+                    if (tempItem != null)
+                    {
+                        damageInfo.Weapon = tempItem;
                     }
                 }
             }

@@ -71,7 +71,7 @@ namespace StayInTarkov.Coop
 
         public static bool TryFindItem(string itemId, out EFT.InventoryLogic.Item item)
         {
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            var coopGC = SITGameComponent.GetCoopGameComponent();
             foreach (var player in coopGC.Players)
             {
                 if (TryFindItemOnPlayer(player.Value, null, itemId, out item))
@@ -109,7 +109,7 @@ namespace StayInTarkov.Coop
                 return true;
 
             // Find a Player
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            var coopGC = SITGameComponent.GetCoopGameComponent();
             if (coopGC == null)
                 return false;
 

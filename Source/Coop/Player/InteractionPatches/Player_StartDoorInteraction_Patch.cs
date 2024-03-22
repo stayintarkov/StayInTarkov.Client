@@ -53,7 +53,7 @@ namespace StayInTarkov.Coop.Player.InteractionPatches
 
             Dictionary<string, object> dict = new()
             {
-                { "serverId", CoopGameComponent.GetServerId() },
+                { "serverId", SITGameComponent.GetServerId() },
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "m", "StartDoorInteraction" },
                 { "profileId", player.ProfileId },
@@ -95,7 +95,7 @@ namespace StayInTarkov.Coop.Player.InteractionPatches
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGameComponent))
                 return;
 
             if (!ItemFinder.TryFindItemController(player.ProfileId, out TraderControllerClass itemController))

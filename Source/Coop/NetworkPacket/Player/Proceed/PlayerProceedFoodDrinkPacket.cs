@@ -69,7 +69,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
             StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
             if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
