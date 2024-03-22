@@ -289,7 +289,6 @@ namespace StayInTarkov.Coop.Components
                     SITMatchmaking.MatchingType = EMatchmakerType.Single;
                     //OriginalAcceptButton.OnClick.Invoke();
                     HostSoloRaidAndJoin();
-                    DestroyThis();
                 }
             }
             else if (showHostGameWindow)
