@@ -1,6 +1,8 @@
 ﻿using Comfort.Common;
 using EFT;
+using HarmonyLib;
 using StayInTarkov.AkiSupport.Singleplayer.Components;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using System.Reflection;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
@@ -13,7 +15,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
     {
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(GameWorld).GetMethod(nameof(GameWorld.OnGameStarted));
+            return AccessTools.Method(typeof(GameWorld), nameof(GameWorld.OnGameStarted));
         }
 
         [PatchPostfix]
@@ -21,7 +23,15 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Progression
         {
             var gameWorld = Singleton<GameWorld>.Instance;
 
-            if (gameWorld == null || gameWorld.MainPlayer.Location.ToLower() != "lighthouse") return;
+            if (gameWorld == null)
+            {
+                return;
+            }
+
+            if (gameWorld.MainPlayer.Location.ToLower() != "lighthouse" || gameWorld.MainPlayer.Side == EPlayerSide.Savage)
+            {
+                return;
+            }
 
             gameWorld.GetOrAddComponent<LighthouseProgressionComponent>();
         }

@@ -289,7 +289,6 @@ namespace StayInTarkov.Coop.Components
                     FixesHideoutMusclePain();
                     //OriginalAcceptButton.OnClick.Invoke();
                     HostSoloRaidAndJoin();
-                    DestroyThis();
                 }
             }
             else if (showHostGameWindow)
