@@ -768,7 +768,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
                         if (SITMatchmaking.TimeHasComeScreenController != null)
                         {
-                            SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
+                            SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_PLAYER"].ToString(), numbersOfPlayersToWaitFor), progress);
                         }
 
                         if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)

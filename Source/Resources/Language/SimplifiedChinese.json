@@ -42,7 +42,7 @@
   "HARD_DIFFICULTY": "困难",
   "IMPOSSIBLE_DIFFICULTY": "不可能",
   "RANDOM_DIFFICULTY": "随机",
-  "SIT_COOP": "SIT COOP",
+  "SIT_COOP": "联机模式",
   "CLIENT": "客户端",
   "SERVER-PLAY": "主机",
   "RTT": "往返延迟",
@@ -68,5 +68,13 @@
   "SPT-AKI-SERVER-ERROR": "SPT-Aki 服务器反馈未知错误",
   "NO-SERVER-MATCH": "没有与所提供数据匹配的战局或战局已不存在",
   "CLOSE": "关闭",
-  "PASSWORD-YES": "开启"
+  "PASSWORD-YES": "开启",
+  "DAMAGE": "肉体伤害",
+  "ARMOR_DAMAGE": "护甲伤害",
+  "PENETRATION": "穿透力",
+  "FRAGMENTATION_CHANCE": "碎弹几率",
+  "RICOCHET_CHANCE": "跳弹几率",
+  "WAITING_PLAYER": "正在等待剩余{0}名玩家加入",
+  "JOINING_COOP_GAME": "正在加入战局",
+  "CREATED_COOP_GAME": "战局准备完毕"
 }

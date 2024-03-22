@@ -68,5 +68,13 @@
   "SPT-AKI-SERVER-ERROR": "SPT-Aki Server Feedback Unknown Error",
   "NO-SERVER-MATCH": "There is no match for the provided data or the match no longer exists.",
   "CLOSE": "Close",
-  "PASSWORD-YES": "Yes"
+  "PASSWORD-YES": "Yes",
+  "DAMAGE": "DAMAGE",
+  "ARMOR_DAMAGE": "ARMOR DAMAGE",
+  "PENETRATION": "PENETRATION",
+  "FRAGMENTATION_CHANCE": "FRAGMENTATION CHANCE",
+  "RICOCHET_CHANCE": "RICOCHET CHANCE",
+  "WAITING_PLAYER": "Waiting for {0} Player(s)",
+  "JOINING_COOP_GAME": "Joining Coop Game",
+  "CREATED_COOP_GAME": "Created Coop Game"
 }

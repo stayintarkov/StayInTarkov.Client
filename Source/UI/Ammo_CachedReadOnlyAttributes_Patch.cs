@@ -81,15 +81,20 @@ namespace StayInTarkov.UI
             switch (id)
             {
                 case Attributes.ENewMaximumDurabilityId.Damage:
-                    return "DAMAGE";
+                    // return "DAMAGE";
+                    return StayInTarkovPlugin.LanguageDictionary["DAMAGE"].ToString();
                 case Attributes.ENewMaximumDurabilityId.ArmorDamage:
-                    return "ARMOR DAMAGE";
+                    // return "ARMOR DAMAGE";
+                    return StayInTarkovPlugin.LanguageDictionary["ARMOR_DAMAGE"].ToString();
                 case Attributes.ENewMaximumDurabilityId.Penetration:
-                    return "PENETRATION";
+                    // return "PENETRATION";
+                    return StayInTarkovPlugin.LanguageDictionary["PENETRATION"].ToString();
                 case Attributes.ENewMaximumDurabilityId.FragmentationChance:
-                    return "FRAGMENTATION CHANCE";
+                    // return "FRAGMENTATION CHANCE";
+                    return StayInTarkovPlugin.LanguageDictionary["FRAGMENTATION_CHANCE"].ToString();
                 case Attributes.ENewMaximumDurabilityId.RicochetChance:
-                    return "RICOCHET CHANCE";
+                    // return "RICOCHET CHANCE";
+                    return StayInTarkovPlugin.LanguageDictionary["RICOCHET_CHANCE"].ToString();
                 default:
                     return id.ToString();
             }
