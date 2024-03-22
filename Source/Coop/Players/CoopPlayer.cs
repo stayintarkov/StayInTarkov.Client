@@ -97,15 +97,29 @@ namespace StayInTarkov.Coop.Players
             // Quest Controller instantiate
             if (isYourPlayer)
             {
-                questController = PlayerFactory.GetQuestController(profile, inventoryController);
-                player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
+                if (questController == null)
+                {
+                    questController = PlayerFactory.GetQuestController(profile, inventoryController);
+                    player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
+                }
+                else
+                {
+                    player.BepInLogger.LogDebug($"{nameof(questController)} Instantiated");
+                }
             }
 
             // Achievement Controller instantiate
             if (isYourPlayer)
             {
-                achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);
-                player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
+                if (achievementsController == null)
+                {
+                    achievementsController = PlayerFactory.GetAchievementController(profile, inventoryController);
+                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
+                }
+                else
+                {
+                    player.BepInLogger.LogDebug($"{nameof(achievementsController)} Instantiated");
+                }
             }
 
             IStatisticsManager statsManager = isYourPlayer ? PlayerFactory.GetStatisticsManager(player) : new NullStatisticsManager();

@@ -363,6 +363,9 @@ namespace StayInTarkov
                 // Bots
                 EnableSPPatches_Bots(Config);
 
+                //// --------- Trader Services -----------------------
+                EnableSPPatches_TraderServices();
+
                 new QTEPatch().Enable();
             }
             catch (Exception ex)
@@ -409,6 +412,12 @@ namespace StayInTarkov
             new LocationLootCacheBustingPatch().Enable();
             new FixBrokenSpawnOnSandboxPatch().Enable();
             new IsEnemyPatch().Enable();
+        }
+
+        private static void EnableSPPatches_TraderServices()
+        {
+            new SetLocationIdOnRaidStartPatch().Enable();
+            new ResetTraderServicesPatch().Enable();
         }
 
         private void EnableCoopPatches()

@@ -1,10 +1,12 @@
 using BepInEx;
+using StayInTarkov.AkiSupport.Custom;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Healing;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Progression;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.Quests;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode;
+using StayInTarkov.AkiSupport.Singleplayer.Patches.TraderServices;
 using System;
 
 namespace StayInTarkov.AkiSupport.Singleplayer
@@ -49,7 +51,15 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new ScavEncyclopediaPatch().Enable();
                 new ScavItemCheckmarkPatch().Enable();
                 new IsHostileToEverybodyPatch().Enable();
-                
+
+                // LK Patches
+                new SpawnPmcPatch().Enable();
+                new VoIPTogglerPatch().Enable();
+                new InRaidQuestAvailablePatch().Enable();
+                new GetTraderServicesPatch().Enable();
+                new PurchaseTraderServicePatch().Enable();
+                new LightKeeperServicesPatch().Enable();
+
                 // Unused Patches
                 //new OfflineSaveProfilePatch().Enable();
                 //new OfflineSpawnPointPatch().Enable();

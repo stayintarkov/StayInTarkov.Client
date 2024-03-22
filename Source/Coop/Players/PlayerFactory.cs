@@ -20,7 +20,7 @@ namespace StayInTarkov.Coop.Players
     {
         public static QuestController GetQuestController(EFT.Profile profile, InventoryControllerClass inventoryController)
         {
-            var questController = new QuestController(profile, inventoryController, null, false);
+            var questController = new QuestController(profile, inventoryController, null, true);
             questController.Init();
             questController.Run();
             return questController;
