@@ -19,11 +19,14 @@ using EFT.UI;
 using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
+using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
@@ -32,6 +35,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -178,13 +182,17 @@ namespace StayInTarkov.Coop.SITGameModes
             {
                 case ESITProtocol.RelayTcp:
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientTCPRelay>();
+                   
                     break;
-                default:
+                case ESITProtocol.PeerToPeerUdp:
                     if (SITMatchmaking.IsServer)
                         coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
 
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();
                     break;
+                default:
+                    throw new Exception("Unknown SIT Protocol used!");
+                   
             }
 
             return coopGame;
@@ -192,11 +200,11 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public void CreateCoopGameComponent()
         {
-            var coopGameComponent = SITGameComponent.GetCoopGameComponent();
-            if (coopGameComponent != null)
-            {
-                Destroy(coopGameComponent);
-            }
+            //var coopGameComponent = SITGameComponent.GetCoopGameComponent();
+            //if (coopGameComponent != null)
+            //{
+            //    Destroy(coopGameComponent);
+            //}
 
             if (CoopPatches.CoopGameComponentParent != null)
             {
@@ -210,7 +218,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 DontDestroyOnLoad(CoopPatches.CoopGameComponentParent);
             }
             CoopPatches.CoopGameComponentParent.AddComponent<ActionPacketHandlerComponent>();
-            coopGameComponent = CoopPatches.CoopGameComponentParent.AddComponent<SITGameComponent>();
+            var coopGameComponent = CoopPatches.CoopGameComponentParent.AddComponent<SITGameComponent>();
             coopGameComponent.LocalGameInstance = this;
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
@@ -668,6 +676,21 @@ namespace StayInTarkov.Coop.SITGameModes
         /// 
         public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestControllerClass questController, AbstractAchievementControllerClass achievementsController)
         {
+            // Send Connect Command to Relay
+            switch(SITMatchmaking.SITProtocol)
+            {
+                case ESITProtocol.RelayTcp:
+                    JObject j = new JObject();
+                    j.Add("serverId", SITGameComponent.GetServerId());
+                    j.Add("profileId", profile.ProfileId);
+                    j.Add("connect", true);
+                    Logger.LogDebug("Sending Connect to Relay");
+                    GameClient.SendData(Encoding.UTF8.GetBytes(j.ToString()));
+                    break;
+            }
+           
+
+
             spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, Location_0.SpawnPointParams);
             int spawnSafeDistance = Location_0.SpawnSafeDistanceMeters > 0 ? Location_0.SpawnSafeDistanceMeters : 100;
             SpawnSystemSettings settings = new(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
@@ -739,13 +762,20 @@ namespace StayInTarkov.Coop.SITGameModes
 
                     do
                     {
-    
+
                         if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
                         {
                             Logger.LogDebug($"{nameof(vmethod_2)}: PlayerUsers is null or empty");
                             await Task.Delay(1000);
                             continue;
                         }
+
+                        //await Task.Run(() =>
+                        //{
+                        // Ensure this is a distinct list of Ids
+                        //var distinctExistingProfileIds = playerList.Distinct().ToArray();
+                        SendRequestSpawnPlayersPacket();
+                        //});
 
                         var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
                         var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
@@ -767,6 +797,25 @@ namespace StayInTarkov.Coop.SITGameModes
                             break;
                         }
 
+                        // -----------------------------------------------------------------------------------------------------------
+                        // We must filter out characters that already exist on this match!
+                        //
+                        //var playerList = new List<string>();
+                        //if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
+                        //{
+                        //    //if (PlayersToSpawn.Count > 0)
+                        //    //    playerList.AddRange(PlayersToSpawn.Keys.ToArray());
+                        //    //if (Players.Keys.Any())
+                        //    //    playerList.AddRange(Players.Keys.ToArray());
+                        //    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
+                        //        playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.ProfileId));
+                        //    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Count > 0)
+                        //        playerList.AddRange(Singleton<GameWorld>.Instance.AllAlivePlayersList.Select(x => x.ProfileId));
+                        //}
+                        //
+                        // -----------------------------------------------------------------------------------------------------------
+
+
                         await Task.Delay(1000);
 
                     } while (true);
@@ -785,10 +834,16 @@ namespace StayInTarkov.Coop.SITGameModes
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
-        public static async void SendPlayerDataToServer(LocalPlayer player)
+        private void SendRequestSpawnPlayersPacket()
+        {
+            RequestSpawnPlayersPacket requestSpawnPlayersPacket = new RequestSpawnPlayersPacket([Singleton<GameWorld>.Instance.MainPlayer.ProfileId]);
+            GameClient.SendData(requestSpawnPlayersPacket.Serialize());
+        }
+
+        public static void SendPlayerDataToServer(LocalPlayer player)
         {
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
-            var profileJson = player.Profile.SITToJson();
+            //var profileJson = player.Profile.SITToJson();
 
 
 
@@ -823,24 +878,35 @@ namespace StayInTarkov.Coop.SITGameModes
                             "sPz",
                             player.Transform.position.z
                         },
-                        {
-                            "profileJson",
-                            profileJson
-                        },
+                        //{
+                        //    "profileJson",
+                        //    profileJson
+                        //},
                         { "m", "PlayerSpawn" },
                     };
 
 
-            //Logger.LogDebug(packet.ToJson());
+            ////Logger.LogDebug(packet.ToJson());
 
-            var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            prc.player = player;
-            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+            //var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+            //prc.player = player;
+            ////AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
 
             // ------------------------------------------------------------------------------------
             // Send the information to the server
-            Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
-            await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
+            // Paulov: TODO: Remove this need for this to occur. The WebSocket requires this to create a "ConnectedUser" if using Relay
+            //Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
+            //_ = Task.Run(async () => 
+            //    {
+            //        await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
+            //    }
+            //);
+
+
+            // Sends out to all clients that this Character has spawned
+            var infoPacket = SpawnPlayersPacket.CreateInformationPacketFromPlayer(player);
+            var spawnPlayersPacket = new SpawnPlayersPacket([infoPacket]);
+            Networking.GameClient.SendData(spawnPlayersPacket.Serialize());
         }
 
         /// <summary>

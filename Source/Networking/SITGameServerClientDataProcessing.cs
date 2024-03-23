@@ -221,11 +221,15 @@ namespace StayInTarkov.Networking
 
             if (!dictObject.ContainsKey("profileId"))
             {
-                var bpp = new BasePlayerPacket("", dictObject[PACKET_TAG_METHOD].ToString());
-                bpp.Deserialize(data);
-                dictObject.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
-                bpp.Dispose();
-                bpp = null;
+                try
+                {
+                    var bpp = new BasePlayerPacket("", dictObject[PACKET_TAG_METHOD].ToString());
+                    bpp.Deserialize(data);
+                    dictObject.Add("profileId", new string(bpp.ProfileId.ToCharArray()));
+                    bpp.Dispose();
+                    bpp = null;
+                }
+                catch { }
             }
 
             if (DEBUGPACKETS)
@@ -234,17 +238,30 @@ namespace StayInTarkov.Networking
                 Logger.LogInfo(dictObject.ToJson());
             }
 
-            var sitPacketType = 
-                StayInTarkovHelperConstants
-                .SITTypes
-                .Union(ReflectionHelpers.EftTypes)
-                .FirstOrDefault(x => x.Name == bp.Method);
-            if (sitPacketType != null) 
+            packet = DeserializeIntoPacket(data, packet, bp);
+        }
+
+        private static ISITPacket DeserializeIntoPacket(byte[] data, ISITPacket packet, BasePacket bp)
+        {
+            var sitPacketType =
+                            StayInTarkovHelperConstants
+                            .SITTypes
+                            .Union(ReflectionHelpers.EftTypes)
+                            .FirstOrDefault(x => x.Name == bp.Method);
+            if (sitPacketType != null)
             {
                 //Logger.LogInfo($"{sitPacketType} found");
                 packet = (ISITPacket)Activator.CreateInstance(sitPacketType);
                 packet = packet.Deserialize(data);
             }
+            else
+            {
+#if DEBUG
+                Logger.LogDebug($"{nameof(DeserializeIntoPacket)}:{bp.Method} could not find a matching ISITPacket type");
+#endif
+            }
+
+            return packet;
         }
 
         public static bool ProcessDataListPacket(ref Dictionary<string, object> packet)

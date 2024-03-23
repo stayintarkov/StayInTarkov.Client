@@ -11,6 +11,13 @@ using EFT.Ballistics;
 using Comfort.Common;
 using System.IO;
 using UnityEngine.Networking;
+using StayInTarkov.Coop.Players;
+using Newtonsoft.Json;
+using StayInTarkov.ThirdParty;
+using MonoMod.Utils;
+using StayInTarkov.Coop.Matchmaker;
+using ComponentAce.Compression.Libs.zlib;
+using static EFT.Profile;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
 {
@@ -19,7 +26,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
     /// </summary>
     public sealed class PlayerInformationPacket : BasePlayerPacket
     {
-        public PlayerInformationPacket() { }
+        public PlayerInformationPacket() : base("", nameof(PlayerInformationPacket))
+        {
+
+        }
+
+        public PlayerInformationPacket(string profileId) : base(new string(profileId.ToCharArray()), nameof(PlayerInformationPacket))
+        {
+            //ProfileID = profileId;
+        }
 
         public float RemoteTime;
 
@@ -37,7 +52,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public bool IsAI;
 
-        public string ProfileID;
+        //public string ProfileID;
 
         public string Voice;
 
@@ -53,11 +68,39 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public HandsCommandMessage HandsController;
 
-        public List<ArmorInfo> ArmorsInfo;
+        public List<ArmorInfo> ArmorsInfo { get; set; } = new List<ArmorInfo>();
+
+        /// <summary>
+        /// TODO: Remove this. Current spawn system requires this.
+        /// </summary>
+        private EFT.Profile profile;
+
+        public EFT.Profile Profile
+        {
+            get { return profile; }
+            set 
+            { 
+                profile = value;
+                //profile = value.Clone(); 
+                //profile.EftStats = new ProfileStats();
+                //profile.TradersInfo = new ();
+                //profile.AchievementsData = new ();
+                //profile.Bonuses = [];
+                //profile.CheckedChambers = new ();
+                //profile.CheckedMagazines = new ();
+                //profile.Encyclopedia = new ();
+                //profile.Info.GroupId = SITMatchmaking.GetGroupId();
+                //profile.InsuredItems = [];
+
+            }
+        }
+
+
+        public EFT.Profile.ProfileHealth ProfileHealth { get; set; }
 
         //public ArenaObservedPlayerSpawnMessage ArenaObservedPlayerSpawnMessage;
 
-        
+
 
         public override byte[] Serialize()
         {
@@ -66,24 +109,33 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             WriteHeaderAndProfileId(writer);
             writer.Write(RemoteTime);   
             writer.Write(BodyPosition);   
-            SerializeCustomization(writer);
+            //SerializeCustomization(writer);
             writer.Write((byte)Side);
             writer.Write((byte)WildSpawnType);
             writer.Write(GroupID);
             writer.Write(TeamID);
             writer.Write(IsAI);
-            writer.Write(ProfileID);
+            //writer.Write(ProfileID);
             writer.Write(Voice);
             writer.Write((byte)VoIPState);
             writer.Write(NickName);
             writer.Write(AccountId);
             writer.Write((short)ArmorPlateColliderMask);
-            writer.Write(InventorySerializationHelpers.SerializeInventory(Inventory));
-            SerializeInventory(writer);
+            //writer.Write(InventorySerializationHelpers.SerializeInventory(Inventory));
+            //SerializeInventory(writer);
             //HandsController.Serialize(writer);
-            SerializeArmorsInfo(writer);
+            //SerializeArmorsInfo(writer);
             // This has been #if cleared
             //ArenaObservedPlayerSpawnMessage.Serialize(writer);
+
+            // TODO: Remove this. Current spawn system requires this.
+            writer.Write(Profile != null);
+            if (Profile != null)
+                writer.WriteLengthPrefixedBytes(Encoding.Unicode.GetBytes(Profile.SITToJson()));
+            // TODO: Remove this. Current spawn system requires this.
+            writer.Write(ProfileHealth != null);
+            if (ProfileHealth != null)
+                writer.WriteLengthPrefixedBytes(Encoding.UTF8.GetBytes(ProfileHealth.SITToJson()));
 
             return ms.ToArray();
         }
@@ -91,49 +143,51 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public override ISITPacket Deserialize(byte[] bytes)
         {
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            ReadHeaderAndProfileId(reader);
             RemoteTime = reader.ReadFloat();
             BodyPosition = reader.ReadVector3();
-            DeserializeCustomization(reader);
+            //DeserializeCustomization(reader);
             Side = (EPlayerSide)reader.ReadByte();
             WildSpawnType = (WildSpawnType)reader.ReadByte();
             GroupID = reader.ReadString();
             TeamID = reader.ReadString();
             IsAI = reader.ReadBool();
-            ProfileID = reader.ReadString();
+            //ProfileID = reader.ReadString();
             Voice = reader.ReadString();
             VoIPState = (EFT.Player.EVoipState)reader.ReadByte();
             NickName = reader.ReadString();
             AccountId = reader.ReadString();
             ArmorPlateColliderMask = (EArmorPlateCollider)reader.ReadShort();
-            Inventory = InventorySerializationHelpers.DeserializeInventory(Singleton<ItemFactory>.Instance, reader.ReadEFTInventoryDescriptor());
-            //HandsController = GClass2310.GetCommand<HandsCommandMessage>(CommandMessageType.SetHands);
-            //HandsController.Deserialize(reader);
-            DeserializeArmorsInfo(reader);
-            //ArenaObservedPlayerSpawnMessage.Deserialize(reader);
-            return base.Deserialize(bytes);
-        }
-
-        public void Deserialize(BSGNetworkReader reader)
-        {
-            //RemoteTime = GClass1079.ReadFloat(reader);
-            //BodyPosition = GClass1079.ReadVector3(reader);
-            //DeserializeCustomization(reader);
-            //Side = (EPlayerSide)reader.ReadByte();
-            //WildSpawnType = (WildSpawnType)reader.ReadByte();
-            //GroupID = GClass1079.ReadString(reader);
-            //TeamID = GClass1079.ReadString(reader);
-            //IsAI = GClass1079.ReadBool(reader);
-            //ProfileID = GClass1079.ReadString(reader);
-            //Voice = GClass1079.ReadString(reader);
-            //VoIPState = (EFT.Player.EVoipState)reader.ReadByte();
-            //NickName = GClass1079.ReadString(reader);
-            //AccountId = GClass1079.ReadString(reader);
-            //ArmorPlateColliderMask = (EArmorPlateCollider)GClass1079.ReadShort(reader);
-            //Inventory = GClass1524.DeserializeInventory(Singleton<ItemFactory>.Instance, GClass2952.ReadEFTInventoryDescriptor(reader));
+            //Inventory = InventorySerializationHelpers.DeserializeInventory(Singleton<ItemFactory>.Instance, reader.ReadEFTInventoryDescriptor());
             //HandsController = GClass2310.GetCommand<HandsCommandMessage>(CommandMessageType.SetHands);
             //HandsController.Deserialize(reader);
             //DeserializeArmorsInfo(reader);
             //ArenaObservedPlayerSpawnMessage.Deserialize(reader);
+            DeserializeProfile(reader);
+
+            //var profileHealthString = reader.ReadString();
+            //StayInTarkovHelperConstants.Logger.LogInfo($"{profileHealthString}");
+            //if (profileHealthString.TrySITParseJson(out EFT.Profile.ProfileHealth ph))
+            //    ProfileHealth = ph;
+            //else
+            //    StayInTarkovHelperConstants.Logger.LogError($"Unable to Process: {ProfileId}");
+
+            return this;
+        }
+
+        private void DeserializeProfile(BinaryReader reader)
+        {
+            if (!reader.ReadBoolean())
+                return;
+
+            if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                return;
+
+            var profileBytes = reader.ReadLengthPrefixedBytes();
+            var profileString = Encoding.Unicode.GetString(profileBytes);
+            //StayInTarkovHelperConstants.Logger.LogInfo($"{profileString}");
+            if (profileString.TrySITParseJson(out EFT.Profile p))
+                Profile = p;
         }
 
         public void SerializeInventory(BinaryWriter writer)
@@ -169,7 +223,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public void SerializeArmorsInfo(BinaryWriter writer)
         {
-            writer.Write((byte)ArmorsInfo.Count);
             foreach (ArmorInfo item in ArmorsInfo)
             {
                 writer.Write(item.itemID);
@@ -230,6 +283,18 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 armorInfo.isToggeldAndOff = reader.ReadBool();
                 ArmorsInfo.Add(armorInfo);
             }
+        }
+
+        public override void Process()
+        {
+            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerInformationPacket)}.{nameof(Process)}");
+            base.Process();
+        }
+
+        protected override void Process(CoopPlayerClient client)
+        {
+            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerInformationPacket)}.{nameof(Process)}(client)");
+            base.Process(client);
         }
     }
 }

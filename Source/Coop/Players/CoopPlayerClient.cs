@@ -237,7 +237,7 @@ namespace StayInTarkov.Coop.Players
                     }
                     else
                     {
-                        BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(NewState.PlayerHealth)} is null");
+                        BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(NewState)}.{nameof(NewState.PlayerHealth)} is null");
                     }
                 }
                 else

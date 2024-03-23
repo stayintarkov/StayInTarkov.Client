@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Players
                           Inventory = informationPacket.Inventory,
                            IsAI = informationPacket.IsAI,
                             NickName = informationPacket.NickName,
-                             ProfileID = informationPacket.ProfileID,
+                             ProfileID = informationPacket.ProfileId,
                               RemoteTime = informationPacket.RemoteTime,
                                Side = informationPacket.Side,
                                 TeamID = informationPacket.TeamID,

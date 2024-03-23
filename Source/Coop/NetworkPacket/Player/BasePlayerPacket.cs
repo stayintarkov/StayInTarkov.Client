@@ -63,11 +63,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             writer.Write(ProfileId);
         }
 
-        protected void WriteHeaderAndProfileId(NetworkWriter writer)
-        {
-            WriteHeader(writer);
-            writer.Write(ProfileId);
-        }
+        //protected void WriteHeaderAndProfileId(NetworkWriter writer)
+        //{
+        //    WriteHeader(writer);
+        //    writer.Write(ProfileId);
+        //}
 
         /// <summary>
         /// Auto discover Client Player object and Process on them

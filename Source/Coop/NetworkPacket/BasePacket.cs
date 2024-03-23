@@ -91,15 +91,15 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.WriteNonPrefixedString("?");
         }
 
-        public virtual void WriteHeader(NetworkWriter writer)
-        {
-            // Prefix SIT
-            writer.Write("SIT");
-            // 0.14 is 24 profile Id
-            writer.Write(ServerId);
-            writer.Write(Method);
-            writer.Write("?");
-        }
+        //public virtual void WriteHeader(NetworkWriter writer)
+        //{
+        //    // Prefix SIT
+        //    writer.Write("SIT");
+        //    // 0.14 is 24 profile Id
+        //    writer.Write(ServerId);
+        //    writer.Write(Method);
+        //    writer.Write("?");
+        //}
 
         public virtual void ReadHeader(BinaryReader reader)
         {
@@ -570,7 +570,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static void WriteLengthPrefixedBytes(this BinaryWriter binaryWriter, byte[] value)
         {
-            binaryWriter.Write((ushort)value.Length);
+            binaryWriter.Write(value.Length);
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
 
@@ -579,7 +579,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static byte[] ReadLengthPrefixedBytes(this BinaryReader binaryReader)
         {
-           var length = binaryReader.ReadUInt16();
+           var length = binaryReader.ReadInt32();
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
 

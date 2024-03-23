@@ -72,8 +72,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         {
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
+            WriteHeaderAndProfileId(writer);
             Vector3Utils.Serialize(writer, Position);
             Vector2Utils.Serialize(writer, Rotation);
             Vector2Utils.Serialize(writer, HeadRotation);
@@ -111,21 +110,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             //bytes = Zlib.DecompressToBytes(bytes);
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-            ProfileId = reader.ReadString();
-
-            if (reader.BaseStream.Position >= reader.BaseStream.Length)
-                return this;
-
-            //PositionX = reader.ReadSingle();
-            //PositionY = reader.ReadSingle();
-            //PositionZ = reader.ReadSingle();
-            //RotationX = reader.ReadSingle();
-            //RotationY = reader.ReadSingle();
-            //HeadRotationX = reader.ReadSingle();
-            //HeadRotationY = reader.ReadSingle();
-            //MovementDirectionX = reader.ReadSingle();
-            //MovementDirectionY = reader.ReadSingle();
+            ReadHeaderAndProfileId(reader);
             Position = Vector3Utils.Deserialize(reader);
             Rotation = Vector2Utils.Deserialize(reader);
             HeadRotation = Vector2Utils.Deserialize(reader);
