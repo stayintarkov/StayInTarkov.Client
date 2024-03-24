@@ -233,21 +233,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
             });
 
-            // Run an immediate call to get characters in the server
-            //_ = ReadFromServerCharacters();
-
-            // Get a Result of Characters within an interval loop
-            //_ = Task.Run(() => ReadFromServerCharactersLoop());
-
-            // Process the Characters retrieved from the previous loop
-            //StartCoroutine(ProcessServerCharacters());
-
             // Run any methods you wish every second
             StartCoroutine(EverySecondCoroutine());
-
-
-            // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
-            ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
 
             // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
@@ -292,10 +279,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             using PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
            
             List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
-            foreach (var player in Players.Values)
+            //foreach (var player in Players.Values)
+            foreach (var player in Singleton<GameWorld>.Instance.AllAlivePlayersList)
             {
-                if (!GameWorldGameStarted)
-                    continue;
+                //if (!GameWorldGameStarted)
+                //    continue;
 
                 if (player == null)
                     continue;
@@ -303,11 +291,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (player is CoopPlayerClient)
                     continue;
 
-                if (!player.TryGetComponent(out PlayerReplicatedComponent prc))
-                    continue;
+                //if (!player.TryGetComponent(out PlayerReplicatedComponent prc))
+                //    continue;
 
-                if (prc.IsClientDrone)
-                    continue;
+                //if (prc.IsClientDrone)
+                //    continue;
 
                 if (!player.enabled)
                     continue;
@@ -368,6 +356,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             BSGMemoryGC.EmptyWorkingSet();
             BSGMemoryGC.GCEnabled = true;
             Resources.UnloadUnusedAssets();
+
+            StartCoroutine(SendPlayerStatePacket());
+
+
+            // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
+            ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
 
         }
 

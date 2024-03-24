@@ -40,13 +40,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public PlayerHealthPacket PlayerHealth { get; set; }
 
-        public PlayerStatePacket() { }
+        public PlayerStatePacket() : base("", nameof(PlayerStatePacket))
+        { 
+        }
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
             bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, bool leftStance
             , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
-            : base(new string(profileId.ToCharArray()), "PlayerState")
+            : base(new string(profileId.ToCharArray()), nameof(PlayerStatePacket))
         {
             Position = position;
             Rotation = rotation;
@@ -137,7 +139,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 PlayerHealth = (PlayerHealthPacket)PlayerHealth.Deserialize(reader.ReadLengthPrefixedBytes());
             }
 
-            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatePacket)}:{nameof(Deserialize)}:{this.SITToJson()}");
+            //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatePacket)}:{nameof(Deserialize)}:{this.SITToJson()}");
             return this;
         }
 

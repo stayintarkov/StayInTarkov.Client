@@ -2,6 +2,7 @@
 using Comfort.Common;
 using Diz.LanguageExtensions;
 using EFT;
+using EFT.Interactive;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
@@ -100,7 +101,7 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
-            BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
+            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
@@ -673,6 +674,23 @@ namespace StayInTarkov.Coop.Players
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
             new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+        }
+
+
+        public override void vmethod_0(WorldInteractiveObject interactiveObject, InteractionResult interactionResult, Action callback)
+        {
+            EInteractionType interactionType = interactionResult.InteractionType;
+            BepInLogger.LogDebug($"interact with door, interaction type {interactionType}");
+            CurrentManagedState.StartDoorInteraction(interactiveObject, interactionResult, callback);
+            UpdateInteractionCast();
+        }
+
+        public override void vmethod_1(WorldInteractiveObject door, InteractionResult interactionResult)
+        {
+            if (!(door == null))
+            {
+                CurrentManagedState.ExecuteDoorInteraction(door, interactionResult, null, this);
+            }
         }
     }
 }

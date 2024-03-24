@@ -570,7 +570,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static void WriteLengthPrefixedBytes(this BinaryWriter binaryWriter, byte[] value)
         {
-            binaryWriter.Write(value.Length);
+            binaryWriter.Write((int)value.Length);
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
 
@@ -583,7 +583,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
 
-            if(length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
+            if (length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
                 return binaryReader.ReadBytes(length);
             else
                 return null;

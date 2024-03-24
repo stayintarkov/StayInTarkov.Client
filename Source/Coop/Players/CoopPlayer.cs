@@ -4,6 +4,8 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using Newtonsoft.Json.Linq;
+using RootMotion.FinalIK;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
@@ -16,6 +18,7 @@ using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -629,6 +632,103 @@ namespace StayInTarkov.Coop.Players
             }
 
             base.DropCurrentController(callback, fastDrop, nextControllerItem);
+        }
+
+        public override void vmethod_0(WorldInteractiveObject interactiveObject, InteractionResult interactionResult, Action callback)
+        {
+            base.vmethod_0(interactiveObject, interactionResult, callback);
+
+            BepInLogger.LogInfo($"Creating {nameof(PlayerInteractWithObjectPacket)} packet");
+
+            JObject dict = new()
+            {
+                { "serverId", SITGameComponent.GetServerId() },
+                { "t", DateTime.Now.Ticks.ToString("G") },
+                { "m", "StartDoorInteraction" },
+                { "profileId", this.ProfileId },
+                { "WIOId", interactiveObject.Id },
+                { "interactionType", (int)interactionResult.InteractionType }
+            };
+
+            if (interactionResult is KeyInteractionResult keyInteractionResult)
+            {
+                KeyComponent key = keyInteractionResult.Key;
+
+                dict.Add("keyItemId", key.Item.Id);
+                dict.Add("keyTemplateId", key.Item.TemplateId);
+
+                if (key.Template.MaximumNumberOfUsage > 0 && key.NumberOfUsages + 1 >= key.Template.MaximumNumberOfUsage)
+                    callback();
+
+                ItemAddress itemAddress = keyInteractionResult.DiscardResult != null ? keyInteractionResult.From : key.Item.Parent;
+                if (itemAddress is GridItemAddress grid)
+                {
+                    GridItemAddressDescriptor gridItemAddressDescriptor = new();
+                    gridItemAddressDescriptor.Container = new();
+                    gridItemAddressDescriptor.Container.ContainerId = grid.Container.ID;
+                    gridItemAddressDescriptor.Container.ParentId = grid.Container.ParentItem?.Id;
+                    gridItemAddressDescriptor.LocationInGrid = grid.LocationInGrid;
+                    dict.Add("keyParentGrid", gridItemAddressDescriptor.ToJson());
+                }
+
+                dict.Add("succeed", keyInteractionResult.Succeed);
+            }
+
+            PlayerInteractWithObjectPacket playerInteractWithObjectPacket = new PlayerInteractWithObjectPacket(this.ProfileId);
+            playerInteractWithObjectPacket.ProcessJson = dict;
+
+            BepInLogger.LogInfo($"Sending {nameof(PlayerInteractWithObjectPacket)} packet");
+            GameClient.SendData(playerInteractWithObjectPacket.Serialize());
+        }
+
+        public override void vmethod_1(WorldInteractiveObject door, InteractionResult interactionResult)
+        {
+            base.vmethod_1(door, interactionResult);
+
+            BepInLogger.LogInfo($"Creating {nameof(PlayerInteractWithDoorPacket)} packet");
+
+            JObject dict = new()
+            {
+                { "serverId", SITGameComponent.GetServerId() },
+                { "t", DateTime.Now.Ticks.ToString("G") },
+                { "m", "StartDoorInteraction" },
+                { "profileId", this.ProfileId },
+                { "WIOId", door.Id },
+                { "interactionType", (int)interactionResult.InteractionType }
+            };
+
+            if (interactionResult is KeyInteractionResult keyInteractionResult)
+            {
+                KeyComponent key = keyInteractionResult.Key;
+
+                dict.Add("keyItemId", key.Item.Id);
+                dict.Add("keyTemplateId", key.Item.TemplateId);
+
+                if (key.Template.MaximumNumberOfUsage > 0 && key.NumberOfUsages + 1 >= key.Template.MaximumNumberOfUsage)
+                    return;
+
+                ItemAddress itemAddress = keyInteractionResult.DiscardResult != null ? keyInteractionResult.From : key.Item.Parent;
+                if (itemAddress is GridItemAddress grid)
+                {
+                    GridItemAddressDescriptor gridItemAddressDescriptor = new();
+                    gridItemAddressDescriptor.Container = new();
+                    gridItemAddressDescriptor.Container.ContainerId = grid.Container.ID;
+                    gridItemAddressDescriptor.Container.ParentId = grid.Container.ParentItem?.Id;
+                    gridItemAddressDescriptor.LocationInGrid = grid.LocationInGrid;
+                    dict.Add("keyParentGrid", gridItemAddressDescriptor.ToJson());
+                }
+
+                dict.Add("succeed", keyInteractionResult.Succeed);
+            }
+
+            PlayerInteractWithDoorPacket packet = new (this.ProfileId);
+            packet.DoorId = door.Id;
+            packet.ProcessJson = dict;
+
+            BepInLogger.LogInfo($"Sending {nameof(PlayerInteractWithDoorPacket)} packet");
+            GameClient.SendData(packet.Serialize());
+
+
         }
 
         void Awake()
