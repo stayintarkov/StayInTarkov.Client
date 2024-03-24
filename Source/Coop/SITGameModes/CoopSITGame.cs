@@ -49,8 +49,10 @@ namespace StayInTarkov.Coop.SITGameModes
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    internal sealed class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    public sealed class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
+        public string DisplayName { get; } = "Coop Game";
+
         public new bool InRaid { get { return true; } }
 
 

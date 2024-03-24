@@ -15,6 +15,8 @@ namespace StayInTarkov.Coop.SITGameModes
 {
     public interface ISITGame
     {
+        public string DisplayName { get; }
+
         public List<string> ExtractedPlayers { get; }
 
         Dictionary<string, (float, long, string)> ExtractingPlayers { get; }
