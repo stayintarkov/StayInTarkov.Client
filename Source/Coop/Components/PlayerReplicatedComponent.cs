@@ -45,7 +45,7 @@ namespace StayInTarkov.Core.Player
 
             if (player.Side != EPlayerSide.Savage && ReflectionHelpers.GetDogtagItem(player) == null)
             {
-                if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+                if (!SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGameComponent))
                     return;
 
                 Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);

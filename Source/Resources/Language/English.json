@@ -76,5 +76,8 @@
   "RICOCHET_CHANCE": "RICOCHET CHANCE",
   "WAITING_PLAYER": "Waiting for {0} Player(s)",
   "JOINING_COOP_GAME": "Joining Coop Game",
-  "CREATED_COOP_GAME": "Created Coop Game"
+  "CREATED_COOP_GAME": "Created Coop Game",
+  "WAITING_FOR_PLAYERS_TO_SPAWN": "Waiting for {0} Player(s) to Spawn",
+  "WAITING_FOR_PLAYERS_TO_BE_READY": "Waiting for {0} Player(s) to finish loading",
+  "WAITING_FOR_HOST_TO_BE_READY": "Waiting for Host to Start Game"
 }

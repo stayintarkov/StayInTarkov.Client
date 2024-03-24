@@ -4,15 +4,23 @@
  */
 
 
+using Comfort.Common;
 using EFT;
+using EFT.Bots;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
     public interface ISITGame
     {
+        public string DisplayName { get; }
+
         public List<string> ExtractedPlayers { get; }
+
+        public int ReadyPlayers { get; set; }
+        public bool HostReady { get; set; }
 
         Dictionary<string, (float, long, string)> ExtractingPlayers { get; }
 
@@ -23,6 +31,12 @@ namespace StayInTarkov.Coop.SITGameModes
         public void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f);
 
         public IGameClient GameClient { get; }
+
+        public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback);
+
+
+        //Task WaitForPlayersToSpawn();
+        //Task WaitForPlayersToBeReady();
 
     }
 }

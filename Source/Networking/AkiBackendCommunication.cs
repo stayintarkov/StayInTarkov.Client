@@ -452,7 +452,7 @@ namespace StayInTarkov.Networking
                     if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
                         continue;
 
-                    if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                         continue;
 
                     // PatchConstants.Logger.LogDebug($"WS:Ping Send");
@@ -757,17 +757,35 @@ namespace StayInTarkov.Networking
             using (Stream stream = SendAndReceive(url, "PUT", data, compress, timeout, debug)) { }
         }
 
+        //public string GetJson(string url, bool compress = true, int timeout = 9999)
+        //{
+        //    using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
+        //    {
+        //        if (stream == null)
+        //            return "";
+        //        var bytes = stream.ToArray();
+        //        var result = Zlib.Decompress(bytes);
+        //        bytes = null;
+        //        return result;
+        //    }
+        //}
+
         public string GetJson(string url, bool compress = true, int timeout = 9999)
         {
-            using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
+            string result = null;
+            int attempts = 10;
+            while (result == null && attempts-- > 0)
             {
-                if (stream == null)
-                    return "";
-                var bytes = stream.ToArray();
-                var result = Zlib.Decompress(bytes);
-                bytes = null;
-                return result;
+                using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
+                {
+                    if (stream == null)
+                        return "";
+                    var bytes = stream.ToArray();
+                    result = Zlib.Decompress(bytes);
+                    bytes = null;
+                }
             }
+            return result;
         }
 
         public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)

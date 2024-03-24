@@ -4,6 +4,7 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.Coop.Players;
 using System.IO;
+using UnityEngine.Networking;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
 {
@@ -62,6 +63,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             writer.Write(ProfileId);
         }
 
+        //protected void WriteHeaderAndProfileId(NetworkWriter writer)
+        //{
+        //    WriteHeader(writer);
+        //    writer.Write(ProfileId);
+        //}
+
         /// <summary>
         /// Auto discover Client Player object and Process on them
         /// </summary>
@@ -69,7 +76,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         {
             //StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}:{Method}");
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
             if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)

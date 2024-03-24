@@ -40,13 +40,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public PlayerHealthPacket PlayerHealth { get; set; }
 
-        public PlayerStatePacket() { }
+        public PlayerStatePacket() : base("", nameof(PlayerStatePacket))
+        { 
+        }
 
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
             bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, bool leftStance
             , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
-            : base(new string(profileId.ToCharArray()), "PlayerState")
+            : base(new string(profileId.ToCharArray()), nameof(PlayerStatePacket))
         {
             Position = position;
             Rotation = rotation;
@@ -72,8 +74,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         {
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
-            WriteHeader(writer);
-            writer.Write(ProfileId);
+            WriteHeaderAndProfileId(writer);
             Vector3Utils.Serialize(writer, Position);
             Vector2Utils.Serialize(writer, Rotation);
             Vector2Utils.Serialize(writer, HeadRotation);
@@ -111,21 +112,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             //bytes = Zlib.DecompressToBytes(bytes);
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
-            ReadHeader(reader);
-            ProfileId = reader.ReadString();
-
-            if (reader.BaseStream.Position >= reader.BaseStream.Length)
-                return this;
-
-            //PositionX = reader.ReadSingle();
-            //PositionY = reader.ReadSingle();
-            //PositionZ = reader.ReadSingle();
-            //RotationX = reader.ReadSingle();
-            //RotationY = reader.ReadSingle();
-            //HeadRotationX = reader.ReadSingle();
-            //HeadRotationY = reader.ReadSingle();
-            //MovementDirectionX = reader.ReadSingle();
-            //MovementDirectionY = reader.ReadSingle();
+            ReadHeaderAndProfileId(reader);
             Position = Vector3Utils.Deserialize(reader);
             Rotation = Vector2Utils.Deserialize(reader);
             HeadRotation = Vector2Utils.Deserialize(reader);
@@ -152,7 +139,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 PlayerHealth = (PlayerHealthPacket)PlayerHealth.Deserialize(reader.ReadLengthPrefixedBytes());
             }
 
-            //StayInTarkovHelperConstants.Logger.LogInfo(this.SITToJson());
+            //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatePacket)}:{nameof(Deserialize)}:{this.SITToJson()}");
             return this;
         }
 

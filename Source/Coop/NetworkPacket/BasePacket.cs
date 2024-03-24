@@ -19,6 +19,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Networking;
 using UnityEngine.UIElements;
 using UnityStandardAssets.Water;
 using WebSocketSharp;
@@ -54,7 +55,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public BasePacket(string method)
         {
             Method = method;
-            ServerId = CoopGameComponent.GetServerId();
+            ServerId = SITGameComponent.GetServerId();
             TimeSerializedBetter = DateTime.UtcNow.Ticks.ToString("G");
         }
 
@@ -89,6 +90,16 @@ namespace StayInTarkov.Coop.NetworkPacket
             writer.Write(Method);
             writer.WriteNonPrefixedString("?");
         }
+
+        //public virtual void WriteHeader(NetworkWriter writer)
+        //{
+        //    // Prefix SIT
+        //    writer.Write("SIT");
+        //    // 0.14 is 24 profile Id
+        //    writer.Write(ServerId);
+        //    writer.Write(Method);
+        //    writer.Write("?");
+        //}
 
         public virtual void ReadHeader(BinaryReader reader)
         {
@@ -559,7 +570,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static void WriteLengthPrefixedBytes(this BinaryWriter binaryWriter, byte[] value)
         {
-            binaryWriter.Write((ushort)value.Length);
+            binaryWriter.Write((int)value.Length);
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(WriteLengthPrefixedBytes)},Write Length {value.Length}");
 
@@ -568,16 +579,35 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static byte[] ReadLengthPrefixedBytes(this BinaryReader binaryReader)
         {
-           var length = binaryReader.ReadUInt16();
+           var length = binaryReader.ReadInt32();
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
 
-            if(length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
+            if (length + binaryReader.BaseStream.Position <= binaryReader.BaseStream.Length)
                 return binaryReader.ReadBytes(length);
             else
                 return null;
         }
 
+        public static float ReadFloat(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadSingle();
+        }
+
+        public static int ReadInt(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadInt32();
+        }
+
+        public static int ReadShort(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadInt16();
+        }
+
+        public static bool ReadBool(this BinaryReader binaryReader)
+        {
+            return binaryReader.ReadBoolean();
+        }
 
         // INetSerializable Extensions
 

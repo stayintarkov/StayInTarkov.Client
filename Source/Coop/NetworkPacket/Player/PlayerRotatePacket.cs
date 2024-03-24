@@ -51,7 +51,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         protected override void Process(CoopPlayerClient client)
         {
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
 
             client.Rotation = new UnityEngine.Vector2(RotationX, RotationY);

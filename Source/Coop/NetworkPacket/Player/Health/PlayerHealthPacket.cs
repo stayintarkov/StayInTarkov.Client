@@ -20,11 +20,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 
         public PlayerHealthEffectPacket[] HealthEffectPackets { get; set; }
 
-        public PlayerHealthPacket() : base("", "PlayerHealth")
+        public PlayerHealthPacket() : base("", nameof(PlayerHealthPacket))
         {
         }
 
-        public PlayerHealthPacket(string profileId) : base(new string(profileId.ToCharArray()), "PlayerHealth")
+        public PlayerHealthPacket(string profileId) : base(new string(profileId.ToCharArray()), nameof(PlayerHealthPacket))
         {
         }
 

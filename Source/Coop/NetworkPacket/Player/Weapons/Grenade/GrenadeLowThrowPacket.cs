@@ -51,7 +51,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons.Grenade
 
         protected override void Process(CoopPlayerClient client)
         {
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
                 if (client.HandsController is EFT.Player.GrenadeController gc)

@@ -112,7 +112,7 @@ namespace Aki.Custom.Airdrops
 
             Logger.LogDebug("Sending Airdrop Params");
             var packet = new Dictionary<string, object>();
-            packet.Add("serverId", CoopGameComponent.GetServerId());
+            packet.Add("serverId", SITGameComponent.GetServerId());
             packet.Add("m", "AirdropPacket");
             packet.Add("model", AirdropParameters);
             GameClient.SendData(packet.SITToJson());
@@ -231,7 +231,7 @@ namespace Aki.Custom.Airdrops
             if (SITMatchmaking.IsServer)
             {
                 var packet = new Dictionary<string, object>();
-                packet.Add("serverId", CoopGameComponent.GetServerId());
+                packet.Add("serverId", SITGameComponent.GetServerId());
                 packet.Add("m", "AirdropLootPacket");
                 packet.Add("config", config);
                 packet.Add("result", lootData);

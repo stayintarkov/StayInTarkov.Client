@@ -31,7 +31,7 @@ namespace StayInTarkov.Networking
         public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
         public List<string> PlayersMissing = [];
-        private CoopGameComponent CoopGameComponent { get; set; }
+        private SITGameComponent CoopGameComponent { get; set; }
         public LiteNetLib.NetManager NetServer
         {
             get
@@ -44,7 +44,7 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
         }
 

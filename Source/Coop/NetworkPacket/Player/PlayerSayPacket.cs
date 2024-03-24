@@ -49,7 +49,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public override void Process()
         {
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
             if (!coopGameComponent.Players.ContainsKey(ProfileId))
