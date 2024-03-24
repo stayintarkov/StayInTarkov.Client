@@ -25,8 +25,8 @@ namespace StayInTarkov.Coop.Players
     {
         public override ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopPlayerClient));
 
-        public PlayerStatePacket LastState { get; set; } = new PlayerStatePacket();
-        public PlayerStatePacket NewState { get; set; } = new PlayerStatePacket();
+        public PlayerStatePacket LastState { get; set; }// = new PlayerStatePacket();
+        public PlayerStatePacket NewState { get; set; }// = new PlayerStatePacket();
 
         public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new ();
 
@@ -100,7 +100,7 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
-            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
+            BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
@@ -208,43 +208,43 @@ namespace StayInTarkov.Coop.Players
                 //}
             }
 
-            
+
 
             // Update the Health parts of this character using the packets from the Player State
-            if (NewState != null)
-            {
-                var bodyPartDictionary = GetBodyPartDictionary(this);
-                if (bodyPartDictionary != null)
-                {
-                    //BepInLogger.LogInfo(bodyPartDictionary.ToJson());
-                    if (NewState.PlayerHealth != null)
-                    {
-                        foreach (var bodyPartPacket in NewState.PlayerHealth.BodyParts)
-                        {
-                            if (bodyPartPacket.BodyPart == EBodyPart.Common)
-                                continue;
+            UpdatePlayerHealthByPlayerState();
+        }
 
-                            if (bodyPartDictionary.ContainsKey(bodyPartPacket.BodyPart))
-                            {
-                                //BepInLogger.LogInfo($"{nameof(Update)} set bodyPart current {bodyPartPacket.ToJson()}");
-                                bodyPartDictionary[bodyPartPacket.BodyPart].Health.Current = bodyPartPacket.Current;
-                            }
-                            else
-                            {
-                                //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(NewState)}.{nameof(NewState.PlayerHealth)} is null");
-                    }
+        private void UpdatePlayerHealthByPlayerState()
+        {
+            if (NewState == null)
+                return;
+
+            if (NewState.PlayerHealth == null)
+                return;
+
+            var bodyPartDictionary = GetBodyPartDictionary(this);
+            if (bodyPartDictionary == null)
+            {
+                BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to obtain BodyPartDictionary");
+                return;
+            }
+
+            foreach (var bodyPartPacket in NewState.PlayerHealth.BodyParts)
+            {
+                if (bodyPartPacket.BodyPart == EBodyPart.Common)
+                    continue;
+
+                if (bodyPartDictionary.ContainsKey(bodyPartPacket.BodyPart))
+                {
+                    //BepInLogger.LogInfo($"{nameof(Update)} set bodyPart current {bodyPartPacket.ToJson()}");
+                    bodyPartDictionary[bodyPartPacket.BodyPart].Health.Current = bodyPartPacket.Current;
                 }
                 else
                 {
-                    BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to obtain BodyPartDictionary");
+                    //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
                 }
             }
+               
         }
 
         private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
@@ -405,6 +405,12 @@ namespace StayInTarkov.Coop.Players
 
             if (MovementContext == null)
                 return;
+
+            if (NewState == null)
+                return;
+
+            if (LastState == null)
+                LastState = NewState;
 
             var InterpolationRatio = Time.deltaTime * 5;
 

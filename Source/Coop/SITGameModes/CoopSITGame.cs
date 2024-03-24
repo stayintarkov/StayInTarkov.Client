@@ -565,7 +565,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)botPlayer);
                 coopGameComponent.ProfileIdsAI.Add(profile.Id);
 
-                SendPlayerDataToServer(botPlayer);
+                SendPlayerDataToServer(botPlayer, position);
 
             }
             return botPlayer;
@@ -739,8 +739,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // Set Group Id for host
             myPlayer.Profile.Info.GroupId = "SIT";
-
-            SendPlayerDataToServer(myPlayer);
+            myPlayer.Transform.position = spawnPoint.Position;
+            SendPlayerDataToServer(myPlayer, spawnPoint.Position);
 
             //SendOrReceiveSpawnPoint(myPlayer);
 
@@ -840,50 +840,50 @@ namespace StayInTarkov.Coop.SITGameModes
             GameClient.SendData(requestSpawnPlayersPacket.Serialize());
         }
 
-        public static void SendPlayerDataToServer(LocalPlayer player)
+        public static void SendPlayerDataToServer(LocalPlayer player, Vector3 position)
         {
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
             //var profileJson = player.Profile.SITToJson();
 
 
 
-            Dictionary<string, object> packet = new()
-            {
-                        {
-                            "serverId",
-                            SITMatchmaking.GetGroupId()
-                        },
-                        {
-                        "isAI",
-                            //player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
-                            !player.IsYourPlayer && (player as CoopPlayerClient == null)
-                        },
-                        {
-                            "profileId",
-                            player.ProfileId
-                        },
-                        {
-                            "groupId",
-                            SITMatchmaking.GetGroupId()
-                        },
-                        {
-                            "sPx",
-                            player.Transform.position.x
-                        },
-                        {
-                            "sPy",
-                            player.Transform.position.y
-                        },
-                        {
-                            "sPz",
-                            player.Transform.position.z
-                        },
-                        //{
-                        //    "profileJson",
-                        //    profileJson
-                        //},
-                        { "m", "PlayerSpawn" },
-                    };
+            //Dictionary<string, object> packet = new()
+            //{
+            //            {
+            //                "serverId",
+            //                SITMatchmaking.GetGroupId()
+            //            },
+            //            {
+            //            "isAI",
+            //                //player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
+            //                !player.IsYourPlayer && (player as CoopPlayerClient == null)
+            //            },
+            //            {
+            //                "profileId",
+            //                player.ProfileId
+            //            },
+            //            {
+            //                "groupId",
+            //                SITMatchmaking.GetGroupId()
+            //            },
+            //            {
+            //                "sPx",
+            //                player.Transform.position.x
+            //            },
+            //            {
+            //                "sPy",
+            //                player.Transform.position.y
+            //            },
+            //            {
+            //                "sPz",
+            //                player.Transform.position.z
+            //            },
+            //            //{
+            //            //    "profileJson",
+            //            //    profileJson
+            //            //},
+            //            { "m", "PlayerSpawn" },
+            //        };
 
 
             ////Logger.LogDebug(packet.ToJson());
@@ -905,6 +905,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // Sends out to all clients that this Character has spawned
             var infoPacket = SpawnPlayersPacket.CreateInformationPacketFromPlayer(player);
+            infoPacket.BodyPosition = position;
             var spawnPlayersPacket = new SpawnPlayersPacket([infoPacket]);
             Networking.GameClient.SendData(spawnPlayersPacket.Serialize());
         }

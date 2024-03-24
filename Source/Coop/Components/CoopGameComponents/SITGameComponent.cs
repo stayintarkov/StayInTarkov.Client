@@ -240,7 +240,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //_ = Task.Run(() => ReadFromServerCharactersLoop());
 
             // Process the Characters retrieved from the previous loop
-            StartCoroutine(ProcessServerCharacters());
+            //StartCoroutine(ProcessServerCharacters());
 
             // Run any methods you wish every second
             StartCoroutine(EverySecondCoroutine());
@@ -356,11 +356,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             GameWorldGameStarted = true;
             Logger.LogDebug(nameof(GameWorld_AfterGameStarted));
-            if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
-            {
-                // Send My Player to Aki, so that other clients know about me
-                CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
-            }
+            //if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
+            //{
+            //    // Send My Player to Aki, so that other clients know about me
+            //    CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            //}
 
             // Start the SIT Garbage Collector
             BSGMemoryGC.RunHeapPreAllocation();
@@ -497,7 +497,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
-            StopCoroutine(ProcessServerCharacters());
+            //StopCoroutine(ProcessServerCharacters());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
@@ -705,6 +705,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             ProcessQuitting();
             ProcessServerHasStopped();
+            ProcessServerCharacters();
 
             if (ActionPackets == null)
                 return;
@@ -896,18 +897,19 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         //    //}
         //}
 
-        private IEnumerator ProcessServerCharacters()
+        //private IEnumerator ProcessServerCharacters()
+        private void ProcessServerCharacters()
         {
-            var waitEndOfFrame = new WaitForEndOfFrame();
+            //var waitEndOfFrame = new WaitForEndOfFrame();
 
-            if (GetServerId() == null)
-                yield return waitEndOfFrame;
+            //if (GetServerId() == null)
+            //    yield return waitEndOfFrame;
 
-            var waitSeconds = new WaitForSeconds(0.5f);
+            //var waitSeconds = new WaitForSeconds(0.5f);
 
-            while (RunAsyncTasks)
-            {
-                yield return waitSeconds;
+            //while (RunAsyncTasks)
+            //{
+            //    yield return waitSeconds;
                 foreach (var p in PlayersToSpawn)
                 {
                     // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
@@ -938,12 +940,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         continue;
 
                     Vector3 newPosition = PlayersToSpawnPacket[p.Key].BodyPosition;
-                        ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false);
+                    ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false);
                 }
 
 
-                yield return waitEndOfFrame;
-            }
+            //    yield return waitEndOfFrame;
+            //}
         }
 
         private void ProcessPlayerBotSpawn(PlayerInformationPacket packet, string profileId, Vector3 newPosition, bool isBot)
@@ -985,6 +987,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //    return;
             //}
 
+            if (!PlayersToSpawnPositions.ContainsKey(profileId))
+                PlayersToSpawnPositions.TryAdd(profileId, newPosition);
+
             if (!PlayersToSpawnProfiles.ContainsKey(profileId))
             {
                 PlayersToSpawnProfiles.Add(profileId, null);
@@ -1016,7 +1021,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 PlayersToSpawnProfiles[profileId] = profile;
             }
             else
-                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[profileId], newPosition, false);
+                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[profileId], false);
 
             //if (packet.ContainsKey("profileJson"))
             //{
@@ -1036,7 +1041,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //}
         }
 
-        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position, bool isDead = false)
+        private void CreatePhysicalOtherPlayerOrBot(Profile profile, bool isDead = false)
         {
             try
             {
@@ -1079,7 +1084,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         return;
                     }
 
-                    Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Online, allPrefabPaths.ToArray(), JobPriority.General)
+                    Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, allPrefabPaths.ToArray(), JobPriority.General)
                         .ContinueWith(x =>
                         {
                             if (x.IsCompleted)
@@ -1105,7 +1110,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 // Its loading on the previous pass, ignore this one until its finished
                 if (PlayersToSpawn[profile.ProfileId] == ESpawnState.Loading)
                 {
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is still loading");
+                    //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is still loading");
                     return;
                 }
 
@@ -1122,7 +1127,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
+                LocalPlayer otherPlayer = CreateLocalPlayer(profile, PlayersToSpawnPositions[profile.Id], playerId);
                 if(otherPlayer == null)
                 {
                     PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawning;
@@ -1187,8 +1192,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (otherPlayer == null)
                 return null;
 
-            otherPlayer.Position = position + new Vector3(0, 1, 0);
-            otherPlayer.Transform.position = position + new Vector3(0, 1, 0);
+            otherPlayer.Position = position;
+            otherPlayer.Transform.position = position;
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list

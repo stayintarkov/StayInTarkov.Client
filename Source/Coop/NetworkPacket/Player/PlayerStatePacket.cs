@@ -137,7 +137,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 PlayerHealth = (PlayerHealthPacket)PlayerHealth.Deserialize(reader.ReadLengthPrefixedBytes());
             }
 
-            //StayInTarkovHelperConstants.Logger.LogInfo(this.SITToJson());
+            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatePacket)}:{nameof(Deserialize)}:{this.SITToJson()}");
             return this;
         }
 
