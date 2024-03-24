@@ -19,6 +19,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public List<string> ExtractedPlayers { get; }
 
+        public int ReadyPlayers { get; set; }
+        public bool HostReady { get; set; }
+
         Dictionary<string, (float, long, string)> ExtractingPlayers { get; }
 
         ExitStatus MyExitStatus { get; set; }
@@ -30,6 +33,10 @@ namespace StayInTarkov.Coop.SITGameModes
         public IGameClient GameClient { get; }
 
         public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback);
+
+
+        //Task WaitForPlayersToSpawn();
+        //Task WaitForPlayersToBeReady();
 
     }
 }

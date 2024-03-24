@@ -762,12 +762,12 @@ namespace StayInTarkov.Coop.SITGameModes
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
-        private async Task WaitForPlayers()
+        private async Task WaitForPlayersToSpawn()
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Session Started. Waiting for Player(s)");
-                await Task.Delay(2000);
+                await Task.Delay(1000);
             }
 
             if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
@@ -782,78 +782,178 @@ namespace StayInTarkov.Coop.SITGameModes
 
             //await Task.Run(async () =>
             //{
-                if (coopGameComponent != null)
-                {
-                    System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
+            if (coopGameComponent != null)
+            {
+                System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
 
-                    while (coopGameComponent.PlayerUsers == null)
+                while (coopGameComponent.PlayerUsers == null)
+                {
+                    Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
+                    await Task.Delay(1000);
+                }
+
+                do
+                {
+
+                    await Task.Delay(1000);
+
+                    if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
                     {
-                        Logger.LogDebug($"{nameof(vmethod_2)}: {nameof(coopGameComponent.PlayerUsers)} is null");
+                        Logger.LogDebug($"{nameof(vmethod_2)}: PlayerUsers is null or empty");
                         await Task.Delay(1000);
+                        continue;
                     }
 
-                    do
+                    //await Task.Run(() =>
+                    //{
+                    // Ensure this is a distinct list of Ids
+                    //var distinctExistingProfileIds = playerList.Distinct().ToArray();
+                    SendRequestSpawnPlayersPacket();
+                    //});
+
+                    var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
+                    var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+
+                    if (SITMatchmaking.TimeHasComeScreenController != null)
                     {
+                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_SPAWN"].ToString(), numbersOfPlayersToWaitFor), progress);
+                    }
 
-                        await Task.Delay(1000);
+                    if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)
+                    {
+                        Logger.LogInfo("Desired number of players reached. Starting the game.");
+                        break;
+                    }
 
-                        if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
-                        {
-                            Logger.LogDebug($"{nameof(vmethod_2)}: PlayerUsers is null or empty");
-                            await Task.Delay(1000);
-                            continue;
-                        }
+                    if (stopwatch.Elapsed >= waitTimeout)
+                    {
+                        Logger.LogInfo("Timeout reached. Proceeding with current players.");
+                        break;
+                    }
 
-                        //await Task.Run(() =>
-                        //{
-                        // Ensure this is a distinct list of Ids
-                        //var distinctExistingProfileIds = playerList.Distinct().ToArray();
-                        SendRequestSpawnPlayersPacket();
-                        //});
+                } while (true);
 
-                        var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
-                        var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
-
-                        if (SITMatchmaking.TimeHasComeScreenController != null)
-                        {
-                            SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
-                        }
-
-                        if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)
-                        {
-                            Logger.LogInfo("Desired number of players reached. Starting the game.");
-                            break;
-                        }
-
-                        if (stopwatch.Elapsed >= waitTimeout)
-                        {
-                            Logger.LogInfo("Timeout reached. Proceeding with current players.");
-                            break;
-                        }
-
-                        // -----------------------------------------------------------------------------------------------------------
-                        // We must filter out characters that already exist on this match!
-                        //
-                        //var playerList = new List<string>();
-                        //if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
-                        //{
-                        //    //if (PlayersToSpawn.Count > 0)
-                        //    //    playerList.AddRange(PlayersToSpawn.Keys.ToArray());
-                        //    //if (Players.Keys.Any())
-                        //    //    playerList.AddRange(Players.Keys.ToArray());
-                        //    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
-                        //        playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.ProfileId));
-                        //    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Count > 0)
-                        //        playerList.AddRange(Singleton<GameWorld>.Instance.AllAlivePlayersList.Select(x => x.ProfileId));
-                        //}
-                        //
-                        // -----------------------------------------------------------------------------------------------------------
-
-                    } while (true);
-
-                    stopwatch.Stop();
-                }
+                stopwatch.Stop();
+            }
             //});
+
+            ReadyToStartGamePacket packet = new ReadyToStartGamePacket(SITMatchmaking.Profile.ProfileId);
+            GameClient.SendData(packet.Serialize());
+        }
+
+        private async Task WaitForPlayersToBeReady()
+        {
+            if (SITMatchmaking.TimeHasComeScreenController != null)
+            {
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned. Waiting for Player(s) to be Ready.");
+                await Task.Delay(1000);
+            }
+
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(SITGameComponent)}");
+                await Task.Delay(5000);
+            }
+
+            // ---------------------------------------------
+            // Here we can wait for other players, if desired
+            TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
+
+            //await Task.Run(async () =>
+            //{
+            if (coopGameComponent != null)
+            {
+                System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
+
+               
+
+                do
+                {
+
+                    await Task.Delay(1000);
+
+                    var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
+                    var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - ReadyPlayers;
+
+                    if (SITMatchmaking.TimeHasComeScreenController != null)
+                    {
+                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_BE_READY"].ToString(), numbersOfPlayersToWaitFor), progress);
+                    }
+
+                    if (ReadyPlayers >= SITMatchmaking.HostExpectedNumberOfPlayers)
+                    {
+                        Logger.LogInfo("Desired number of players reached. Starting the game.");
+                        break;
+                    }
+
+                    if (stopwatch.Elapsed >= waitTimeout)
+                    {
+                        Logger.LogInfo("Timeout reached. Proceeding with current players.");
+                        break;
+                    }
+
+                } while (true);
+
+                stopwatch.Stop();
+            }
+            //});
+
+            if (!SITMatchmaking.IsClient)
+            {
+                HostStartingGamePacket packet = new HostStartingGamePacket();
+                GameClient.SendData(packet.Serialize());
+            }
+        }
+
+        private async Task WaitForHostToStart()
+        {
+            if (SITMatchmaking.TimeHasComeScreenController != null)
+            {
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned and ready. Waiting for Host to start.");
+                await Task.Delay(1000);
+            }
+
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(SITGameComponent)}");
+                await Task.Delay(5000);
+            }
+
+            // ---------------------------------------------
+            // Here we can wait for other players, if desired
+            TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
+
+            //await Task.Run(async () =>
+            //{
+            if (coopGameComponent != null)
+            {
+                System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
+
+
+
+                do
+                {
+
+                    await Task.Delay(1000);
+
+                    if (SITMatchmaking.TimeHasComeScreenController != null)
+                    {
+                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_HOST_TO_BE_READY"].ToString());
+                    }
+
+                    if (HostReady)
+                        break;
+
+                    if (stopwatch.Elapsed >= waitTimeout)
+                    {
+                        Logger.LogInfo("Timeout reached. Proceeding with current players.");
+                        break;
+                    }
+
+                } while (true);
+
+                stopwatch.Stop();
+            }
         }
 
         private void SendRequestSpawnPlayersPacket()
@@ -1388,6 +1488,8 @@ namespace StayInTarkov.Coop.SITGameModes
         private WavesSpawnScenario wavesSpawnScenario_0;
 
         public BossLocationSpawn[] BossWaves { get; private set; }
+        public int ReadyPlayers { get; set; }
+        public bool HostReady { get; set; }
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
@@ -1448,10 +1550,13 @@ namespace StayInTarkov.Coop.SITGameModes
                 FPSCamera.Instance.IsActive = false;
             }
             await SpawnLoot(location);
-            await WaitForPlayers();
-            //method_5(botsSettings, spawnSystem, runCallback);
+            await WaitForPlayersToSpawn();
+            await WaitForPlayersToBeReady();
+            await WaitForHostToStart();
             method_5(botsSettings, SpawnSystem, runCallback);
         }
+
+       
 
         public async Task SpawnLoot(LocationSettingsClass.Location location)
         {
