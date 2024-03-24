@@ -1418,10 +1418,6 @@ namespace StayInTarkov.Coop.SITGameModes
                     location = await BackEndSession.LoadLocationLoot(Location_0.Id, variantId);
                 }
             }
-            //SpawnPoints spawnPoints = SpawnPoints.CreateFromScene(GClass1296.LocalDateTimeFromUnixTime(location.UnixDateTime), location.SpawnPointParams);
-            //int spawnSafeDistance = ((location.SpawnSafeDistanceMeters > 0) ? location.SpawnSafeDistanceMeters : 100);
-            //SpawnSystemSettings settings = new SpawnSystemSettings(location.MinDistToFreePoint, location.MaxDistToFreePoint, location.MaxBotPerZone, spawnSafeDistance);
-            //ISpawnSystem spawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, botsController_0, spawnPoints);
             BackendConfigSettingsClass instance = Singleton<BackendConfigSettingsClass>.Instance;
             if (instance != null && instance.EventSettings.EventActive && !instance.EventSettings.LocationsToIgnore.Contains(location._Id))
             {
@@ -1462,12 +1458,19 @@ namespace StayInTarkov.Coop.SITGameModes
             using (TokenStarter.StartWithToken("SpawnLoot"))
             {
                 Item[] source = location.Loot.Select((GLootItem x) => x.Item).ToArray();
-                ResourceKey[] array = GClass2755.GetAllItemsFromCollections(source.OfType<ContainerCollection>()).Concat(source.Where((Item x) => !(x is ContainerCollection))).SelectMany((Item x) => x.Template.AllResources)
+                ResourceKey[] array = source.OfType<ContainerCollection>().GetAllItemsFromCollections().Concat(source.Where((Item x) => !(x is ContainerCollection))).SelectMany((Item x) => x.Template.AllResources)
                     .ToArray();
                 if (array.Length != 0)
                 {
                     PlayerLoopSystem currentPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
-                    GClass567.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out var playerLoopSystem, out var index);
+                    //var parentPlayerLoopSystemType = ReflectionHelpers.EftTypes.FirstOrDefault(x => ReflectionHelpers.GetMethodForType(x, "FindParentPlayerLoopSystem") != null);
+
+                    PlayerLoopSystem playerLoopSystem = default(PlayerLoopSystem);
+                    var index = 0;
+                    //ReflectionHelpers.GetMethodForType(parentPlayerLoopSystemType, "FindParentPlayerLoopSystem").Invoke(null, new object[] { currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), playerLoopSystem, index });
+                    
+                    // TODO: Remap or figure out a way to avoid this
+                    GClass567.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out playerLoopSystem, out index);
                     PlayerLoopSystem[] array2 = new PlayerLoopSystem[playerLoopSystem.subSystemList.Length];
                     if (index != -1)
                     {
