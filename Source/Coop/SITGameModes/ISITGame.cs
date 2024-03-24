@@ -4,9 +4,12 @@
  */
 
 
+using Comfort.Common;
 using EFT;
+using EFT.Bots;
 using StayInTarkov.Networking;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
@@ -23,6 +26,8 @@ namespace StayInTarkov.Coop.SITGameModes
         public void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f);
 
         public IGameClient GameClient { get; }
+
+        public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback);
 
     }
 }

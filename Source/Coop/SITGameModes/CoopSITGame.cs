@@ -10,10 +10,12 @@ using Comfort.Common;
 using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.Bots;
+using EFT.CameraControl;
 using EFT.EnvironmentEffect;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
+using EFT.InventoryLogic;
 using EFT.MovingPlatforms;
 using EFT.UI;
 using EFT.UI.Screens;
@@ -38,6 +40,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Profiling;
 
 namespace StayInTarkov.Coop.SITGameModes
@@ -744,12 +748,38 @@ namespace StayInTarkov.Coop.SITGameModes
 
             //SendOrReceiveSpawnPoint(myPlayer);
 
+
+            //WaitForPlayers
+
+
+            // ---------------------------------------------
+
+            CoopPatches.EnableDisablePatches();
+
+            return myPlayer;
+            //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
+        }
+
+        private async Task WaitForPlayers()
+        {
+            if (SITMatchmaking.TimeHasComeScreenController != null)
+            {
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Session Started. Waiting for Player(s)");
+                await Task.Delay(2000);
+            }
+
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(SITGameComponent)}");
+                await Task.Delay(5000);
+            }
+
             // ---------------------------------------------
             // Here we can wait for other players, if desired
             TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
 
-            await Task.Run(async () =>
-            {
+            //await Task.Run(async () =>
+            //{
                 if (coopGameComponent != null)
                 {
                     System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
@@ -762,6 +792,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
                     do
                     {
+
+                        await Task.Delay(1000);
 
                         if (coopGameComponent.PlayerUsers == null || coopGameComponent.PlayerUsers.Count() == 0)
                         {
@@ -815,23 +847,11 @@ namespace StayInTarkov.Coop.SITGameModes
                         //
                         // -----------------------------------------------------------------------------------------------------------
 
-
-                        await Task.Delay(1000);
-
                     } while (true);
 
                     stopwatch.Stop();
                 }
-            });
-
-
-
-            // ---------------------------------------------
-
-            CoopPatches.EnableDisablePatches();
-
-            return myPlayer;
-            //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
+            //});
         }
 
         private void SendRequestSpawnPlayersPacket()
@@ -1376,6 +1396,115 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             Logger.LogInfo("CoopGame:method_6");
             return;
+        }
+
+        public async Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback)
+        {
+            Logger.LogDebug(nameof(Run));
+
+            base.Status = GameStatus.Running;
+            UnityEngine.Random.InitState((int)DateTime.UtcNow.Ticks);
+            LocationSettingsClass.Location location;
+            if (Location_0.IsHideout)
+            {
+                location = Location_0;
+            }
+            else
+            {
+                using (TokenStarter.StartWithToken("LoadLocation"))
+                {
+                    int variantId = UnityEngine.Random.Range(1, 6);
+                    method_6(backendUrl, Location_0.Id, variantId);
+                    location = await BackEndSession.LoadLocationLoot(Location_0.Id, variantId);
+                }
+            }
+            //SpawnPoints spawnPoints = SpawnPoints.CreateFromScene(GClass1296.LocalDateTimeFromUnixTime(location.UnixDateTime), location.SpawnPointParams);
+            //int spawnSafeDistance = ((location.SpawnSafeDistanceMeters > 0) ? location.SpawnSafeDistanceMeters : 100);
+            //SpawnSystemSettings settings = new SpawnSystemSettings(location.MinDistToFreePoint, location.MaxDistToFreePoint, location.MaxBotPerZone, spawnSafeDistance);
+            //ISpawnSystem spawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, botsController_0, spawnPoints);
+            BackendConfigSettingsClass instance = Singleton<BackendConfigSettingsClass>.Instance;
+            if (instance != null && instance.EventSettings.EventActive && !instance.EventSettings.LocationsToIgnore.Contains(location._Id))
+            {
+                GameObject gameObject = (GameObject)Resources.Load("Prefabs/HALLOWEEN_CONTROLLER");
+                if (gameObject != null)
+                {
+                    GClass5.InstantiatePrefab(base.transform, gameObject);
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError("Can't find event prefab in resources. Path : Prefabs/HALLOWEEN_CONTROLLER");
+                }
+            }
+            BackendConfigManagerConfig config = BackendConfigManager.Config;
+            if (config.FixedFrameRate > 0f)
+            {
+                base.FixedDeltaTime = 1f / config.FixedFrameRate;
+            }
+            //using (TokenStarter.StartWithToken("player create"))
+            {
+                EFT.Player player = await CreatePlayerSpawn();
+                dictionary_0.Add(player.ProfileId, player);
+                gparam_0 = func_1(player);
+                PlayerCameraController.Create(gparam_0.Player);
+                FPSCamera.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
+                FPSCamera.Instance.IsActive = false;
+            }
+            await SpawnLoot(location);
+            await WaitForPlayers();
+            //method_5(botsSettings, spawnSystem, runCallback);
+            method_5(botsSettings, SpawnSystem, runCallback);
+        }
+
+        public async Task SpawnLoot(LocationSettingsClass.Location location)
+        {
+            Logger.LogDebug(nameof(SpawnLoot));
+
+            using (TokenStarter.StartWithToken("SpawnLoot"))
+            {
+                Item[] source = location.Loot.Select((GLootItem x) => x.Item).ToArray();
+                ResourceKey[] array = GClass2755.GetAllItemsFromCollections(source.OfType<ContainerCollection>()).Concat(source.Where((Item x) => !(x is ContainerCollection))).SelectMany((Item x) => x.Template.AllResources)
+                    .ToArray();
+                if (array.Length != 0)
+                {
+                    PlayerLoopSystem currentPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
+                    GClass567.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out var playerLoopSystem, out var index);
+                    PlayerLoopSystem[] array2 = new PlayerLoopSystem[playerLoopSystem.subSystemList.Length];
+                    if (index != -1)
+                    {
+                        Array.Copy(playerLoopSystem.subSystemList, array2, playerLoopSystem.subSystemList.Length);
+                        PlayerLoopSystem playerLoopSystem2 = default(PlayerLoopSystem);
+                        playerLoopSystem2.updateDelegate = smethod_3;
+                        playerLoopSystem2.type = typeof(Class1359);
+                        PlayerLoopSystem playerLoopSystem3 = playerLoopSystem2;
+                        playerLoopSystem.subSystemList[index] = playerLoopSystem3;
+                        PlayerLoop.SetPlayerLoop(currentPlayerLoop);
+                    }
+                    await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, array, JobPriority.General, new GClass3262<GStruct118>(delegate (GStruct118 p)
+                    {
+                        SetMatchmakerStatus("Loading loot... " + p.Stage, p.Progress);
+                    }));
+                    if (index != -1)
+                    {
+                        Array.Copy(array2, playerLoopSystem.subSystemList, playerLoopSystem.subSystemList.Length);
+                        PlayerLoop.SetPlayerLoop(currentPlayerLoop);
+                    }
+                }
+                LootItems lootItems = Singleton<GameWorld>.Instance.method_4(location.Loot);
+                Singleton<GameWorld>.Instance.method_5(lootItems, initial: true);
+                await gparam_0.Player.ManageGameQuests();
+            }
+        }
+
+        private async Task<EFT.Player> CreatePlayerSpawn()
+        {
+            Logger.LogDebug(nameof(CreatePlayerSpawn));
+
+            int playerId = 1;
+            EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
+            LocalPlayer obj = await vmethod_2(playerId, Vector3.zero, Quaternion.identity, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new GAbstractStatisticsManager(), null, null);
+            obj.Location = Location_0.Id;
+            obj.OnEpInteraction += base.OnEpInteraction;
+            return obj;
         }
     }
 }

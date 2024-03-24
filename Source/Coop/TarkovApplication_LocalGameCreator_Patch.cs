@@ -167,8 +167,8 @@ namespace StayInTarkov.Coop
 
             GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("Wait for localGame method 4");
 
-            var m4task = localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
-            //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            //var m4task = localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            var m4task = localGame.Run(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
                 using (TokenStarter.StartWithToken("LoadingScreen.LoadComplete"))
                 {
