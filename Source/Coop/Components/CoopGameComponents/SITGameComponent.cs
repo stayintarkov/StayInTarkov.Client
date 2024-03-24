@@ -127,7 +127,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         Camera GameCamera { get; set; }
 
-        public ActionPacketHandlerComponent ActionPacketHandler { get; } = CoopPatches.CoopGameComponentParent.GetOrAddComponent<ActionPacketHandlerComponent>();
+        public ActionPacketHandlerComponent ActionPacketHandler { get; set; }
 
         #endregion
 
@@ -180,6 +180,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITGameComponent));
             Logger.LogDebug($"{nameof(SITGameComponent)}:{nameof(Awake)}");
 
+            ActionPacketHandler = CoopPatches.CoopGameComponentParent.GetOrAddComponent<ActionPacketHandlerComponent>();
             gameObject.AddComponent<SITGameGUIComponent>();
 
             SITCheck();
