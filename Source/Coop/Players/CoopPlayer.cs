@@ -195,6 +195,14 @@ namespace StayInTarkov.Coop.Players
             damagePacket.BodyPart = bodyPartType;
             damagePacket.ColliderType = bodyPartColliderType;
             damagePacket.Absorbed = absorbed;
+            damagePacket.Point = damageInfo.HitPoint;
+            damagePacket.Direction = damageInfo.Direction;
+            damagePacket.PenetrationPower = damageInfo.PenetrationPower;
+            if (damageInfo.SourceId != null)
+            {
+                damagePacket.SourceId = damageInfo.SourceId;
+            }
+
             if (damageInfo.Player != null)
             {
                 damagePacket.AggressorProfileId = damageInfo.Player.iPlayer.ProfileId;
