@@ -55,6 +55,20 @@ namespace StayInTarkov.UI
                 : __instance.GetClientBackEndSession().Profile;
 
             var currentHealth = HealthListener.Instance.CurrentHealth;
+
+            // Set PMCs half health for heal screen
+            if (!____raidSettings.IsScav)
+            {
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.Head);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.Chest);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.Stomach);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.LeftArm);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.RightArm);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.LeftLeg);
+                HealthListener.HealHalfHealth(HealthListener.Instance.MyHealthController, currentHealth.Health, EBodyPart.RightLeg);
+                currentHealth = HealthListener.Instance.CurrentHealth;
+            }
+
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
 
 

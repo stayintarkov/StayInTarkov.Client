@@ -100,23 +100,27 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                         aggressorPlayer = SITGameComponent.GetCoopGameComponent().Players[AggressorProfileId];
 
                     // Get the correct killing weapon and return.
-                    string itemId = "";
-                    using (SHA256 sha256 = SHA256.Create())
+                    if (aggressorPlayer.HandsController.Item is Weapon weapon)
+                        damageInfo.Weapon = weapon;
+
+                    if (damageInfo.Weapon == null)
                     {
-                        StringBuilder sb = new();
-
-                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(AggressorWeaponId + aggressorPlayer.ProfileId));
-                        for (int i = 0; i < hashes.Length; i++)
-                            sb.Append(hashes[i].ToString("x2"));
-
-                        itemId = sb.ToString().Substring(0, 24);
+                        Item tempItem = Spawners.ItemFactory.CreateItem(AggressorWeaponId, AggressorWeaponTpl);
+                        if (tempItem != null)
+                        {
+                            damageInfo.Weapon = tempItem;
+                        }
                     }
-
-                    Item tempItem = Spawners.ItemFactory.CreateItem(itemId, AggressorWeaponTpl);
-
-                    if (tempItem != null)
+                    else
                     {
-                        damageInfo.Weapon = tempItem;
+                        if (damageInfo.Weapon.TemplateId != AggressorWeaponTpl)
+                        {
+                            Item tempItem = Spawners.ItemFactory.CreateItem(AggressorWeaponId, AggressorWeaponTpl);
+                            if (tempItem != null)
+                            {
+                                damageInfo.Weapon = tempItem;
+                            }
+                        }
                     }
                 }
             }
