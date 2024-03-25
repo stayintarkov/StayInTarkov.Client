@@ -28,6 +28,11 @@ namespace SIT.Core.Coop.PacketHandlers
 
         public PlayerInventoryPacketHandler()
         {
+            //Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(PlayerInventoryPacketHandler));
+        }
+
+        static PlayerInventoryPacketHandler()
+        {
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(PlayerInventoryPacketHandler));
         }
 
@@ -53,8 +58,8 @@ namespace SIT.Core.Coop.PacketHandlers
 
             //Logger.LogInfo(packet.ToJson());
 
-            ProcessPolymorphOperation(ref packet);
-            ProcessUnloadMagazine(ref packet);
+            //ProcessPolymorphOperation(ref packet);
+            //ProcessUnloadMagazine(ref packet);
             //ProcessMoveOperation(ref packet);
             //ProcessThrowOperation(ref packet);
             //ProcessFoldOperation(ref packet);
@@ -67,50 +72,64 @@ namespace SIT.Core.Coop.PacketHandlers
             throw new NotImplementedException();
         }
 
-        private void ProcessPolymorphOperation(ref Dictionary<string, object> packet)
-        {
-            //if (packet["m"].ToString() != "PolymorphInventoryOperation")
-            //    return;
+        //private void ProcessPolymorphOperation(ref Dictionary<string, object> packet)
+        //{
+        //    //if (packet["m"].ToString() != "PolymorphInventoryOperation")
+        //    //    return;
 
-            //var plyr = Players[packet["profileId"].ToString()];
-            //var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
-            //if (pic == null)
-            //{
-            //    Logger.LogError("Player Inventory Controller is null");
-            //    return;
-            //}
+        //    //var plyr = Players[packet["profileId"].ToString()];
+        //    //var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
+        //    //if (pic == null)
+        //    //{
+        //    //    Logger.LogError("Player Inventory Controller is null");
+        //    //    return;
+        //    //}
 
-            //if (!packet.ContainsKey("data"))
-            //    return;
+        //    //if (!packet.ContainsKey("data"))
+        //    //    return;
 
-            //var data = (byte[])packet["data"];
-            //ProcessPolymorphOperation(plyr, data);
-        }
+        //    //var data = (byte[])packet["data"];
+        //    //ProcessPolymorphOperation(plyr, data);
+        //}
 
-        public void ProcessPolymorphOperation(EFT.Player plyr, byte[] data)
-        {
+        //public void ProcessPolymorphOperation(EFT.Player plyr, byte[] data)
+        //{
 
-            if (plyr == null) return;
+        //    if (plyr == null) return;
 
-            if (data == null) return;   
+        //    if (data == null) return;   
 
-            ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(plyr.ProfileId, "", "", "PolymorphInventoryOperation");
-            itemPlayerPacket.Deserialize(data);
+        //    ItemPlayerPacket itemPlayerPacket = new ItemPlayerPacket(plyr.ProfileId, "", "", "PolymorphInventoryOperation");
+        //    itemPlayerPacket.Deserialize(data);
 
-            ProcessPolymorphOperation(plyr, itemPlayerPacket);
-        }
+        //    ProcessPolymorphOperation(plyr, itemPlayerPacket);
+        //}
 
         public static void ProcessPolymorphOperation(EFT.Player plyr, ItemPlayerPacket itemPlayerPacket)
         {
+            Logger.LogInfo("ProcessPolymorphOperation");
+            if (plyr == null)
+            {
+                Logger.LogError("Player is null");
+                return;
+            }
+
+            if (itemPlayerPacket == null)
+            {
+                Logger.LogError("itemPlayerPacket is null");
+                return;
+            }
+
             var pic = ItemFinder.GetPlayerInventoryController(plyr) as CoopInventoryController;
             if (pic == null)
             {
-                StayInTarkovHelperConstants.Logger.LogError("Player Inventory Controller is null");
+                Logger.LogError("Player Inventory Controller is null");
                 return;
             }
 
             if (itemPlayerPacket.OperationBytes == null)
             {
+                Logger.LogError("packet has no OperationBytes");
                 pic.CancelExecute(itemPlayerPacket.CallbackId);
                 return;
             }
@@ -120,16 +139,21 @@ namespace SIT.Core.Coop.PacketHandlers
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
-                    // Debug byte number
-                    Logger.LogDebug($"{nameof(ProcessPolymorphOperation)}:Byte Number:{binaryReader.ReadByte()}");
-                    // Reset the reader
-                    binaryReader.BaseStream.Position = 0;
                     descriptor = binaryReader.ReadPolymorph<AbstractDescriptor1>();
-                    
                 }
             }
+
+            if (descriptor == null)
+            {
+                Logger.LogError("descriptor is null");
+                return;
+            }
+            Logger.LogDebug($"{descriptor}");
+
             var operationResult = plyr.ToInventoryOperation(descriptor);
 
+            Logger.LogDebug($"{operationResult}");
+            Logger.LogDebug($"{operationResult.Value}");
             if (operationResult.Succeeded)
             { 
                 pic.ReceiveExecute(operationResult.Value);

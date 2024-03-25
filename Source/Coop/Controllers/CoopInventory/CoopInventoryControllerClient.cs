@@ -3,6 +3,8 @@ using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using JetBrains.Annotations;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
@@ -72,6 +74,33 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         {
             var result = base.ToggleItem(togglable);
             return result;
+        }
+
+        public override void SubtractFromDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+            //base.SubtractFromDiscardLimits(rootItem, destroyedItems);
+        }
+
+        public override void AddDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+            //base.AddDiscardLimits(rootItem, destroyedItems);
+        }
+
+        public override void ExamineMalfunctionType(Weapon weapon)
+        {
+            //base.ExamineMalfunctionType(weapon);
+        }
+
+        public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
+        {
+            //return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
+            return null;
+        }
+
+        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        {
+            //return base.UnloadMagazine(magazine);
+            return null;
         }
 
     }
