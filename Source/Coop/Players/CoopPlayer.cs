@@ -87,11 +87,12 @@ namespace StayInTarkov.Coop.Players
             player.IsYourPlayer = isYourPlayer;
             player.Position = position;
 
-            InventoryControllerClass inventoryController = isYourPlayer || player is CoopPlayer
-                ? new CoopInventoryController(player, profile, false)
-                : new CoopInventoryControllerClient(player, profile, false);
+            InventoryControllerClass inventoryController = player is CoopPlayerClient 
+                ? new CoopInventoryControllerClient(player, profile, false)
+                : new CoopInventoryController(player, profile, false);
+            player.BepInLogger.LogDebug($"{inventoryController.GetType().Name} Instantiated");
 
-            foreach(var item in profile.Inventory.AllRealPlayerItems)
+            foreach (var item in profile.Inventory.AllRealPlayerItems)
             {
                 if(item.Owner == null)
                 {
