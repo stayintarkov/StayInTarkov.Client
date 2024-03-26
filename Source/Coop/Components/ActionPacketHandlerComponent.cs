@@ -13,7 +13,7 @@ using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.World;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -340,11 +340,8 @@ namespace StayInTarkov.Coop.Components
             if(plyr == null)
                 return false;
 
-            var prc = plyr.GetComponent<PlayerReplicatedComponent>();
-            if (prc == null)
-                return false;
-                
-            prc.ProcessPacket(packet);
+            plyr.ProcessModuleReplicationPatch(packet);
+           
             return true;
         }
 
