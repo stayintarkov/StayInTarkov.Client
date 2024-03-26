@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     public sealed class CoopInventoryControllerClient
-        : CoopInventoryController, ICoopInventoryController
+        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 
@@ -17,31 +17,30 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerClient));
+            BepInLogger.LogDebug(nameof(CoopInventoryControllerClient));
         }
 
         public override bool HasDiscardLimits => false;
 
         public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
-
+            operation.vmethod_0((r) => { callback?.Succeed(); });
         }
 
         public override void Execute(Operation1 operation, Callback callback)
         {
-
+            operation.vmethod_0((r) => { callback?.Succeed(); });
         }
 
-        protected override void SendExecuteOperationToServer(AbstractInventoryOperation operation)
-        {
-
-        }
 
         public override void CallUnknownMalfunctionStartRepair(Weapon weapon)
         {
+            base.CallUnknownMalfunctionStartRepair(weapon);
         }
 
         public override void ExamineMalfunction(Weapon weapon, bool clearRest = false)
         {
+            base.ExamineMalfunction(weapon, clearRest);
         }
 
         public override void CallMalfunctionRepaired(Weapon weapon)
@@ -97,11 +96,35 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return null;
         }
 
-        public override Task<IResult> UnloadMagazine(MagazineClass magazine)
+        public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            //return base.UnloadMagazine(magazine);
-            return null;
+            BepInLogger.LogDebug("UnloadMagazine");
+            return await base.UnloadMagazine(magazine);
         }
+
+        public override void StopProcesses()
+        {
+            //BepInLogger.LogDebug("StopProcesses");
+            base.StopProcesses();
+        }
+
+        public void ReceiveStopProcesses()
+        {
+            BepInLogger.LogDebug("ReceiveStopProcesses");
+            base.StopProcesses();
+        }
+
+        public override void ExecuteStop(Operation1 operation)
+        {
+            base.ExecuteStop(operation);
+        }
+
+        public void ReceiveExecute(AbstractInventoryOperation operation)
+        {
+            BepInLogger.LogDebug("ReceiveExecute");
+            operation.vmethod_0((r) => { });
+        }
+
 
     }
 }

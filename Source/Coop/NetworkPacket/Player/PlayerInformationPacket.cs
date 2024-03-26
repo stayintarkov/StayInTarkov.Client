@@ -64,7 +64,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public EArmorPlateCollider ArmorPlateColliderMask;
 
-        public Inventory Inventory;
+        public EFT.InventoryLogic.Inventory Inventory;
 
         public HandsCommandMessage HandsController;
 

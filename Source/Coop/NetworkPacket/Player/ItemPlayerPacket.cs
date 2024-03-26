@@ -1,5 +1,4 @@
-﻿using SIT.Core.Coop.PacketHandlers;
-using StayInTarkov.Coop.Components.CoopGameComponents;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
 using System.IO;
 using UnityStandardAssets.Water;
 
@@ -14,6 +13,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public byte[] OperationBytes { get; set; }
         public ushort CallbackId { get; set; }
         public string InventoryId { get; set; }
+
+        public ushort StackObjectsCount { get; set; }
 
         public ItemPlayerPacket(string profileId, string itemId, string templateId, string method)
             : base(new string(profileId.ToCharArray()), method)
@@ -39,6 +40,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read {nameof(ItemId)} {ItemId} [{reader.BaseStream.Position}]");
 
             TemplateId = reader.ReadString();
+
+            StackObjectsCount = reader.ReadUInt16();
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ItemPlayerPacket)},{nameof(Deserialize)},Read {nameof(TemplateId)} {TemplateId} [{reader.BaseStream.Position}]");
 
@@ -74,6 +77,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             WriteHeaderAndProfileId(writer);
             writer.Write(ItemId);
             writer.Write(TemplateId);
+            writer.Write(StackObjectsCount);
 
             var hasBytes = OperationBytes != null && OperationBytes.Length > 0;
             writer.Write(hasBytes);
