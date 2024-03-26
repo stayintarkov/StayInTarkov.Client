@@ -2,7 +2,7 @@
 using EFT.HealthSystem;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Controllers;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;

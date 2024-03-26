@@ -1,7 +1,7 @@
 ﻿using EFT.HealthSystem;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -44,11 +44,11 @@ namespace StayInTarkov.Coop.Player.Health
             var player = __instance.Player;
 
             // If it is a client Drone, do not resend the packet again!
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return;
-            }
+            //if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            //{
+            //    if (prc.IsClientDrone)
+            //        return;
+            //}
 
 
             RestoreBodyPartPacket restoreBodyPartPacket = new();

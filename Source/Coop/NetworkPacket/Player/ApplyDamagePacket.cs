@@ -13,6 +13,8 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
 {
@@ -32,6 +34,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public float Absorbed { get; set; }
 
+        public Vector3 Direction { get; set; }
+
+        public Vector3 Point { get; set; }
+
+        public float PenetrationPower {  get; set; }
+
+        public string SourceId { get; set; }
+
         public string AggressorProfileId { get; set; }
         public string AggressorWeaponId { get; set; }
         public string AggressorWeaponTpl { get; set; }
@@ -46,6 +56,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             writer.Write((byte)BodyPart);
             writer.Write((byte)ColliderType);
             writer.Write(Absorbed);
+            Vector3Utils.Serialize(writer, Direction);
+            Vector3Utils.Serialize(writer, Point);
+            writer.Write(PenetrationPower);
+
+            writer.Write(!string.IsNullOrEmpty(SourceId));
+            if (!string.IsNullOrEmpty(SourceId))
+                writer.Write(SourceId);
 
             writer.Write(!string.IsNullOrEmpty(AggressorProfileId));
             if(!string.IsNullOrEmpty(AggressorProfileId))
@@ -66,6 +83,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             BodyPart = (EBodyPart)reader.ReadByte();
             ColliderType = (EBodyPartColliderType)reader.ReadByte();
             Absorbed = reader.ReadSingle();
+            Direction = Vector3Utils.Deserialize(reader);
+            Point = Vector3Utils.Deserialize(reader);
+            PenetrationPower = reader.ReadFloat();
+
+            var hasSourceId = reader.ReadBoolean();
+            if (hasSourceId)
+                SourceId = reader.ReadString();
 
             var hasAggressor = reader.ReadBoolean();
             if (hasAggressor)
@@ -89,6 +113,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             damageInfo.Damage = this.Damage;
             damageInfo.DamageType = this.DamageType;
             damageInfo.BodyPartColliderType = this.ColliderType;
+            damageInfo.HitPoint = this.Point;
+            damageInfo.Direction = this.Direction;
+            damageInfo.PenetrationPower = this.PenetrationPower;
+            if (!string.IsNullOrEmpty(SourceId))
+                damageInfo.SourceId = this.SourceId;
+
             if (!string.IsNullOrEmpty(AggressorProfileId))
             {
                 var bridge = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(AggressorProfileId);
