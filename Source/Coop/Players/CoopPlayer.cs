@@ -6,6 +6,7 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json.Linq;
 using RootMotion.FinalIK;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
@@ -424,7 +425,20 @@ namespace StayInTarkov.Coop.Players
             // Paulov: Unknown / Unable to replicate issue where some User's feed would cause a crash
             //if(PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
             //    DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
-            
+
+            // Make it only working in Scav Raid
+            if (RaidChangesUtil.IsScavRaid)
+            {
+                if (victim.Profile.Side == EPlayerSide.Savage)
+                {
+                    if (attacker != null && attacker.Profile.Side != EPlayerSide.Savage)
+                    {
+                        LastAggressor.Loyalty.method_2(victim);
+                        LastAggressor.Loyalty.method_4(victim.Profile.Info.Settings);
+                    }
+                }
+            }
+
             using KillPacket killPacket = new KillPacket(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
         }

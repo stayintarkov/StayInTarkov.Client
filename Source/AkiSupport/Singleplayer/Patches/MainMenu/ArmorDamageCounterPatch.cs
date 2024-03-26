@@ -22,6 +22,11 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu
         [PatchPostfix]
         private static void PatchPostfix(DamageInfo damageInfo)
         {
+            if (damageInfo.SourceId == null)
+            {
+                return;
+            }
+
             if (damageInfo.Player == null)
             {
                 return;

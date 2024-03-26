@@ -35,6 +35,7 @@ using BSGMemoryGC = GClass772;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using Diz.Jobs;
 using System.Net.NetworkInformation;
+using EFT.Counters;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -429,6 +430,14 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     if (!ExtractedProfilesSent.Contains(profileId))
                     {
                         ExtractedProfilesSent.Add(profileId);
+                        if (player.Profile.Side == EPlayerSide.Savage)
+                        {
+                            player.Profile.EftStats.SessionCounters.AddDouble(0.01,
+                            [
+                                CounterTag.FenceStanding,
+                                EFenceStandingSource.ExitStanding
+                            ]);
+                        }
                         AkiBackendCommunicationCoop.PostLocalPlayerData(player
                             , new Dictionary<string, object>() { { "m", "Extraction" }, { "Extracted", true } }
                             );
