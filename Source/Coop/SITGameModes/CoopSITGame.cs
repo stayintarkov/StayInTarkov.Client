@@ -766,7 +766,7 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
-                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Session Started. Waiting for Player(s)");
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["SESSION_STARTED_AND_WAITING"].ToString());
                 await Task.Delay(1000);
             }
 
@@ -845,7 +845,7 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
-                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned. Waiting for Player(s) to be Ready.");
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["PLAYER_SPAWNED_AND_WAITING"].ToString());
                 await Task.Delay(1000);
             }
 
@@ -909,7 +909,7 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
-                SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned and ready. Waiting for Host to start.");
+                SITMatchmaking.TimeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["PLAYER_SPAWNED_AND_WAITING_START"].ToString());
                 await Task.Delay(1000);
             }
 
