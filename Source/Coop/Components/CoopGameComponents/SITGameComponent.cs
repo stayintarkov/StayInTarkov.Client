@@ -15,7 +15,7 @@ using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
@@ -474,19 +474,19 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             StayInTarkovHelperConstants.Logger.LogDebug($"CoopGameComponent:OnDestroy");
 
-            if (Players != null)
-            {
-                foreach (var pl in Players)
-                {
-                    if (pl.Value == null)
-                        continue;
+            //if (Players != null)
+            //{
+            //    foreach (var pl in Players)
+            //    {
+            //        if (pl.Value == null)
+            //            continue;
 
-                    if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                    {
-                        DestroyImmediate(prc);
-                    }
-                }
-            }
+            //        if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            //        {
+            //            DestroyImmediate(prc);
+            //        }
+            //    }
+            //}
             Players.Clear();
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
@@ -1209,8 +1209,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             // Create/Add PlayerReplicatedComponent to the LocalPlayer
             // This shouldn't be needed. Handled in CoopPlayer.Create code
-            var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
-            prc.IsClientDrone = true;
+            //var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+            //prc.IsClientDrone = true;
 
             if (!SITMatchmaking.IsClient)
             {

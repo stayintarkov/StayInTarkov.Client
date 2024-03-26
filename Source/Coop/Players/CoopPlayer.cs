@@ -14,11 +14,13 @@ using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -148,11 +150,11 @@ namespace StayInTarkov.Coop.Players
             player.Position = position;
 
             // If this is a Client Drone add Player Replicated Component
-            if (isClientDrone)
-            {
-                var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-                prc.IsClientDrone = true;
-            }
+            //if (isClientDrone)
+            //{
+            //    var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+            //    prc.IsClientDrone = true;
+            //}
 
             return player;
         }
@@ -741,6 +743,12 @@ namespace StayInTarkov.Coop.Players
 
         void Awake()
         {
+
+        }
+
+        void Start()
+        {
+            CreateDogtag();
         }
 
         public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
@@ -755,6 +763,54 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
+        void CreateDogtag()
+        {
+            BepInLogger.LogDebug($"{nameof(CreateDogtag)}");
+            if (Side != EPlayerSide.Savage && ReflectionHelpers.GetDogtagItem(this) == null)
+            {
+                if (!SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGameComponent))
+                    return;
+
+                Slot dogtagSlot = Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
+                if (dogtagSlot == null)
+                    return;
+
+                string itemId = "";
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    StringBuilder sb = new();
+
+                    byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + ProfileId + coopGameComponent.Timestamp));
+                    for (int i = 0; i < hashes.Length; i++)
+                        sb.Append(hashes[i].ToString("x2"));
+                    itemId = sb.ToString().Substring(0, 24);
+                }
+
+                Item dogtag = Spawners.ItemFactory.CreateItem(itemId, Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+                if (dogtag != null)
+                    dogtagSlot.AddWithoutRestrictions(dogtag);
+            }
+        }
+
+        public void ProcessModuleReplicationPatch(Dictionary<string, object> packet)
+        {
+            if (!packet.ContainsKey("m"))
+                return;
+
+            var method = packet["m"].ToString();
+
+            if (!ModuleReplicationPatch.Patches.ContainsKey(method))
+                return;
+
+            var patch = ModuleReplicationPatch.Patches[method];
+            if (patch != null)
+            {
+                patch.Replicated(this, packet);
+                return;
+            }
+
+
+        }
 
     }
 }

@@ -5,7 +5,7 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Sounds;
 using StayInTarkov.Coop.World;
-using StayInTarkov.Core.Player;
+//using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
@@ -133,16 +133,16 @@ namespace StayInTarkov.Coop
 
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                foreach (var p in coopGameComponent.Players)
-                {
-                    if (p.Value == null)
-                        continue;
+                //foreach (var p in coopGameComponent.Players)
+                //{
+                //    if (p.Value == null)
+                //        continue;
 
-                    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                    {
-                        GameObject.Destroy(prc);
-                    }
-                }
+                //    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                //    {
+                //        GameObject.Destroy(prc);
+                //    }
+                //}
 
                 //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
                 //{
@@ -153,10 +153,10 @@ namespace StayInTarkov.Coop
                 GameObject.DestroyImmediate(coopGameComponent);
             }
 
-            foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
-            {
-                GameObject.DestroyImmediate(prc);
-            }
+            //foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
+            //{
+            //    GameObject.DestroyImmediate(prc);
+            //}
 
 
             if (CoopGameComponentParent != null)
