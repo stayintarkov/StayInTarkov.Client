@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
@@ -142,6 +143,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
             infoPacket.VoIPState = EFT.Player.EVoipState.Off;
             infoPacket.WildSpawnType = p.Profile.Info.Settings.Role;
             infoPacket.Profile = p.Profile;
+
+            infoPacket.InitialInventoryMongoId = ((ICoopInventoryController)ItemFinder.GetPlayerInventoryController(p)).GetMongoId();
             return infoPacket;
         }
     }

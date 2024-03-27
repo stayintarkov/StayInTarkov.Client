@@ -81,9 +81,12 @@ namespace StayInTarkov.Coop
             if (TryFindItemInWorld(itemId, out item))
                 return item != null;
 
-            Logger.LogError($"{nameof(TryFindItem)}: Unable to find item {itemId}");
+#if DEBUG
+            Logger.LogDebug($"{nameof(TryFindItem)}: Unable to find item {itemId}");
             System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
-            Logger.LogError($"{nameof(TryFindItem)}: {t}");
+            Logger.LogDebug($"{nameof(TryFindItem)}: {t}");
+#endif
+
             return false;
         }
 
@@ -95,9 +98,9 @@ namespace StayInTarkov.Coop
             return itemComponent;
         }
 
-        public static CoopInventoryController GetPlayerInventoryController(EFT.Player player)
+        public static TraderControllerClass GetPlayerInventoryController(EFT.Player player)
         {
-            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryControllerClass)).GetValue(player) as CoopInventoryController;
+            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryControllerClass)).GetValue(player) as TraderControllerClass;
             return inventoryController;
         }
 

@@ -9,6 +9,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using CommonAssets.Scripts.Game;
 using EFT;
+using EFT.AssetsManager;
 using EFT.Bots;
 using EFT.CameraControl;
 using EFT.EnvironmentEffect;
@@ -138,12 +139,9 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopSITGame));
             Logger.LogInfo("CoopGame.Create");
 
-            if (wavesSettings.BotAmount == EBotAmount.NoBots && SITMatchmaking.IsServer)
-                wavesSettings.BotAmount = EBotAmount.Medium;
-
-            location.OfflineNewSpawn = false;
-            location.OfflineOldSpawn = true;
-            location.OldSpawn = true;
+            //location.OfflineNewSpawn = false;
+            //location.OfflineOldSpawn = true;
+            //location.OldSpawn = true;
 
             CoopSITGame coopGame = 
                 smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
@@ -151,6 +149,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ---------------------------------------------------------------------------------
             // Non Waves Scenario setup
+            WildSpawnWave[] waves = FixScavWaveSettings(wavesSettings, location.waves);
             coopGame.nonWavesSpawnScenario_0 = NonWavesSpawnScenario.smethod_0(coopGame, location, coopGame.PBotsController);
             coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
 
@@ -158,7 +157,7 @@ namespace StayInTarkov.Coop.SITGameModes
             // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = WavesSpawnScenario.smethod_0(
                     coopGame.gameObject
-                    , location.waves
+                    , waves
                     , new Action<BotSpawnWave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
                     , location);
 
@@ -417,6 +416,49 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
             }
         }
+
+
+        public static WildSpawnWave[] FixScavWaveSettings(WavesSettings wavesSettings, WildSpawnWave[] waves)
+        {
+            Logger.LogDebug($"{nameof(CoopSITGame)}:{nameof(FixScavWaveSettings)}");
+
+            foreach (WildSpawnWave wildSpawnWave in waves)
+            {
+                wildSpawnWave.slots_min = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : 1;
+                wildSpawnWave.slots_max = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : Math.Max(1, wildSpawnWave.slots_max);
+                if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
+                {
+                    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
+                }
+                if (wavesSettings.IsBosses)
+                {
+                    wildSpawnWave.time_min += 5;
+                    wildSpawnWave.time_max += 27;
+                }
+                wildSpawnWave.BotDifficulty = ToBotDifficulty(wavesSettings.BotDifficulty);
+            }
+            return waves;
+        }
+
+        public static BotDifficulty ToBotDifficulty(EBotDifficulty botDifficulty)
+        {
+            return botDifficulty switch
+            {
+                EBotDifficulty.Easy => BotDifficulty.easy,
+                EBotDifficulty.Medium => BotDifficulty.normal,
+                EBotDifficulty.Hard => BotDifficulty.hard,
+                EBotDifficulty.Impossible => BotDifficulty.impossible,
+                EBotDifficulty.Random => SelectRandomBotDifficulty(),
+                _ => BotDifficulty.normal,
+            };
+        }
+
+        public static BotDifficulty SelectRandomBotDifficulty()
+        {
+            Array values = Enum.GetValues(typeof(BotDifficulty));
+            return (BotDifficulty)values.GetValue(UnityEngine.Random.Range(0, values.Length));
+        }
+
 
         public static BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location, TimeAndWeatherSettings timeAndWeather)
         {
@@ -1459,13 +1501,51 @@ namespace StayInTarkov.Coop.SITGameModes
             // end of BaseLocalGame Stop method
             // -----------------------------------------------------------------------------------------------
 
-            CoopPatches.LeftGameDestroyEverything();
+            //CoopPatches.LeftGameDestroyEverything();
         }
+
+        //public new void Update()
+        //{
+        //    UpdateByUnity?.Invoke();    
+        //}
 
         public override void CleanUp()
         {
+            foreach (EFT.Player value in Bots.Values)
+            {
+                try
+                {
+                    value.Dispose();
+                    AssetPoolObject.ReturnToPool(value.gameObject);
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogException(exception);
+                }
+            }
+            Bots.Clear();
+
+            if (SITGameComponent.TryGetCoopGameComponent(out var gameComponent))
+            {
+                if (gameComponent.PlayerClients != null)
+                {
+                    foreach (EFT.Player value in gameComponent.PlayerClients)
+                    {
+                        try
+                        {
+                            value.Dispose();
+                            AssetPoolObject.ReturnToPool(value.gameObject);
+                        }
+                        catch (Exception exception)
+                        {
+                            UnityEngine.Debug.LogException(exception);
+                        }
+                    }
+                    gameComponent.PlayerClients.Clear();
+                }
+            }
+
             base.CleanUp();
-            smethod_4(Bots);
         }
 
         public override void Dispose()

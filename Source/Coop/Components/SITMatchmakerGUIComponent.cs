@@ -835,17 +835,18 @@ namespace StayInTarkov.Coop.Components
                 SITMatchmaking.Profile.ProfileId
                 , RaidSettings
                 , ""
-                , ESITProtocol.RelayTcp
+                , ESITProtocol.PeerToPeerUdp
                 , null
                 , PortInput,
-                EMatchmakerType.Single);
+                EMatchmakerType.GroupLeader);
+                //EMatchmakerType.Single);
             OriginalAcceptButton.OnClick.Invoke();
 
-            JObject joinPacket = new();
-            joinPacket.Add("profileId", SITMatchmaking.Profile.ProfileId);
-            joinPacket.Add("serverId", SITMatchmaking.Profile.ProfileId);
-            joinPacket.Add("m", "JoinMatch");
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
+            //JObject joinPacket = new();
+            //joinPacket.Add("profileId", SITMatchmaking.Profile.ProfileId);
+            //joinPacket.Add("serverId", SITMatchmaking.Profile.ProfileId);
+            //joinPacket.Add("m", "JoinMatch");
+            //AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
             //AkiBackendCommunication.Instance.PostJson("coop/server/update", joinPacket.SITToJson());
 
             DestroyThis();
