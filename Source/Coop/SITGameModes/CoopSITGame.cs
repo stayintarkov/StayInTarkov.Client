@@ -965,8 +965,6 @@ namespace StayInTarkov.Coop.SITGameModes
             // Here we can wait for other players, if desired
             TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
 
-            //await Task.Run(async () =>
-            //{
             if (coopGameComponent != null)
             {
                 System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
@@ -1006,66 +1004,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public static void SendPlayerDataToServer(LocalPlayer player, Vector3 position)
         {
+#if DEBUG
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
-            //var profileJson = player.Profile.SITToJson();
-
-
-
-            //Dictionary<string, object> packet = new()
-            //{
-            //            {
-            //                "serverId",
-            //                SITMatchmaking.GetGroupId()
-            //            },
-            //            {
-            //            "isAI",
-            //                //player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
-            //                !player.IsYourPlayer && (player as CoopPlayerClient == null)
-            //            },
-            //            {
-            //                "profileId",
-            //                player.ProfileId
-            //            },
-            //            {
-            //                "groupId",
-            //                SITMatchmaking.GetGroupId()
-            //            },
-            //            {
-            //                "sPx",
-            //                player.Transform.position.x
-            //            },
-            //            {
-            //                "sPy",
-            //                player.Transform.position.y
-            //            },
-            //            {
-            //                "sPz",
-            //                player.Transform.position.z
-            //            },
-            //            //{
-            //            //    "profileJson",
-            //            //    profileJson
-            //            //},
-            //            { "m", "PlayerSpawn" },
-            //        };
-
-
-            ////Logger.LogDebug(packet.ToJson());
-
-            //var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            //prc.player = player;
-            ////AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
-
-            // ------------------------------------------------------------------------------------
-            // Send the information to the server
-            // Paulov: TODO: Remove this need for this to occur. The WebSocket requires this to create a "ConnectedUser" if using Relay
-            //Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
-            //_ = Task.Run(async () => 
-            //    {
-            //        await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
-            //    }
-            //);
-
+#endif
 
             // Sends out to all clients that this Character has spawned
             var infoPacket = SpawnPlayersPacket.CreateInformationPacketFromPlayer(player);
