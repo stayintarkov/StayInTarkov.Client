@@ -155,21 +155,28 @@ namespace StayInTarkov.Networking
                     return;
 
 
-                if (packet.ContainsKey(PACKET_TAG_METHOD)
-                    && packet[PACKET_TAG_METHOD].ToString() == "Move")
-                    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
-                else if (packet.ContainsKey(PACKET_TAG_METHOD)
-                    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
-                {
-                    coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
-                }
+                //if (packet.ContainsKey(PACKET_TAG_METHOD)
+                //    && packet[PACKET_TAG_METHOD].ToString() == "Move")
+                //    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
+                //else if (packet.ContainsKey(PACKET_TAG_METHOD)
+                //    && packet[PACKET_TAG_METHOD].ToString() == "ApplyDamageInfo")
+                //{
+                //    coopGameComponent.ActionPacketHandler.ActionPacketsDamage.TryAdd(packet);
+                //}
+                //else
+                //{
+                if (sitPacket != null)
+                    coopGameComponent.ActionPacketHandler.ActionSITPackets.Add(sitPacket);
                 else
                 {
-                    if (sitPacket != null)
-                        coopGameComponent.ActionPacketHandler.ActionSITPackets.Add(sitPacket);
-                    else
-                        coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
+#if DEBUG
+                    Logger.LogDebug($">> DEV TODO <<");
+                    Logger.LogDebug($">> Convert the following packet to binary <<");
+                    Logger.LogDebug($"{packet.ToJson()}");
+#endif 
+                    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
                 }
+                //}
 
             }
             catch (Exception ex)
