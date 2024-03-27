@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using BepInEx.Logging;
 
 namespace StayInTarkov;
@@ -9,71 +10,80 @@ public abstract class LanguageList
 {
     private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(LanguageList));
 
-    private static readonly LanguageInfo English = new(Language.English, "en", "English.json");
-    private static readonly LanguageInfo French = new(Language.French, "fr", "French.json");
-    private static readonly LanguageInfo German = new(Language.German, "de", "German.json");
-    private static readonly LanguageInfo Japanese = new(Language.Japanese, "ja", "Japanese.json");
-
-    private static readonly LanguageInfo SimplifiedChinese =
-        new(Language.SimplifiedChinese, "zh-CN", "SimplifiedChinese.json");
-
-    private static readonly LanguageInfo TraditionalChinese =
-        new(Language.TraditionalChinese, "zh-TW", "TraditionalChinese.json");
-
-    public static readonly LanguageInfo Default = English;
-
-    public static readonly LanguageInfo[] Languages =
-    [
-        English, French, German, Japanese, SimplifiedChinese, TraditionalChinese
-    ];
-
+    /// <summary>
+    /// All support language enums. Ensure that the language file name matches the enumeration name.
+    /// ATTENTION: THE FIRST ENUMERATION IS THE DEFAULT LANGUAGE.
+    /// </summary>
     public enum Language
     {
-        [Description("English")] English,
-        [Description("French")] French,
-        [Description("German")] German,
-        [Description("Japanese")] Japanese,
-        [Description("Simplified Chinese")] SimplifiedChinese,
-        [Description("Traditional Chinese")] TraditionalChinese,
+        [Description("English"), CultureName("en")]
+        English,
+
+        [Description("French"), CultureName("fr")]
+        French,
+
+        [Description("German"), CultureName("de")]
+        German,
+
+        [Description("Japanese"), CultureName("ja")]
+        Japanese,
+
+        [Description("Simplified Chinese"), CultureName("zh-CN")]
+        SimplifiedChinese,
+
+        [Description("Traditional Chinese"), CultureName("zh-TW")]
+        TraditionalChinese,
     }
 
-    public class LanguageInfo
+    /// <summary>
+    /// Extension attribute of Language enumeration
+    /// </summary>
+    /// <param name="name">the Culture Name, such as en, zh-CN</param>
+    private class CultureName(string name) : Attribute
     {
-        public string CultureName { get; }
-
-        public string FileName { get; }
-
-        public Language Language { get; }
-
-        internal LanguageInfo(Language language, string cultureName, string fileName)
+        public override string ToString()
         {
-            Language = language;
-            CultureName = cultureName;
-            FileName = fileName;
-        }
-
-        public bool Equals(LanguageInfo other)
-        {
-            return other != null && other.Language == Language;
+            return name;
         }
     }
 
-    public static LanguageInfo ByLanguage(Language language)
+    private static string GetAttribute<T>(Enum @enum, string def = "") where T : Attribute
     {
-        return Languages.Single(languageInfo => languageInfo.Language == language);
+        var attributeType = typeof(T);
+        var enumType = @enum.GetType();
+        var memberInfos = enumType.GetMember(@enum.ToString());
+        foreach (var memberInfo in memberInfos)
+        {
+            var customAttribute = memberInfo.GetCustomAttribute(attributeType, false);
+            if (customAttribute != null)
+            {
+                return customAttribute.ToString();
+            }
+        }
+
+        return def;
     }
 
     public static Language ByCultureName(string cultureName)
     {
-        try
+        var languages = typeof(Language).GetEnumValues();
+
+        foreach (Language language in languages)
         {
-            return Languages.Single(language => string.Equals(language.CultureName, cultureName,
-                StringComparison.CurrentCultureIgnoreCase)).Language;
+            if (string.Equals(GetAttribute<CultureName>(language), cultureName,
+                    StringComparison.CurrentCultureIgnoreCase))
+            {
+                return language;
+            }
         }
-        catch (Exception)
-        {
-            Logger.LogWarning($"SIT.Localization fallback to {Default.Language}");
-            return Default.Language;
-        }
+
+        return languages.Cast<Language>().First();
+    }
+
+    public static string FileName(Language? language)
+    {
+        language ??= typeof(Language).GetEnumValues().Cast<Language>().First();
+
+        return language + ".json";
     }
 }

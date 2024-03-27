@@ -9,7 +9,7 @@
   "LOCATION": "地图",
   "RAID": "战局",
   "START": "开始游戏",
-  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "游戏开始前等待几位玩家?",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "玩家总数",
   "REQUIRE_PASSWORD": "启用密码保护",
   "PASSWORD": "密码",
   "AI_AMOUNT": "AI数量",
@@ -24,9 +24,15 @@
   "RAID_PLAYER_EXTRACTED_HOST": "您已幸存并撤离, 请等待其他玩家死亡或撤离 (双击 F7 可强制退出当前战局)",
   "RAID_PLAYER_EXTRACTED_CLIENT": "您已幸存并撤离, 按下 F8 键即可退出当前战局",
   "PROTOCOL": "协议",
-  "PROTOCOL_OPTIONS": [ "中继", "P2P" ],
+  "PROTOCOL_OPTIONS": [
+    "中继",
+    "P2P"
+  ],
   "P2P_IP_ADDRESS_OPTIONS_LABEL": "自动获取IP地址?",
-  "YES_NO_OPTIONS": [ "是", "否" ],
+  "YES_NO_OPTIONS": [
+    "是",
+    "否"
+  ],
   "P2P_IP_ADDRESS_LABEL": "IP地址",
   "P2P_PORT_LABEL": "端口",
   "P2P_WARNING_LABEL": "警告： P2P 是一项试验性功能。在此模式下，您可能会遇到其他问题.",
@@ -74,7 +80,13 @@
   "PENETRATION": "穿透力",
   "FRAGMENTATION_CHANCE": "碎弹几率",
   "RICOCHET_CHANCE": "跳弹几率",
-  "WAITING_PLAYER": "正在等待剩余{0}名玩家加入",
+  "WAITING_PLAYER": "正在等待剩余{0}名玩家",
   "JOINING_COOP_GAME": "正在加入战局",
-  "CREATED_COOP_GAME": "战局准备完毕"
+  "CREATED_COOP_GAME": "战局准备就绪",
+  "WAITING_FOR_PLAYERS_TO_SPAWN": "正在生成剩余{0}名玩家",
+  "WAITING_FOR_PLAYERS_TO_BE_READY": "正在等待剩余{0}名玩家加载游戏",
+  "WAITING_FOR_HOST_TO_BE_READY": "正在等待主机进入游戏",
+  "SESSION_STARTED_AND_WAITING": "会话已创建，等待玩家加入",
+  "PLAYER_SPAWNED_AND_WAITING": "您已准备就绪，等待其他玩家",
+  "PLAYER_SPAWNED_AND_WAITING_START": "所有玩家准备就绪，等待游戏开始"
 }

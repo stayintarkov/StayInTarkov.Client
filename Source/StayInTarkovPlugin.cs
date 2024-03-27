@@ -28,6 +28,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
+using Comfort.Logs;
 using UnityEngine;
 
 namespace StayInTarkov
@@ -168,10 +169,11 @@ namespace StayInTarkov
             var currentCultureName = Thread.CurrentThread.CurrentCulture.Name;
             Logger.LogDebug($"Current Culture: {currentCultureName}");
 
+            var currentLanguage = LanguageList.ByCultureName(currentCultureName);
+            Logger.LogDebug($"Current Language: {currentLanguage}");
+
             ConfigEntry<LanguageList.Language> userLanguage = Config.Bind("SIT.Localization", "Language",
-                LanguageList.ByCultureName(currentCultureName),
-                new ConfigDescription("Language",
-                    null));
+                currentLanguage, new ConfigDescription("Language"));
 
             Logger.LogDebug($"User Language: {userLanguage.Value}");
 
@@ -185,33 +187,28 @@ namespace StayInTarkov
 
             Logger.LogDebug(userLanguage.Value);
 
-            Stream stream;
-            if (Enum.IsDefined(typeof(LanguageList.Language), userLanguage.Value))
-            {
-                LanguageList.LanguageInfo languageInfo = LanguageList.ByLanguage(userLanguage.Value);
-                stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(
-                    languageFiles.First(x => x.EndsWith(languageInfo.FileName)));
-            }
-            else
-            {
-                stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(
-                    languageFiles.First(x => x.EndsWith(LanguageList.Default.FileName)));
-            }
+            var defaultFileName = LanguageList.FileName(null);
+            var userFileName = LanguageList.FileName(userLanguage.Value);
+            var fileName = Enum.IsDefined(typeof(LanguageList.Language), userLanguage.Value)
+                ? userFileName
+                : defaultFileName;
+
+            var stream =
+                typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(
+                    languageFiles.First(x => x.EndsWith(fileName)));
 
             if (stream == null)
                 return;
 
             StreamReader sr;
-            string str;
-            JObject resultLocaleDictionary;
             // Load Language Stream in
             using (sr = new StreamReader(stream))
             {
-                str = sr.ReadToEnd();
+                var jsonString = sr.ReadToEnd();
 
-                resultLocaleDictionary = JObject.Parse(str);
+                var localeDictionary = JObject.Parse(jsonString);
 
-                foreach (var kvp in resultLocaleDictionary)
+                foreach (var kvp in localeDictionary)
                 {
                     LanguageDictionary.Add(kvp.Key, kvp.Value);
                 }
@@ -220,7 +217,8 @@ namespace StayInTarkov
             // Load English Language Stream to Fill any missing expected statements in the Dictionary
             using (sr = new StreamReader(
                        typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(
-                           languageFiles.First(x => x.EndsWith(LanguageList.Default.FileName)))))
+                           languageFiles.First(x => x.EndsWith(defaultFileName))) ??
+                       throw new FileNotFoundException($"Language file {defaultFileName} not found")))
             {
                 foreach (var kvp in JObject.Parse(sr.ReadToEnd()))
                 {

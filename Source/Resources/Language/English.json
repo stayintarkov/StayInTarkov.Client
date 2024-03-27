@@ -79,5 +79,8 @@
   "CREATED_COOP_GAME": "Created Coop Game",
   "WAITING_FOR_PLAYERS_TO_SPAWN": "Waiting for {0} Player(s) to Spawn",
   "WAITING_FOR_PLAYERS_TO_BE_READY": "Waiting for {0} Player(s) to finish loading",
-  "WAITING_FOR_HOST_TO_BE_READY": "Waiting for Host to Start Game"
+  "WAITING_FOR_HOST_TO_BE_READY": "Waiting for Host to Start Game",
+  "SESSION_STARTED_AND_WAITING": "Session Started. Waiting for Player(s)",
+  "PLAYER_SPAWNED_AND_WAITING": "Players spawned. Waiting for Player(s) to be Ready.",
+  "PLAYER_SPAWNED_AND_WAITING_START": "Players spawned and ready. Waiting for Host to start."
 }
