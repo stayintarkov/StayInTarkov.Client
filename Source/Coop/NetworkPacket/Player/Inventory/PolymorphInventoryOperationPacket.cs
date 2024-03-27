@@ -10,8 +10,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static EFT.UI.CharacterSelectionStartScreen;
+using static GClass2755;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
 {
@@ -49,14 +52,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
 
         protected override void Process(CoopPlayerClient client)
         {
-            Logger.LogInfo("ProcessPolymorphOperation");
-
-            var pic = ItemFinder.GetPlayerInventoryController(client) as CoopInventoryControllerClient;
-            if (pic == null)
-            {
-                Logger.LogError("Player Inventory Controller is null");
-                return;
-            }
 
             if (this.OperationBytes == null)
             {
@@ -64,8 +59,22 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                 return;
             }
 
+            ProcessOperationBytes(client, OperationBytes);
+
+            
+        }
+
+        private void ProcessOperationBytes(CoopPlayerClient client, byte[] bytes)
+        {
+            var pic = ItemFinder.GetPlayerInventoryController(client) as CoopInventoryControllerClient;
+            if (pic == null)
+            {
+                Logger.LogError("Player Inventory Controller is null");
+                return;
+            }
+
             AbstractDescriptor1 descriptor = null;
-            using (MemoryStream memoryStream = new MemoryStream(OperationBytes))
+            using (MemoryStream memoryStream = new MemoryStream(bytes))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
@@ -79,26 +88,43 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                 return;
             }
 
-            Logger.LogDebug($"{descriptor}");
+            Logger.LogDebug($"{descriptor.GetType().Name}");
 
-            if (descriptor is UnloadMagOperationDescriptor)
+            if (descriptor is UnloadMagOperationDescriptor umod)
             {
-                Logger.LogDebug($"Not processing {nameof(UnloadMagOperationDescriptor)}");
+                if (umod.InternalOperationDescriptor != null)
+                {
+                    Logger.LogDebug($"{umod.InternalOperationDescriptor.GetType().Name}");
+
+                    using (MemoryStream ms = new MemoryStream())
+                    using (var binaryWriter = new BinaryWriter(ms))
+                    {
+                        binaryWriter.WritePolymorph(umod.InternalOperationDescriptor);
+                        ProcessOperationBytes(client, ms.ToArray()); 
+                    }
+                }
+              
                 return;
             }
 
-            if (descriptor is LoadMagOperationDescriptor)
-            {
-                Logger.LogDebug($"Not processing {nameof(LoadMagOperationDescriptor)}");
-                return;
-            }
+            //if (descriptor is SplitOperationDescriptor split)
+            //{
+            //    Logger.LogDebug($"{descriptor.ToJson()}");
+
+            //}
+
+            //if (descriptor is LoadMagOperationDescriptor)
+            //{
+            //    Logger.LogDebug($"Not processing {nameof(LoadMagOperationDescriptor)}");
+            //    return;
+            //}
 
 
             // Paulov: This is a bit of a hack but it does work. 
             // If an item for some reason doesn't exist on this person. Create it with the same Id as provided.
-            if(!string.IsNullOrEmpty(ItemId) && !string.IsNullOrEmpty(TemplateId)) 
-            { 
-                if(!ItemFinder.TryFindItem(ItemId, out var item)) 
+            if (!string.IsNullOrEmpty(ItemId) && !string.IsNullOrEmpty(TemplateId))
+            {
+                if (!ItemFinder.TryFindItem(ItemId, out var item))
                 {
                     Logger.LogDebug($"Item of Id {ItemId} was not found. Creating item! {TemplateId}");
                     Item knownItem = Spawners.ItemFactory.CreateItem(ItemId, TemplateId);
@@ -114,9 +140,16 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
             }
 
             var operationResult = client.ToInventoryOperation(descriptor);
+            
+            //Logger.LogDebug($"{operationResult}");
+            //Logger.LogDebug($"{operationResult.Value}");
 
-            Logger.LogDebug($"{operationResult}");
-            Logger.LogDebug($"{operationResult.Value}");
+            //if(operationResult.Value is GAbstractOperation126 splitOp)
+            //{
+            //    pic.ForcedExpectedId = splitOp.CloneId;
+            //}
+
+
             if (operationResult.Succeeded)
             {
                 pic.ReceiveExecute(operationResult.Value);

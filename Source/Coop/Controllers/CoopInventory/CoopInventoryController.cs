@@ -34,7 +34,11 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             Player = player;
         }
 
-        private Dictionary<ushort, (AbstractInventoryOperation operation, Callback callback)> InventoryOperations { get; } = new();
+        public string GetMongoId()
+        {
+            return mongoID_0;
+        }
+
 
         public override void Execute(Operation1 operation, Callback callback)
         {
@@ -80,12 +84,21 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         /// <returns></returns>
         protected virtual void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
+            var itemId = "";
+            var templateId = "";
+            ushort stackObjectsCount = 1;
+
             byte[] opBytes = null;
             using MemoryStream memoryStream = new();
             using (BinaryWriter binaryWriter = new(memoryStream))
             {
                 var desc = OperationToDescriptorHelpers.FromInventoryOperation(operation, toObserver: false);
                 //BepInLogger.LogDebug($"Writing. {desc}");
+                var magOp = desc as MagOperationDescriptor;
+                if (magOp != null)
+                {
+                    desc = magOp.InternalOperationDescriptor;
+                }
 
                 binaryWriter.WritePolymorph(desc);
                 opBytes = memoryStream.ToArray();
@@ -103,15 +116,14 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 //            }
 //#endif
 
-            var itemId = "";
-            var templateId = "";
-            ushort stackObjectsCount = 1;
+          
             if(operation is MoveInternalOperation mio)
             {
                 itemId = mio.Item.Id;
                 templateId = mio.Item.TemplateId;
                 stackObjectsCount = (ushort)mio.Item.StackObjectsCount;
             }
+
 
             PolymorphInventoryOperationPacket itemPlayerPacket = new PolymorphInventoryOperationPacket(Player.ProfileId, itemId, templateId);
             itemPlayerPacket.OperationBytes = opBytes;
@@ -131,15 +143,11 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override async Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
-            //BepInLogger.LogDebug("LoadMagazine");
-            //BepInLogger.LogDebug($"{sourceAmmo}:{magazine}:{loadCount}:{ignoreRestrictions}");
-            //StopProcesses();
-            ////return await base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
-            //return await base.LoadMagazine(sourceAmmo, magazine, loadCount, true);
+            return await base.LoadMagazine(sourceAmmo, magazine, loadCount, true);
 
-            NotificationManagerClass.DisplayWarningNotification("SIT: Unsupported feature [LoadMagazine]");
+            //NotificationManagerClass.DisplayWarningNotification("SIT: Unsupported feature [LoadMagazine]");
 
-            return null;
+            //return null;
         }
 
       

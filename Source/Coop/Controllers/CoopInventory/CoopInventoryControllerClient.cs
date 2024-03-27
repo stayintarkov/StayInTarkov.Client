@@ -5,19 +5,47 @@ using EFT.InventoryLogic;
 using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     public sealed class CoopInventoryControllerClient
-        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController
+        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController, IIdGenerator
     {
         ManualLogSource BepInLogger { get; set; }
 
-        public CoopInventoryControllerClient(EFT.Player player, Profile profile, bool examined)
+        //public MongoID? ForcedExpectedId { get; set; }
+        public override MongoID NextId 
+        { 
+            get 
+            {
+                //BepInLogger.LogDebug("Getting NextId");
+                //if (ForcedExpectedId != null) 
+                //{
+                //    var result = new MongoID(ForcedExpectedId.Value);
+                //    ForcedExpectedId = null;
+                //    BepInLogger.LogDebug($">> {result}");
+                //    return result;
+                //}
+
+                mongoID_0++;
+                BepInLogger.LogDebug($">> {mongoID_0}");
+                return mongoID_0;
+            } 
+        }
+
+        public CoopInventoryControllerClient(EFT.Player player, Profile profile, bool examined, string initialMongoId)
             : base(player, profile, examined)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryControllerClient));
             BepInLogger.LogDebug(nameof(CoopInventoryControllerClient));
+            mongoID_0 = new MongoID(initialMongoId);
+            mongoID_0--;
+        }
+
+        public string GetMongoId()
+        {
+            return mongoID_0;
         }
 
         public override bool HasDiscardLimits => false;
@@ -122,7 +150,17 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public void ReceiveExecute(AbstractInventoryOperation operation)
         {
             BepInLogger.LogDebug("ReceiveExecute");
-            operation.vmethod_0((r) => { });
+            operation.vmethod_0((r) => 
+            { 
+                if (r.Failed) 
+                    BepInLogger.LogError(r.Error); 
+
+                if (r.Succeed)
+                {
+                    //BepInLogger.LogDebug(operation.ToJson());
+                }
+
+            });
         }
 
 
