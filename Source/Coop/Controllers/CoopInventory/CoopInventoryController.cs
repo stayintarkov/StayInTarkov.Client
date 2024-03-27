@@ -154,12 +154,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
+            //BepInLogger.LogDebug($"Starting UnloadMagazine for magazine {magazine.Id}");
 
-            PlayerInventoryUnloadMagazinePacket packet = new();
-            packet.ProfileId = Player.ProfileId;
-            packet.ItemId = magazine.Id;
-            GameClient.SendData(packet.Serialize());
+            //PlayerInventoryUnloadMagazinePacket packet = new();
+            //packet.ProfileId = Player.ProfileId;
+            //packet.ItemId = magazine.Id;
+            //GameClient.SendData(packet.Serialize());
 
             return await base.UnloadMagazine(magazine);
 
