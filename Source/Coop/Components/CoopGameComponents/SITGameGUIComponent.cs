@@ -187,153 +187,169 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
         {
-            if (SITConfig == null)
+            try
             {
-                Logger.LogError("SITConfig is null?");
-                return;
-            }
-
-            if (!SITConfig.showPlayerNameTags)
-            {
-                return;
-            }
-
-            if (FPSCamera.Instance == null)
-                return;
-
-            if (Players == null)
-                return;
-
-            if (Users == null)
-                return;
-
-            if (Camera.current == null)
-                return;
-
-            if (!Singleton<GameWorld>.Instantiated)
-                return;
-
-
-            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-
-            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            if (ownPlayer == null)
-                return;
-
-            // Paulov: Do not show labels whilst in Inventory, its annoying!
-            if (ownPlayer.IsInventoryOpened)
-                return;
-
-            foreach (var pl in Users)
-            {
-                if (pl == null)
-                    continue;
-
-                if (pl.HealthController == null)
-                    continue;
-
-                if (pl.IsYourPlayer && pl.HealthController.IsAlive)
-                    continue;
-
-                Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f);
-                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                if (screenPos.z > 0)
+                if (SITConfig == null)
                 {
-                    rect.x = screenPos.x * screenScale - rect.width / 2;
-                    rect.y = Screen.height - (screenPos.y + rect.height / 2) * screenScale;
-
-                    GUIStyle labelStyle = middleLabelStyle;
-                    labelStyle.fontSize = 14;
-                    float labelOpacity = 1;
-                    float distanceToCenter = Vector3.Distance(screenPos, new Vector3(Screen.width, Screen.height, 0) / 2);
-
-                    if (distanceToCenter < 100)
-                    {
-                        labelOpacity = distanceToCenter / 100;
-                    }
-
-                    if (ownPlayer.HandsController.IsAiming)
-                    {
-                        labelOpacity *= 0.5f;
-                    }
-
-                    if (pl.HealthController.IsAlive)
-                    {
-                        var maxHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Maximum;
-                        var currentHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Current / maxHealth;
-                        labelStyle.normal.textColor = new Color(2.0f * (1 - currentHealth), 2.0f * currentHealth, 0, labelOpacity);
-                    }
-                    else
-                    {
-                        labelStyle.normal.textColor = new Color(255, 0, 0, labelOpacity);
-                    }
-
-                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
-                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", labelStyle);
+                    Logger.LogError("SITConfig is null?");
+                    return;
                 }
+
+                if (!SITConfig.showPlayerNameTags)
+                {
+                    return;
+                }
+
+                if (FPSCamera.Instance == null)
+                    return;
+
+                if (Players == null)
+                    return;
+
+                if (Users == null)
+                    return;
+
+                if (Camera.current == null)
+                    return;
+
+                if (!Singleton<GameWorld>.Instantiated)
+                    return;
+
+                if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                    screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                if (ownPlayer == null)
+                    return;
+
+                // Paulov: Do not show labels whilst in Inventory, its annoying!
+                if (ownPlayer.IsInventoryOpened)
+                    return;
+
+                foreach (var pl in Users)
+                {
+                    if (pl == null)
+                        continue;
+
+                    if (pl.HealthController == null)
+                        continue;
+
+                    if (pl.IsYourPlayer && pl.HealthController.IsAlive)
+                        continue;
+
+                    if (pl.PlayerBones == null)
+                        continue;
+
+                    Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f);
+                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                    if (screenPos.z > 0)
+                    {
+                        rect.x = screenPos.x * screenScale - rect.width / 2;
+                        rect.y = Screen.height - (screenPos.y + rect.height / 2) * screenScale;
+
+                        GUIStyle labelStyle = middleLabelStyle;
+                        labelStyle.fontSize = 14;
+                        float labelOpacity = 1;
+                        float distanceToCenter = Vector3.Distance(screenPos, new Vector3(Screen.width, Screen.height, 0) / 2);
+
+                        if (distanceToCenter < 100)
+                        {
+                            labelOpacity = distanceToCenter / 100;
+                        }
+
+                        if (ownPlayer.HandsController.IsAiming)
+                        {
+                            labelOpacity *= 0.5f;
+                        }
+
+                        if (pl.HealthController.IsAlive)
+                        {
+                            var maxHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Maximum;
+                            var currentHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Current / maxHealth;
+                            labelStyle.normal.textColor = new Color(2.0f * (1 - currentHealth), 2.0f * currentHealth, 0, labelOpacity);
+                        }
+                        else
+                        {
+                            labelStyle.normal.textColor = new Color(255, 0, 0, labelOpacity);
+                        }
+
+                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
+                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", labelStyle);
+                    }
+                }
+            }
+            catch
+            {
+
             }
         }
 
         private void OnGUI_DrawPlayerEnemyTags(Rect rect)
         {
-            if (SITConfig == null)
+            try
             {
-                Logger.LogError("SITConfig is null?");
-                return;
-            }
-
-            if (!SITConfig.showPlayerNameTagsForEnemies)
-            {
-                return;
-            }
-
-            if (FPSCamera.Instance == null)
-                return;
-
-            if (Players == null)
-                return;
-
-            if (Users == null)
-                return;
-
-            if (Camera.current == null)
-                return;
-
-            if (!Singleton<GameWorld>.Instantiated)
-                return;
-
-
-            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-
-            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            if (ownPlayer == null)
-                return;
-
-            foreach (var pl in Bots)
-            {
-                if (pl == null)
-                    continue;
-
-                if (pl.HealthController == null)
-                    continue;
-
-                if (!pl.HealthController.IsAlive)
-                    continue;
-
-                Vector3 aboveBotHeadPos = pl.Position + Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f);
-                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                if (screenPos.z > 0)
+                if (SITConfig == null)
                 {
-                    rect.x = screenPos.x * screenScale - rect.width / 2;
-                    rect.y = Screen.height - screenPos.y * screenScale - 15;
-
-                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
-                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
-                    rect.y += 15;
-                    GUI.Label(rect, $"X", middleLabelStyle);
+                    Logger.LogError("SITConfig is null?");
+                    return;
                 }
+
+                if (!SITConfig.showPlayerNameTagsForEnemies)
+                {
+                    return;
+                }
+
+                if (FPSCamera.Instance == null)
+                    return;
+
+                if (Players == null)
+                    return;
+
+                if (Users == null)
+                    return;
+
+                if (Camera.current == null)
+                    return;
+
+                if (!Singleton<GameWorld>.Instantiated)
+                    return;
+
+
+                if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                    screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                if (ownPlayer == null)
+                    return;
+
+                foreach (var pl in Bots)
+                {
+                    if (pl == null)
+                        continue;
+
+                    if (pl.HealthController == null)
+                        continue;
+
+                    if (!pl.HealthController.IsAlive)
+                        continue;
+
+                    Vector3 aboveBotHeadPos = pl.Position + Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f);
+                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                    if (screenPos.z > 0)
+                    {
+                        rect.x = screenPos.x * screenScale - rect.width / 2;
+                        rect.y = Screen.height - screenPos.y * screenScale - 15;
+
+                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
+                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
+                        rect.y += 15;
+                        GUI.Label(rect, $"X", middleLabelStyle);
+                    }
+                }
+            }
+            catch
+            {
+
             }
         }
 
