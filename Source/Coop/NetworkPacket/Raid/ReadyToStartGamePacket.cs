@@ -31,6 +31,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override void Process()
         {
+            // ----------------------------------------------------------------------------------------------
+            // Receive the Packet
+            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(ReadyToStartGamePacket)}:{nameof(Process)}");
+            EFT.UI.ConsoleScreen.Log($"{nameof(ReadyToStartGamePacket)}:{nameof(Process)}");
+            // ----------------------------------------------------------------------------------------------
+
             Singleton<ISITGame>.Instance.ReadyPlayers++;
         }
     }
