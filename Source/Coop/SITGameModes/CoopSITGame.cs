@@ -501,9 +501,9 @@ namespace StayInTarkov.Coop.SITGameModes
                     continue;
                 }
                 float bossChance = bossLocationSpawn.BossChance;
-#if DEBUG
-                bossChance = 100f;
-#endif
+//#if DEBUG
+//                bossChance = 100f;
+//#endif
                 if (CanSpawnCultist(GameWorldTime.Hour) && (bossLocationSpawn.BossType == WildSpawnType.sectantPriest || bossLocationSpawn.BossType == WildSpawnType.sectantWarrior))
                 {
                     Logger.LogDebug($"Block spawn of Sectant (Cultist) in day time in hour {GameWorldTime.Hour}!");
