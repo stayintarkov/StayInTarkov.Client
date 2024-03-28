@@ -107,16 +107,17 @@ namespace StayInTarkov.Coop.Components
             if (ActionSITPackets.Count > 0)
             {
                 Stopwatch stopwatchActionPackets = Stopwatch.StartNew();
-                while (ActionSITPackets.TryTake(out var result))
+                while (ActionSITPackets.TryTake(out var packet))
                 {
                     
                     Stopwatch stopwatchActionPacket = Stopwatch.StartNew();
-                    if (!ProcessSITActionPackets(result))
-                    {
-                        continue;
-                    }
-                }
+                    packet.Process();
 
+                    if (stopwatchActionPacket.ElapsedMilliseconds > 1)
+                        Logger.LogDebug($"ActionSITPacket {packet.Method} took {stopwatchActionPacket.ElapsedMilliseconds}ms to process!");
+                }
+                if (stopwatchActionPackets.ElapsedMilliseconds > 1)
+                    Logger.LogDebug($"ActionSITPackets took {stopwatchActionPackets.ElapsedMilliseconds}ms to process!");
             }
 
             if (ActionPackets.Count > 0)
