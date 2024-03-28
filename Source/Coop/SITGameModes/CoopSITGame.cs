@@ -9,6 +9,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using CommonAssets.Scripts.Game;
 using EFT;
+using EFT.AssetsManager;
 using EFT.Bots;
 using EFT.CameraControl;
 using EFT.EnvironmentEffect;
@@ -138,12 +139,9 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopSITGame));
             Logger.LogInfo("CoopGame.Create");
 
-            if (wavesSettings.BotAmount == EBotAmount.NoBots && SITMatchmaking.IsServer)
-                wavesSettings.BotAmount = EBotAmount.Medium;
-
-            location.OfflineNewSpawn = false;
-            location.OfflineOldSpawn = true;
-            location.OldSpawn = true;
+            //location.OfflineNewSpawn = false;
+            //location.OfflineOldSpawn = true;
+            //location.OldSpawn = true;
 
             CoopSITGame coopGame = 
                 smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
@@ -151,6 +149,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ---------------------------------------------------------------------------------
             // Non Waves Scenario setup
+            WildSpawnWave[] waves = FixScavWaveSettings(wavesSettings, location.waves);
             coopGame.nonWavesSpawnScenario_0 = NonWavesSpawnScenario.smethod_0(coopGame, location, coopGame.PBotsController);
             coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
 
@@ -158,7 +157,7 @@ namespace StayInTarkov.Coop.SITGameModes
             // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = WavesSpawnScenario.smethod_0(
                     coopGame.gameObject
-                    , location.waves
+                    , waves
                     , new Action<BotSpawnWave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
                     , location);
 
@@ -417,6 +416,49 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
             }
         }
+
+
+        public static WildSpawnWave[] FixScavWaveSettings(WavesSettings wavesSettings, WildSpawnWave[] waves)
+        {
+            Logger.LogDebug($"{nameof(CoopSITGame)}:{nameof(FixScavWaveSettings)}");
+
+            foreach (WildSpawnWave wildSpawnWave in waves)
+            {
+                wildSpawnWave.slots_min = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : 1;
+                wildSpawnWave.slots_max = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : Math.Max(1, wildSpawnWave.slots_max);
+                if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
+                {
+                    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
+                }
+                if (wavesSettings.IsBosses)
+                {
+                    wildSpawnWave.time_min += 5;
+                    wildSpawnWave.time_max += 27;
+                }
+                wildSpawnWave.BotDifficulty = ToBotDifficulty(wavesSettings.BotDifficulty);
+            }
+            return waves;
+        }
+
+        public static BotDifficulty ToBotDifficulty(EBotDifficulty botDifficulty)
+        {
+            return botDifficulty switch
+            {
+                EBotDifficulty.Easy => BotDifficulty.easy,
+                EBotDifficulty.Medium => BotDifficulty.normal,
+                EBotDifficulty.Hard => BotDifficulty.hard,
+                EBotDifficulty.Impossible => BotDifficulty.impossible,
+                EBotDifficulty.Random => SelectRandomBotDifficulty(),
+                _ => BotDifficulty.normal,
+            };
+        }
+
+        public static BotDifficulty SelectRandomBotDifficulty()
+        {
+            Array values = Enum.GetValues(typeof(BotDifficulty));
+            return (BotDifficulty)values.GetValue(UnityEngine.Random.Range(0, values.Length));
+        }
+
 
         public static BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location, TimeAndWeatherSettings timeAndWeather)
         {
@@ -923,8 +965,6 @@ namespace StayInTarkov.Coop.SITGameModes
             // Here we can wait for other players, if desired
             TimeSpan waitTimeout = TimeSpan.FromSeconds(PluginConfigSettings.Instance.CoopSettings.WaitingTimeBeforeStart);
 
-            //await Task.Run(async () =>
-            //{
             if (coopGameComponent != null)
             {
                 System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start the stopwatch immediately.
@@ -964,66 +1004,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public static void SendPlayerDataToServer(LocalPlayer player, Vector3 position)
         {
+#if DEBUG
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
-            //var profileJson = player.Profile.SITToJson();
-
-
-
-            //Dictionary<string, object> packet = new()
-            //{
-            //            {
-            //                "serverId",
-            //                SITMatchmaking.GetGroupId()
-            //            },
-            //            {
-            //            "isAI",
-            //                //player.IsAI && player.AIData != null && player.AIData.IsAI && !player.IsYourPlayer
-            //                !player.IsYourPlayer && (player as CoopPlayerClient == null)
-            //            },
-            //            {
-            //                "profileId",
-            //                player.ProfileId
-            //            },
-            //            {
-            //                "groupId",
-            //                SITMatchmaking.GetGroupId()
-            //            },
-            //            {
-            //                "sPx",
-            //                player.Transform.position.x
-            //            },
-            //            {
-            //                "sPy",
-            //                player.Transform.position.y
-            //            },
-            //            {
-            //                "sPz",
-            //                player.Transform.position.z
-            //            },
-            //            //{
-            //            //    "profileJson",
-            //            //    profileJson
-            //            //},
-            //            { "m", "PlayerSpawn" },
-            //        };
-
-
-            ////Logger.LogDebug(packet.ToJson());
-
-            //var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            //prc.player = player;
-            ////AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
-
-            // ------------------------------------------------------------------------------------
-            // Send the information to the server
-            // Paulov: TODO: Remove this need for this to occur. The WebSocket requires this to create a "ConnectedUser" if using Relay
-            //Logger.LogDebug($"{nameof(SendPlayerDataToServer)}:PostJsonAsync");
-            //_ = Task.Run(async () => 
-            //    {
-            //        await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.SITToJson());
-            //    }
-            //);
-
+#endif
 
             // Sends out to all clients that this Character has spawned
             var infoPacket = SpawnPlayersPacket.CreateInformationPacketFromPlayer(player);
@@ -1459,13 +1442,51 @@ namespace StayInTarkov.Coop.SITGameModes
             // end of BaseLocalGame Stop method
             // -----------------------------------------------------------------------------------------------
 
-            CoopPatches.LeftGameDestroyEverything();
+            //CoopPatches.LeftGameDestroyEverything();
         }
+
+        //public new void Update()
+        //{
+        //    UpdateByUnity?.Invoke();    
+        //}
 
         public override void CleanUp()
         {
+            foreach (EFT.Player value in Bots.Values)
+            {
+                try
+                {
+                    value.Dispose();
+                    AssetPoolObject.ReturnToPool(value.gameObject);
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogException(exception);
+                }
+            }
+            Bots.Clear();
+
+            if (SITGameComponent.TryGetCoopGameComponent(out var gameComponent))
+            {
+                if (gameComponent.PlayerClients != null)
+                {
+                    foreach (EFT.Player value in gameComponent.PlayerClients)
+                    {
+                        try
+                        {
+                            value.Dispose();
+                            AssetPoolObject.ReturnToPool(value.gameObject);
+                        }
+                        catch (Exception exception)
+                        {
+                            UnityEngine.Debug.LogException(exception);
+                        }
+                    }
+                    gameComponent.PlayerClients.Clear();
+                }
+            }
+
             base.CleanUp();
-            smethod_4(Bots);
         }
 
         public override void Dispose()
@@ -1523,7 +1544,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
             }
             BackendConfigSettingsClass instance = Singleton<BackendConfigSettingsClass>.Instance;
-            if (instance != null && instance.EventSettings.EventActive && !instance.EventSettings.LocationsToIgnore.Contains(location._Id))
+            if (instance != null && instance.HalloweenSettings.EventActive && !instance.HalloweenSettings.LocationsToIgnore.Contains(location._Id))
             {
                 GameObject gameObject = (GameObject)Resources.Load("Prefabs/HALLOWEEN_CONTROLLER");
                 if (gameObject != null)
@@ -1556,6 +1577,13 @@ namespace StayInTarkov.Coop.SITGameModes
             method_5(botsSettings, SpawnSystem, runCallback);
         }
 
+        class PlayerLoopSystemType
+        {
+            public PlayerLoopSystemType()
+            {
+
+            }
+        }
        
 
         public async Task SpawnLoot(LocationSettingsClass.Location location)
@@ -1577,19 +1605,19 @@ namespace StayInTarkov.Coop.SITGameModes
                     //ReflectionHelpers.GetMethodForType(parentPlayerLoopSystemType, "FindParentPlayerLoopSystem").Invoke(null, new object[] { currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), playerLoopSystem, index });
                     
                     // TODO: Remap or figure out a way to avoid this
-                    GClass567.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out playerLoopSystem, out index);
+                    GClass572.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out playerLoopSystem, out index);
                     PlayerLoopSystem[] array2 = new PlayerLoopSystem[playerLoopSystem.subSystemList.Length];
                     if (index != -1)
                     {
                         Array.Copy(playerLoopSystem.subSystemList, array2, playerLoopSystem.subSystemList.Length);
                         PlayerLoopSystem playerLoopSystem2 = default(PlayerLoopSystem);
                         playerLoopSystem2.updateDelegate = smethod_3;
-                        playerLoopSystem2.type = typeof(Class1359);
+                        playerLoopSystem2.type = typeof(PlayerLoopSystemType);
                         PlayerLoopSystem playerLoopSystem3 = playerLoopSystem2;
                         playerLoopSystem.subSystemList[index] = playerLoopSystem3;
                         PlayerLoop.SetPlayerLoop(currentPlayerLoop);
                     }
-                    await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, array, JobPriority.General, new GClass3262<GStruct118>(delegate (GStruct118 p)
+                    await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, array, JobPriority.General, new GClass3273<GStruct118>(delegate (GStruct118 p)
                     {
                         SetMatchmakerStatus("Loading loot... " + p.Stage, p.Progress);
                     }));

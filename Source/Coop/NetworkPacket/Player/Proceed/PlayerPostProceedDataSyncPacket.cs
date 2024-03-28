@@ -1,15 +1,5 @@
-﻿using EFT.InventoryLogic;
-using StayInTarkov.Coop.Components.CoopGameComponents;
-using StayInTarkov.Coop.Players;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using StayInTarkov.Coop.Players;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using static GClass648;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 {
