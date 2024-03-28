@@ -112,6 +112,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         public ConcurrentDictionary<string, PlayerInformationPacket> PlayersToSpawnPacket { get; private set; } = new();
         public Dictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
         public ConcurrentDictionary<string, Vector3> PlayersToSpawnPositions { get; private set; } = new();
+        public ConcurrentDictionary<string, string> PlayerInventoryMongoIds { get; private set; } = new();
 
         public HashSet<string> ProfileIdsAI { get; } = new();
         public HashSet<string> ProfileIdsUser { get; } = new();
@@ -944,7 +945,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         continue;
 
                     Vector3 newPosition = PlayersToSpawnPacket[p.Key].BodyPosition;
-                    ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false);
+                    ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false, PlayersToSpawnPacket[p.Key].InitialInventoryMongoId);
                 }
 
 
@@ -952,7 +953,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //}
         }
 
-        private void ProcessPlayerBotSpawn(PlayerInformationPacket packet, string profileId, Vector3 newPosition, bool isBot)
+        private void ProcessPlayerBotSpawn(PlayerInformationPacket packet, string profileId, Vector3 newPosition, bool isBot, string mongoId)
         {
             // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
@@ -974,22 +975,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
             }
 
+            if (!PlayerInventoryMongoIds.ContainsKey(profileId))
+                PlayerInventoryMongoIds.TryAdd(profileId, mongoId);
 
-            // If CreatePhysicalOtherPlayerOrBot has been done before. Then ignore the Deserialization section and continue.
-            //if (PlayersToSpawn.ContainsKey(profileId)
-            //    && PlayersToSpawnProfiles.ContainsKey(profileId)
-            //    && PlayersToSpawnProfiles[profileId] != null
-            //    )
-            //{
-            //    var isDead = false;
-            //    if (packet.ContainsKey("isDead"))
-            //    {
-            //        Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Packet for {profileId} contains DEATH message, registered handling of this on spawn");
-            //        isDead = bool.Parse(packet["isDead"].ToString());
-            //    }
-            //    CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[profileId], newPosition, isDead);
-            //    return;
-            //}
 
             if (!PlayersToSpawnPositions.ContainsKey(profileId))
                 PlayersToSpawnPositions.TryAdd(profileId, newPosition);
@@ -1191,6 +1179,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                , null
                , isYourPlayer: false
                , isClientDrone: true
+               , initialMongoId: PlayerInventoryMongoIds[profile.Id]    
                ).Result;
 
             if (otherPlayer == null)

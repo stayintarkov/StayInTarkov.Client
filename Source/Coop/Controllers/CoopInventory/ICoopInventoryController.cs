@@ -13,5 +13,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
     {
         public void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback);
 
+        public string GetMongoId();
+
     }
 }

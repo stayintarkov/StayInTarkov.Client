@@ -64,7 +64,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public EArmorPlateCollider ArmorPlateColliderMask;
 
-        public Inventory Inventory;
+        public EFT.InventoryLogic.Inventory Inventory;
 
         public HandsCommandMessage HandsController;
 
@@ -100,6 +100,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         //public ArenaObservedPlayerSpawnMessage ArenaObservedPlayerSpawnMessage;
 
+        public string InitialInventoryMongoId { get; set; } 
 
 
         public override byte[] Serialize()
@@ -121,6 +122,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             writer.Write(NickName);
             writer.Write(AccountId);
             writer.Write((short)ArmorPlateColliderMask);
+
+            writer.Write(InitialInventoryMongoId);
+
             //writer.Write(InventorySerializationHelpers.SerializeInventory(Inventory));
             //SerializeInventory(writer);
             //HandsController.Serialize(writer);
@@ -158,6 +162,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             NickName = reader.ReadString();
             AccountId = reader.ReadString();
             ArmorPlateColliderMask = (EArmorPlateCollider)reader.ReadShort();
+
+            InitialInventoryMongoId = reader.ReadString();
             //Inventory = InventorySerializationHelpers.DeserializeInventory(Singleton<ItemFactory>.Instance, reader.ReadEFTInventoryDescriptor());
             //HandsController = GClass2310.GetCommand<HandsCommandMessage>(CommandMessageType.SetHands);
             //HandsController.Deserialize(reader);

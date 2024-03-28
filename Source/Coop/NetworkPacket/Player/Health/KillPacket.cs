@@ -1,5 +1,4 @@
 ﻿using EFT;
-using SIT.Core.Coop.PacketHandlers;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.Collections.Generic;
