@@ -871,12 +871,11 @@ namespace StayInTarkov.Coop.SITGameModes
                     SendRequestSpawnPlayersPacket();
                     //});
 
-                    var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
                     var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
 
                     if (SITMatchmaking.TimeHasComeScreenController != null)
                     {
-                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_SPAWN"].ToString(), numbersOfPlayersToWaitFor), progress);
+                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_SPAWN"].ToString(), numbersOfPlayersToWaitFor));
                     }
 
                     if (coopGameComponent.PlayerUsers.Count() >= SITMatchmaking.HostExpectedNumberOfPlayers)
@@ -932,12 +931,11 @@ namespace StayInTarkov.Coop.SITGameModes
 
                     await Task.Delay(1000);
 
-                    var progress = coopGameComponent.PlayerUsers.Count() / SITMatchmaking.HostExpectedNumberOfPlayers;
                     var numbersOfPlayersToWaitFor = SITMatchmaking.HostExpectedNumberOfPlayers - ReadyPlayers;
 
                     if (SITMatchmaking.TimeHasComeScreenController != null)
                     {
-                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_BE_READY"].ToString(), numbersOfPlayersToWaitFor), progress);
+                        SITMatchmaking.TimeHasComeScreenController.ChangeStatus(string.Format(StayInTarkovPlugin.LanguageDictionary["WAITING_FOR_PLAYERS_TO_BE_READY"].ToString(), numbersOfPlayersToWaitFor));
                     }
 
                     if (ReadyPlayers >= SITMatchmaking.HostExpectedNumberOfPlayers)
