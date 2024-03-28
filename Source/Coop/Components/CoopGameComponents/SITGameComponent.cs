@@ -31,7 +31,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 using Rect = UnityEngine.Rect;
-using BSGMemoryGC = GClass772;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using Diz.Jobs;
 using System.Net.NetworkInformation;
