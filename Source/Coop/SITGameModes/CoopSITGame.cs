@@ -1544,7 +1544,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
             }
             BackendConfigSettingsClass instance = Singleton<BackendConfigSettingsClass>.Instance;
-            if (instance != null && instance.EventSettings.EventActive && !instance.EventSettings.LocationsToIgnore.Contains(location._Id))
+            if (instance != null && instance.HalloweenSettings.EventActive && !instance.HalloweenSettings.LocationsToIgnore.Contains(location._Id))
             {
                 GameObject gameObject = (GameObject)Resources.Load("Prefabs/HALLOWEEN_CONTROLLER");
                 if (gameObject != null)
@@ -1577,6 +1577,13 @@ namespace StayInTarkov.Coop.SITGameModes
             method_5(botsSettings, SpawnSystem, runCallback);
         }
 
+        class PlayerLoopSystemType
+        {
+            public PlayerLoopSystemType()
+            {
+
+            }
+        }
        
 
         public async Task SpawnLoot(LocationSettingsClass.Location location)
@@ -1598,19 +1605,19 @@ namespace StayInTarkov.Coop.SITGameModes
                     //ReflectionHelpers.GetMethodForType(parentPlayerLoopSystemType, "FindParentPlayerLoopSystem").Invoke(null, new object[] { currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), playerLoopSystem, index });
                     
                     // TODO: Remap or figure out a way to avoid this
-                    GClass567.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out playerLoopSystem, out index);
+                    GClass572.FindParentPlayerLoopSystem(currentPlayerLoop, typeof(EarlyUpdate.UpdateTextureStreamingManager), out playerLoopSystem, out index);
                     PlayerLoopSystem[] array2 = new PlayerLoopSystem[playerLoopSystem.subSystemList.Length];
                     if (index != -1)
                     {
                         Array.Copy(playerLoopSystem.subSystemList, array2, playerLoopSystem.subSystemList.Length);
                         PlayerLoopSystem playerLoopSystem2 = default(PlayerLoopSystem);
                         playerLoopSystem2.updateDelegate = smethod_3;
-                        playerLoopSystem2.type = typeof(Class1359);
+                        playerLoopSystem2.type = typeof(PlayerLoopSystemType);
                         PlayerLoopSystem playerLoopSystem3 = playerLoopSystem2;
                         playerLoopSystem.subSystemList[index] = playerLoopSystem3;
                         PlayerLoop.SetPlayerLoop(currentPlayerLoop);
                     }
-                    await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, array, JobPriority.General, new GClass3262<GStruct118>(delegate (GStruct118 p)
+                    await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, array, JobPriority.General, new GClass3273<GStruct118>(delegate (GStruct118 p)
                     {
                         SetMatchmakerStatus("Loading loot... " + p.Stage, p.Progress);
                     }));
