@@ -61,7 +61,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override void Process()
         {
-            //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(RequestSpawnPlayersPacket)}.{nameof(Process)}");
+
+            // ------------------------------------------------------------------------------------------
+            // Receive the Packet
+            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(RequestSpawnPlayersPacket)}:{nameof(Process)}");
+            EFT.UI.ConsoleScreen.Log($"{nameof(RequestSpawnPlayersPacket)}:{nameof(Process)}");
+            // ------------------------------------------------------------------------------------------
 
             SpawnPlayersPacket.CreateFromGame(ExistingProfileIds);
         }

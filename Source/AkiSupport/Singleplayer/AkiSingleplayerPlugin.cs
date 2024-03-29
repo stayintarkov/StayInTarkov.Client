@@ -34,6 +34,8 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new LighthouseBridgePatch().Enable();
                 new LighthouseTransmitterPatch().Enable();
                 new LabsKeycardRemovalPatch().Enable();
+                new AmmoUsedCounterPatch().Enable();
+                new ArmorDamageCounterPatch().Enable();
                 
                 // Scav Patches
                 new ScavExperienceGainPatch().Enable();
@@ -49,6 +51,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new ScavEncyclopediaPatch().Enable();
                 new ScavItemCheckmarkPatch().Enable();
                 new IsHostileToEverybodyPatch().Enable();
+                new ScavRepAdjustmentPatch().Enable();
                 
                 // Unused Patches
                 //new OfflineSaveProfilePatch().Enable();
