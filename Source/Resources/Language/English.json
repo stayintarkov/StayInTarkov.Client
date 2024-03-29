@@ -79,5 +79,10 @@
   "CREATED_COOP_GAME": "Created Coop Game",
   "WAITING_FOR_PLAYERS_TO_SPAWN": "Waiting for {0} Player(s) to Spawn",
   "WAITING_FOR_PLAYERS_TO_BE_READY": "Waiting for {0} Player(s) to finish loading",
-  "WAITING_FOR_HOST_TO_BE_READY": "Waiting for Host to Start Game"
+  "WAITING_FOR_HOST_TO_BE_READY": "Waiting for Host to Start Game",
+  "COOP_GAME": "Coop Game",
+  "MP_GAME": "Multiplayer Game",
+  "COOP_GAME_HEADLESS": "Game [HEADLESS COOP]",
+  "MP_GAME_HEADLESS": "Game [HEADLESS MP]"
+
 }

@@ -14,11 +14,12 @@ using UnityEngine;
 
 namespace StayInTarkov.Coop.Matchmaker
 {
-    public enum EMatchmakerType
+    public enum EMatchmakerType : byte
     {
         Single = 0,
         GroupPlayer = 1,
-        GroupLeader = 2
+        GroupLeader = 2,
+        HeadlessHost = 3
     }
 
     public static class SITMatchmaking
@@ -30,6 +31,7 @@ namespace StayInTarkov.Coop.Matchmaker
         public static bool IsServer => MatchingType == EMatchmakerType.GroupLeader;
         public static bool IsClient => MatchingType == EMatchmakerType.GroupPlayer;
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
+        public static bool IsHeadlessHost => MatchingType == EMatchmakerType.HeadlessHost;
         public static int HostExpectedNumberOfPlayers { get; set; } = 1;
         private static string groupId;
         private static long timestamp;

@@ -13,12 +13,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
     public sealed class MultiplayerSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-        public string DisplayName { get; } = "Coop Game";
+        public string DisplayName => StayInTarkovPlugin.LanguageDictionary["COOP_GAME_HEADLESS"].ToString();
 
         public List<string> ExtractedPlayers => throw new NotImplementedException();
 
@@ -35,6 +36,11 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public int ReadyPlayers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool HostReady { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public Task CreateOwnPlayer(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestControllerClass questController, AbstractAchievementControllerClass achievementsController)
+        {
+            throw new NotImplementedException();
+        }
 
         public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback)
         {

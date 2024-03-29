@@ -50,9 +50,9 @@ namespace StayInTarkov.Coop.SITGameModes
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    public sealed class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    public class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
-        public string DisplayName { get; } = "Coop Game";
+        public virtual string DisplayName { get; } = StayInTarkovPlugin.LanguageDictionary["COOP_GAME"].ToString();
 
         public new bool InRaid { get { return true; } }
 
@@ -822,7 +822,7 @@ namespace StayInTarkov.Coop.SITGameModes
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
-        private async Task WaitForPlayersToSpawn()
+        public async Task WaitForPlayersToSpawn()
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
@@ -900,7 +900,7 @@ namespace StayInTarkov.Coop.SITGameModes
             GameClient.SendData(packet.Serialize());
         }
 
-        private async Task WaitForPlayersToBeReady()
+        public async Task WaitForPlayersToBeReady()
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
@@ -963,7 +963,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
         }
 
-        private async Task WaitForHostToStart()
+        public async Task WaitForHostToStart()
         {
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
@@ -1349,8 +1349,8 @@ namespace StayInTarkov.Coop.SITGameModes
         public string MyExitLocation { get; set; } = null;
         public ISpawnSystem SpawnSystem { get; set; }
         public int MaxBotCount { get; private set; }
-        public IGameClient GameClient { get; private set; }
-        public GameServerUDP GameServer { get; private set; }
+        public IGameClient GameClient { get; protected set; }
+        public GameServerUDP GameServer { get; protected set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
         {
@@ -1521,17 +1521,17 @@ namespace StayInTarkov.Coop.SITGameModes
             yield break;
         }
 
-        private BossWaveManager BossWaveManager;
+        protected BossWaveManager BossWaveManager;
 
-        private WavesSpawnScenario wavesSpawnScenario_0;
+        protected WavesSpawnScenario wavesSpawnScenario_0;
 
-        public BossLocationSpawn[] BossWaves { get; private set; }
+        public BossLocationSpawn[] BossWaves { get; protected set; }
         public int ReadyPlayers { get; set; }
         public bool HostReady { get; set; }
 
-        private NonWavesSpawnScenario nonWavesSpawnScenario_0;
+        protected NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
-        private Func<EFT.Player, GamePlayerOwner> func_1;
+        protected Func<EFT.Player, GamePlayerOwner> func_1;
 
 
         public new void method_6(string backendUrl, string locationId, int variantId)
@@ -1660,6 +1660,11 @@ namespace StayInTarkov.Coop.SITGameModes
             obj.Location = Location_0.Id;
             obj.OnEpInteraction += base.OnEpInteraction;
             return obj;
+        }
+
+        public Task CreateOwnPlayer(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, AbstractQuestControllerClass questController, AbstractAchievementControllerClass achievementsController)
+        {
+            throw new NotImplementedException();
         }
     }
 }

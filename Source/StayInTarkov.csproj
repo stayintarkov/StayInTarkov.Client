@@ -147,6 +147,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Folder Include="Coop\SITGameModes\SelfHosted\" />
     <Folder Include="Networking\Nat\" />
     <Folder Include="Multiplayer\" />
     <Folder Include="Properties\" />
