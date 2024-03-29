@@ -670,6 +670,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                                     }
                                 }
                             }
+#if DEBUG
+                            Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::1");
+                            Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
+#endif
                             Singleton<ISITGame>.Instance.Stop(
                                 Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                                 , Singleton<ISITGame>.Instance.MyExitStatus
@@ -732,6 +736,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                                 }
                             }
                         }
+#if DEBUG
+                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::2");
+                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
+#endif
                         Singleton<ISITGame>.Instance.Stop(
                             Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                             , Singleton<ISITGame>.Instance.MyExitStatus
@@ -818,6 +826,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                                         }
                                     }
                                 }
+#if DEBUG
+                                Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::3");
+                                Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
+#endif
                                 Singleton<ISITGame>.Instance.Stop(
                                     Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                                     , Singleton<ISITGame>.Instance.MyExitStatus
@@ -893,6 +905,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                                 }
                             }
                         }
+#if DEBUG
+                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::4");
+                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
+#endif
                         Singleton<ISITGame>.Instance.Stop(
                             Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                             , Singleton<ISITGame>.Instance.MyExitStatus
