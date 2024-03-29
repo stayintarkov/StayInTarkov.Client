@@ -35,6 +35,7 @@ using StayInTarkov.Coop.NetworkPacket.Raid;
 using Diz.Jobs;
 using System.Net.NetworkInformation;
 using EFT.Counters;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -625,20 +626,126 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                     else
                     {
+                        if (Singleton<ISITGame>.Instance.MyExitLocation == null)
+                        {
+                            var gameWorld = Singleton<GameWorld>.Instance;
+                            List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
+                            List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                            foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
+                            {
+                                if (exfil is ScavExfiltrationPoint scavExfil)
+                                {
+                                    scavExfilFiltered.Add(scavExfil);
+                                }
+                                else
+                                {
+                                    pmcExfilPiltered.Add(exfil);
+                                }
+                            }
+
+                            var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
+                            var minDist = Mathf.Infinity;
+                            var closestExitLocation = "";
+                            if (RaidChangesUtil.IsScavRaid)
+                            {
+                                foreach (var filter in scavExfilFiltered)
+                                {
+                                    var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                    if (dist < minDist)
+                                    {
+                                        closestExitLocation = filter.Settings.Name;
+                                        minDist = dist;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var filter in pmcExfilPiltered)
+                                {
+                                    var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                    if (dist < minDist)
+                                    {
+                                        closestExitLocation = filter.Settings.Name;
+                                        minDist = dist;
+                                    }
+                                }
+                            }
+                            Singleton<ISITGame>.Instance.Stop(
+                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                , Singleton<ISITGame>.Instance.MyExitStatus
+                                , closestExitLocation
+                                , 0);
+                        }
+                        else
+                        {
+                            Singleton<ISITGame>.Instance.Stop(
+                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                , Singleton<ISITGame>.Instance.MyExitStatus
+                                , Singleton<ISITGame>.Instance.MyExitLocation
+                                , 0);
+                        }
+                    }
+                }
+                else
+                {
+                    if (Singleton<ISITGame>.Instance.MyExitLocation == null)
+                    {
+                        var gameWorld = Singleton<GameWorld>.Instance;
+                        List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
+                        List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                        foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
+                        {
+                            if (exfil is ScavExfiltrationPoint scavExfil)
+                            {
+                                scavExfilFiltered.Add(scavExfil);
+                            }
+                            else
+                            {
+                                pmcExfilPiltered.Add(exfil);
+                            }
+                        }
+
+                        var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
+                        var minDist = Mathf.Infinity;
+                        var closestExitLocation = "";
+                        if (RaidChangesUtil.IsScavRaid)
+                        {
+                            foreach (var filter in scavExfilFiltered)
+                            {
+                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                if (dist < minDist)
+                                {
+                                    closestExitLocation = filter.Settings.Name;
+                                    minDist = dist;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var filter in pmcExfilPiltered)
+                            {
+                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                if (dist < minDist)
+                                {
+                                    closestExitLocation = filter.Settings.Name;
+                                    minDist = dist;
+                                }
+                            }
+                        }
+                        Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , closestExitLocation
+                            , 0);
+                    }
+                    else
+                    {
                         Singleton<ISITGame>.Instance.Stop(
                             Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                             , Singleton<ISITGame>.Instance.MyExitStatus
                             , Singleton<ISITGame>.Instance.MyExitLocation
                             , 0);
                     }
-                }
-                else
-                {
-                    Singleton<ISITGame>.Instance.Stop(
-                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                            , Singleton<ISITGame>.Instance.MyExitStatus
-                            , Singleton<ISITGame>.Instance.MyExitLocation
-                            , 0);
                 }
                 return;
             }
@@ -667,11 +774,64 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         if (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost || quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead)
                         {
                             ForceQuitGamePressed = 0;
-                            Singleton<ISITGame>.Instance.Stop(
-                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                                , Singleton<ISITGame>.Instance.MyExitStatus
-                                , Singleton<ISITGame>.Instance.MyExitLocation
-                                , 0);
+                            if (Singleton<ISITGame>.Instance.MyExitLocation == null)
+                            {
+                                var gameWorld = Singleton<GameWorld>.Instance;
+                                List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
+                                List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                                foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
+                                {
+                                    if (exfil is ScavExfiltrationPoint scavExfil)
+                                    {
+                                        scavExfilFiltered.Add(scavExfil);
+                                    }
+                                    else
+                                    {
+                                        pmcExfilPiltered.Add(exfil);
+                                    }
+                                }
+
+                                var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
+                                var minDist = Mathf.Infinity;
+                                var closestExitLocation = "";
+                                if (RaidChangesUtil.IsScavRaid)
+                                {
+                                    foreach (var filter in scavExfilFiltered)
+                                    {
+                                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                        if (dist < minDist)
+                                        {
+                                            closestExitLocation = filter.Settings.Name;
+                                            minDist = dist;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (var filter in pmcExfilPiltered)
+                                    {
+                                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                        if (dist < minDist)
+                                        {
+                                            closestExitLocation = filter.Settings.Name;
+                                            minDist = dist;
+                                        }
+                                    }
+                                }
+                                Singleton<ISITGame>.Instance.Stop(
+                                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                    , Singleton<ISITGame>.Instance.MyExitStatus
+                                    , closestExitLocation
+                                    , 0);
+                            }
+                            else
+                            {
+                                Singleton<ISITGame>.Instance.Stop(
+                                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                                    , Singleton<ISITGame>.Instance.MyExitStatus
+                                    , Singleton<ISITGame>.Instance.MyExitLocation
+                                    , 0);
+                            }
                         }
                     }
                 }
@@ -689,11 +849,64 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 ServerHasStoppedActioned = true;
                 try
                 {
-                    Singleton<ISITGame>.Instance.Stop(
+                    if (Singleton<ISITGame>.Instance.MyExitLocation == null)
+                    {
+                        var gameWorld = Singleton<GameWorld>.Instance;
+                        List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
+                        List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                        foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
+                        {
+                            if (exfil is ScavExfiltrationPoint scavExfil)
+                            {
+                                scavExfilFiltered.Add(scavExfil);
+                            }
+                            else
+                            {
+                                pmcExfilPiltered.Add(exfil);
+                            }
+                        }
+
+                        var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
+                        var minDist = Mathf.Infinity;
+                        var closestExitLocation = "";
+                        if (RaidChangesUtil.IsScavRaid)
+                        {
+                            foreach (var filter in scavExfilFiltered)
+                            {
+                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                if (dist < minDist)
+                                {
+                                    closestExitLocation = filter.Settings.Name;
+                                    minDist = dist;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var filter in pmcExfilPiltered)
+                            {
+                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                                if (dist < minDist)
+                                {
+                                    closestExitLocation = filter.Settings.Name;
+                                    minDist = dist;
+                                }
+                            }
+                        }
+                        Singleton<ISITGame>.Instance.Stop(
+                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                            , Singleton<ISITGame>.Instance.MyExitStatus
+                            , closestExitLocation
+                            , 0);
+                    }
+                    else
+                    {
+                        Singleton<ISITGame>.Instance.Stop(
                             Singleton<GameWorld>.Instance.MainPlayer.ProfileId
                             , Singleton<ISITGame>.Instance.MyExitStatus
                             , Singleton<ISITGame>.Instance.MyExitLocation
                             , 0);
+                    }
                 }
                 catch { }
                 return;
