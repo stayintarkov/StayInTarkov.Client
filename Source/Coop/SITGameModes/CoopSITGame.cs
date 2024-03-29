@@ -631,7 +631,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 coopGameComponent.Players.TryAdd(profile.Id, (CoopPlayer)botPlayer);
                 coopGameComponent.ProfileIdsAI.Add(profile.Id);
 
-                SendPlayerDataToServer(botPlayer, position);
+                SendPlayerDataToServer(botPlayer, position, true);
 
             }
             return botPlayer;
@@ -806,7 +806,7 @@ namespace StayInTarkov.Coop.SITGameModes
             // Set Group Id for host
             myPlayer.Profile.Info.GroupId = "SIT";
             myPlayer.Transform.position = spawnPoint.Position;
-            SendPlayerDataToServer(myPlayer, spawnPoint.Position);
+            SendPlayerDataToServer(myPlayer, spawnPoint.Position, false);
 
             //SendOrReceiveSpawnPoint(myPlayer);
 
@@ -1018,7 +1018,7 @@ namespace StayInTarkov.Coop.SITGameModes
             GameClient.SendData(requestSpawnPlayersPacket.Serialize());
         }
 
-        public static void SendPlayerDataToServer(LocalPlayer player, Vector3 position)
+        public static void SendPlayerDataToServer(LocalPlayer player, Vector3 position, bool isAI)
         {
 #if DEBUG
             Logger.LogDebug($"{nameof(SendPlayerDataToServer)}");
@@ -1027,6 +1027,7 @@ namespace StayInTarkov.Coop.SITGameModes
             // Sends out to all clients that this Character has spawned
             var infoPacket = SpawnPlayersPacket.CreateInformationPacketFromPlayer(player);
             infoPacket.BodyPosition = position;
+            infoPacket.IsAI = isAI;
             var spawnPlayersPacket = new SpawnPlayersPacket([infoPacket]);
             Networking.GameClient.SendData(spawnPlayersPacket.Serialize());
         }
