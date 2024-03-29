@@ -135,7 +135,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
-            //OnGUI_DrawPlayerEnemyTags(rect);
+            OnGUI_DrawPlayerEnemyTags(rect);
 
         }
 
