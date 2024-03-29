@@ -23,6 +23,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     /// <summary>
     /// Paulov: I have based this on GMessage2, which is used during ObservedPlayerView creation
+    /// This is the Packet that holds the data that is used to spawn characters/players on clients.
     /// </summary>
     public sealed class PlayerInformationPacket : BasePlayerPacket
     {
