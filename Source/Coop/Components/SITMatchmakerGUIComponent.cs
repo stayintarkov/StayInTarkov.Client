@@ -838,7 +838,7 @@ namespace StayInTarkov.Coop.Components
                 , ESITProtocol.RelayTcp
                 , null
                 , PortInput,
-                EMatchmakerType.GroupLeader);
+                EMatchmakerType.Single);
             OriginalAcceptButton.OnClick.Invoke();
 
             DestroyThis();

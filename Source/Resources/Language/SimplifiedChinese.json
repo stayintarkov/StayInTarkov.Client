@@ -28,7 +28,7 @@
     "中继",
     "P2P"
   ],
-  "P2P_IP_ADDRESS_OPTIONS_LABEL": "自动获取IP地址?",
+  "P2P_IP_ADDRESS_OPTIONS_LABEL": "自动获取IP地址",
   "YES_NO_OPTIONS": [
     "是",
     "否"
