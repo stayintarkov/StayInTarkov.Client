@@ -30,6 +30,7 @@ using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Raid;
+using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
 //using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
@@ -1256,7 +1257,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
                 }
 
-                // Paulov: You don't want this to run on Coop Game's
+                // Paulov: You don't want this to run on Coop Game's as the raid will end when the host extracts
                 //try
                 //{
                 //    EndByExitTrigerScenario.Run();
@@ -1278,6 +1279,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
         }
 
+        public List<ExfiltrationPoint> EnabledCountdownExfils { get; private set; } = new();
         public Dictionary<string, (float, long, string)> ExtractingPlayers { get; } = new();
         public List<string> ExtractedPlayers { get; } = new();
 
@@ -1286,8 +1288,7 @@ namespace StayInTarkov.Coop.SITGameModes
             if (!player.IsYourPlayer)
                 return;
 
-            Logger.LogDebug("ExfiltrationPoint_OnCancelExtraction");
-            Logger.LogDebug(point.Status);
+            Logger.LogDebug($"{nameof(ExfiltrationPoint_OnCancelExtraction)} {point.Settings.Name} {point.Status}");
 
             ExtractingPlayers.Remove(player.ProfileId);
 
@@ -1300,11 +1301,7 @@ namespace StayInTarkov.Coop.SITGameModes
             if (!player.IsYourPlayer)
                 return;
 
-            Logger.LogDebug("ExfiltrationPoint_OnStartExtraction");
-            Logger.LogDebug(point.Settings.Name);
-            Logger.LogDebug(point.Status);
-            //Logger.LogInfo(point.ExfiltrationStartTime);
-            Logger.LogDebug(point.Settings.ExfiltrationTime);
+            Logger.LogDebug($"{nameof(ExfiltrationPoint_OnStartExtraction)} {point.Settings.Name} {point.Status} {point.Settings.ExfiltrationTime}");
             bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
             //if (playerHasMetRequirements && !ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
@@ -1315,33 +1312,43 @@ namespace StayInTarkov.Coop.SITGameModes
             //player.SwitchRenderer(false);
 
             MyExitLocation = point.Settings.Name;
-
-
         }
 
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
         {
             UpdateExfiltrationUi(point, point.Entered.Any((x) => x.ProfileId == Profile_0.Id));
-            Logger.LogDebug("ExfiltrationPoint_OnStatusChanged");
             EExfiltrationStatus curStatus = point.Status;
-            Logger.LogDebug($"{nameof(prevStatus)}:{prevStatus}.{nameof(curStatus)}:{curStatus}");
+            Logger.LogDebug($"{nameof(ExfiltrationPoint_OnStatusChanged)} {nameof(prevStatus)}={prevStatus} {nameof(curStatus)}={curStatus}");
 
-            // Fixes player cannot extract with The Lab elevator and Armored Train
-            if (prevStatus == EExfiltrationStatus.AwaitsManualActivation && curStatus == EExfiltrationStatus.Countdown)
-                point.ExternalSetStatus(EExfiltrationStatus.RegularMode);
-
-            // Fixes player cannot extract with Car on Ground Zero
-            if (prevStatus == EExfiltrationStatus.UncompleteRequirements && curStatus == EExfiltrationStatus.Countdown)
+            // Manage countdown exfils
+            var countingDown = EnabledCountdownExfils.Contains(point);
+            if (!countingDown && point.Status == EExfiltrationStatus.Countdown)
             {
-                foreach (var player in point.Entered)
+                if (point.ExfiltrationStartTime <= 0f)
                 {
-                    if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
-                    {
-                        ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
-                        Logger.LogDebug($"Added {player.ProfileId} to {nameof(ExtractingPlayers)}");
-                    }
+                    point.ExfiltrationStartTime = this.PastTime;
                 }
-                point.ExternalSetStatus(EExfiltrationStatus.RegularMode);
+                EnabledCountdownExfils.Add(point);
+            }
+            else if (countingDown && point.Status != EExfiltrationStatus.Countdown)
+            {
+                point.ExfiltrationStartTime = -float.Epsilon;
+                EnabledCountdownExfils.Remove(point);
+            }
+
+            // Propagate exfil point state to all players (useful for Countdown exfils, like car)
+            // We do not propagate NotPresent because clients are responsible to trigger their local exfils.
+            // A race condition would cause NotPresent to be received before clients can properly process the exfil logic
+            // because EFT's code clears ExfiltrationPoint.Entered upon setting NotPresent
+            if (prevStatus != curStatus && curStatus != EExfiltrationStatus.NotPresent && curStatus != EExfiltrationStatus.UncompleteRequirements)
+            {
+                UpdateExfiltrationPointPacket packet = new()
+                {
+                    PointName = point.Settings.Name,
+                    Command = curStatus,
+                    QueuedPlayers = point.QueuedPlayers
+                };
+                GameClient.SendData(packet.Serialize());
             }
         }
 
@@ -1510,6 +1517,12 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             Logger.LogDebug("CoopGame:Dispose()");
             StartCoroutine(DisposingCo());
+
+            foreach (ExfiltrationPoint exfiltrationPoint in ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0)) {
+                exfiltrationPoint.OnStartExtraction -= ExfiltrationPoint_OnStartExtraction;
+                exfiltrationPoint.OnCancelExtraction -= ExfiltrationPoint_OnCancelExtraction;
+                exfiltrationPoint.OnStatusChanged -= ExfiltrationPoint_OnStatusChanged;
+            }
             base.Dispose();
         }
 

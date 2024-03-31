@@ -190,7 +190,7 @@ namespace StayInTarkov
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 Error = (serializer, err) =>
                 {
-                    Logger.LogError(err.ErrorContext.Error.ToString());
+                    Logger.LogError($"JsonSerializer.Error {err.ErrorContext.Error}");
                 }
             };
         }
