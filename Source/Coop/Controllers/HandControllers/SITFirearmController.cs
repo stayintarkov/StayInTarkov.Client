@@ -267,5 +267,14 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             GameClient.SendData(packet.Serialize());
             return base.ToggleLauncher();
         }
+
+        public override void CreateFlareShot(BulletClass flareItem, Vector3 shotPosition, Vector3 forward)
+        {
+            var createFlareShotPacket = new CreateFlareShotPacket(_player.ProfileId, shotPosition, forward, flareItem.TemplateId);
+            GameClient.SendData(createFlareShotPacket.Serialize());
+
+            base.CreateFlareShot(flareItem, shotPosition, forward);
+        }
+
     }
 }

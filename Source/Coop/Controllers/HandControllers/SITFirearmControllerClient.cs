@@ -138,5 +138,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 weaponSoundPlayer.FireBullet(ammo, shotPosition, shotDirection.normalized, pitchMult, Malfunction, multiShot, IsBirstOf2Start);
             }
         }
+
+        
     }
 }
