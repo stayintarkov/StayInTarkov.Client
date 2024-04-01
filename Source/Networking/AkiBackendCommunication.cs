@@ -88,6 +88,7 @@ namespace StayInTarkov.Networking
 
         public static int PING_LIMIT_HIGH { get; } = 125;
         public static int PING_LIMIT_MID { get; } = 100;
+        public static bool IsLocal;
 
 
         protected AkiBackendCommunication(ManualLogSource logger = null)
@@ -104,6 +105,9 @@ namespace StayInTarkov.Networking
 
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
+
+            IsLocal = RemoteEndPoint.Contains("127.0.0.1")
+                    || RemoteEndPoint.Contains("localhost");
 
             GetHeaders();
             ConnectToAkiBackend();
@@ -749,6 +753,12 @@ namespace StayInTarkov.Networking
         public byte[] GetData(string url, bool hasHost = false)
         {
             using (var dataStream = SendAndReceive(url, "GET"))
+                return dataStream.ToArray();
+        }
+
+        public byte[] GetBundleData(string url, int timeout = 300000)
+        {
+            using (var dataStream = SendAndReceive(url, "GET", null, true, timeout))
                 return dataStream.ToArray();
         }
 

@@ -1,12 +1,16 @@
 ﻿using Aki.Custom.Models;
+using BepInEx.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.EssentialPatches;
 using StayInTarkov.Networking;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 /***
  * Full Credit for this patch goes to SPT-Aki team
@@ -15,101 +19,143 @@ using System.Text.RegularExpressions;
  */
 namespace StayInTarkov
 {
-    public class BundleManager
+    public static class BundleManager
     {
-        public const string CachePath = "user/cache/bundles/";
-
-        public const string CachedJsonPath = "user/cache/bundles.json";
-
-        public const string CachedVersionTxtPath = "user/cache/sit.version.txt";
-
-        public static Dictionary<string, BundleInfo> Bundles { get; private set; }
+        private static ManualLogSource _logger;
+        public static readonly ConcurrentDictionary<string, BundleItem> Bundles;
+        public static string CachePath;
 
         static BundleManager()
         {
-            Bundles = new Dictionary<string, BundleInfo>();
+            _logger = Logger.CreateLogSource(nameof(BundleManager));
+            Bundles = new ConcurrentDictionary<string, BundleItem>();
+            CachePath = "user/cache/bundles/";
+        }
 
-            // Ensure directories exist
-            if (!Directory.Exists("user"))
-                Directory.CreateDirectory("user");
-
-            if (!Directory.Exists("user/cache"))
-                Directory.CreateDirectory("user/cache");
+        public static string GetBundlePath(BundleItem bundle)
+        {
+            return AkiBackendCommunication.IsLocal
+                ? $"{bundle.ModPath}/bundles/{bundle.FileName}"
+                : CachePath + bundle.FileName;
         }
 
         public static void GetBundles()
         {
-            var json = AkiBackendCommunication.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
+            // get bundles
+            var json = AkiBackendCommunication.Instance.GetJson("/singleplayer/bundles");
+            var bundles = JsonConvert.DeserializeObject<BundleItem[]>(json);
+
             StayInTarkovHelperConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
 
-            bool bundlesAreSame = File.Exists(CachedJsonPath)
-                && File.ReadAllText(CachedJsonPath) == json
-                && VFS.Exists(CachePath + "bundles.json")
-                && File.Exists(CachedVersionTxtPath)
-                && File.ReadAllText(CachedVersionTxtPath) == Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString()
-                ;
-            if (bundlesAreSame)
-            {
-                StayInTarkovHelperConstants.Logger.LogInfo($"[Bundle Manager] Bundles are same. Using cached Bundles");
-                Bundles = Json.Deserialize<Dictionary<string, BundleInfo>>(File.ReadAllText(CachePath + "bundles.json"));
+            // register bundles
+            var toDownload = new ConcurrentBag<BundleItem>();
+            var failDownload = new ConcurrentBag<BundleItem>();
 
+            Parallel.ForEach(bundles, (bundle) =>
+            {
+                Bundles.TryAdd(bundle.FileName, bundle);
+
+                if (ShouldReaquire(bundle))
+                {
+                    // mark for download
+                    StayInTarkovHelperConstants.Logger.LogInfo($"Need Download Custom Bundle : {bundle.FileName}");
+                    toDownload.Add(bundle);
+                }
+            });
+
+            if (AkiBackendCommunication.IsLocal)
+            {
+                // loading from local mods
+                _logger.LogInfo("CACHE: Loading all bundles from mods on disk.");
                 return;
             }
-
-
-            var jArray = JArray.Parse(json);
-
-            foreach (var jObj in jArray)
+            else
             {
-                var key = jObj["key"].ToString();
-                if (Bundles.ContainsKey(key))
-                    continue;
-
-                var path = jObj["path"].ToString();
-                var dependencyKeys = jObj["dependencyKeys"].ToObject<string[]>();
-
-                // if server bundle, patch the bundle path to use the backend URL
-                if (path.Substring(0, 14) == "/files/bundle/")
+                // download bundles
+                // NOTE: assumes bundle keys to be unique
+                foreach (var bundle in toDownload)
                 {
-                    path = StayInTarkovHelperConstants.GetBackendUrl() + path;
-                }
-
-                var bundle = new BundleInfo(key, path, dependencyKeys);
-
-                StayInTarkovHelperConstants.Logger.LogInfo($"Adding Custom Bundle : {path}");
-
-                if (path.Contains("http://") || path.Contains("https://"))
-                {
-                    var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
+                    // download bundle
+                    var filepath = GetBundlePath(bundle);
+                    StayInTarkovHelperConstants.Logger.LogInfo($"Start Downloading Custom Bundle : {bundle.FileName}");
                     try
                     {
-                        var data = AkiBackendCommunication.Instance.GetData(Uri.EscapeUriString(path), true);
+                        // Using GetBundleData to download Bundle because the timeout period is 5 minutes.(For big bundles)
+                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}");
                         if (data != null && data.Length == 0)
                         {
-                            StayInTarkovHelperConstants.Logger.LogInfo("Bundle received is 0 bytes. WTF!");
-                            continue;
+                            StayInTarkovHelperConstants.Logger.LogError("Bundle received is 0 bytes. WTF!");
                         }
                         VFS.WriteFile(filepath, data);
                         StayInTarkovHelperConstants.Logger.LogInfo($"Writing Custom Bundle : {filepath}");
-                        bundle.Path = filepath;
                     }
                     catch
                     {
-
+                        StayInTarkovHelperConstants.Logger.LogError($"Download Custom Bundle {bundle.FileName} Failed, Try Again Later");
+                        failDownload.Add(bundle);
                     }
+                }
+
+                foreach (var bundle in failDownload)
+                {
+                    // download bundle
+                    var filepath = GetBundlePath(bundle);
+                    StayInTarkovHelperConstants.Logger.LogInfo($"Start Re-downloading Custom Bundle : {bundle.FileName}");
+                    try
+                    {
+                        // Using GetBundleData to download Bundle because the timeout period is 10 minutes.(For big bundles)
+                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}", 600000);
+                        if (data != null && data.Length == 0)
+                        {
+                            StayInTarkovHelperConstants.Logger.LogError("Bundle received is 0 bytes. WTF!");
+                        }
+                        VFS.WriteFile(filepath, data);
+                        StayInTarkovHelperConstants.Logger.LogInfo($"Writing Custom Bundle : {filepath}");
+                    }
+                    catch
+                    {
+                        StayInTarkovHelperConstants.Logger.LogError($"Download Custom Bundle Again {bundle.FileName} Failed");
+                    }
+                };
+            }
+        }
+
+        private static bool ShouldReaquire(BundleItem bundle)
+        {
+            if (AkiBackendCommunication.IsLocal)
+            {
+                // only handle remote bundles
+                return false;
+            }
+
+            // read cache
+            var filepath = CachePath + bundle.FileName;
+
+            if (VFS.Exists(filepath))
+            {
+                // calculate hash
+                var data = VFS.ReadFile(filepath);
+                var crc = Crc32.Compute(data);
+
+                if (crc == bundle.Crc)
+                {
+                    // file is up-to-date
+                    _logger.LogInfo($"CACHE: Loading locally {bundle.FileName}");
+                    return false;
                 }
                 else
                 {
-
+                    // crc doesn't match, reaquire the file
+                    _logger.LogInfo($"CACHE: Bundle is invalid, (re-)acquiring {bundle.FileName}");
+                    return true;
                 }
-
-                //PatchConstants.Logger.LogInfo($"Adding Custom Bundle : {key} : {path} : dp={dependencyKeys.Length}");
-                Bundles.Add(key, bundle);
             }
-
-            File.WriteAllText(CachedJsonPath, json);
-            File.WriteAllText(CachedVersionTxtPath, Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString());
-            VFS.WriteTextFile(CachePath + "bundles.json", Json.Serialize<Dictionary<string, BundleInfo>>(Bundles));
+            else
+            {
+                // file doesn't exist in cache
+                _logger.LogInfo($"CACHE: Bundle is missing, (re-)acquiring {bundle.FileName}");
+                return true;
+            }
         }
     }
 }
