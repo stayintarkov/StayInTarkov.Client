@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers.HandControllers
 {
@@ -129,5 +130,15 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             return base.ToggleLauncher();
         }
 
+        public void PlaySounds(WeaponSoundPlayer weaponSoundPlayer, BulletClass ammo, Vector3 shotPosition, Vector3 shotDirection, bool multiShot)
+        {
+            if (Item.FireMode.FireMode != Weapon.EFireMode.burst || Item.FireMode.BurstShotsCount != 2 || IsBirstOf2Start || Item.ChamberAmmoCount <= 0)
+            {
+                float pitchMult = method_55();
+                weaponSoundPlayer.FireBullet(ammo, shotPosition, shotDirection.normalized, pitchMult, Malfunction, multiShot, IsBirstOf2Start);
+            }
+        }
+
+        
     }
 }
