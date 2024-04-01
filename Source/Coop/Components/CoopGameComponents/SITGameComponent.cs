@@ -412,6 +412,28 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                 }
 
+                // Trigger all countdown exfils (e.g. car), clients are responsible for their own extract
+                // since exfilpoint.Entered is local because of collision logic being local
+                // we start from the end because we remove as we go in `CoopSITGame.ExfiltrationPoint_OnStatusChanged`
+                for (int i = coopGame.EnabledCountdownExfils.Count - 1; i >= 0; i--)
+                {
+                    var ep = coopGame.EnabledCountdownExfils[i];
+                    if (coopGame.PastTime - ep.ExfiltrationStartTime >= ep.Settings.ExfiltrationTime)
+                    {
+                        var game = Singleton<ISITGame>.Instance;
+                        foreach (var player in ep.Entered)
+                        {
+                            var hasUnmetRequirements = ep.UnmetRequirements(player).Any();
+                            if (player != null && player.HealthController.IsAlive && !hasUnmetRequirements)
+                            {
+                                game.ExtractingPlayers.Remove(player.ProfileId);
+                                game.ExtractedPlayers.Add(player.ProfileId);
+                            }
+                        }
+                        ep.SetStatusLogged(ep.Reusable ? EExfiltrationStatus.UncompleteRequirements : EExfiltrationStatus.NotPresent, nameof(EverySecondCoroutine));
+                    }
+                }
+
                 foreach (var player in playersToExtract)
                 {
                     coopGame.ExtractingPlayers.Remove(player);
