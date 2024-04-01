@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using BepInEx.Logging;
+using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using GPUInstancer;
@@ -36,6 +37,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
         public float Overheat { get; set; }
 
         public bool UnderbarrelShot { get; set; }
+
+        static ManualLogSource Logger;
+
+        static InitiateShotPacket()
+        {
+            InitiateShotPacket.Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(InitiateShotPacket));
+        }
 
         public InitiateShotPacket()
         {
@@ -83,7 +91,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
         {
             if(client.HandsController is SITFirearmControllerClient firearmControllerClient)
             {
-                GetBulletToFire(client, firearmControllerClient.Weapon, out var ammoToFire, out int countInMag);
+                GetBulletToFire(client, firearmControllerClient.Weapon, out var ammoToFire);
                 if (ammoToFire == null)
                 {
                     StayInTarkovHelperConstants.Logger.LogError($"Unable to find Ammo for {firearmControllerClient.Weapon.Name}");
@@ -144,6 +152,18 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                             firearmControllerClient.StartCoroutine(DisableBoltActionAnim(firearmControllerClient));
                         }
 
+                        if (firearmControllerClient.Weapon.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
+                        {
+                            //BulletClass firstAmmo = cylindermag.GetFirstAmmo(singleFireMode: false);
+                            //if (firstAmmo != null)
+                            //{
+                            //    var pic = ItemFinder.GetPlayerInventoryController(client);
+                            //    cylindermag.RemoveAmmoInCamora(firstAmmo, pic);
+                            //    firearmControllerClient.FirearmsAnimator.SetAmmoOnMag(cylindermag.Count);
+                            //}
+                            cylindermag.IncrementCamoraIndex();
+                            firearmControllerClient.FirearmsAnimator.SetCamoraIndex(cylindermag.CurrentCamoraIndex);
+                        }
                         break;
                     default:
                         break;
@@ -159,21 +179,36 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             client.FirearmsAnimator.SetFire(fire: false);
         }
 
-        private void GetBulletToFire(CoopPlayerClient client, Weapon weapon_0, out BulletClass ammoToFire, out int ammoCountInMagBeforeShot)
+        private void GetBulletToFire(CoopPlayerClient client, Weapon weapon_0, out BulletClass ammoToFire)
         {
-            var pic = ItemFinder.GetPlayerInventoryController(client);
-            Slot[] chambers = weapon_0.Chambers;
-            ammoToFire = (weapon_0.HasChambers ? chambers[0] : null)?.ContainedItem as BulletClass;
-            MagazineClass currentMagazine = weapon_0.GetCurrentMagazine();
-            if (currentMagazine == null)
+            if (weapon_0.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
             {
-                ammoCountInMagBeforeShot = 0;
+                ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
                 return;
             }
-            ammoCountInMagBeforeShot = currentMagazine.Count;
-            if (currentMagazine.IsAmmoCompatible(chambers) && ammoCountInMagBeforeShot > 0)
+
+            var pic = ItemFinder.GetPlayerInventoryController(client);
+
+            // Find the Ammo in the Chamber
+            Slot[] chambers = weapon_0.Chambers;
+            ammoToFire = (weapon_0.HasChambers ? chambers[0] : null)?.ContainedItem as BulletClass;
+
+            // If there is no ammo in the chamber. Get it from the magazine.
+            if (ammoToFire == null)
             {
-                ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
+                MagazineClass currentMagazine = weapon_0.GetCurrentMagazine();
+                if (currentMagazine == null)
+                    return;
+
+                if (currentMagazine.IsAmmoCompatible(chambers))
+                {
+                    ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
+                }
+            }
+            
+            if (ammoToFire == null)
+            {
+                Logger.LogError($"Unable to find Ammo to Fire for {client.ProfileId} weapon {weapon_0}");
             }
         }
 
