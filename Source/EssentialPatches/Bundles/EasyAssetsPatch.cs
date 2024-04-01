@@ -19,9 +19,7 @@ namespace Aki.Custom.Patches
 {
     public class EasyAssetsPatch : ModulePatch
     {
-        private static readonly FieldInfo _manifestField;
         private static readonly FieldInfo _bundlesField;
-        private static readonly PropertyInfo _systemProperty;
 
         static EasyAssetsPatch()
         {
