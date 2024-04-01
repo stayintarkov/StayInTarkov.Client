@@ -73,7 +73,7 @@ namespace StayInTarkov
             {
                 // download bundles
                 // NOTE: assumes bundle keys to be unique
-                Parallel.ForEach(toDownload, (bundle) =>
+                foreach (var bundle in toDownload)
                 {
                     // download bundle
                     var filepath = GetBundlePath(bundle);
@@ -94,9 +94,9 @@ namespace StayInTarkov
                         StayInTarkovHelperConstants.Logger.LogError($"Download Custom Bundle {bundle.FileName} Failed, Try Again Later");
                         failDownload.Add(bundle);
                     }
-                });
+                }
 
-                Parallel.ForEach(failDownload, (bundle) =>
+                foreach (var bundle in failDownload)
                 {
                     // download bundle
                     var filepath = GetBundlePath(bundle);
@@ -116,7 +116,7 @@ namespace StayInTarkov
                     {
                         StayInTarkovHelperConstants.Logger.LogError($"Download Custom Bundle Again {bundle.FileName} Failed");
                     }
-                });
+                };
             }
         }
 
