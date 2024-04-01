@@ -80,7 +80,7 @@ namespace StayInTarkov
                     StayInTarkovHelperConstants.Logger.LogInfo($"Start Downloading Custom Bundle : {bundle.FileName}");
                     try
                     {
-                        // Using GetBundleData to download Bundle because the timeout period is 3 minutes.(For big bundles)
+                        // Using GetBundleData to download Bundle because the timeout period is 5 minutes.(For big bundles)
                         var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}");
                         if (data != null && data.Length == 0)
                         {
@@ -103,7 +103,8 @@ namespace StayInTarkov
                     StayInTarkovHelperConstants.Logger.LogInfo($"Start Re-downloading Custom Bundle : {bundle.FileName}");
                     try
                     {
-                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}");
+                        // Using GetBundleData to download Bundle because the timeout period is 10 minutes.(For big bundles)
+                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}", 600000);
                         if (data != null && data.Length == 0)
                         {
                             StayInTarkovHelperConstants.Logger.LogError("Bundle received is 0 bytes. WTF!");

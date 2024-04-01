@@ -756,7 +756,7 @@ namespace StayInTarkov.Networking
                 return dataStream.ToArray();
         }
 
-        public byte[] GetBundleData(string url, int timeout = 180000)
+        public byte[] GetBundleData(string url, int timeout = 300000)
         {
             using (var dataStream = SendAndReceive(url, "GET", null, true, timeout))
                 return dataStream.ToArray();
