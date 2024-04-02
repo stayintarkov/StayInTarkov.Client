@@ -139,6 +139,11 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             }
         }
 
-        
+        public override void SetInventoryOpened(bool opened)
+        {
+            base.SetInventoryOpened(opened);
+        }
+
+
     }
 }
