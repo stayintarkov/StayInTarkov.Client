@@ -171,6 +171,13 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Pickup(p);
         }
 
+        public override void SetInventoryOpened(bool opened)
+        {
+            SetInventoryOpenedPacket packet = new(_player.ProfileId, opened);
+            GameClient.SendData(packet.Serialize());
+            base.SetInventoryOpened(opened);
+        }
+
         public override void SetLightsState(LightsStates[] lightsStates, bool force = false)
         {
             LightStatesPacket packet = new();
