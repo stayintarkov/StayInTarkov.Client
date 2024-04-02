@@ -107,7 +107,7 @@ namespace StayInTarkov.Coop.Players
                 var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
                 coopGameComponent.ServerPingSmooth.Enqueue(ms);
             }
-            
+
 
             //BepInLogger.LogInfo(NewState.ToJson());
 
