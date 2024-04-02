@@ -199,7 +199,7 @@ namespace StayInTarkov.Coop.SITGameModes
                    
                     break;
                 case ESITProtocol.PeerToPeerUdp:
-                    if (SITMatchmaking.IsServer)
+                    if (SITMatchmaking.IsServer || SITMatchmaking.IsHeadlessHost)
                         coopGame.GameServer = coopGame.GetOrAddComponent<GameServerUDP>();
 
                     coopGame.GameClient = coopGame.GetOrAddComponent<GameClientUDP>();

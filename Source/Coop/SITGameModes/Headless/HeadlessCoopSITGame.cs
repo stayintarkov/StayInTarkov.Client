@@ -109,9 +109,7 @@ namespace StayInTarkov.Coop.SITGameModes.RemoteHosted
 
                     break;
                 case ESITProtocol.PeerToPeerUdp:
-                    if (SITMatchmaking.IsServer)
-                        sitgame.GameServer = sitgame.GetOrAddComponent<GameServerUDP>();
-
+                    sitgame.GameServer = sitgame.GetOrAddComponent<GameServerUDP>();
                     sitgame.GameClient = sitgame.GetOrAddComponent<GameClientUDP>();
                     break;
                 default:

@@ -5,6 +5,7 @@ using EFT.UI;
 using EFT.UI.Matchmaker;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.SITGameModes;
+using StayInTarkov.Coop.SITGameModes.RemoteHosted;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -117,58 +118,93 @@ namespace StayInTarkov.Coop
                 timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());
 
             await Task.Delay(1000);
-            CoopSITGame localGame = CoopSITGame.Create(
 
-            // this is used for testing differences between CoopGame and EFT.LocalGame
-            //EFT.LocalGame localGame = (EFT.LocalGame)ReflectionHelpers.GetMethodForType(typeof(EFT.LocalGame), "smethod_6").Invoke(null, 
-            //    new object[] {
+            AbstractGame game = null;
 
-                ____inputTree
-                , profile
-                , ____localGameDateTime
-                , session.InsuranceCompany
-                , MonoBehaviourSingleton<MenuUI>.Instance
-                , MonoBehaviourSingleton<CommonUI>.Instance
-                , MonoBehaviourSingleton<PreloaderUI>.Instance
-                , MonoBehaviourSingleton<GameUI>.Instance
-                , ____raidSettings.SelectedLocation
-                , timeAndWeather
-                , ____raidSettings.WavesSettings
-                , ____raidSettings.SelectedDateTime
-                , new Callback<ExitStatus, TimeSpan, MetricsClass>((r) =>
-                {
-                    // target private async void method_46(string profileId, Profile savageProfile, LocationSettingsClass.Location location, Result<ExitStatus, TimeSpan, MetricsClass> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
-                    //Logger.LogInfo("Callback Metrics. Invoke method 45");
-                    //ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
-                    //session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
-                    //});
+            Logger.LogDebug($"TarkovApplication_LocalGameCreator_Patch:Is Headless Host?:{SITMatchmaking.IsHeadlessHost}");
 
-                    ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
-                        x =>
-                        x.GetParameters().Length >= 5
-                        && x.GetParameters()[0].ParameterType == typeof(string)
-                        && x.GetParameters()[1].ParameterType == typeof(Profile)
-                        && x.GetParameters()[2].ParameterType == typeof(LocationSettingsClass.Location)
-                        && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, MetricsClass>)
-                        && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
-                        ).Invoke(__instance, new object[] {
+            if (SITMatchmaking.IsHeadlessHost)
+            {
+                game = HeadlessCoopSITGame.CreateHeadlessCoopSITGame(
+
+                  ____inputTree
+                  , profile
+                  , ____localGameDateTime
+                  , session.InsuranceCompany
+                  , MonoBehaviourSingleton<MenuUI>.Instance
+                  , MonoBehaviourSingleton<CommonUI>.Instance
+                  , MonoBehaviourSingleton<PreloaderUI>.Instance
+                  , MonoBehaviourSingleton<GameUI>.Instance
+                  , ____raidSettings.SelectedLocation
+                  , timeAndWeather
+                  , ____raidSettings.WavesSettings
+                  , ____raidSettings.SelectedDateTime
+                  , new Callback<ExitStatus, TimeSpan, MetricsClass>((r) =>
+                  {
+                      // target private async void method_46(string profileId, Profile savageProfile, LocationSettingsClass.Location location, Result<ExitStatus, TimeSpan, MetricsClass> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
+                      ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
+                          x =>
+                          x.GetParameters().Length >= 5
+                          && x.GetParameters()[0].ParameterType == typeof(string)
+                          && x.GetParameters()[1].ParameterType == typeof(Profile)
+                          && x.GetParameters()[2].ParameterType == typeof(LocationSettingsClass.Location)
+                          && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, MetricsClass>)
+                          && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
+                          ).Invoke(__instance, new object[] {
                     session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });
 
-                })
-                , ____fixedDeltaTime
-                , EUpdateQueue.Update
-                , session
-                , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
-            //}
-            );
-            Singleton<AbstractGame>.Create(localGame);
+                  })
+                  , ____fixedDeltaTime
+                  , EUpdateQueue.Update
+                  , session
+                  , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
+              );
+            }
+            else
+            {
+                game = CoopSITGame.Create(
+
+                    ____inputTree
+                    , profile
+                    , ____localGameDateTime
+                    , session.InsuranceCompany
+                    , MonoBehaviourSingleton<MenuUI>.Instance
+                    , MonoBehaviourSingleton<CommonUI>.Instance
+                    , MonoBehaviourSingleton<PreloaderUI>.Instance
+                    , MonoBehaviourSingleton<GameUI>.Instance
+                    , ____raidSettings.SelectedLocation
+                    , timeAndWeather
+                    , ____raidSettings.WavesSettings
+                    , ____raidSettings.SelectedDateTime
+                    , new Callback<ExitStatus, TimeSpan, MetricsClass>((r) =>
+                    {
+                        // target private async void method_46(string profileId, Profile savageProfile, LocationSettingsClass.Location location, Result<ExitStatus, TimeSpan, MetricsClass> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
+                        ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
+                            x =>
+                            x.GetParameters().Length >= 5
+                            && x.GetParameters()[0].ParameterType == typeof(string)
+                            && x.GetParameters()[1].ParameterType == typeof(Profile)
+                            && x.GetParameters()[2].ParameterType == typeof(LocationSettingsClass.Location)
+                            && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, MetricsClass>)
+                            && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
+                            ).Invoke(__instance, new object[] {
+                    session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });
+
+                    })
+                    , ____fixedDeltaTime
+                    , EUpdateQueue.Update
+                    , session
+                    , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
+                );
+            }
+            Singleton<AbstractGame>.Create(game);
+            GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug($"created {game.GetType().Name}");
             timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());
 
 
             GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug("Wait for localGame method 4");
 
-            //var m4task = localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
-            var m4task = localGame.Run(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            var m4task = ((ISITGame)game).Run(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
                 using (TokenStarter.StartWithToken("LoadingScreen.LoadComplete"))
                 {
