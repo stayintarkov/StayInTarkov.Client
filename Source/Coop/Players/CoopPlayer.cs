@@ -84,7 +84,6 @@ namespace StayInTarkov.Coop.Players
                     , getAimingSensitivity
                     , prefix
                     , aiControl);
-
             }
             player.IsYourPlayer = isYourPlayer;
             player.Position = position;
@@ -577,7 +576,6 @@ namespace StayInTarkov.Coop.Players
                 fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
             }
             new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
-
             PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
             weaponPacket.ProfileId = this.ProfileId;
             weaponPacket.ItemId = weapon.Id;
@@ -602,8 +600,6 @@ namespace StayInTarkov.Coop.Players
                     }
 
                 }, callback, scheduled);
-
-
         }
 
         public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
@@ -627,7 +623,6 @@ namespace StayInTarkov.Coop.Players
 
 
         }
-
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {

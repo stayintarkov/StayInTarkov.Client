@@ -171,7 +171,6 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Pickup(p);
         }
 
-
         public override void SetInventoryOpened(bool opened)
         {
             SetInventoryOpenedPacket packet = new(_player.ProfileId, opened);

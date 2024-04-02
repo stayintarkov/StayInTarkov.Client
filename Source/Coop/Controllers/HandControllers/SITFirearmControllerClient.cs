@@ -143,7 +143,5 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             base.SetInventoryOpened(opened);
         }
-
-
     }
 }

@@ -108,9 +108,7 @@ namespace StayInTarkov.Coop.Players
                 coopGameComponent.ServerPingSmooth.Enqueue(ms);
             }
 
-
             //BepInLogger.LogInfo(NewState.ToJson());
-
 
             if (LastRPSP == null)
                 LastRPSP = DateTime.Now;
