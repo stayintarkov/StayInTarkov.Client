@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
+using StayInTarkov.Coop.SITGameModes.Headless;
 
 namespace StayInTarkov
 {
@@ -106,6 +107,12 @@ namespace StayInTarkov
             EnableAirdropPatches();
 
             ThirdPartyModPatches.Run(Config, this);
+
+            Logger.LogDebug($"Settings.HeadlessServerSettings.SETTING_IsHeadlessServer:{Settings.HeadlessServerSettings.SETTING_IsHeadlessServer}");
+            if(Settings.HeadlessServerSettings.SETTING_IsHeadlessServer)
+            {
+                this.GetOrAddComponent<HeadlessUIRemovalComponent>();
+            }
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
