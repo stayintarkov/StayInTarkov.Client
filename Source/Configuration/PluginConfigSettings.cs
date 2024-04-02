@@ -21,6 +21,7 @@ namespace StayInTarkov.Configuration
         public CoopConfigSettings CoopSettings { get; }
 
         public SITAdvancedSettings AdvancedSettings { get; }
+        public SITHeadlessServerSettings HeadlessServerSettings { get; }
 
         public PluginConfigSettings(ManualLogSource logger, ConfigFile config)
         {
@@ -28,6 +29,7 @@ namespace StayInTarkov.Configuration
             Config = config;
             CoopSettings = new CoopConfigSettings(logger, config);
             AdvancedSettings = new SITAdvancedSettings(logger, config);
+            HeadlessServerSettings = new SITHeadlessServerSettings(logger, config);
             Instance = this;
         }
 
@@ -166,6 +168,34 @@ namespace StayInTarkov.Configuration
                     EnableAISpawnWaveSystem = false;
                 }
             }
+        }
+
+        public class SITHeadlessServerSettings
+        {
+            public const string SECTION_HEADLESSSERVER = "HeadlessServer";
+            public ConfigFile Config { get; }
+            public ManualLogSource Logger { get; }
+
+            public SITHeadlessServerSettings(ManualLogSource logger, ConfigFile config)
+            {
+                Logger = logger;
+                Config = config;
+
+                _ = SETTING_IsHeadlessServer;
+                _ = SETTING_HeadlessServerIpAddress;
+                _ = SETTING_HeadlessServerPort;
+            }
+
+            public bool SETTING_IsHeadlessServer => StayInTarkovPlugin.Instance.Config.Bind
+                (SECTION_HEADLESSSERVER, "IsHeadlessServer", false).Value;
+
+            public string SETTING_HeadlessServerIpAddress => StayInTarkovPlugin.Instance.Config.Bind
+               (SECTION_HEADLESSSERVER, "IPAddress", "0.0.0.0").Value;
+
+            public int SETTING_HeadlessServerPort => StayInTarkovPlugin.Instance.Config.Bind
+            (SECTION_HEADLESSSERVER, "Port", 6972).Value;
+
+
         }
     }
 }
