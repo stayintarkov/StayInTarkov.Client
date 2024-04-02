@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using EFT.Game.Spawning;
+using EFT.Interactive;
 using StayInTarkov;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
@@ -146,6 +147,17 @@ namespace Aki.Custom.Airdrops
 
                 factory.BuildContainer(AirdropBox.Container, ClientAirdropConfigModel, ClientAirdropLootResultModel.DropType);
                 factory.AddLoot(AirdropBox.Container, ClientAirdropLootResultModel);
+                if (AirdropBox.Container != null)
+                {
+                    if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    {
+                        List<WorldInteractiveObject> oldInteractiveObjectList = new List<WorldInteractiveObject>(coopGameComponent.ListOfInteractiveObjects)
+                        {
+                            AirdropBox.Container
+                        };
+                        coopGameComponent.ListOfInteractiveObjects = [.. oldInteractiveObjectList];
+                    }
+                }
             }
 
             if (!ClientLootBuilt)
@@ -244,6 +256,17 @@ namespace Aki.Custom.Airdrops
             factory.BuildContainer(AirdropBox.Container, config, lootData.DropType);
             factory.AddLoot(AirdropBox.Container, lootData);
             ClientLootBuilt = true;
+            if (AirdropBox.Container != null)
+            {
+                if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                {
+                    List<WorldInteractiveObject> oldInteractiveObjectList = new List<WorldInteractiveObject>(coopGameComponent.ListOfInteractiveObjects)
+                    {
+                        AirdropBox.Container
+                    };
+                    coopGameComponent.ListOfInteractiveObjects = [.. oldInteractiveObjectList];
+                }
+            }
         }
 
         public void ReceiveBuildLootContainer(AirdropLootResultModel lootData, AirdropConfigModel config)
