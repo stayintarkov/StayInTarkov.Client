@@ -99,7 +99,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             }
 
 
-            client.vmethod_0(worldInteractiveObject, interactionResult, () => { });
+            client.vmethod_0(worldInteractiveObject, keyInteractionResult ?? interactionResult, () => { });
         }
 
 
