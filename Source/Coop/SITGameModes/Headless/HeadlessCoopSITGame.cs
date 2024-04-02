@@ -27,7 +27,6 @@ namespace StayInTarkov.Coop.SITGameModes.RemoteHosted
     {
         public override string DisplayName => StayInTarkovPlugin.LanguageDictionary["MP_GAME"].ToString();
 
-        static ManualLogSource Logger {get;set;}
         internal static HeadlessCoopSITGame CreateHeadlessCoopSITGame(
             InputTree inputTree
             , Profile profile
@@ -48,7 +47,7 @@ namespace StayInTarkov.Coop.SITGameModes.RemoteHosted
             , TimeSpan sessionTime)
         {
 
-            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopSITGame));
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(HeadlessCoopSITGame));
             Logger.LogInfo($"{nameof(HeadlessCoopSITGame)}.{nameof(CreateHeadlessCoopSITGame)}");
 
             //location.OfflineNewSpawn = false;
@@ -66,8 +65,12 @@ namespace StayInTarkov.Coop.SITGameModes.RemoteHosted
             sitgame.GameWorldTime = backendDateTime.Boolean_0 ? backendDateTime.DateTime_1 : backendDateTime.DateTime_0;
             Logger.LogDebug($"DEBUG:{nameof(sitgame.GameWorldTime)}:{sitgame.GameWorldTime}");
 
+
             // ---------------------------------------------------------------------------------
             // Non Waves Scenario setup
+            Logger.LogDebug($"DEBUG:location");
+            Logger.LogDebug($"{location.ToJson()}");
+
             WildSpawnWave[] waves = FixScavWaveSettings(wavesSettings, location.waves);
             sitgame.nonWavesSpawnScenario_0 = NonWavesSpawnScenario.smethod_0(sitgame, location, sitgame.PBotsController);
             sitgame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);

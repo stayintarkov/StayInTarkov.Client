@@ -122,6 +122,7 @@ namespace StayInTarkov.Coop
             AbstractGame game = null;
 
             Logger.LogDebug($"TarkovApplication_LocalGameCreator_Patch:Is Headless Host?:{SITMatchmaking.IsHeadlessHost}");
+            GetLogger(typeof(TarkovApplication_LocalGameCreator_Patch)).LogDebug($"RaidSettings:{____raidSettings.ToJson()}");
 
             if (SITMatchmaking.IsHeadlessHost)
             {

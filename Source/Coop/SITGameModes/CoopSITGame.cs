@@ -113,7 +113,7 @@ namespace StayInTarkov.Coop.SITGameModes
         }
 
 
-        private static ManualLogSource Logger;
+        protected static ManualLogSource Logger;
 
         public DateTime GameWorldTime { get; set; }
 
@@ -430,9 +430,15 @@ namespace StayInTarkov.Coop.SITGameModes
         public static WildSpawnWave[] FixScavWaveSettings(WavesSettings wavesSettings, WildSpawnWave[] waves)
         {
             Logger.LogDebug($"{nameof(CoopSITGame)}:{nameof(FixScavWaveSettings)}");
+            Logger.LogDebug($"==== > {nameof(wavesSettings)} < ====");
+            Logger.LogDebug($"{wavesSettings.ToJson()}");
+            Logger.LogDebug($"==== > {nameof(waves)} < ====");
+            Logger.LogDebug($"{waves.ToJson()}");
 
             foreach (WildSpawnWave wildSpawnWave in waves)
             {
+                Logger.LogDebug($"{wildSpawnWave.ToJson()}");
+
                 wildSpawnWave.slots_min = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : 1;
                 wildSpawnWave.slots_max = wavesSettings.BotAmount == EBotAmount.NoBots ? 0 : Math.Max(1, wildSpawnWave.slots_max);
                 if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
