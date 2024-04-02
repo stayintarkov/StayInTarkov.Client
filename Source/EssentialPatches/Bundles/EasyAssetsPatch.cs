@@ -1,4 +1,5 @@
-﻿using Aki.Custom.Utils;
+﻿using Aki.Custom.Models;
+using Aki.Custom.Utils;
 using Diz.Jobs;
 using Diz.Resources;
 using JetBrains.Annotations;
@@ -18,29 +19,14 @@ namespace Aki.Custom.Patches
 {
     public class EasyAssetsPatch : ModulePatch
     {
-        private static readonly FieldInfo _manifestField;
         private static readonly FieldInfo _bundlesField;
-        private static readonly PropertyInfo _systemProperty;
 
         static EasyAssetsPatch()
         {
             var type = typeof(EasyAssets);
-
-            _manifestField = type.GetField(nameof(EasyAssets.Manifest));
-            if (_manifestField == null)
-                Logger.LogError("_manifestField is NULL");
-
-            //Logger.LogDebug(EasyBundleHelper.Type.Name.ToLowerInvariant());
-
             var arrayEBH = Array.CreateInstance(EasyBundleHelper.Type, 0);
-
             _bundlesField = ReflectionHelpers.GetFieldFromTypeByFieldType(type, arrayEBH.GetType(), false);// type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
-            if (_bundlesField == null)
-                Logger.LogError("_bundlesField is NULL");
-            // DependencyGraph<IEasyBundle>
-            _systemProperty = type.GetProperty("System");
-            if (_systemProperty == null)
-                Logger.LogError("_systemProperty is NULL");
+
         }
 
         public EasyAssetsPatch()
@@ -73,68 +59,58 @@ namespace Aki.Custom.Patches
             return false;
         }
 
-        private static async Task Init(EasyAssets instance, [CanBeNull] IBundleLock bundleLock, string defaultKey, string rootPath,
-                                      string platformName, [CanBeNull] Func<string, bool> shouldExclude, Func<string, Task> bundleCheck)
+        private static async Task Init(EasyAssets instance, [CanBeNull] IBundleLock bundleLock, string defaultKey, string rootPath, string platformName, [CanBeNull] Func<string, bool> shouldExclude, Func<string, Task> bundleCheck)
         {
             // platform manifest
             var path = $"{rootPath.Replace("file:///", string.Empty).Replace("file://", string.Empty)}/{platformName}/";
             var filepath = path + platformName;
-            var manifest = (File.Exists(filepath)) ? await GetManifestBundle(filepath) : await GetManifestJson(filepath);
+            var jsonfile = filepath + ".json";
+            var manifest = File.Exists(jsonfile)
+                ? await GetManifestJson(jsonfile)
+                : await GetManifestBundle(filepath);
 
-            var allAssetBundles = manifest.GetAllAssetBundles();
+            // create bundles array from obfuscated type
+            var bundleNames = manifest.GetAllAssetBundles()
+                .Union(BundleManager.Bundles.Keys)
+                .ToArray();
 
-            if (allAssetBundles == null)
-                return;
-
-            if (BundleManager.Bundles.Keys == null)
-                return;
-
-            // load bundles
-            var bundleNames = manifest.GetAllAssetBundles().Union(BundleManager.Bundles.Keys).ToArray();
-
-            if (bundleNames == null)
-                return;
-
-            var bundles = (IEasyBundle[])Array.CreateInstance(EasyBundleHelper.Type, bundleNames.Length);
-
-            if (bundles == null)
-                return;
-
+            // create bundle lock
             if (bundleLock == null)
             {
                 bundleLock = new BundleLock(int.MaxValue);
             }
 
+            // create bundle of obfuscated type
+            var bundles = (IEasyBundle[])Array.CreateInstance(EasyBundleHelper.Type, bundleNames.Length);
+
             for (var i = 0; i < bundleNames.Length; i++)
             {
-                //Logger.LogDebug(bundleNames[i]);
-
                 bundles[i] = (IEasyBundle)Activator.CreateInstance(EasyBundleHelper.Type, new object[]
-                    {
-                        bundleNames[i],
-                        path,
-                        manifest,
-                        bundleLock,
-                        bundleCheck
-                    });
-
-                if (bundles[i] == null)
-                    continue;
+                {
+                    bundleNames[i],
+                    path,
+                    manifest,
+                    bundleLock,
+                    bundleCheck
+                });
 
                 await JobScheduler.Yield(EJobPriority.Immediate);
             }
 
-            if (_manifestField != null)
-                _manifestField.SetValue(instance, manifest);
-            if (_bundlesField != null)
-                _bundlesField.SetValue(instance, bundles);
-            if (_systemProperty != null)
-                _systemProperty.SetValue(instance, new DependencyGraph(bundles, defaultKey, shouldExclude));
+            // create dependency graph
+            instance.Manifest = manifest;
+            _bundlesField.SetValue(instance, bundles);
+            instance.System = new DependencyGraph(bundles, defaultKey, shouldExclude);
         }
 
+        // NOTE: used by:
+        // - EscapeFromTarkov_Data/StreamingAssets/Windows/cubemaps
+        // - EscapeFromTarkov_Data/StreamingAssets/Windows/defaultmaterial
+        // - EscapeFromTarkov_Data/StreamingAssets/Windows/dissonancesetup
+        // - EscapeFromTarkov_Data/StreamingAssets/Windows/Doge
+        // - EscapeFromTarkov_Data/StreamingAssets/Windows/shaders
         private static async Task<CompatibilityAssetBundleManifest> GetManifestBundle(string filepath)
         {
-            Logger.LogDebug("GetManifestBundle:Start");
             var manifestLoading = AssetBundle.LoadFromFileAsync(filepath);
             await manifestLoading.Await();
 
@@ -142,37 +118,33 @@ namespace Aki.Custom.Patches
             var assetLoading = assetBundle.LoadAllAssetsAsync();
             await assetLoading.Await();
 
-            Logger.LogDebug("GetManifestBundle:End");
-
             return (CompatibilityAssetBundleManifest)assetLoading.allAssets[0];
         }
 
         private static async Task<CompatibilityAssetBundleManifest> GetManifestJson(string filepath)
         {
-            Logger.LogDebug("GetManifestJson:Start");
+            var text = VFS.ReadTextFile(filepath);
 
-            var text = string.Empty;
+            /* we cannot parse directly as <string, BundleDetails>, because...
+                    [Error  : Unity Log] JsonSerializationException: Expected string when reading UnityEngine.Hash128 type, got 'StartObject' <>. Path '['assets/content/weapons/animations/simple_animations.bundle'].Hash', line 1, position 176.
+               ...so we need to first convert it to a slimmed-down type (BundleItem), then convert back to BundleDetails.
+            */
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, BundleItem>>(text);
+            var converted = raw.ToDictionary(GetPairKey, GetPairValue);
 
-            using (var reader = File.OpenText($"{filepath}.json"))
-            {
-                text = await reader.ReadToEndAsync();
-            }
-
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Models.BundleItem>>(text).ToDictionary(GetPairKey, GetPairValue);
+            // initialize manifest
             var manifest = ScriptableObject.CreateInstance<CompatibilityAssetBundleManifest>();
-            manifest.SetResults(data);
-
-            Logger.LogDebug("GetManifestJson:End");
+            manifest.SetResults(converted);
 
             return manifest;
         }
 
-        public static string GetPairKey(KeyValuePair<string, Models.BundleItem> x)
+        public static string GetPairKey(KeyValuePair<string, BundleItem> x)
         {
             return x.Key;
         }
 
-        public static BundleDetails GetPairValue(KeyValuePair<string, Models.BundleItem> x)
+        public static BundleDetails GetPairValue(KeyValuePair<string, BundleItem> x)
         {
             return new BundleDetails
             {

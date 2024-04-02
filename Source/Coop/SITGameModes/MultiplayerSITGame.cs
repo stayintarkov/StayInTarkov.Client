@@ -6,6 +6,7 @@
 using Comfort.Common;
 using EFT;
 using EFT.Bots;
+using EFT.Interactive;
 using EFT.Weather;
 using StayInTarkov.Networking;
 using System;
@@ -23,6 +24,10 @@ namespace StayInTarkov.Coop.SITGameModes
         public List<string> ExtractedPlayers => throw new NotImplementedException();
 
         public Dictionary<string, (float, long, string)> ExtractingPlayers => throw new NotImplementedException();
+
+        public List<ExfiltrationPoint> EnabledCountdownExfils => throw new NotImplementedException();
+
+        public float PastTime => throw new NotImplementedException();
 
         public ExitStatus MyExitStatus { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string MyExitLocation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
