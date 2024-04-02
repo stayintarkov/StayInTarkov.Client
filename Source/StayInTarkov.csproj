@@ -62,6 +62,9 @@
       <HintPath>..\References\bsg.componentace.compression.libs.zlib.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="bsg.console.core">
+      <HintPath>..\References\bsg.console.core.dll</HintPath>
+    </Reference>
     <Reference Include="com.unity.multiplayer-hlapi.Runtime">
       <HintPath>..\References\com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
       <Private>False</Private>

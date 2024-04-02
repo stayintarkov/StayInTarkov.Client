@@ -1270,6 +1270,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
                 dateTime_0 = DateTime.Now;
                 Status = GameStatus.Started;
+
+                ConsoleScreen.Processor.RegisterCommandGroup<StayInTarkov.UI.ConsoleCommands>();
                 ConsoleScreen.ApplyStartCommands();
             }
             catch (Exception ex)
