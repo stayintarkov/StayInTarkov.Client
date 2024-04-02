@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using EFT.UI;
 using HarmonyLib;
+using StayInTarkov.Configuration;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -84,6 +85,10 @@ namespace StayInTarkov.EssentialPatches
                 {
                     _versionLabel = $"SIT | ERROR | EXE & Assembly mismatch!";
                     Logger.LogInfo($"Assembly {StayInTarkovPlugin.EFTAssemblyVersion} does not match {StayInTarkovPlugin.EFTEXEFileVersion}");
+                }
+                else if (PluginConfigSettings.Instance.HeadlessServerSettings.SETTING_IsHeadlessServer)
+                {
+                    _versionLabel = $"SIT {sitversion} [TEST] | {StayInTarkovPlugin.EFTAssemblyVersion} | HEADLESS SERVER";
                 }
                 else
                     _versionLabel = $"SIT {sitversion} [TEST] | ASM {StayInTarkovPlugin.EFTAssemblyVersion} | EXE {StayInTarkovPlugin.EFTEXEFileVersion}";
