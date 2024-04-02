@@ -104,7 +104,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             }
 
             // Interact with the door
-            client.vmethod_1(worldInteractiveObject, interactionResult);
+            client.vmethod_1(worldInteractiveObject, keyInteractionResult ?? interactionResult);
         }
 
 
