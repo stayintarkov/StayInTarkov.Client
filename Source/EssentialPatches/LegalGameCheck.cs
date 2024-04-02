@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StayInTarkov.Configuration;
+using System;
 using System.IO;
 
 namespace StayInTarkov.EssentialPatches
@@ -16,6 +17,15 @@ namespace StayInTarkov.EssentialPatches
 
         public static void LegalityCheck(BepInEx.Configuration.ConfigFile config)
         {
+            if (PluginConfigSettings.Instance.HeadlessServerSettings.SETTING_IsHeadlessServer)
+            {
+                ProcessLGF(true);
+                Checked = true;
+                StayInTarkovHelperConstants.Logger.LogError($"You are running in Headless Server mode. Legal Game check cannot be performed!");
+                return;
+            }
+
+
             if (Checked)
                 return;
 
