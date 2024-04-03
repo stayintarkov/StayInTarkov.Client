@@ -66,8 +66,8 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 SITは２つのパーツとランチャーで構成されています。
 - [SIT SPT-Akiのサーバー MOD](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
 - SIT Client モジュール （このリポジトリ！）、インストールされた
-- [SIT Manager](https://github.com/stayintarkov/SIT.Manager) および [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
-  - SIT Managerの方が使い安く、MODの管理やサーバーの管理も気楽でオールインワンです。SIT Launcher Classicの方は元々のランチャーです。
+- [SIT Manager](https://github.com/stayintarkov/SIT.Manager.Avalonia) (<s>[SIT Manager](https://github.com/stayintarkov/SIT.Manager) および [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)</s> 両方ともアーカイブされました)
+  - <s>SIT Managerの方が使い安く、MODの管理やサーバーの管理も気楽でオールインワンです。SIT Launcher Classicの方は元々のランチャーです。</s>
 
 下記のインストールの仕組みをおすすめします。この構成は見やすいでファイルへの接近も用意でしょう
 ```

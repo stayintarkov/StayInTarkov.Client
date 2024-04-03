@@ -62,8 +62,8 @@ Stay In Tarkov 项目的诞生是因为 Battlestate Games' (BSG) 迟迟不愿推
 SIT 由2个主要部分和启动器组成:
 - [SIT 适用于 SPT-Aki 的服务端模组](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
 - SIT 客户端模组 (本项目), 需要安装在游戏本体内
-- 启动器: [SIT Manager](https://github.com/stayintarkov/SIT.Manager) 或 [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
-  - 如无必要, 您应使用 SIT Manager. SIT Launcher Classic 的保留是为了向下兼容 (例如, 如果你无法运行SIT Manager), 及证明"大家以前用的是这个启动器".
+- 启动器: [SIT Manager](https://github.com/stayintarkov/SIT.Manager.Avalonia) (<s>[SIT Manager](https://github.com/stayintarkov/SIT.Manager) 或 [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)</s> 均已存档)
+  - <s>您应优先使用 SIT Manager。提及经典启动器仅为向现有的经典启动器用户澄清。</s>
 
 建议使用以下结构命名文件夹, 这将方便你区分它们的不同部分.
 ```
