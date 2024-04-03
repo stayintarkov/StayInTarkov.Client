@@ -164,11 +164,6 @@ namespace StayInTarkov.Coop.Components
             return result;
         }
 
-        private bool ProcessPlayerStatesPacket(PlayerStatesPacket playerStatesPacket)
-        {
-            return false;
-        }
-
         bool ProcessWorldPacket(ref Dictionary<string, object> packet)
         {
             // this isn't a world packet. return true

@@ -167,7 +167,7 @@ namespace StayInTarkov.Networking
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
             WebSocket.EmitOnPing = true;
             WebSocket.Connect();
-            WebSocket.Send("CONNECTED FROM SIT COOP");
+
             // ---
             // Start up after initial Send
             WebSocket.OnError += WebSocket_OnError;
@@ -244,7 +244,15 @@ namespace StayInTarkov.Networking
             Interlocked.Add(ref BytesReceived, e.RawData.Length);
             GC.AddMemoryPressure(e.RawData.Length);
 
-            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(e.RawData);
+            var d = e.RawData;
+            if (d.Length >= 3 && d[0] != '{' && !(d[0] == 'S' && d[1] == 'I' && d[2] == 'T'))
+            {
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessFlatBuffer(d);
+            }
+            else
+            {
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(e.RawData);
+            }
             GC.RemoveMemoryPressure(e.RawData.Length);
         }
 

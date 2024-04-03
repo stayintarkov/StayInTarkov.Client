@@ -1,0 +1,108 @@
+﻿namespace StayInTarkov.FlatBuffers;
+
+struct Vec2 {
+  x:float32;
+  y:float32;
+}
+
+struct Vec3 {
+  x:float32;
+  y:float32;
+  z:float32;
+}
+
+enum EPlayerState:uint8 {
+    None = 0,
+    Idle = 1,
+    ProneIdle = 2,
+    ProneMove = 3,
+    Run = 4,
+    Sprint = 5,
+    Jump = 6,
+    FallDown = 7,
+    Transition = 8,
+    BreachDoor = 9,
+    Loot = 10,
+    Pickup = 11,
+    Open = 12,
+    Close = 13,
+    Unlock = 14,
+    Sidestep = 15,
+    DoorInteraction = 16,
+    Approach = 17,
+    Prone2Stand = 18,
+    Transit2Prone = 19,
+    Plant = 20,
+    Stationary = 21,
+    Roll = 22,
+    JumpLanding = 23,
+    ClimbOver = 24,
+    ClimbUp = 25,
+    VaultingFallDown = 26,
+    VaultingLanding = 27,
+    BlindFire = 28
+}
+
+enum EBodyPart:uint8 {
+    Head = 0,
+    Chest = 1,
+    Stomach = 2,
+    LeftArm = 3,
+    RightArm = 4,
+    LeftLeg = 5,
+    RightLeg = 6,
+    Common = 7
+}
+
+struct BodyPartHealth {
+    current:float32;
+    maximum:float32;
+}
+
+struct BodyPartsHealth {
+    parts:[BodyPartHealth:8];
+}
+
+// Unused for now, see HealthSyncPacket struct when needed
+// struct HealthEffect {
+// }
+ 
+table PlayerState {
+    profile_id:string;
+    state:EPlayerState;
+    tilt:float32;
+    step:int8; // [-1; 1]?
+    animator_state_index:uint8; // [0; 70]
+    character_movement_speed:float32;
+    pose_level:float32;
+    is_prone:bool;
+    is_sprinting:bool;
+    hands_exhausted:bool;
+    oxygen_exhausted:bool;
+    stamina_exhausted:bool;
+    position:Vec3;
+    rotation:Vec2;
+    head_rotation:Vec3;
+    movement_direction:Vec2;
+    input_direction:Vec2;
+    blindfire:int8; // [-1; 1]
+    linear_speed:float32;
+    left_stance:bool;
+    is_alive:bool;
+    energy: float32;
+    hydration: float32;
+    radiation: float32;
+    poison: float32;
+    body_parts_health:BodyPartsHealth;
+    // health_effects:[HealthEffect]
+}
+
+union AnyPacket {
+  player_state:PlayerState
+}
+
+table Packet {
+    packet: AnyPacket;
+}
+
+root_type Packet;

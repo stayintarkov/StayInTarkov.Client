@@ -6,9 +6,9 @@
     <Description>Stay in Tarkov plugin for Escape From Tarkov</Description>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-	  <Deterministic>false</Deterministic>
+    <LangVersion>preview</LangVersion>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<Deterministic>false</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,8 +30,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\TraditionalChinese.json">
     </EmbeddedResource>
-	  <EmbeddedResource Include="Resources\Language\German.json">
-	  </EmbeddedResource>
+	<EmbeddedResource Include="Resources\Language\German.json">
+	</EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -56,7 +56,7 @@
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\References\Assembly-CSharp-firstpass.dll</HintPath>
-	    <Private>False</Private>
+	  <Private>False</Private>
 	</Reference>
     <Reference Include="bsg.componentace.compression.libs.zlib">
       <HintPath>..\References\bsg.componentace.compression.libs.zlib.dll</HintPath>
@@ -82,10 +82,10 @@
       <HintPath>..\References\DissonanceVoip.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="FilesChecker">
-      <HintPath>..\References\FilesChecker.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+	<Reference Include="FilesChecker">
+	  <HintPath>..\References\FilesChecker.dll</HintPath>
+	  <Private>False</Private>
+	</Reference>
     <Reference Include="ItemComponent.Types">
       <HintPath>..\References\ItemComponent.Types.dll</HintPath>
       <Private>false</Private>
@@ -138,19 +138,20 @@
       <HintPath>..\References\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\References\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
-	  <Reference Include="websocket-sharp">
-		  <HintPath>..\References\websocket-sharp.dll</HintPath>
-		  <Private>False</Private>
-    </Reference>
-		  	  <Reference Include="Newtonsoft.Json">
-		  <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
-		  <Private>False</Private>
-    </Reference>
-  </ItemGroup>
+	  <HintPath>..\References\UnityEngine.UIModule.dll</HintPath>
+	</Reference>
+	<Reference Include="websocket-sharp">
+	  <HintPath>..\References\websocket-sharp.dll</HintPath>
+	  <Private>False</Private>
+	</Reference>
+	<Reference Include="Newtonsoft.Json">
+	  <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
+	  <Private>False</Private>
+	</Reference>
+</ItemGroup>
   
   <ItemGroup>
+    <Folder Include="Coop\NetworkPacket\FlatBuffers\StayInTarkov\FlatBuffers\" />
     <Folder Include="Networking\Nat\" />
     <Folder Include="Multiplayer\" />
     <Folder Include="Properties\" />

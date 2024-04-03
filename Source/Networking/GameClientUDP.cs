@@ -47,6 +47,7 @@ namespace StayInTarkov.Networking
                 IPv6Enabled = false,
                 PacketPoolSize = 999,
                 EnableStatistics = true,
+                ChannelsCount = 2,
             };
 
             // ===============================================================
@@ -232,7 +233,7 @@ namespace StayInTarkov.Networking
 
         int firstPeerErrorCount = 0;
 
-        public void SendData(byte[] data)
+        public void SendData(byte[] data, int start, int length, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             if (_netClient == null)
             {
@@ -263,8 +264,16 @@ namespace StayInTarkov.Networking
                 return;
             }
 
-            _netClient.FirstPeer.Send(data, LiteNetLib.DeliveryMethod.ReliableOrdered);
+            _netClient.FirstPeer.Send(data, start, length, channelNumber, deliveryMethod);
         }
+
+        public void SendData(byte[] data)
+        {
+            SendData(data, 0, data.Length, 0, LiteNetLib.DeliveryMethod.ReliableOrdered);
+        }
+
+
+        // Send(byte[] data, int start, int length, byte channelNumber, DeliveryMethod deliveryMethod)
 
         public void SendData<T>(ref T packet) where T : BasePacket
         {
