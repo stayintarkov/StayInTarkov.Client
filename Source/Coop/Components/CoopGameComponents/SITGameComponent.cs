@@ -482,6 +482,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                             //    Destroy(player);
                         }
                     }
+                    //force close all screens to disallow looting open crates after extract
+                    if (profileId == world.MainPlayer.ProfileId)
+                    {
+                        ScreenManager instance = ScreenManager.Instance;
+                        instance.CloseAllScreensForced();
+                    }
                 }
 
 
