@@ -397,132 +397,140 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             {
                 yield return waitSeconds;
 
-                if (!Singleton<ISITGame>.Instantiated)
-                    continue;
-
-                if (!Singleton<GameWorld>.Instantiated)
-                    continue;
-
-                if (!GameWorldGameStarted)
-                    continue;
-
-                //Logger.LogDebug($"DEBUG: {nameof(EverySecondCoroutine)}");
-
-                var coopGame = Singleton<ISITGame>.Instance;
-
-                var playersToExtract = new HashSet<string>();
-                foreach (var exfilPlayer in coopGame.ExtractingPlayers)
+                try
                 {
-                    var exfilTime = new TimeSpan(0, 0, (int)exfilPlayer.Value.Item1);
-                    var timeInExfil = new TimeSpan(DateTime.Now.Ticks - exfilPlayer.Value.Item2);
-                    if (timeInExfil >= exfilTime)
-                    {
-                        if (!playersToExtract.Contains(exfilPlayer.Key))
-                        {
-                            Logger.LogDebug(exfilPlayer.Key + " should extract");
-                            playersToExtract.Add(exfilPlayer.Key);
-                        }
-                    }
-                    else
-                    {
-                        Logger.LogDebug(exfilPlayer.Key + " extracting " + timeInExfil);
-
-                    }
-                }
-
-                // Trigger all countdown exfils (e.g. car), clients are responsible for their own extract
-                // since exfilpoint.Entered is local because of collision logic being local
-                // we start from the end because we remove as we go in `CoopSITGame.ExfiltrationPoint_OnStatusChanged`
-                for (int i = coopGame.EnabledCountdownExfils.Count - 1; i >= 0; i--)
-                {
-                    var ep = coopGame.EnabledCountdownExfils[i];
-                    if (coopGame.PastTime - ep.ExfiltrationStartTime >= ep.Settings.ExfiltrationTime)
-                    {
-                        var game = Singleton<ISITGame>.Instance;
-                        foreach (var player in ep.Entered)
-                        {
-                            var hasUnmetRequirements = ep.UnmetRequirements(player).Any();
-                            if (player != null && player.HealthController.IsAlive && !hasUnmetRequirements)
-                            {
-                                game.ExtractingPlayers.Remove(player.ProfileId);
-                                game.ExtractedPlayers.Add(player.ProfileId);
-                            }
-                        }
-                        ep.SetStatusLogged(ep.Reusable ? EExfiltrationStatus.UncompleteRequirements : EExfiltrationStatus.NotPresent, nameof(EverySecondCoroutine));
-                    }
-                }
-
-                foreach (var player in playersToExtract)
-                {
-                    coopGame.ExtractingPlayers.Remove(player);
-                    coopGame.ExtractedPlayers.Add(player);
-                }
-
-                var world = Singleton<GameWorld>.Instance;
-
-                // Hide extracted Players
-                foreach (var profileId in coopGame.ExtractedPlayers)
-                {
-                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == profileId) as EFT.Player;
-                    if (player == null)
+                    if (!Singleton<ISITGame>.Instantiated)
                         continue;
 
-                    if (!ExtractedProfilesSent.Contains(profileId))
+                    if (!Singleton<GameWorld>.Instantiated)
+                        continue;
+
+                    if (!GameWorldGameStarted)
+                        continue;
+
+                    //Logger.LogDebug($"DEBUG: {nameof(EverySecondCoroutine)}");
+
+                    var coopGame = Singleton<ISITGame>.Instance;
+
+                    var playersToExtract = new HashSet<string>();
+                    foreach (var exfilPlayer in coopGame.ExtractingPlayers)
                     {
-                        ExtractedProfilesSent.Add(profileId);
-                        if (player.Profile.Side == EPlayerSide.Savage)
+                        var exfilTime = new TimeSpan(0, 0, (int)exfilPlayer.Value.Item1);
+                        var timeInExfil = new TimeSpan(DateTime.Now.Ticks - exfilPlayer.Value.Item2);
+                        if (timeInExfil >= exfilTime)
                         {
-                            player.Profile.EftStats.SessionCounters.AddDouble(0.01,
-                            [
-                                CounterTag.FenceStanding,
+                            if (!playersToExtract.Contains(exfilPlayer.Key))
+                            {
+                                Logger.LogDebug(exfilPlayer.Key + " should extract");
+                                playersToExtract.Add(exfilPlayer.Key);
+                            }
+                        }
+                        else
+                        {
+                            Logger.LogDebug(exfilPlayer.Key + " extracting " + timeInExfil);
+
+                        }
+                    }
+
+                    // Trigger all countdown exfils (e.g. car), clients are responsible for their own extract
+                    // since exfilpoint.Entered is local because of collision logic being local
+                    // we start from the end because we remove as we go in `CoopSITGame.ExfiltrationPoint_OnStatusChanged`
+                    for (int i = coopGame.EnabledCountdownExfils.Count - 1; i >= 0; i--)
+                    {
+                        var ep = coopGame.EnabledCountdownExfils[i];
+                        if (coopGame.PastTime - ep.ExfiltrationStartTime >= ep.Settings.ExfiltrationTime)
+                        {
+                            var game = Singleton<ISITGame>.Instance;
+                            foreach (var player in ep.Entered)
+                            {
+                                var hasUnmetRequirements = ep.UnmetRequirements(player).Any();
+                                if (player != null && player.HealthController.IsAlive && !hasUnmetRequirements)
+                                {
+                                    game.ExtractingPlayers.Remove(player.ProfileId);
+                                    game.ExtractedPlayers.Add(player.ProfileId);
+                                }
+                            }
+                            ep.SetStatusLogged(ep.Reusable ? EExfiltrationStatus.UncompleteRequirements : EExfiltrationStatus.NotPresent, nameof(EverySecondCoroutine));
+                        }
+                    }
+
+                    foreach (var player in playersToExtract)
+                    {
+                        coopGame.ExtractingPlayers.Remove(player);
+                        coopGame.ExtractedPlayers.Add(player);
+                    }
+
+                    var world = Singleton<GameWorld>.Instance;
+
+                    // Hide extracted Players
+                    foreach (var profileId in coopGame.ExtractedPlayers)
+                    {
+                        var player = world.RegisteredPlayers.Find(x => x.ProfileId == profileId) as EFT.Player;
+                        if (player == null)
+                            continue;
+
+                        if (!ExtractedProfilesSent.Contains(profileId))
+                        {
+                            ExtractedProfilesSent.Add(profileId);
+                            if (player.Profile.Side == EPlayerSide.Savage)
+                            {
+                                player.Profile.EftStats.SessionCounters.AddDouble(0.01,
+                                [
+                                    CounterTag.FenceStanding,
                                 EFenceStandingSource.ExitStanding
-                            ]);
+                                ]);
+                            }
+                            AkiBackendCommunicationCoop.PostLocalPlayerData(player
+                                , new Dictionary<string, object>() { { "m", "Extraction" }, { "Extracted", true } }
+                                );
                         }
-                        AkiBackendCommunicationCoop.PostLocalPlayerData(player
-                            , new Dictionary<string, object>() { { "m", "Extraction" }, { "Extracted", true } }
-                            );
-                    }
 
-                    if (player.ActiveHealthController != null)
-                    {
-                        if (!player.ActiveHealthController.MetabolismDisabled)
+                        if (player.ActiveHealthController != null)
                         {
-                            player.ActiveHealthController.AddDamageMultiplier(0);
-                            player.ActiveHealthController.SetDamageCoeff(0);
-                            player.ActiveHealthController.DisableMetabolism();
-                            player.ActiveHealthController.PauseAllEffects();
+                            if (!player.ActiveHealthController.MetabolismDisabled)
+                            {
+                                player.ActiveHealthController.AddDamageMultiplier(0);
+                                player.ActiveHealthController.SetDamageCoeff(0);
+                                player.ActiveHealthController.DisableMetabolism();
+                                player.ActiveHealthController.PauseAllEffects();
 
-                            //player.SwitchRenderer(false);
+                                //player.SwitchRenderer(false);
 
-                            // TODO: Currently. Destroying your own Player just breaks the game and it appears to be "frozen". Need to learn a new way to do a FreeCam!
-                            //if (Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
-                            //    Destroy(player);
+                                // TODO: Currently. Destroying your own Player just breaks the game and it appears to be "frozen". Need to learn a new way to do a FreeCam!
+                                //if (Singleton<GameWorld>.Instance.MainPlayer.ProfileId != profileId)
+                                //    Destroy(player);
+                            }
+                        }
+                        //force close all screens to disallow looting open crates after extract
+                        if (profileId == world.MainPlayer.ProfileId)
+                        {
+                            ScreenManager instance = ScreenManager.Instance;
+                            instance.CloseAllScreensForced();
+                        }
+
+                        PlayerUtils.MakeVisible(player, false);
+                    }
+
+                    // Add players who have joined to the AI Enemy Lists
+                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    if (botController != null)
+                    {
+                        while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
+                        {
+                            Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
+                            botController.AddActivePLayer(otherPlayer);
+                            botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
                         }
                     }
-                    //force close all screens to disallow looting open crates after extract
-                    if (profileId == world.MainPlayer.ProfileId)
+
+                    if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
                     {
-                        ScreenManager instance = ScreenManager.Instance;
-                        instance.CloseAllScreensForced();
+                        udp.ResetStats();
                     }
                 }
-
-
-                // Add players who have joined to the AI Enemy Lists
-                var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
-                if (botController != null)
+                catch (Exception ex)
                 {
-                    while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
-                    {
-                        Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
-                        botController.AddActivePLayer(otherPlayer);
-                        botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
-                    }
-                }
-
-                if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
-                {
-                    udp.ResetStats();
+                    Logger.LogError($"{nameof(EverySecondCoroutine)}: caught exception:\n{ex}");
                 }
             }
         }
