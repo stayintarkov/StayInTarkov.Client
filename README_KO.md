@@ -65,8 +65,8 @@ Stay in Tarkov 프로젝트는 Battlestate Games(BSG)가 Escape from Tarkov의 �
 SIT는 크게 2개의 주요 요소와 런처로 구성되어 있습니다.
 - [SIT SPT-Aki Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod) ( 서버 모드 )
 - SIT 클라이언트 모듈 (이 저장소!), Tarkov의 인스턴스에 설치됩니다.
-- [SIT Manager](https://github.com/stayintarkov/SIT.Manager) 또는 [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
-  - SIT Manager를 사용하는 것이 좋습니다. 클래식 런처는 기존의 클래식 런처 사용자를 위해 명시적으로 언급되었습니다.
+- [SIT Manager](https://github.com/stayintarkov/SIT.Manager.Avalonia) (<s>[SIT Manager](https://github.com/stayintarkov/SIT.Manager) 또는 [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)</s> 모두 보관됨)
+  - <s>SIT Manager를 사용하는 것이 좋습니다. 클래식 런처는 기존의 클래식 런처 사용자를 위해 명시적으로 언급되었습니다.</s>
 
 SIT 설치를 위해 다음과 같은 디렉토리 구조를 생성하는 것이 권장됩니다. 이 구조는 다음 섹션에서 참조될 것입니다.
 ```

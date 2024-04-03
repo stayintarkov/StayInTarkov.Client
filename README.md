@@ -58,8 +58,8 @@ Due to the popularity of the project. There are numerous forks and scam projects
 SIT is comprised of 2 major pieces and a launcher
 - The [SIT SPT-Aki Server Mod](https://github.com/stayintarkov/SIT.Aki-Server-Mod)
 - The SIT Client Module (this repo!), installed onto an instance of Tarkov
-- [SIT Manager](https://github.com/stayintarkov/SIT.Manager) or [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)
-  - You should use the SIT Manager. The classic launcher is only mentioned to clarify for existing classic launcher users.
+- [SIT Manager](https://github.com/stayintarkov/SIT.Manager.Avalonia) (<s>[SIT Manager](https://github.com/stayintarkov/SIT.Manager) or [SIT Launcher Classic](https://github.com/stayintarkov/SIT.Launcher.Classic)</s> both archived)
+  - <s>You should use the SIT Manager. The classic launcher is only mentioned to clarify for existing classic launcher users.</s>
 
 It's recommended to create the following directory structure to store your SIT Installation. This structure will be referred to for the following sections.
 ```
