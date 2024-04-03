@@ -36,6 +36,7 @@ using Diz.Jobs;
 using System.Net.NetworkInformation;
 using EFT.Counters;
 using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
+using StayInTarkov.Coop.NetworkPacket.World;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -362,10 +363,26 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             StartCoroutine(SendPlayerStatePacket());
 
+            // tell clients which exfils are disabled
+            if (SITMatchmaking.IsServer)
+            {
+                foreach (var point in ExfiltrationControllerClass.Instance.ExfiltrationPoints)
+                {
+                    if (point.Status == EExfiltrationStatus.NotPresent)
+                    {
+                        UpdateExfiltrationPointPacket packet = new()
+                        {
+                            PointName = point.Settings.Name,
+                            Command = point.Status,
+                            QueuedPlayers = point.QueuedPlayers
+                        };
+                        GameClient.SendData(packet.Serialize());
+                    }
+                }
+            }
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
-
         }
 
         /// <summary>
