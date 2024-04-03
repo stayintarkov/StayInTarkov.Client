@@ -257,8 +257,8 @@ namespace StayInTarkov.Coop.Matchmaker
             Logger.LogDebug($"{nameof(CreateMatch)}");
             Logger.LogDebug($"{objectToSend.ToJson()}");
 
-            // KWJimWails: Set request timeout to 20 seconds, because the Streets of Tarkov need a long time to create loot infos.
-            string result = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(objectToSend), true, 20000);
+            string result = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
+                objectToSend));
 
             if (!string.IsNullOrEmpty(result))
             {
