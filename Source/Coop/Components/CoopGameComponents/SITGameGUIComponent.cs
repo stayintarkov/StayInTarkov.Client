@@ -11,8 +11,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Coop.Components.CoopGameComponents.SITGameComponent;
 
@@ -81,7 +79,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 middleLargeLabelStyle.fontSize = 24;
             }
 
-            var rect = new Rect(GuiX, 5, GuiWidth, 100);
+            var rect = new Rect(GuiX, 0, GuiWidth, 100);
             rect = DrawPing(rect);
 
             GUIStyle style = GUI.skin.label;
@@ -144,24 +142,45 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
                 return rect;
 
-            rect.y = 5;
-            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["SIT_COOP"]}: " + (SITMatchmaking.IsClient ? StayInTarkovPlugin.LanguageDictionary["CLIENT"] : StayInTarkovPlugin.LanguageDictionary["SERVER-PLAY"]));
-            rect.y += 15;
+            var prevFontSz = GUI.skin.label.fontSize;
+            var prevAlign = GUI.skin.label.alignment;
 
-            // PING ------
-            GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["AVG_PING"]}:{(ServerPing)}");
-            rect.y += 15;
-            GUI.contentColor = Color.white;
+            var row = () => rect.y += GUI.skin.label.fontSize + 1;
 
-            if (AkiBackendCommunication.Instance.HighPingMode)
+            if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
             {
-                GUI.contentColor = Color.red;
-                GUI.Label(rect, (string)StayInTarkovPlugin.LanguageDictionary["HIGH_PING_MODE"]);
+                rect.x += 65;
+
+                GUI.skin.label.fontSize = 10;
+                GUI.skin.label.alignment = TextAnchor.UpperLeft;
                 GUI.contentColor = Color.white;
-                rect.y += 15;
+
+                var text = new GUIContent($"{(SITMatchmaking.IsClient ? "client" : "host")} ping:{udp.Ping} up:{udp.UploadSpeedKbps} down:{udp.DownloadSpeedKbps} loss:{udp.PacketLoss}% {(AkiBackendCommunication.Instance.HighPingMode ? "hpm" : "")}");
+                // var newX = GUI.skin.label.CalcSize(text);
+                GUI.Label(rect, text);
+                GUI.contentColor = Color.white;
+                row();
+
+                rect.x -= 65;
+            } else
+            {
+                GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["SIT_COOP"]}: " + (SITMatchmaking.IsClient ? StayInTarkovPlugin.LanguageDictionary["CLIENT"] : StayInTarkovPlugin.LanguageDictionary["SERVER-PLAY"]));
+                row();
+                GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
+                GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["AVG_PING"]}:{(ServerPing)}");
+                GUI.contentColor = Color.white;
+                row();
+                if (AkiBackendCommunication.Instance.HighPingMode)
+                {
+                    GUI.contentColor = Color.yellow;
+                    GUI.Label(rect, (string)StayInTarkovPlugin.LanguageDictionary["HIGH_PING_MODE"]);
+                    GUI.contentColor = Color.white;
+                    row();
+                }
             }
+
+            GUI.skin.label.fontSize = prevFontSz;
+            GUI.skin.label.alignment = prevAlign;
 
             return rect;
         }

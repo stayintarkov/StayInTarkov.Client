@@ -520,6 +520,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                 }
 
+                if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
+                {
+                    udp.ResetStats();
+                }
             }
         }
 

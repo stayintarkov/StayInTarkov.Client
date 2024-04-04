@@ -48,7 +48,9 @@ namespace StayInTarkov.Networking
         public NetPacketProcessor _packetProcessor = new();
         public int Ping = 0;
         public int ConnectedClients = 0;
-
+        public float DownloadSpeedKbps;
+        public float UploadSpeedKbps;
+        public float PacketLoss;
         private ManualLogSource Logger { get; set; }
 
         void Awake()
@@ -155,6 +157,18 @@ namespace StayInTarkov.Networking
                 _netClient.Connect(new IPEndPoint(IPAddress.Loopback, SITMatchmaking.Port), "sit.core");
             }
         }
+        void Update()
+        {
+            _netClient.PollEvents();
+        }
+
+        public void ResetStats()
+        {
+            DownloadSpeedKbps = _netClient.Statistics.BytesReceived / 1024;
+            UploadSpeedKbps = _netClient.Statistics.BytesSent / 1024;
+            PacketLoss = _netClient.Statistics.PacketLoss == 0 ? 0 : 100f * (_netClient.Statistics.PacketsSent / _netClient.Statistics.PacketLoss);
+            _netClient.Statistics.Reset();
+        }
 
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
@@ -167,11 +181,6 @@ namespace StayInTarkov.Networking
                 Logger.LogError($"Packet Loss {_netClient.Statistics.PacketLossPercent}%");
             }
 #endif
-        }
-
-        void Update()
-        {
-            _netClient.PollEvents();
         }
 
         void OnDestroy()
