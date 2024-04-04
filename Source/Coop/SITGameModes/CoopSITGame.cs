@@ -478,6 +478,10 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location)
         {
+#if DEBUG
+            Logger.LogDebug($"{nameof(FixBossWaveSettings)}:{location.ToJson()}");
+#endif
+
             var bossLocationSpawns = location.BossLocationSpawn;
             if (!wavesSettings.IsBosses)
             {
@@ -502,9 +506,6 @@ namespace StayInTarkov.Coop.SITGameModes
                     continue;
                 }
                 float bossChance = bossLocationSpawn.BossChance;
-//#if DEBUG
-//                bossChance = 100f;
-//#endif
                 if (CanSpawnCultist(GameWorldTime.Hour) && (bossLocationSpawn.BossType == WildSpawnType.sectantPriest || bossLocationSpawn.BossType == WildSpawnType.sectantWarrior))
                 {
                     Logger.LogDebug($"Block spawn of Sectant (Cultist) in day time in hour {GameWorldTime.Hour}!");
@@ -512,7 +513,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
                 bossLocationSpawn.BossChance = bossChance;
                 bossLocationSpawn.BossEscortAmount = sourceEscortAmount != null ? sourceEscortAmount.Max((int x) => x).ToString() : "1";
-                if (bossLocationSpawn.Supports == null && !string.IsNullOrEmpty(bossLocationSpawn.BossEscortType))
+                if (bossLocationSpawn.Supports == null && !string.IsNullOrEmpty(bossLocationSpawn.BossEscortType) && !bossLocationSpawn.BossName.Equals("bossTagilla"))
                 {
                     Logger.LogDebug($"bossLocationSpawn.Supports is Null. Attempt to create them.");
 
