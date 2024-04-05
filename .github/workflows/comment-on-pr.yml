@@ -82,6 +82,9 @@ jobs:
       
       - name: Update Comment
         if: steps.find-comment.outputs.comment-id != ''
+        env:
+          JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ env.PREVIOUS_JOB_ID }}"
+          ARTIFACT_URL: "https://github.com/${{ github.repository }}/suites/${{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
         uses: actions/github-script@v7
         with:
           script: |
