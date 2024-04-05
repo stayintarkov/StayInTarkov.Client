@@ -86,7 +86,7 @@ namespace StayInTarkov.EssentialPatches
                     Logger.LogInfo($"Assembly {StayInTarkovPlugin.EFTAssemblyVersion} does not match {StayInTarkovPlugin.EFTEXEFileVersion}");
                 }
                 else
-                    _versionLabel = $"SIT {sitversion} [TEST] | ASM {StayInTarkovPlugin.EFTAssemblyVersion} | EXE {StayInTarkovPlugin.EFTEXEFileVersion}";
+                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
