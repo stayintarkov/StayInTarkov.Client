@@ -1306,11 +1306,10 @@ namespace StayInTarkov.Coop.SITGameModes
                 return;
 
             Logger.LogDebug($"{nameof(ExfiltrationPoint_OnCancelExtraction)} {point.Settings.Name} {point.Status}");
-
             ExtractingPlayers.Remove(player.ProfileId);
 
             MyExitLocation = null;
-            //player.SwitchRenderer(true);
+            MyExitStatus = player.HealthController.IsAlive ? ExitStatus.MissingInAction : ExitStatus.Killed;
         }
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
@@ -1320,15 +1319,14 @@ namespace StayInTarkov.Coop.SITGameModes
 
             Logger.LogDebug($"{nameof(ExfiltrationPoint_OnStartExtraction)} {point.Settings.Name} {point.Status} {point.Settings.ExfiltrationTime}");
             bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
-            //if (playerHasMetRequirements && !ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
             {
                 ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
                 Logger.LogDebug($"Added {player.ProfileId} to {nameof(ExtractingPlayers)}");
             }
-            //player.SwitchRenderer(false);
 
             MyExitLocation = point.Settings.Name;
+            MyExitStatus = ExitStatus.Survived;
         }
 
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
