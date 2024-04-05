@@ -721,20 +721,25 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             Logger.LogDebug($"{nameof(FindALocationAndProcessQuit)}");
 
-            switch(GetQuitState())
+            // OnDied in GameMode should set this to ExitStatus.Killed
+            // Only override if we are the default MissingInAction
+            if (Singleton<ISITGame>.Instance.MyExitStatus == ExitStatus.MissingInAction)
             {
-                case EQuitState.YourTeamIsDead:
-                case EQuitState.YouAreDead:
-                case EQuitState.YouAreDeadAsHost:
-                case EQuitState.YouAreDeadAsClient:
-                    Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Killed;
-                    break;
-                case EQuitState.YouHaveExtractedOnlyAsClient:
-                case EQuitState.YouHaveExtractedOnlyAsHost:
-                case EQuitState.YourTeamHasExtracted:
-                    Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Survived;
-                    break;
+                switch (GetQuitState())
+                {
+                    case EQuitState.YourTeamIsDead:
+                    case EQuitState.YouAreDead:
+                    case EQuitState.YouAreDeadAsHost:
+                    case EQuitState.YouAreDeadAsClient:
+                        Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Killed;
+                        break;
+                    case EQuitState.YouHaveExtractedOnlyAsClient:
+                    case EQuitState.YouHaveExtractedOnlyAsHost:
+                        Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Survived;
+                        break;
+                }
             }
+
 
             if (Singleton<ISITGame>.Instance.MyExitLocation == null)
             {
