@@ -59,8 +59,8 @@ jobs:
         with:
           issue-number: ${{ steps.pr.outputs.result }}
           comment-author: 'github-actions[bot]'
-      - name: Create or Update Comment
-        if: steps.find-comment.outputs.comment-id == ''  # Comment not found
+      - name: Create Comment
+        if: steps.find-comment.outputs.comment-id == ''
         env:
           JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ env.PREVIOUS_JOB_ID }}"
           ARTIFACT_URL: "https://github.com/${{ github.repository }}/suites/${{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
@@ -79,3 +79,32 @@ jobs:
             | Download | ${{ env.ARTIFACT_URL }} |
             
             [badge]: https://img.shields.io/badge/Build_Success!-0d1117?style=for-the-badge&labelColor=3fb950&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZmZmZmZmIj48cGF0aCBkPSJNMjEuMDMgNS43MmEuNzUuNzUgMCAwIDEgMCAxLjA2bC0xMS41IDExLjVhLjc0Ny43NDcgMCAwIDEtMS4wNzItLjAxMmwtNS41LTUuNzVhLjc1Ljc1IDAgMSAxIDEuMDg0LTEuMDM2bDQuOTcgNS4xOTVMMTkuOTcgNS43MmEuNzUuNzUgMCAwIDEgMS4wNiAwWiI+PC9wYXRoPjwvc3ZnPg==
+      
+      - name: Update Comment
+        if: steps.find-comment.outputs.comment-id != ''
+        env:
+          JOB_PATH: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ env.PREVIOUS_JOB_ID }}"
+          ARTIFACT_URL: "https://github.com/${{ github.repository }}/suites/${{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commentId = ${{ steps.find-comment.outputs.comment-id }};
+            const issueNumber = ${{ steps.pr.outputs.result }};
+            const body = `
+              ![badge]
+              
+              Build Successful! You can find a link to the downloadable artifact below.
+              
+              | Name     | Link                    |
+              | -------- | ----------------------- |
+              | Commit   | ${{ github.event.workflow_run.head_sha }}     |
+              | Logs     | ${{ env.JOB_PATH }}     |
+              | Download | ${{ env.ARTIFACT_URL }} |
+              
+              [badge]: https://img.shields.io/badge/Build_Success!-0d1117?style=for-the-badge&labelColor=3fb950&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZmZmZmZmIj48cGF0aCBkPSJNMjEuMDMgNS43MmEuNzUuNzUgMCAwIDEgMCAxLjA2bC0xMS41IDExLjVhLjc0Ny43NDcgMCAwIDEtMS4wNzItLjAxMmwtNS41LTUuNzVhLjc1Ljc1IDAgMSAxIDEuMDg0LTEuMDM2bDQuOTcgNS4xOTVMMTkuOTcgNS43MmEuNzUuNzUgMCAwIDEgMS4wNiAwWiI+PC9wYXRoPjwvc3ZnPg==`;
+            github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: body
+            });
