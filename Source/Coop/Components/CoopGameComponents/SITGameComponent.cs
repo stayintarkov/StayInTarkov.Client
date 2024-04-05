@@ -719,6 +719,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private void FindALocationAndProcessQuit()
         {
+            Logger.LogDebug($"{nameof(FindALocationAndProcessQuit)}");
+
             switch(GetQuitState())
             {
                 case EQuitState.YourTeamIsDead:

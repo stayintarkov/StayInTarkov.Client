@@ -32,7 +32,6 @@ using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
-//using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
@@ -44,7 +43,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
-using UnityEngine.Profiling;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
@@ -210,7 +208,25 @@ namespace StayInTarkov.Coop.SITGameModes
                    
             }
 
+            SITGameModeHelpers.RemoveEndByTriggers();
+            coopGame.StartCoroutine(coopGame.EndByTimer());
+
             return coopGame;
+        }
+
+        public IEnumerator EndByTimer()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1);
+
+                TimeSpan pastTime = GameTimer.PastTime;
+                TimeSpan? sessionTime = GameTimer.SessionTime;
+                if (pastTime >= sessionTime)
+                {
+                    this.Stop(ProfileId, ExitStatus.MissingInAction, null, 0);
+                }
+            }
         }
 
         public void CreateCoopGameComponent()
@@ -1337,19 +1353,23 @@ namespace StayInTarkov.Coop.SITGameModes
                 EnabledCountdownExfils.Remove(point);
             }
 
-            // Propagate exfil point state to all players (useful for Countdown exfils, like car)
-            // We do not propagate NotPresent because clients are responsible to trigger their local exfils.
-            // A race condition would cause NotPresent to be received before clients can properly process the exfil logic
-            // because EFT's code clears ExfiltrationPoint.Entered upon setting NotPresent
-            if (prevStatus != curStatus && curStatus != EExfiltrationStatus.NotPresent && curStatus != EExfiltrationStatus.UncompleteRequirements)
+            // Paulov: Had to add this. Without a SITGameComponent, the ServerId is null when sending data. Therefore a Raid could fail and blank screen.
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                UpdateExfiltrationPointPacket packet = new()
+                // Propagate exfil point state to all players (useful for Countdown exfils, like car)
+                // We do not propagate NotPresent because clients are responsible to trigger their local exfils.
+                // A race condition would cause NotPresent to be received before clients can properly process the exfil logic
+                // because EFT's code clears ExfiltrationPoint.Entered upon setting NotPresent
+                if (prevStatus != curStatus && curStatus != EExfiltrationStatus.NotPresent && curStatus != EExfiltrationStatus.UncompleteRequirements)
                 {
-                    PointName = point.Settings.Name,
-                    Command = curStatus,
-                    QueuedPlayers = point.QueuedPlayers
-                };
-                GameClient.SendData(packet.Serialize());
+                    UpdateExfiltrationPointPacket packet = new()
+                    {
+                        PointName = point.Settings.Name,
+                        Command = curStatus,
+                        QueuedPlayers = point.QueuedPlayers
+                    };
+                    GameClient.SendData(packet.Serialize());
+                }
             }
         }
 
@@ -1380,14 +1400,14 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             //Status = GameStatus.Stopped;
 
-            Logger.LogInfo("CoopGame.Stop");
+            Logger.LogInfo($"{nameof(CoopSITGame)}.{nameof(Stop)}({profileId},{exitStatus},{exitName},{delay})");
 
             // If I am the Host/Server, then ensure all the bots have left too
             if (SITMatchmaking.IsServer)
             {
                 foreach (var p in SITGameComponent.GetCoopGameComponent().Players)
                 {
-                    AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
+                    _ = AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", new Dictionary<string, object>() {
 
                             { "m", "PlayerLeft" },
                             { "profileId", p.Value.ProfileId },
@@ -1398,7 +1418,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
 
             // Notify that I have left the Server
-            AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
+            _ = AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", new Dictionary<string, object>() {
                 { "m", "PlayerLeft" },
                 { "profileId", Singleton<GameWorld>.Instance.MainPlayer.ProfileId },
                 { "serverId", SITGameComponent.GetServerId() }
@@ -1427,13 +1447,21 @@ namespace StayInTarkov.Coop.SITGameModes
             {
                 return;
             }
-            if (base.Status == GameStatus.Starting || base.Status == GameStatus.Started)
+
+            if (EndByTimerScenario != null)
             {
-                ReflectionHelpers.GetFieldFromType(EndByTimerScenario.GetType(), "GameStatus_0").SetValue(EndByTimerScenario, GameStatus.SoftStopping);
+                if (base.Status == GameStatus.Starting || base.Status == GameStatus.Started)
+                {
+                    ReflectionHelpers.GetFieldFromType(EndByTimerScenario.GetType(), "GameStatus_0").SetValue(EndByTimerScenario, GameStatus.SoftStopping);
+                }
             }
+
             base.Status = GameStatus.Stopping;
             base.GameTimer.TryStop();
-            EndByExitTrigerScenario.Stop();
+
+            if(EndByExitTrigerScenario != null) 
+                EndByExitTrigerScenario.Stop();
+
             GameUi.TimerPanel.Close();
             if (!SITMatchmaking.IsClient)
             {

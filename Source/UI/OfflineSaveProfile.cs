@@ -70,16 +70,20 @@ namespace StayInTarkov.UI
             }
 
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
+         
 
+            HealthListener.Instance.MyHealthController = null;
+            return true;
+        }
 
+        [PatchPostfix]
+        public static void Postfix()
+        {
             var coopGC = SITGameComponent.GetCoopGameComponent();
             if (coopGC != null)
             {
                 UnityEngine.Object.Destroy(coopGC);
             }
-
-            HealthListener.Instance.MyHealthController = null;
-            return true;
         }
 
         public static void SaveProfileProgress(ExitStatus exitStatus, Profile profileData, PlayerHealth currentHealth, bool isPlayerScav)
@@ -87,18 +91,6 @@ namespace StayInTarkov.UI
             // "Disconnecting" from your game in Single Player shouldn't result in losing your gear. This is stupid.
             if (exitStatus == ExitStatus.Left)
                 exitStatus = ExitStatus.Runner;
-
-            // TODO: Remove uneccessary data
-            //var clonedProfile = profileData.Clone();
-            //clonedProfile.Encyclopedia = null;
-            //clonedProfile.Hideout = null;
-            //clonedProfile.Notes = null;
-            //clonedProfile.RagfairInfo = null;
-            //clonedProfile.Skills = null;
-            //clonedProfile.TradersInfo = null;
-            //clonedProfile.QuestsData = null;
-            //clonedProfile.UnlockedRecipeInfo = null;
-            //clonedProfile.WishList = null;
 
             SaveProfileRequest request = new()
             {
@@ -109,13 +101,8 @@ namespace StayInTarkov.UI
             };
 
             var convertedJson = request.SITToJson();
-            //Logger.LogDebug("SaveProfileProgress =====================================================");
-            //Logger.LogDebug(convertedJson);
-            AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson);
-            //_ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, timeout: 10 * 1000, debug: false);
-
-
-            //Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
+            //AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson);
+            _ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, debug: false);
         }
 
         public class SaveProfileRequest
