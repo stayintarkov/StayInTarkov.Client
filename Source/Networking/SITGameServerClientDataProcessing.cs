@@ -19,8 +19,6 @@ namespace StayInTarkov.Networking
 {
     public static class SITGameServerClientDataProcessing
     {
-        public static bool DEBUGPACKETS = false;
-
         public const string PACKET_TAG_METHOD = "m";
         public const string PACKET_TAG_SERVERID = "serverId";
         public const string PACKET_TAG_DATA = "data";
@@ -68,17 +66,7 @@ namespace StayInTarkov.Networking
                 // Is a RAW SIT Serialized packet
                 else
                 {
-
-                    //Logger.LogDebug(Encoding.UTF8.GetString(data));
-                    //BasePlayerPacket basePlayerPacket = new BasePlayerPacket();
-                    //packet = basePlayerPacket.ToDictionary(data);
                     ProcessSITPacket(data, ref packet, out sitPacket);
-
-                }
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo("GOT :" + sData);
                 }
 
                 var coopGameComponent = SITGameComponent.GetCoopGameComponent();
@@ -93,11 +81,6 @@ namespace StayInTarkov.Networking
                 {
                     //Logger.LogError($"{nameof(ProcessPacketBytes)}. Packet is Null");
                     return;
-                }
-
-                if (DEBUGPACKETS)
-                {
-                    Logger.LogInfo("GOT :" + packet.SITToJson());
                 }
 
                 if (packet.ContainsKey("dataList"))
@@ -147,13 +130,10 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
-
-
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
                 if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
-
 
                 //if (packet.ContainsKey(PACKET_TAG_METHOD)
                 //    && packet[PACKET_TAG_METHOD].ToString() == "Move")
@@ -237,12 +217,6 @@ namespace StayInTarkov.Networking
                     bpp = null;
                 }
                 catch { }
-            }
-
-            if (DEBUGPACKETS)
-            {
-                Logger.LogInfo(" ==================SIT Packet============= ");
-                Logger.LogInfo(dictObject.ToJson());
             }
 
             packet = DeserializeIntoPacket(data, packet, bp);
