@@ -57,14 +57,6 @@ namespace StayInTarkov.Coop.Players
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
-            // Paulov: This creates a server authorative Damage model
-            // I am filtering out Bullet from this model (for now)
-            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
-            {
-                ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
-                return null;
-            }
-
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyShot)}:{damageInfo.DamageType}");
             return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
         }
@@ -72,11 +64,6 @@ namespace StayInTarkov.Coop.Players
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyDamageInfo)}:{damageInfo.DamageType}");
-
-            // Paulov: This creates a server authorative Damage model
-            // I am filtering out Bullet from this model (for now)
-            if (SITMatchmaking.IsClient && damageInfo.DamageType != EDamageType.Bullet)
-                return;
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, colliderType, absorbed);
         }

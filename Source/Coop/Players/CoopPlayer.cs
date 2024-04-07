@@ -12,6 +12,7 @@ using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Controllers.Health;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
@@ -24,6 +25,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking.Types;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -169,7 +171,51 @@ namespace StayInTarkov.Coop.Players
             if (!coopGameComponent.GameWorldGameStarted)
                 return null;
 
+            if (!OwnsDamageInstance(coopGameComponent, damageInfo))
+            {
+                ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
+                return null;
+            }
+
             return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
+        }
+
+        /// <summary>
+        /// Hybrid damage ownership model
+        /// Damage is owned by the client involved in the exchange, to ensure a good user experience
+        /// Team kill is owned by the player with the lowest ID
+        /// AI vs. AI is owned by the server
+        /// </summary>
+        /// <param name="damageInfo"></param>
+        /// <returns></returns>
+        private bool OwnsDamageInstance(SITGameComponent coopGameComponent, DamageInfo damageInfo)
+        {
+            var targetIsAI = !coopGameComponent.ProfileIdsUser.Contains(ProfileId);
+
+            if (damageInfo.DamageType != EDamageType.Bullet)
+            {
+                return (!targetIsAI && IsYourPlayer) || (targetIsAI && SITMatchmaking.IsServer);
+            }
+
+            var initiator = damageInfo.Player.iPlayer;
+            // FIXME(belette) Player.IsAI does not seem reliable on the guest/client after the first couple of waves
+            // In other words, Player.IsAI will be set to false even for scavs and AI PMCs. Probably needs to be fixed in spawn replication packets.
+            //var initiatorIsAI = initiator.IsAI;
+            //var targetIsAI = this.IsAI;
+            var initiatorIsAI = !coopGameComponent.ProfileIdsUser.Contains(initiator.ProfileId);
+            var initiatorIsMe = initiator.IsYourPlayer;
+            var targetIsMe = IsYourPlayer;
+
+            if (targetIsMe)
+            {
+                return initiatorIsAI || (this.ProfileId.CompareTo(initiator.ProfileId) < 0);
+            } else if (initiatorIsMe)
+            {
+                return targetIsAI || (initiator.ProfileId.CompareTo(this.ProfileId) < 0);
+            } else
+            {
+                return SITMatchmaking.IsServer && targetIsAI && initiatorIsAI;
+            }
         }
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
@@ -178,6 +224,9 @@ namespace StayInTarkov.Coop.Players
                 return;
 
             if (!coopGameComponent.GameWorldGameStarted)
+                return;
+
+            if (!OwnsDamageInstance(coopGameComponent, damageInfo))
                 return;
 
             SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
@@ -287,7 +336,7 @@ namespace StayInTarkov.Coop.Players
                 }
             }
 
-            BepInLogger.LogDebug($"{nameof(ApplyDamageInfo)}:{ProfileId}:{damageInfo.DamageType}:{damageInfo.Damage}");
+            BepInLogger.LogDebug($"{nameof(ApplyDamageInfo)}: profile={ProfileId} type={damageInfo.DamageType} dmg={damageInfo.Damage}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, bodyPartColliderType, absorbed);
 
             yield break;
