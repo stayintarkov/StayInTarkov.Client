@@ -33,6 +33,14 @@ namespace StayInTarkov.Coop.Players
     {
         public virtual ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
+        public IEnumerable<TacticalComboVisualController> HelmetLightControllers
+        {
+            get
+            {
+                return _helmetLightControllers;
+            }
+        }
+
         public static async Task<LocalPlayer>
             Create(int playerId
             , Vector3 position
