@@ -46,11 +46,11 @@ namespace StayInTarkov.Networking
         private NetDataWriter _dataWriter = new();
         private SITGameComponent CoopGameComponent { get; set; }
         public NetPacketProcessor _packetProcessor = new();
-        public int Ping = 0;
         public int ConnectedClients = 0;
-        public float DownloadSpeedKbps;
-        public float UploadSpeedKbps;
-        public float PacketLoss;
+        public ushort Ping { get; private set; } = 0;
+        public float DownloadSpeedKbps { get; private set; } = 0;
+        public float UploadSpeedKbps { get; private set; } = 0;
+        public uint PacketLoss { get; private set; } = 0;
         private ManualLogSource Logger { get; set; }
 
         void Awake()
@@ -184,9 +184,9 @@ namespace StayInTarkov.Networking
 
         public void ResetStats()
         {
-            DownloadSpeedKbps = _netClient.Statistics.BytesReceived / 1024;
-            UploadSpeedKbps = _netClient.Statistics.BytesSent / 1024;
-            PacketLoss = _netClient.Statistics.PacketLoss == 0 ? 0 : 100f * (_netClient.Statistics.PacketsSent / _netClient.Statistics.PacketLoss);
+            DownloadSpeedKbps = _netClient.Statistics.BytesReceived / 1024f;
+            UploadSpeedKbps = _netClient.Statistics.BytesSent / 1024f;
+            PacketLoss = (uint)(_netClient.Statistics.PacketLoss == 0 ? 0 : (100 * _netClient.Statistics.PacketLoss / _netClient.Statistics.PacketsSent));
             _netClient.Statistics.Reset();
         }
 
@@ -242,7 +242,7 @@ namespace StayInTarkov.Networking
 
         public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
         {
-            Ping = latency;
+            Ping = (ushort)latency;
         }
 
         public void OnConnectionRequest(LiteNetLib.ConnectionRequest request)

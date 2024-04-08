@@ -51,8 +51,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
         public long Timestamp { get; set; } = 0;
-
-        public EFT.Player OwnPlayer { get; set; }
+        public ushort AkiBackendPing = 0;
 
         /// <summary>
         /// ProfileId to Player instance
@@ -63,7 +62,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// The Client Drones connected to this Raid
         /// </summary>
         public HashSet<CoopPlayerClient> PlayerClients { get; } = new();
-
 
         //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
@@ -243,39 +241,18 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
 
-            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;
+            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;;
 
             // In game ping system.
             if (Singleton<FrameMeasurer>.Instantiated)
             {
+                var rttMs = 2 * (Singleton<IGameClient>.Instance?.Ping ?? 1);
                 FrameMeasurer instance = Singleton<FrameMeasurer>.Instance;
-                instance.PlayerRTT = ServerPing;
-                instance.ServerFixedUpdateTime = ServerPing;
-                instance.ServerTime = ServerPing;
+                instance.PlayerRTT = rttMs;
+                instance.ServerFixedUpdateTime = rttMs;
+                instance.ServerTime = rttMs;
                 instance.NetworkQuality.CreateMeasurers();
             }
-
-
-            //System.Net.NetworkInformation.Ping pingSender = new ();
-            //PingOptions options = new PingOptions();
-
-            //// Use the default Ttl value which is 128,
-            //// but change the fragmentation behavior.
-            //options.DontFragment = true;
-
-            //// Create a buffer of 32 bytes of data to be transmitted.
-            //string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            //byte[] buffer = Encoding.ASCII.GetBytes(data);
-            //int timeout = 120;
-            //PingReply reply = pingSender.Send(args[0], timeout, buffer, options);
-            //if (reply.Status == IPStatus.Success)
-            //{
-            //    Console.WriteLine("Address: {0}", reply.Address.ToString());
-            //    Console.WriteLine("RoundTrip time: {0}", reply.RoundtripTime);
-            //    Console.WriteLine("Time to live: {0}", reply.Options.Ttl);
-            //    Console.WriteLine("Don't fragment: {0}", reply.Options.DontFragment);
-            //    Console.WriteLine("Buffer size: {0}", reply.Buffer.Length);
-            //}
         }
 
         private IEnumerator SendPlayerStatePacket()
@@ -525,7 +502,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                     if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
                     {
-                        udp.ResetStats();
+                        coopGame.GameClient.ResetStats();
                     }
                 }
                 catch (Exception ex)
@@ -947,10 +924,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // In game ping system.
             if (Singleton<FrameMeasurer>.Instantiated)
             {
+                var rttMs = 2 * (Singleton<IGameClient>.Instance?.Ping ?? 1);
                 FrameMeasurer instance = Singleton<FrameMeasurer>.Instance;
-                instance.PlayerRTT = ServerPing;
-                instance.ServerFixedUpdateTime = ServerPing;
-                instance.ServerTime = ServerPing;
+                instance.PlayerRTT = rttMs;
+                instance.ServerFixedUpdateTime = rttMs;
+                instance.ServerTime = rttMs;
                 //instance.NetworkQuality.CreateMeasurers();
             }
 
@@ -1596,369 +1574,11 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
 
-        int GuiX = 10;
-        int GuiWidth = 400;
-
-        //public const int PING_LIMIT_HIGH = 125;
-        //public const int PING_LIMIT_MID = 100;
-
-        public int ServerPing { get; private set; } = 1;
-        public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
-
-        public void UpdatePing(int ms)
-        {
-            //Logger.LogDebug($"{nameof(UpdatePing)}:Updating with:{ms}");
-
-            if (ServerPingSmooth.Count > 60)
-                ServerPingSmooth.TryDequeue(out _);
-            ServerPingSmooth.Enqueue(ms);
-            ServerPing = ServerPingSmooth.Count > 0 ? (int)Math.Round(ServerPingSmooth.Average()) : 1;
-        }
-
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
         public ConcurrentQueue<EFT.Player> PlayersForAIToTarget { get; } = new();
         public bool GameWorldGameStarted { get; private set; }
-
-        GUIStyle middleLabelStyle;
-        GUIStyle middleLargeLabelStyle;
-        GUIStyle normalLabelStyle;
-
-        //void OnGUI()
-        //{
-
-
-        //    if (normalLabelStyle == null)
-        //    {
-        //        normalLabelStyle = new GUIStyle(GUI.skin.label);
-        //        normalLabelStyle.fontSize = 16;
-        //        normalLabelStyle.fontStyle = FontStyle.Bold;
-        //    }
-        //    if (middleLabelStyle == null)
-        //    {
-        //        middleLabelStyle = new GUIStyle(GUI.skin.label);
-        //        middleLabelStyle.fontSize = 18;
-        //        middleLabelStyle.fontStyle = FontStyle.Bold;
-        //        middleLabelStyle.alignment = TextAnchor.MiddleCenter;
-        //    }
-        //    if (middleLargeLabelStyle == null)
-        //    {
-        //        middleLargeLabelStyle = new GUIStyle(middleLabelStyle);
-        //        middleLargeLabelStyle.fontSize = 24;
-        //    }
-
-        //    var rect = new Rect(GuiX, 5, GuiWidth, 100);
-        //    rect = DrawPing(rect);
-
-        //    GUIStyle style = GUI.skin.label;
-        //    style.alignment = TextAnchor.MiddleCenter;
-        //    style.fontSize = 13;
-
-        //    var w = 0.5f; // proportional width (0..1)
-        //    var h = 0.2f; // proportional height (0..1)
-        //    var rectEndOfGameMessage = Rect.zero;
-        //    rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
-        //    rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + Screen.height / 3;
-        //    rectEndOfGameMessage.width = Screen.width * w;
-        //    rectEndOfGameMessage.height = Screen.height * h;
-
-        //    var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-
-
-        //    if (LocalGameInstance == null)
-        //        return;
-
-        //    var coopGame = LocalGameInstance as CoopGame;
-        //    if (coopGame == null)
-        //        return;
-
-        //    rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
-
-        //    var quitState = GetQuitState();
-        //    switch (quitState)
-        //    {
-        //        case EQuitState.YourTeamIsDead:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YouAreDead:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_SOLO"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YouAreDeadAsHost:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_HOST"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YouAreDeadAsClient:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD_CLIENT"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YourTeamHasExtracted:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YouHaveExtractedOnlyAsHost:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
-        //            break;
-        //        case EQuitState.YouHaveExtractedOnlyAsClient:
-        //            GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_CLIENT"], middleLargeLabelStyle);
-        //            break;
-        //    }
-
-        //    //if(quitState != EQuitState.NONE)
-        //    //{
-        //    //    var rectEndOfGameButton = new Rect(rectEndOfGameMessage);
-        //    //    rectEndOfGameButton.y += 15;
-        //    //    if(GUI.Button(rectEndOfGameButton, "End Raid"))
-        //    //    {
-
-        //    //    }
-        //    //}
-
-
-        //    //OnGUI_DrawPlayerList(rect);
-        //    OnGUI_DrawPlayerFriendlyTags(rect);
-        //    //OnGUI_DrawPlayerEnemyTags(rect);
-
-        //}
-
-        private Rect DrawPing(Rect rect)
-        {
-            if (!PluginConfigSettings.Instance.CoopSettings.ShowPing)
-                return rect;
-
-            rect.y = 5;
-            GUI.Label(rect, $"SIT Coop: " + (SITMatchmaking.IsClient ? "CLIENT" : "SERVER"));
-            rect.y += 15;
-
-            // PING ------
-            GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"RTT:{ServerPing}");
-            rect.y += 15;
-            GUI.Label(rect, $"Host RTT:{ServerPing + AkiBackendCommunication.Instance.HostPing}");
-            rect.y += 15;
-            GUI.contentColor = Color.white;
-
-            if (PerformanceCheck_ActionPackets)
-            {
-                GUI.contentColor = Color.red;
-                GUI.Label(rect, $"BAD PERFORMANCE!");
-                GUI.contentColor = Color.white;
-                rect.y += 15;
-            }
-
-            if (AkiBackendCommunication.Instance.HighPingMode)
-            {
-                GUI.contentColor = Color.red;
-                GUI.Label(rect, $"!HIGH PING MODE!");
-                GUI.contentColor = Color.white;
-                rect.y += 15;
-            }
-
-            return rect;
-        }
-
-        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopSITGame coopGame)
-        {
-            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
-                return rect;
-
-            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
-            // gathering extracted
-            var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
-            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
-            rect.y += 15;
-            GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
-            rect.y += 15;
-            GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
-            rect.y += 15;
-            GUI.Label(rect, $"Bots: {PlayerBots.Length}");
-            rect.y += 15;
-            return rect;
-        }
-
-        private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
-        {
-            if (SITConfig == null)
-            {
-                Logger.LogError("SITConfig is null?");
-                return;
-            }
-
-            if (!SITConfig.showPlayerNameTags)
-            {
-                return;
-            }
-
-            if (FPSCamera.Instance == null)
-                return;
-
-            if (Players == null)
-                return;
-
-            if (PlayerUsers == null)
-                return;
-
-            if (Camera.current == null)
-                return;
-
-            if (!Singleton<GameWorld>.Instantiated)
-                return;
-
-
-            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-
-            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            if (ownPlayer == null)
-                return;
-
-            foreach (var pl in PlayerUsers)
-            {
-                if (pl == null)
-                    continue;
-
-                if (pl.HealthController == null)
-                    continue;
-
-                if (pl.IsYourPlayer && pl.HealthController.IsAlive)
-                    continue;
-
-                Vector3 aboveBotHeadPos = pl.PlayerBones.Pelvis.position + Vector3.up * (pl.HealthController.IsAlive ? 1.1f : 0.3f);
-                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                if (screenPos.z > 0)
-                {
-                    rect.x = screenPos.x * screenScale - rect.width / 2;
-                    rect.y = Screen.height - (screenPos.y + rect.height / 2) * screenScale;
-
-                    GUIStyle labelStyle = middleLabelStyle;
-                    labelStyle.fontSize = 14;
-                    float labelOpacity = 1;
-                    float distanceToCenter = Vector3.Distance(screenPos, new Vector3(Screen.width, Screen.height, 0) / 2);
-
-                    if (distanceToCenter < 100)
-                    {
-                        labelOpacity = distanceToCenter / 100;
-                    }
-
-                    if (ownPlayer.HandsController.IsAiming)
-                    {
-                        labelOpacity *= 0.5f;
-                    }
-
-                    if (pl.HealthController.IsAlive)
-                    {
-                        var maxHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Maximum;
-                        var currentHealth = pl.HealthController.GetBodyPartHealth(EBodyPart.Common).Current / maxHealth;
-                        labelStyle.normal.textColor = new Color(2.0f * (1 - currentHealth), 2.0f * currentHealth, 0, labelOpacity);
-                    }
-                    else
-                    {
-                        labelStyle.normal.textColor = new Color(255, 0, 0, labelOpacity);
-                    }
-
-                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
-                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", labelStyle);
-                }
-            }
-        }
-
-        private void OnGUI_DrawPlayerEnemyTags(Rect rect)
-        {
-            if (SITConfig == null)
-            {
-                Logger.LogError("SITConfig is null?");
-                return;
-            }
-
-            if (!SITConfig.showPlayerNameTagsForEnemies)
-            {
-                return;
-            }
-
-            if (FPSCamera.Instance == null)
-                return;
-
-            if (Players == null)
-                return;
-
-            if (PlayerUsers == null)
-                return;
-
-            if (Camera.current == null)
-                return;
-
-            if (!Singleton<GameWorld>.Instantiated)
-                return;
-
-
-            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-
-            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            if (ownPlayer == null)
-                return;
-
-            foreach (var pl in PlayerBots)
-            {
-                if (pl == null)
-                    continue;
-
-                if (pl.HealthController == null)
-                    continue;
-
-                if (!pl.HealthController.IsAlive)
-                    continue;
-
-                Vector3 aboveBotHeadPos = pl.Position + Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f);
-                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                if (screenPos.z > 0)
-                {
-                    rect.x = screenPos.x * screenScale - rect.width / 2;
-                    rect.y = Screen.height - screenPos.y * screenScale - 15;
-
-                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
-                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
-                    rect.y += 15;
-                    GUI.Label(rect, $"X", middleLabelStyle);
-                }
-            }
-        }
-
-        private void OnGUI_DrawPlayerList(Rect rect)
-        {
-            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGShowPlayerList)
-                return;
-
-            rect.y += 15;
-
-            if (PlayersToSpawn.Any(p => p.Value != ESpawnState.Spawned))
-            {
-                GUI.Label(rect, $"Spawning Players:");
-                rect.y += 15;
-                foreach (var p in PlayersToSpawn.Where(p => p.Value != ESpawnState.Spawned))
-                {
-                    GUI.Label(rect, $"{p.Key}:{p.Value}");
-                    rect.y += 15;
-                }
-            }
-
-            if (Singleton<GameWorld>.Instance != null)
-            {
-                var players = Singleton<GameWorld>.Instance.RegisteredPlayers.ToList();
-                players.AddRange(Players.Values);
-                players = players.Distinct(x => x.ProfileId).ToList();
-
-                rect.y += 15;
-                GUI.Label(rect, $"Players [{players.Count}]:");
-                rect.y += 15;
-                foreach (var p in players)
-                {
-                    GUI.Label(rect, $"{p.Profile.Nickname}:{(p.IsAI ? "AI" : "Player")}:{(p.HealthController.IsAlive ? "Alive" : "Dead")}");
-                    rect.y += 15;
-                }
-
-                players.Clear();
-                players = null;
-            }
-        }
     }
 
     public enum ESpawnState

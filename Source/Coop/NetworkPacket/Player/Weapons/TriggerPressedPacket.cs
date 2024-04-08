@@ -57,7 +57,6 @@
 //        {
 //            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
 //            {
-//                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
 //                if (client.HandsController is EFT.Player.FirearmController fc)
 //                {
 //                    fc.SetTriggerPressed(Pressed);

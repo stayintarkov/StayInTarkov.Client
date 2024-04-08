@@ -255,7 +255,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (SITMatchmaking.IsServer)
             {
-                //StartCoroutine(HostPinger());
                 StartCoroutine(GameTimerSync());
                 StartCoroutine(TimeAndWeatherSync());
                 StartCoroutine(ArmoredTrainTimeSync());
@@ -281,7 +280,6 @@ namespace StayInTarkov.Coop.SITGameModes
                 AkiBackendCommunication.Instance.PostDownWebSocketImmediately("CLIENT_LOADING_KEEP_ALIVE");
 
                 yield return waitSeconds;
-
             }
         }
 
@@ -303,24 +301,6 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
                 yield return waitSeconds;
 
-            }
-        }
-
-        private IEnumerator HostPinger()
-        {
-            var waitSeconds = new WaitForSeconds(1f);
-
-            while (true)
-            {
-                yield return waitSeconds;
-
-                if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    yield break;
-
-                Dictionary<string, string> hostPingerPacket = new();
-                hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
-                hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
-                Networking.GameClient.SendData(hostPingerPacket.ToJson());
             }
         }
 
@@ -1521,6 +1501,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 exfiltrationPoint.OnCancelExtraction -= ExfiltrationPoint_OnCancelExtraction;
                 exfiltrationPoint.OnStatusChanged -= ExfiltrationPoint_OnStatusChanged;
             }
+
             base.Dispose();
         }
 
