@@ -281,7 +281,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         private IEnumerator SendPlayerStatePacket()
         {
             using PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
-           
+
             List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
             //foreach (var player in Players.Values)
             foreach (var player in Singleton<GameWorld>.Instance.AllAlivePlayersList)
@@ -675,134 +675,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                     else
                     {
-                        if (Singleton<ISITGame>.Instance.MyExitLocation == null)
-                        {
-                            var gameWorld = Singleton<GameWorld>.Instance;
-                            List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                            List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
-                            foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
-                            {
-                                if (exfil is ScavExfiltrationPoint scavExfil)
-                                {
-                                    scavExfilFiltered.Add(scavExfil);
-                                }
-                                else
-                                {
-                                    pmcExfilPiltered.Add(exfil);
-                                }
-                            }
-
-                            var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
-                            var minDist = Mathf.Infinity;
-                            var closestExitLocation = "";
-                            if (RaidChangesUtil.IsScavRaid)
-                            {
-                                foreach (var filter in scavExfilFiltered)
-                                {
-                                    var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                    if (dist < minDist)
-                                    {
-                                        closestExitLocation = filter.Settings.Name;
-                                        minDist = dist;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                foreach (var filter in pmcExfilPiltered)
-                                {
-                                    var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                    if (dist < minDist)
-                                    {
-                                        closestExitLocation = filter.Settings.Name;
-                                        minDist = dist;
-                                    }
-                                }
-                            }
-#if DEBUG
-                            Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::1");
-                            Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
-#endif
-                            Singleton<ISITGame>.Instance.Stop(
-                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                                , Singleton<ISITGame>.Instance.MyExitStatus
-                                , closestExitLocation
-                                , 0);
-                        }
-                        else
-                        {
-                            Singleton<ISITGame>.Instance.Stop(
-                                Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                                , Singleton<ISITGame>.Instance.MyExitStatus
-                                , Singleton<ISITGame>.Instance.MyExitLocation
-                                , 0);
-                        }
+                        FindALocationAndProcessQuit();
                     }
                 }
                 else
                 {
-                    if (Singleton<ISITGame>.Instance.MyExitLocation == null)
-                    {
-                        var gameWorld = Singleton<GameWorld>.Instance;
-                        List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                        List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
-                        foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
-                        {
-                            if (exfil is ScavExfiltrationPoint scavExfil)
-                            {
-                                scavExfilFiltered.Add(scavExfil);
-                            }
-                            else
-                            {
-                                pmcExfilPiltered.Add(exfil);
-                            }
-                        }
-
-                        var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
-                        var minDist = Mathf.Infinity;
-                        var closestExitLocation = "";
-                        if (RaidChangesUtil.IsScavRaid)
-                        {
-                            foreach (var filter in scavExfilFiltered)
-                            {
-                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                if (dist < minDist)
-                                {
-                                    closestExitLocation = filter.Settings.Name;
-                                    minDist = dist;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            foreach (var filter in pmcExfilPiltered)
-                            {
-                                var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                if (dist < minDist)
-                                {
-                                    closestExitLocation = filter.Settings.Name;
-                                    minDist = dist;
-                                }
-                            }
-                        }
-#if DEBUG
-                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::2");
-                        Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
-#endif
-                        Singleton<ISITGame>.Instance.Stop(
-                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                            , Singleton<ISITGame>.Instance.MyExitStatus
-                            , closestExitLocation
-                            , 0);
-                    }
-                    else
-                    {
-                        Singleton<ISITGame>.Instance.Stop(
-                            Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                            , Singleton<ISITGame>.Instance.MyExitStatus
-                            , Singleton<ISITGame>.Instance.MyExitLocation
-                            , 0);
-                    }
+                    FindALocationAndProcessQuit();
                 }
                 return;
             }
@@ -889,55 +767,50 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                 }
 
-                                var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
-                                var minDist = Mathf.Infinity;
-                                var closestExitLocation = "";
-                                if (RaidChangesUtil.IsScavRaid)
-                                {
-                                    foreach (var filter in scavExfilFiltered)
-                                    {
-                                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                        if (dist < minDist)
-                                        {
-                                            closestExitLocation = filter.Settings.Name;
-                                            minDist = dist;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    foreach (var filter in pmcExfilPiltered)
-                                    {
-                                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
-                                        if (dist < minDist)
-                                        {
-                                            closestExitLocation = filter.Settings.Name;
-                                            minDist = dist;
-                                        }
-                                    }
-                                }
-#if DEBUG
-                                Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::3");
-                                Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
-#endif
-                                Singleton<ISITGame>.Instance.Stop(
-                                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                                    , Singleton<ISITGame>.Instance.MyExitStatus
-                                    , closestExitLocation
-                                    , 0);
-                            }
-                            else
-                            {
-                                Singleton<ISITGame>.Instance.Stop(
-                                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                                    , Singleton<ISITGame>.Instance.MyExitStatus
-                                    , Singleton<ISITGame>.Instance.MyExitLocation
-                                    , 0);
-                            }
+                var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
+                var minDist = Mathf.Infinity;
+                var closestExitLocation = "";
+                if (RaidChangesUtil.IsScavRaid)
+                {
+                    foreach (var filter in scavExfilFiltered)
+                    {
+                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                        if (dist < minDist)
+                        {
+                            closestExitLocation = filter.Settings.Name;
+                            minDist = dist;
                         }
                     }
                 }
-                return;
+                else
+                {
+                    foreach (var filter in pmcExfilPiltered)
+                    {
+                        var dist = Vector3.Distance(filter.gameObject.transform.position, playerPos);
+                        if (dist < minDist)
+                        {
+                            closestExitLocation = filter.Settings.Name;
+                            minDist = dist;
+                        }
+                    }
+                }
+#if DEBUG
+                Logger.LogDebug($"{nameof(ProcessQuitting)}: Original MyExitLocation is null::POS::3");
+                Logger.LogDebug($"{nameof(ProcessQuitting)}: Using {closestExitLocation} as MyExitLocation");
+#endif
+                Singleton<ISITGame>.Instance.Stop(
+                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                    , Singleton<ISITGame>.Instance.MyExitStatus
+                    , closestExitLocation
+                    , 0);
+            }
+            else
+            {
+                Singleton<ISITGame>.Instance.Stop(
+                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                    , Singleton<ISITGame>.Instance.MyExitStatus
+                    , Singleton<ISITGame>.Instance.MyExitLocation
+                    , 0);
             }
         }
 
@@ -1233,39 +1106,39 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //while (RunAsyncTasks)
             //{
             //    yield return waitSeconds;
-                foreach (var p in PlayersToSpawn)
+            foreach (var p in PlayersToSpawn)
+            {
+                // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
+                if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                 {
-                    // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
-                    if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
+                    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == p.Key))
                     {
-                        if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == p.Key))
-                        {
-                            if (PlayersToSpawn.ContainsKey(p.Key))
-                                PlayersToSpawn[p.Key] = ESpawnState.Ignore;
+                        if (PlayersToSpawn.ContainsKey(p.Key))
+                            PlayersToSpawn[p.Key] = ESpawnState.Ignore;
 
-                            continue;
-                        }
-
-                        if (Players.Any(x => x.Key == p.Key))
-                        {
-                            if (PlayersToSpawn.ContainsKey(p.Key))
-                                PlayersToSpawn[p.Key] = ESpawnState.Ignore;
-
-                            continue;
-                        }
+                        continue;
                     }
 
+                    if (Players.Any(x => x.Key == p.Key))
+                    {
+                        if (PlayersToSpawn.ContainsKey(p.Key))
+                            PlayersToSpawn[p.Key] = ESpawnState.Ignore;
 
-                    if (PlayersToSpawn[p.Key] == ESpawnState.Ignore)
                         continue;
-
-                    if (PlayersToSpawn[p.Key] == ESpawnState.Spawned)
-                        continue;
-
-                    Vector3 newPosition = PlayersToSpawnPacket[p.Key].BodyPosition;
-                    //ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false, PlayersToSpawnPacket[p.Key].InitialInventoryMongoId);
-                    ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, PlayersToSpawnPacket[p.Key].IsAI, PlayersToSpawnPacket[p.Key].InitialInventoryMongoId);
+                    }
                 }
+
+
+                if (PlayersToSpawn[p.Key] == ESpawnState.Ignore)
+                    continue;
+
+                if (PlayersToSpawn[p.Key] == ESpawnState.Spawned)
+                    continue;
+
+                Vector3 newPosition = PlayersToSpawnPacket[p.Key].BodyPosition;
+                //ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, false, PlayersToSpawnPacket[p.Key].InitialInventoryMongoId);
+                ProcessPlayerBotSpawn(PlayersToSpawnPacket[p.Key], p.Key, newPosition, PlayersToSpawnPacket[p.Key].IsAI, PlayersToSpawnPacket[p.Key].InitialInventoryMongoId);
+            }
 
 
             //    yield return waitEndOfFrame;
@@ -1439,7 +1312,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 // ------------------------------------------------------------------
                 // Create Local Player drone
                 LocalPlayer otherPlayer = CreateLocalPlayer(profile, PlayersToSpawnPositions[profile.Id], playerId);
-                if(otherPlayer == null)
+                if (otherPlayer == null)
                 {
                     PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawning;
                     return;
@@ -1498,7 +1371,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                , null
                , isYourPlayer: false
                , isClientDrone: true
-               , initialMongoId: PlayerInventoryMongoIds[profile.Id]    
+               , initialMongoId: PlayerInventoryMongoIds[profile.Id]
                ).Result;
 
             if (otherPlayer == null)
@@ -1560,7 +1433,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
                 }
             }
-            else if(profile.Info.Side != EPlayerSide.Savage) // Make Player PMC items are all not 'FiR'
+            else if (profile.Info.Side != EPlayerSide.Savage) // Make Player PMC items are all not 'FiR'
             {
                 Item[] items = profile.Inventory.AllRealPlayerItems?.ToArray();
                 if (items != null)
