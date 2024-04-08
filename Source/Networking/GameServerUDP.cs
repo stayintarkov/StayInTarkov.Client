@@ -3,12 +3,14 @@ using Comfort.Common;
 using EFT;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Players;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -78,27 +80,59 @@ namespace StayInTarkov.Networking
             };
 
             EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
-            
-            _natHelper = new NatHelper(_netServer);
+
+            _natHelper = new NatHelper(_netServer, SITMatchmaking.Profile.ProfileId);
             _natHelper.Connect();
 
-            EFT.UI.ConsoleScreen.Log($"Creating Public Endpoints...");
-            
-            // UPNP
-            var upnpResult = await _natHelper.AddUpnpEndPoint(SITMatchmaking.Port, 900, "sit.core");
+            EFT.UI.ConsoleScreen.Log($"Setting up Public Endpoints...");
 
-            // Only do STUN (nat punch) if UPNP failed.
-            if(!upnpResult)
-                _natHelper.AddStunEndPoint(SITMatchmaking.Port);
+            var localPort = PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort;
 
-            // External (port forwarding)
-            _natHelper.AddEndPoint("external", SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV4, SITMatchmaking.Port);
+            // Use explicitly set ip/port if possible, otherwise use UPnP, then STUN, then 3rd-party
+            if (!string.IsNullOrWhiteSpace(SITMatchmaking.PublicIPAddress) && SITMatchmaking.PublicPort != 0)
+            {
+                // External (port forwarding)
+                _natHelper.AddEndPoint("explicit", SITMatchmaking.PublicIPAddress, SITMatchmaking.PublicPort);
+            }
+            else
+            {
+                // UPnP
+                var upnpResult = await _natHelper.AddUpnpEndPoint(localPort, SITMatchmaking.PublicPort, 900, "sit.core");
 
-            _netServer.Start(SITMatchmaking.Port);
+                // Only do STUN (nat punch) if UPnP failed
+                if (!upnpResult)
+                {
+                    bool stunResult = _natHelper.AddStunEndPoint(SITMatchmaking.PublicPort);
 
-            Logger.LogDebug($"Server started on port {_netServer.LocalPort}.");
-            EFT.UI.ConsoleScreen.Log($"Server started on port {_netServer.LocalPort}.");
-            NotificationManagerClass.DisplayMessageNotification($"Server started on port {_netServer.LocalPort}.",
+                    // Only do 3rd-party IP services if all else fails
+                    if (!stunResult)
+                    {
+                        await _natHelper.AddThirdPartyIPEndpoint(SITMatchmaking.PublicPort);
+                    }
+                }
+            }
+
+            if (_natHelper.PublicEndPoints.IsNullOrEmpty())
+            {
+                var errmsg = $"Could not find any available public endpoints, please set one explicitly in your config.";
+                Logger.LogError(errmsg);
+                EFT.UI.ConsoleScreen.LogError(errmsg);
+                NotificationManagerClass.DisplayMessageNotification(errmsg,
+                    EFT.Communications.ENotificationDurationType.Long, EFT.Communications.ENotificationIconType.Alert);
+                return;
+            }
+
+            Logger.LogDebug($"Found endpoints ${string.Join("\n", _natHelper.PublicEndPoints)}");
+
+            // Listen locally
+            var localIPv4 = IPAddress.Parse(PluginConfigSettings.Instance.CoopSettings.UdpServerLocalIPv4);
+            var localIPv6 = IPAddress.Parse(PluginConfigSettings.Instance.CoopSettings.UdpServerLocalIPv6);
+            _netServer.Start(localIPv4, localIPv6, localPort);
+
+            var msg = $"Server listening on {localIPv4}:{_netServer.LocalPort} and [{localIPv6}]:{_netServer.LocalPort}.";
+            Logger.LogDebug(msg);
+            EFT.UI.ConsoleScreen.Log(msg);
+            NotificationManagerClass.DisplayMessageNotification(msg,
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
         }
 
