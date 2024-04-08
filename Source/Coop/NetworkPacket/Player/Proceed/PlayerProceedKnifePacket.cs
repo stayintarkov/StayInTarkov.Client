@@ -55,6 +55,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         protected override void Process(CoopPlayerClient client)
         {
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
+
             if (ItemFinder.TryFindItem(ItemId, out var item))
             {
                 if(QuickKnife)

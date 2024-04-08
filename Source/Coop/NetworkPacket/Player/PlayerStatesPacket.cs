@@ -50,6 +50,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         {
             //StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(PlayerStatesPacket)}:{nameof(Process)}:{this.SITToJson()}");
 
+
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
+
             for (var i = 0; i < PlayerStates.Length; i++)
                 PlayerStates[i].Process();
         }

@@ -427,6 +427,8 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         }
 
+
+
         public Dictionary<string, object> ToDictionary(byte[] data)
         {
             Deserialize(data);

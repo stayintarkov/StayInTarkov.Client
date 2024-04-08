@@ -19,7 +19,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR;
@@ -87,11 +86,6 @@ namespace StayInTarkov.Networking
 
         public WebSocketSharp.WebSocket WebSocket { get; private set; }
 
-        public long BytesSent = 0;
-        public long BytesReceived = 0;
-        public ushort Ping = 0;
-        public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
-
         public static int PING_LIMIT_HIGH { get; } = 125;
         public static int PING_LIMIT_MID { get; } = 100;
         public static bool IsLocal;
@@ -120,8 +114,6 @@ namespace StayInTarkov.Networking
             PeriodicallySendPing();
             //PeriodicallySendPooledData();
 
-            SITGameServerClientDataProcessing.OnLatencyUpdated += OnLatencyUpdated;
-
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
             {
@@ -131,6 +123,7 @@ namespace StayInTarkov.Networking
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
 
             HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
+
         }
 
         private void ConnectToAkiBackend()
@@ -172,6 +165,7 @@ namespace StayInTarkov.Networking
             WebSocket.OnError += WebSocket_OnError;
             WebSocket.OnMessage += WebSocket_OnMessage;
             // ---
+
         }
 
         public void WebSocketClose()
@@ -186,25 +180,28 @@ namespace StayInTarkov.Networking
             }
         }
 
+        public async void PostDownWebSocketImmediately(Dictionary<string, object> packet)
+        {
+            await Task.Run(() =>
+            {
+                if (WebSocket != null)
+                    WebSocket.Send(packet.SITToJson());
+            });
+        }
+
         public async void PostDownWebSocketImmediately(string packet)
         {
             await Task.Run(() =>
             {
                 if (WebSocket != null)
-                {
-                    Interlocked.Add(ref BytesSent, Encoding.UTF8.GetByteCount(packet));
                     WebSocket.Send(packet);
-                }
             });
         }
 
         public void PostDownWebSocketImmediately(byte[] packet)
         {
             if (WebSocket != null)
-            {
-                Interlocked.Add(ref BytesSent, packet.Length);
                 WebSocket.SendAsync(packet, (b) => { });
-            }
         }
 
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
@@ -229,11 +226,10 @@ namespace StayInTarkov.Networking
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
+            GC.AddMemoryPressure(e.RawData.Length);
+
             if (e == null)
                 return;
-
-            Interlocked.Add(ref BytesReceived, e.RawData.Length);
-            GC.AddMemoryPressure(e.RawData.Length);
 
             if(DEBUGPACKETS)
             {
@@ -314,6 +310,8 @@ namespace StayInTarkov.Networking
         //{
         //    PooledDictionaryCollectionToPost.Add(data);
         //}
+
+        public int HostPing { get; private set; } = 1;
 
         //private Task PeriodicallySendPooledDataTask;
 
@@ -450,43 +448,31 @@ namespace StayInTarkov.Networking
                 int awaitPeriod = 2000;
                 while (true)
                 {
-                    try
+                    await Task.Delay(awaitPeriod);
+
+                    if (WebSocket == null)
+                        continue;
+
+                    if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
+                        continue;
+
+                    if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                        continue;
+
+                    // PatchConstants.Logger.LogDebug($"WS:Ping Send");
+
+                    var packet = new
                     {
-                        await Task.Delay(awaitPeriod);
+                        m = "Ping",
+                        t = DateTime.UtcNow.Ticks.ToString("G"),
+                        profileId = coopGameComponent.OwnPlayer.ProfileId,
+                        serverId = coopGameComponent.ServerId
+                    };
 
-                        if (WebSocket == null)
-                            continue;
-
-                        if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
-                            continue;
-
-                        if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                            continue;
-
-                        var packet = new
-                        {
-                            m = "Ping",
-                            t = DateTime.UtcNow.Ticks.ToString("G"),
-                            profileId = ProfileId,
-                            serverId = coopGameComponent.ServerId
-                        };
-
-                        WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
-                        packet = null;
-                    } catch (Exception ex)
-                    {
-                        Logger.LogError($"Periodic ping caught: {ex.GetType()} {ex.Message}");
-                    }
+                    WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
+                    packet = null;
                 }
             });
-        }
-
-        private void OnLatencyUpdated(ushort latencyMs)
-        {
-            if (ServerPingSmooth.Count > 5)
-                ServerPingSmooth.TryDequeue(out _);
-            ServerPingSmooth.Enqueue(latencyMs);
-            Ping = (ushort)(ServerPingSmooth.Count > 0 ? Math.Round(ServerPingSmooth.Average()) : 1);
         }
 
         private Dictionary<string, string> GetHeaders()
@@ -915,7 +901,6 @@ namespace StayInTarkov.Networking
         {
             ProfileId = null;
             RemoteEndPoint = null;
-            SITGameServerClientDataProcessing.OnLatencyUpdated -= OnLatencyUpdated;
         }
     }
 }
