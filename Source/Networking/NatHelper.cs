@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -38,17 +37,20 @@ namespace StayInTarkov.Networking
         public Dictionary<string, IPEndPoint> PublicEndPoints = new Dictionary<string, IPEndPoint>();
 
         private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Nat Helper");
-        private readonly string _sessionId;
 
-        public NatHelper(LiteNetLib.NetManager netManager, string sid)
+        public NatHelper(LiteNetLib.NetManager netManager)
         {
             NetManager = netManager;
-            _sessionId = sid;
+        }
+
+        public NatHelper()
+        {
+
         }
 
         public void Connect()
         {
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{_sessionId}?";
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{SITMatchmaking.Profile.ProfileId}?";
 
             WebSocket = new WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
@@ -85,7 +87,7 @@ namespace StayInTarkov.Networking
         {
             JObject msgObj = JObject.Parse(message);
 
-            if (msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType") && msgObj.ContainsKey("profileId"))
+            if(msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType") && msgObj.ContainsKey("profileId"))
             {
                 var requestId = msgObj["requestId"].ToString();
                 var requestType = msgObj["requestType"].ToString();
@@ -95,8 +97,8 @@ namespace StayInTarkov.Networking
                 {
                     var getEndPointsResponse = new Dictionary<string, object>
                     {
-                        { "serverId", _sessionId },
                         { "requestId", requestId },
+                        { "serverId",  SITMatchmaking.Profile.ProfileId },
                         { "requestType", "getEndPointsResponse" },
                         { "profileId", profileId },
                         { "publicEndPoints", PublicEndPoints.ToDictionary(x => x.Key, x => x.Value.ToString()) }
@@ -132,7 +134,7 @@ namespace StayInTarkov.Networking
                         .ToObject<Dictionary<string, string>>()
                         .ToDictionary(x => x.Key, x => x.Value.ToIPEndPoint());
 
-                    if (RequestCompletionSourceList.ContainsKey(requestId))
+                    if(RequestCompletionSourceList.ContainsKey(requestId))
                         RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
                 }
 
@@ -142,11 +144,6 @@ namespace StayInTarkov.Networking
                         RequestCompletionSourceList[requestId].SetResult(true);
                 }
             }
-        }
-
-        public bool IsConnected()
-        {
-            return WebSocket.ReadyState == WebSocketState.Open;
         }
 
         public async Task<Dictionary<string, IPEndPoint>> GetEndpointsRequestAsync(string serverId, string profileId)
@@ -212,7 +209,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public async Task<bool> AddUpnpEndPoint(int localPort, int publicPort, int lifetime, string desc)
+        public async Task<bool> AddUpnpEndPoint(int port, int lifetime, string desc)
         {
             try
             {
@@ -221,9 +218,9 @@ namespace StayInTarkov.Networking
                 var device = await discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts);
                 var extIp = await device.GetExternalIPAsync();
                 var externalIp = extIp.MapToIPv4();
-                await device.CreatePortMapAsync(new Mapping(Protocol.Udp, localPort, publicPort, lifetime, desc));
+                await device.CreatePortMapAsync(new Mapping(Protocol.Udp, port, port, lifetime, desc));
 
-                PublicEndPoints.Add("upnp", new IPEndPoint(externalIp, publicPort));
+                PublicEndPoints.Add("upnp", new IPEndPoint(externalIp, port));
 
                 return true;
             }
@@ -236,15 +233,14 @@ namespace StayInTarkov.Networking
             return false;
         }
 
-        public bool AddStunEndPoint(int port = 0)
+        public void AddStunEndPoint(int port = 0)
         {
-            bool success = false;
-            var stunUdpClient = new UdpClient();
             try
             {
                 var queryResult = new STUNQueryResult();
-
-                if (port > 0)
+                var stunUdpClient = new UdpClient();
+                
+                if(port > 0)
                     stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 
                 IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
@@ -255,68 +251,30 @@ namespace StayInTarkov.Networking
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
                 //queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
 
-                success = queryResult.PublicEndPoint != null;
-                if (success)
+                if (queryResult.PublicEndPoint != null)
                 {
                     PublicEndPoints.Add("stun", queryResult.PublicEndPoint);
                 }
                 else
                 {
-                    var msg = $"Warning: STUN query failed.";
-                    Logger.LogInfo(msg);
-                    EFT.UI.ConsoleScreen.Log(msg);
+                    Logger.LogInfo($"Warning: STUN query failed.");
+                    EFT.UI.ConsoleScreen.Log($"Warning: STUN query failed.");
                 }
+
+                stunUdpClient.Client.Close();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 Logger.LogInfo($"STUN Error: {ex.Message}");
                 EFT.UI.ConsoleScreen.Log($"STUN Error: {ex.Message}");
             }
-            finally
-            {
-                stunUdpClient.Client.Close();
-            }
-
-            return success;
-        }
-
-        private async Task<IPAddress?> GetExternalIPAddressByWebCall(string address)
-        {
-            try
-            {
-                using (HttpClient client = new())
-                {
-                    client.Timeout = new TimeSpan(0, 0, 0, 1);
-                    string result = await client.GetStringAsync(address);
-                    return IPAddress.Parse(result);
-                }
-            }
-            catch { }
-
-            return null;
-        }
-
-        public async Task<bool> AddThirdPartyIPEndpoint(int port)
-        {
-            string[] WebsitesToGetIPs = ["https://api.ipify.org/", "http://wtfismyip.com/text"];
-            foreach (var address in WebsitesToGetIPs)
-            {
-                var addr = await GetExternalIPAddressByWebCall(address);
-                if (addr != null)
-                {
-                    PublicEndPoints.Add("external", new IPEndPoint(addr, port));
-                    return true;
-                }
-            }
-            return false;
         }
 
         public void AddEndPoint(string name, string ip, int port)
         {
-            // NOTE(belette) probably fail loudly here instead?
             bool result = IPAddress.TryParse(ip, out var ipAddress);
 
-            if (result)
+            if(result)
                 PublicEndPoints.Add(name, new IPEndPoint(ipAddress, port));
         }
     }
@@ -324,7 +282,7 @@ namespace StayInTarkov.Networking
     public static class ExtensionMethods
     {
         public static IPEndPoint ToIPEndPoint(this string ipEndPoint)
-        {
+        {   
             var ipEndPointArr = ipEndPoint.Split(':');
             var ip = ipEndPointArr[0];
             var port = int.Parse(ipEndPointArr[1]);
