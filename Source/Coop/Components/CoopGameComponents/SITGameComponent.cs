@@ -831,22 +831,63 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                         if (quitState == EQuitState.YouAreDeadAsHost || quitState == EQuitState.YouHaveExtractedOnlyAsHost || quitState == EQuitState.YourTeamHasExtracted || quitState == EQuitState.YourTeamIsDead)
                         {
                             ForceQuitGamePressed = 0;
-                            if (Singleton<ISITGame>.Instance.MyExitLocation == null)
-                            {
-                                var gameWorld = Singleton<GameWorld>.Instance;
-                                List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                                List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
-                                foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
-                                {
-                                    if (exfil is ScavExfiltrationPoint scavExfil)
-                                    {
-                                        scavExfilFiltered.Add(scavExfil);
-                                    }
-                                    else
-                                    {
-                                        pmcExfilPiltered.Add(exfil);
-                                    }
-                                }
+                            FindALocationAndProcessQuit();
+                        }
+                    }
+                }
+                return;
+            }
+        }
+
+        private void FindALocationAndProcessQuit()
+        {
+            Logger.LogDebug($"{nameof(FindALocationAndProcessQuit)}");
+            Logger.LogDebug($"{nameof(FindALocationAndProcessQuit)}:{nameof(Singleton<ISITGame>.Instance.MyExitStatus)}:{Singleton<ISITGame>.Instance.MyExitStatus}");
+
+            var quitState = GetQuitState();
+            Logger.LogDebug($"{nameof(FindALocationAndProcessQuit)}:{nameof(quitState)}:{quitState}");
+
+            // OnDied in GameMode should set this to ExitStatus.Killed
+            // Only override if we are the default MissingInAction
+            if (Singleton<ISITGame>.Instance.MyExitStatus == ExitStatus.MissingInAction)
+            {
+                switch (quitState)
+                {
+                    case EQuitState.YourTeamIsDead:
+                    case EQuitState.YouAreDead:
+                    case EQuitState.YouAreDeadAsHost:
+                    case EQuitState.YouAreDeadAsClient:
+                        Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Killed;
+                        break;
+                    case EQuitState.YouHaveExtractedOnlyAsClient:
+                    case EQuitState.YouHaveExtractedOnlyAsHost:
+                        Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Survived;
+                        break;
+                }
+
+                if (PlayerUsers.Count() == 1 && quitState == EQuitState.YourTeamHasExtracted)
+                {
+                    Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Survived;
+                }
+            }
+
+
+            if (Singleton<ISITGame>.Instance.MyExitLocation == null)
+            {
+                var gameWorld = Singleton<GameWorld>.Instance;
+                List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
+                List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
+                {
+                    if (exfil is ScavExfiltrationPoint scavExfil)
+                    {
+                        scavExfilFiltered.Add(scavExfil);
+                    }
+                    else
+                    {
+                        pmcExfilPiltered.Add(exfil);
+                    }
+                }
 
                                 var playerPos = Singleton<GameWorld>.Instance.MainPlayer.Transform.position;
                                 var minDist = Mathf.Infinity;
