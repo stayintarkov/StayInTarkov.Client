@@ -231,17 +231,9 @@ namespace StayInTarkov.Networking
             if (e == null)
                 return;
 
-            if(DEBUGPACKETS)
-            {
-                Logger.LogDebug(e.Data);
-            }
-
             SITGameServerClientDataProcessing.ProcessPacketBytes(e.RawData, e.Data);
             GC.RemoveMemoryPressure(e.RawData.Length);
-
         }
-
-        
 
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
         {
@@ -252,8 +244,6 @@ namespace StayInTarkov.Networking
 
             return Instance;
         }
-
-        public static bool DEBUGPACKETS { get; } = false;
 
         public bool HighPingMode { get; set; }
 
