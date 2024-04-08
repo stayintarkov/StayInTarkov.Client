@@ -146,7 +146,6 @@ namespace StayInTarkov.Networking
         {
             //Logger.LogInfo("[Server] OnNetworkReceive");
             var bytes = reader.GetRemainingBytes();
-            SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
             _netServer.SendToAll(bytes, deliveryMethod);
 
 #if DEBUG
