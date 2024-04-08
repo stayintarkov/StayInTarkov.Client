@@ -102,11 +102,6 @@ namespace StayInTarkov.Coop.Players
         {
             NewState = playerStatePacket;
             //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
-            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-            {
-                var ms = (DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))).Milliseconds;
-                coopGameComponent.ServerPingSmooth.Enqueue(ms);
-            }
 
             //BepInLogger.LogInfo(NewState.ToJson());
 

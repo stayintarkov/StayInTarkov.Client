@@ -53,7 +53,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons.Grenade
         {
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                coopGameComponent.UpdatePing(GetTimeSinceSent().Milliseconds);
                 if (client.HandsController is EFT.Player.GrenadeController gc)
                 {
                     client.Rotation = new UnityEngine.Vector2(RotationX, RotationY);
