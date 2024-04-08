@@ -19,6 +19,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static EFT.UI.ItemSpecificationPanel;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
@@ -189,6 +190,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             if (weapon_0.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
             {
                 ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
+                // Is Used?
+                ammoToFire.IsUsed = true;
                 return;
             }
 
@@ -197,6 +200,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             // Find the Ammo in the Chamber
             Slot[] chambers = weapon_0.Chambers;
             ammoToFire = (weapon_0.HasChambers ? chambers[0] : null)?.ContainedItem as BulletClass;
+            // ammoToFire 
+            if (ammoToFire != null)
+            {
+                if(weapon_0.HasChambers)
+                    chambers[0].RemoveItem().OrElse(elseValue: false);
+
+                ammoToFire.IsUsed = true;
+                return;
+            }
 
             // If there is no ammo in the chamber. Get it from the magazine.
             if (ammoToFire == null)
@@ -210,6 +222,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                     ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
                 }
             }
+
+            // Is Used?
+            ammoToFire.IsUsed = true;
             
             if (ammoToFire == null)
             {
