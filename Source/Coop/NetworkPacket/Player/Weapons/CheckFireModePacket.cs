@@ -18,7 +18,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             var firearmController = client.HandsController as EFT.Player.FirearmController;
             if (firearmController != null)
             {
-                firearmController.CheckChamber();
+                firearmController.CheckFireMode();
             }
         }
     }
