@@ -528,29 +528,36 @@ namespace StayInTarkov.Coop.Components
                 {
                     var yPos = yPosOffset + index * (cellHeight + 5);
 
-                    // Display Host Name with "Raid" label
-                    GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
 
-                    // Display Player Count
-                    GUI.Label(new UnityEngine.Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
+                    //Extract player count from match before the server is shown
+                    int playerCount = int.Parse(match["PlayerCount"].ToString());
 
-                    // Display Location
-                    GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
-
-                    // Display Password Locked
-                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? (string)StayInTarkovPlugin.LanguageDictionary["PASSWORD-YES"] : "", labelStyle);
-
-                    // Calculate the width of the combined server information (Host Name, Player Count, Location)
-                    var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
-
-                    // Create "Join" button for each match on the next column
-                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString(), buttonStyle))
+                    if (playerCount > 0)
                     {
-                        // Perform actions when the "Join" button is clicked
-                        JoinMatch(SITMatchmaking.Profile.ProfileId, match["ServerId"].ToString());
-                    }
+                        // Display Host Name with "Raid" label
+                        GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
 
-                    index++;
+                        // Display Player Count
+                        GUI.Label(new UnityEngine.Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
+
+                        // Display Location
+                        GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
+
+                        // Display Password Locked
+                        GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? (string)StayInTarkovPlugin.LanguageDictionary["PASSWORD-YES"] : "", labelStyle);
+
+                        // Calculate the width of the combined server information (Host Name, Player Count, Location)
+                        var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
+
+                        // Create "Join" button for each match on the next column
+                        if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString(), buttonStyle))
+                        {
+                            // Perform actions when the "Join" button is clicked
+                            JoinMatch(SITMatchmaking.Profile.ProfileId, match["ServerId"].ToString());
+                        }
+
+                        index++;
+                    }
                 }
             }
         }
