@@ -12,6 +12,7 @@ using EFT;
 using EFT.AssetsManager;
 using EFT.Bots;
 using EFT.CameraControl;
+using EFT.Counters;
 using EFT.EnvironmentEffect;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
@@ -23,6 +24,7 @@ using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -1277,8 +1279,21 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger.LogDebug($"{nameof(ExfiltrationPoint_OnCancelExtraction)} {point.Settings.Name} {point.Status}");
             ExtractingPlayers.Remove(player.ProfileId);
 
+
+            BackendConfigSettingsClass.BackendConfigSettingsClassExperience.BackendConfigSettingsClassMatchEnd matchEnd = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
+
+
+            if (Profile_0.EftStats.SessionCounters.GetAllInt(new object[] { CounterTag.Exp }) > matchEnd.SurvivedExpRequirement ||
+                RaidTimeUtil.GetElapsedRaidSeconds() > matchEnd.SurvivedTimeRequirement)
+            {
+                MyExitStatus = (player.HealthController.IsAlive ? ExitStatus.MissingInAction : ExitStatus.Killed);
+            }
+            else
+            {
+                MyExitStatus = ExitStatus.Runner;
+            }
+
             MyExitLocation = null;
-            MyExitStatus = ExitStatus.MissingInAction;
         }
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
