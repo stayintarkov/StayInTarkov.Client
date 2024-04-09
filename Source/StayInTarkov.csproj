@@ -64,6 +64,7 @@
     </Reference>
     <Reference Include="bsg.console.core">
       <HintPath>..\References\bsg.console.core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="com.unity.multiplayer-hlapi.Runtime">
       <HintPath>..\References\com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
