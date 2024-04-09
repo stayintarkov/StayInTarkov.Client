@@ -19,17 +19,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         { 
             get 
             {
-                //BepInLogger.LogDebug("Getting NextId");
-                //if (ForcedExpectedId != null) 
-                //{
-                //    var result = new MongoID(ForcedExpectedId.Value);
-                //    ForcedExpectedId = null;
-                //    BepInLogger.LogDebug($">> {result}");
-                //    return result;
-                //}
-
                 mongoID_0++;
-                BepInLogger.LogDebug($">> {mongoID_0}");
+                //BepInLogger.LogDebug($">> {mongoID_0}");
                 return mongoID_0;
             } 
         }
