@@ -548,6 +548,28 @@ namespace StayInTarkov.Coop.Players
 
         private Vector2 LastRotationSent = Vector2.zero;
 
+        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+        {
+            // Protection
+            if (this is CoopPlayerClient)
+            {
+                base.Proceed(withNetwork, callback, scheduled);
+                return;
+            }
+
+            base.Proceed(withNetwork, callback, scheduled);
+
+            // Extra unneccessary protection
+            if (this is CoopPlayer)
+            {
+                PlayerProceedEmptyHandsPacket emptyHandsPacket = new PlayerProceedEmptyHandsPacket(this.ProfileId, withNetwork, scheduled);
+                BepInLogger.LogDebug(emptyHandsPacket.ToJson());
+                GameClient.SendData(emptyHandsPacket.Serialize());
+            }
+        }
+
+      
+
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
             // Protection
@@ -557,18 +579,40 @@ namespace StayInTarkov.Coop.Players
                 return;
             }
 
-            var startResource = foodDrink.FoodDrinkComponent.RelativeValue;
-            PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = foodDrink };
-
-            base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
-
-            // Extra unneccessary protection
-            if (this is CoopPlayer)
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            Process<MedsController, IMedsController> process = new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink);
+            Action confirmCallback = delegate
             {
                 PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
-                BepInLogger.LogDebug(foodDrinkPacket.ToJson());
+                //BepInLogger.LogDebug(foodDrinkPacket.ToJson());
                 GameClient.SendData(foodDrinkPacket.Serialize());
-            }
+            };
+            process.method_0(delegate (IResult result)
+            {
+                if (result.Succeed)
+                {
+                    confirmCallback();
+                }
+            }, callback, scheduled);
+
+            //var startResource = foodDrink.FoodDrinkComponent.RelativeValue;
+            //PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = foodDrink };
+
+            //base.Proceed(foodDrink, amount, callback, animationVariant, scheduled);
+
+            //// Extra unneccessary protection
+            //if (this is CoopPlayer)
+            //{
+            //    PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
+            //    BepInLogger.LogDebug(foodDrinkPacket.ToJson());
+            //    GameClient.SendData(foodDrinkPacket.Serialize());
+            //}
+        }
+
+        public override void Proceed(Item item, Callback<IQuickUseController> callback, bool scheduled = true)
+        {
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(item)}:IQuickUseController");
+            base.Proceed(item, callback, scheduled);
         }
 
         public override void Proceed(MedsClass meds, EBodyPart bodyPart, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
@@ -616,28 +660,32 @@ namespace StayInTarkov.Coop.Players
             GameClient.SendData(packet.Serialize());
         }
 
-        public override void Proceed(Item item, Callback<IQuickUseController> callback, bool scheduled = true)
-        {
-            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(item)}:IQuickUseController");
-            base.Proceed(item, callback, scheduled);
-
-
-        }
+     
 
         public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
         {
-            Func<FirearmController> controllerFactory = ((!IsAI) ? ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmController>(this, weapon))) : ((Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerAI>(this, weapon))));
+            Func<SITFirearmController> controllerFactory = ((!IsAI) ? ((Func<SITFirearmController>)(() => FirearmController.smethod_5<SITFirearmController>(this, weapon))) : ((Func<SITFirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerAI>(this, weapon))));
             bool fastHide = false;
             if (_handsController is FirearmController firearmController)
             {
                 fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
             }
-            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
-            PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
-            weaponPacket.ProfileId = this.ProfileId;
-            weaponPacket.ItemId = weapon.Id;
-            weaponPacket.Scheduled = scheduled;
-            GameClient.SendData(weaponPacket.Serialize());
+            var process = new Process<SITFirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide);
+            Action confirmCallback = delegate
+            {
+                PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
+                weaponPacket.ProfileId = this.ProfileId;
+                weaponPacket.ItemId = weapon.Id;
+                weaponPacket.Scheduled = scheduled;
+                GameClient.SendData(weaponPacket.Serialize());
+            };
+            process.method_0(delegate (IResult result)
+            {
+                if (result.Succeed)
+                {
+                    confirmCallback();
+                }
+            }, callback, scheduled);
         }
 
         public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
@@ -677,9 +725,18 @@ namespace StayInTarkov.Coop.Players
                 }
 
             }, callback, scheduled);
-
-
         }
+
+        public override void Proceed<T>(Item item, Callback<GIController1> callback, bool scheduled = true)
+        {
+            base.Proceed<T>(item, callback, scheduled);
+
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}<T>");
+
+            Func<T> controllerFactory = () => UsableItemController.smethod_5<T>(this, item);
+            new Process<T, GIController1>(this, controllerFactory, item, fastHide: true).method_0(null, callback, scheduled);
+        }
+
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
