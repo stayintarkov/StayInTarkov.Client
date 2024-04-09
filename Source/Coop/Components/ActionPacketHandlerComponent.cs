@@ -298,10 +298,10 @@ namespace StayInTarkov.Coop.Components
                     ReplicateAirdropLoot(packet);
                     result = true;
                     break;
-                case "RaidTimer":
-                    ReplicateRaidTimer(packet);
-                    result = true;
-                    break;
+                //case "RaidTimer":
+                //    ReplicateRaidTimer(packet);
+                //    result = true;
+                //    break;
                 case "TimeAndWeather":
                     ReplicateTimeAndWeather(packet);
                     result = true;
@@ -417,46 +417,46 @@ namespace StayInTarkov.Coop.Components
                 packet["config"].ToString().SITParseJson<AirdropConfigModel>());
         }
 
-        void ReplicateRaidTimer(Dictionary<string, object> packet)
-        {
-            SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
-            if (coopGameComponent == null)
-                return;
+        //void ReplicateRaidTimer(Dictionary<string, object> packet)
+        //{
+        //    SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
+        //    if (coopGameComponent == null)
+        //        return;
 
-            if (SITMatchmaking.IsClient)
-            {
-                var sessionTime = new TimeSpan(long.Parse(packet["sessionTime"].ToString()));
-                Logger.LogDebug($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
+        //    if (SITMatchmaking.IsClient)
+        //    {
+        //        var sessionTime = new TimeSpan(long.Parse(packet["sessionTime"].ToString()));
+        //        Logger.LogDebug($"RaidTimer: Remaining session time {sessionTime.TraderFormat()}");
 
-                if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
-                {
-                    var gameTimer = coopGame.GameTimer;
-                    if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
-                    {
-                        if (gameTimer.PastTime.TotalSeconds < 3)
-                            return;
+        //        if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
+        //        {
+        //            var gameTimer = coopGame.GameTimer;
+        //            if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
+        //            {
+        //                if (gameTimer.PastTime.TotalSeconds < 3)
+        //                    return;
 
-                        var timeRemain = gameTimer.PastTime + sessionTime;
+        //                var timeRemain = gameTimer.PastTime + sessionTime;
 
-                        if (Math.Abs(gameTimer.SessionTime.Value.TotalSeconds - timeRemain.TotalSeconds) < 5)
-                            return;
+        //                if (Math.Abs(gameTimer.SessionTime.Value.TotalSeconds - timeRemain.TotalSeconds) < 5)
+        //                    return;
 
-                        Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
-                        gameTimer.ChangeSessionTime(timeRemain);
+        //                Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
+        //                gameTimer.ChangeSessionTime(timeRemain);
 
-                        MainTimerPanel mainTimerPanel = ReflectionHelpers.GetFieldOrPropertyFromInstance<MainTimerPanel>(coopGame.GameUi.TimerPanel, "_mainTimerPanel", false);
-                        if (mainTimerPanel != null)
-                        {
-                            FieldInfo extractionDateTimeField = ReflectionHelpers.GetFieldFromType(typeof(TimerPanel), "dateTime_0");
-                            extractionDateTimeField.SetValue(mainTimerPanel, gameTimer.StartDateTime.Value.AddSeconds(timeRemain.TotalSeconds));
+        //                MainTimerPanel mainTimerPanel = ReflectionHelpers.GetFieldOrPropertyFromInstance<MainTimerPanel>(coopGame.GameUi.TimerPanel, "_mainTimerPanel", false);
+        //                if (mainTimerPanel != null)
+        //                {
+        //                    FieldInfo extractionDateTimeField = ReflectionHelpers.GetFieldFromType(typeof(TimerPanel), "dateTime_0");
+        //                    extractionDateTimeField.SetValue(mainTimerPanel, gameTimer.StartDateTime.Value.AddSeconds(timeRemain.TotalSeconds));
 
-                            MethodInfo UpdateTimerMI = ReflectionHelpers.GetMethodForType(typeof(MainTimerPanel), "UpdateTimer");
-                            UpdateTimerMI.Invoke(mainTimerPanel, new object[] { });
-                        }
-                    }
-                }
-            }
-        }
+        //                    MethodInfo UpdateTimerMI = ReflectionHelpers.GetMethodForType(typeof(MainTimerPanel), "UpdateTimer");
+        //                    UpdateTimerMI.Invoke(mainTimerPanel, new object[] { });
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         void ReplicateTimeAndWeather(Dictionary<string, object> packet)
         {
