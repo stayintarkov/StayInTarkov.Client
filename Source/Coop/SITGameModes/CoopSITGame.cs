@@ -1278,7 +1278,7 @@ namespace StayInTarkov.Coop.SITGameModes
             ExtractingPlayers.Remove(player.ProfileId);
 
             MyExitLocation = null;
-            MyExitStatus = player.HealthController.IsAlive ? ExitStatus.MissingInAction : ExitStatus.Killed;
+            MyExitStatus = ExitStatus.MissingInAction;
         }
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
@@ -1340,7 +1340,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
         }
 
-        public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
+        public ExitStatus MyExitStatus { get; set; } = ExitStatus.MissingInAction;
         public string MyExitLocation { get; set; } = null;
         public ISpawnSystem SpawnSystem { get; set; }
         public int MaxBotCount { get; private set; }
