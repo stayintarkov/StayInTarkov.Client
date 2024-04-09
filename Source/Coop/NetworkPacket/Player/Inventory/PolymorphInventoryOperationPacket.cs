@@ -91,28 +91,44 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                     using (var binaryWriter = new BinaryWriter(ms))
                     {
                         binaryWriter.WritePolymorph(umod.InternalOperationDescriptor);
-                        ProcessOperationBytes(client, ms.ToArray()); 
+                        ProcessOperationBytes(client, ms.ToArray());
                     }
                 }
-              
+
                 return;
             }
 
-            //if (descriptor is SplitOperationDescriptor split)
-            //{
-            //    Logger.LogDebug($"{descriptor.ToJson()}");
-
-            //}
-
-            //if (descriptor is LoadMagOperationDescriptor)
-            //{
-            //    Logger.LogDebug($"Not processing {nameof(LoadMagOperationDescriptor)}");
-            //    return;
-            //}
-
-
             // Paulov: This is a bit of a hack but it does work. 
             // If an item for some reason doesn't exist on this person. Create it with the same Id as provided.
+            HandleUnknownItem(pic, descriptor);
+
+            var operationResult = client.ToInventoryOperation(descriptor);
+
+
+            if (operationResult.Succeeded)
+            {
+                pic.ReceiveExecute(operationResult.Value, () =>
+                {
+                });
+            }
+            else
+            {
+                if (operationResult.Failed)
+                {
+                    StayInTarkovHelperConstants.Logger.LogError(operationResult.Error);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Paulov: This is a bit of a hack but it does work. 
+        /// If an item for some reason doesn't exist on this person. Create it with the same Id as provided.
+        /// </summary>
+        /// <param name="pic"></param>
+        /// <param name="descriptor"></param>
+        private void HandleUnknownItem(CoopInventoryControllerClient pic, AbstractDescriptor1 descriptor)
+        {
             if (!string.IsNullOrEmpty(ItemId) && !string.IsNullOrEmpty(TemplateId))
             {
                 if (!ItemFinder.TryFindItem(ItemId, out var item))
@@ -129,38 +145,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                     }
                 }
             }
-
-            var operationResult = client.ToInventoryOperation(descriptor);
-            
-            //Logger.LogDebug($"{operationResult}");
-            //Logger.LogDebug($"{operationResult.Value}");
-
-            //if(operationResult.Value is GAbstractOperation126 splitOp)
-            //{
-            //    pic.ForcedExpectedId = splitOp.CloneId;
-            //}
-
-
-            if (operationResult.Succeeded)
-            {
-                pic.ReceiveExecute(operationResult.Value, () => {
-
-                    if (descriptor is MoveOperationDescriptor moveOperationDescriptor)
-                    {
-                        if(Singleton<GameWorld>.Instance.AllLoot.Any(x=>x.Item.Id == moveOperationDescriptor.ItemId))
-                            Singleton<GameWorld>.Instance.DestroyLoot(moveOperationDescriptor.ItemId);
-                    }
-
-                });
-            }
-            else
-            {
-                if (operationResult.Failed)
-                {
-                    StayInTarkovHelperConstants.Logger.LogError(operationResult.Error);
-                }
-            }
         }
-
     }
 }
