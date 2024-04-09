@@ -14,13 +14,11 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
     {
         ManualLogSource BepInLogger { get; set; }
 
-        //public MongoID? ForcedExpectedId { get; set; }
         public override MongoID NextId 
         { 
             get 
             {
                 mongoID_0++;
-                //BepInLogger.LogDebug($">> {mongoID_0}");
                 return mongoID_0;
             } 
         }
