@@ -3,7 +3,7 @@ using StayInTarkov.Coop.Session;
 //using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
-using StayInTarkov.Coop.Sounds;
+//using StayInTarkov.Coop.Sounds;
 using StayInTarkov.Coop.World;
 //using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
@@ -77,7 +77,7 @@ namespace StayInTarkov.Coop
             if (!NoMRPPatches.Any())
             {
                 //NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
-                NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
+                //NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
                 //NoMRPPatches.Add(new ItemControllerHandler_Move_Patch());
                 NoMRPPatches.Add(new LootableContainer_Interact_Patch());
             }
