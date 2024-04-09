@@ -142,6 +142,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                     case EShotType.RegularShot:
                         firearmControllerClient.InitiateShot(firearmControllerClient.Weapon, ammoToFire, ShotPosition, ShotDirection, FireportPosition, ChamberIndex, Overheat);
                         firearmControllerClient.PlaySounds(firearmControllerClient.WeaponSoundPlayer, ammoToFire, ShotPosition, ShotDirection, false);
+                        firearmControllerClient.FirearmsAnimator.SetFire(fire: true);
 
                         if (firearmControllerClient.Weapon.IsBoltCatch && firearmControllerClient.Weapon.ChamberAmmoCount == 0 && firearmControllerClient.Weapon.GetCurrentMagazineCount() == 0 && !firearmControllerClient.Weapon.ManualBoltCatch)
                         {
@@ -160,21 +161,21 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
                         if (firearmControllerClient.Weapon.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
                         {
-                            //BulletClass firstAmmo = cylindermag.GetFirstAmmo(singleFireMode: false);
-                            //if (firstAmmo != null)
-                            //{
-                            //    var pic = ItemFinder.GetPlayerInventoryController(client);
-                            //    cylindermag.RemoveAmmoInCamora(firstAmmo, pic);
-                            //    firearmControllerClient.FirearmsAnimator.SetAmmoOnMag(cylindermag.Count);
-                            //}
                             cylindermag.IncrementCamoraIndex();
                             firearmControllerClient.FirearmsAnimator.SetCamoraIndex(cylindermag.CurrentCamoraIndex);
                         }
+
+                        if (ammoToFire.AmmoTemplate.IsLightAndSoundShot)
+                        {
+                            firearmControllerClient.method_56(ShotPosition, ShotDirection);
+                            firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
+                        }
+
                         break;
                     default:
                         break;
                 }
-
+                ammoToFire = null;
             }
         }
 
