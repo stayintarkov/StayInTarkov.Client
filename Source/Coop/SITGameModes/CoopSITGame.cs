@@ -317,13 +317,16 @@ namespace StayInTarkov.Coop.SITGameModes
 
                 if (GameTimer.StartDateTime.HasValue && GameTimer.SessionTime.HasValue)
                 {
-                    Dictionary<string, object> raidTimerDict = new()
-                    {
-                        { "serverId", coopGameComponent.ServerId },
-                        { "m", "RaidTimer" },
-                        { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
-                    };
-                    Networking.GameClient.SendData(raidTimerDict.ToJson());
+                    //Dictionary<string, object> raidTimerDict = new()
+                    //{
+                    //    { "serverId", coopGameComponent.ServerId },
+                    //    { "m", "RaidTimer" },
+                    //    { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
+                    //};
+                    //Networking.GameClient.SendData(raidTimerDict.ToJson());
+                    RaidTimerPacket packet = new RaidTimerPacket();
+                    packet.SessionTime = (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks;
+                    Networking.GameClient.SendData(packet.Serialize());
                 }
             }
         }
