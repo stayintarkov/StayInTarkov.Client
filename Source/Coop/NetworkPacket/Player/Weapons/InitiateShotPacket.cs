@@ -4,22 +4,15 @@
  */
 
 using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using EFT.UI;
-using GPUInstancer;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Players;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using static EFT.UI.ItemSpecificationPanel;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
@@ -108,6 +101,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 {
                     case EShotType.DryFire:
                         firearmControllerClient.DryShot(ChamberIndex, UnderbarrelShot);
+
+                        // If I am DryFiring a used bullet in the Chamber, remove it
+                        if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
+                            firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
+
                         break;
                     case EShotType.Misfire:
                     case EShotType.Feed:
@@ -171,10 +169,17 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                             firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
                         }
 
+                        if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
+                            firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
+
+                        ammoToFire.IsUsed = true;
+
                         break;
                     default:
                         break;
                 }
+
+
                 ammoToFire = null;
             }
         }
@@ -204,10 +209,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             // ammoToFire 
             if (ammoToFire != null)
             {
-                if(weapon_0.HasChambers)
-                    chambers[0].RemoveItem().OrElse(elseValue: false);
-
-                ammoToFire.IsUsed = true;
+                Logger.LogDebug($"Used {ammoToFire} in Chamber");
                 return;
             }
 
@@ -218,10 +220,20 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 if (currentMagazine == null)
                     return;
 
-                if (currentMagazine.IsAmmoCompatible(chambers))
-                {
+                //if (currentMagazine.IsAmmoCompatible(chambers))
+                //{
+                //    ammoToFire = (BulletClass)currentMagazine.Cartridges.PopTo(pic, new SlotItemAddress(chambers[0])).Value.Item;
+
+                //    Logger.LogDebug($"Popped {ammoToFire} to {new SlotItemAddress(chambers[0])}");
+                //}
+                //else
+                //{
                     ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
-                }
+
+                //    Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+                //}
+
+                
             }
 
             // Is Used?

@@ -2,19 +2,10 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers.CoopInventory;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using static EFT.UI.CharacterSelectionStartScreen;
-using static GClass2755;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
 {
@@ -152,7 +143,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
 
             if (operationResult.Succeeded)
             {
-                pic.ReceiveExecute(operationResult.Value);
+                pic.ReceiveExecute(operationResult.Value, () => {
+
+                    if (descriptor is MoveOperationDescriptor moveOperationDescriptor)
+                    {
+                        if(Singleton<GameWorld>.Instance.AllLoot.Any(x=>x.Item.Id == moveOperationDescriptor.ItemId))
+                            Singleton<GameWorld>.Instance.DestroyLoot(moveOperationDescriptor.ItemId);
+                    }
+
+                });
             }
             else
             {
