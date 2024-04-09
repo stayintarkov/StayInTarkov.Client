@@ -737,6 +737,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!Singleton<GameWorld>.Instance.MainPlayer.HealthController.IsAlive)
                     Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Killed;
             }
+            else if (Singleton<ISITGame>.Instance.MyExitStatus == ExitStatus.Runner)
+            {
+                Singleton<ISITGame>.Instance.MyExitStatus = ExitStatus.Runner;
+            }
 
 
             if (Singleton<ISITGame>.Instance.MyExitLocation == null)
