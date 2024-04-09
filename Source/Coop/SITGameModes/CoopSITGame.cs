@@ -1317,19 +1317,23 @@ namespace StayInTarkov.Coop.SITGameModes
                 EnabledCountdownExfils.Remove(point);
             }
 
-            // Propagate exfil point state to all players (useful for Countdown exfils, like car)
-            // We do not propagate NotPresent because clients are responsible to trigger their local exfils.
-            // A race condition would cause NotPresent to be received before clients can properly process the exfil logic
-            // because EFT's code clears ExfiltrationPoint.Entered upon setting NotPresent
-            if (prevStatus != curStatus && curStatus != EExfiltrationStatus.NotPresent && curStatus != EExfiltrationStatus.UncompleteRequirements)
+            // Paulov: Had to add this. Without a SITGameComponent, the ServerId is null when sending data. Therefore a Raid could fail and blank screen.
+            if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                UpdateExfiltrationPointPacket packet = new()
+                // Propagate exfil point state to all players (useful for Countdown exfils, like car)
+                // We do not propagate NotPresent because clients are responsible to trigger their local exfils.
+                // A race condition would cause NotPresent to be received before clients can properly process the exfil logic
+                // because EFT's code clears ExfiltrationPoint.Entered upon setting NotPresent
+                if (prevStatus != curStatus && curStatus != EExfiltrationStatus.NotPresent && curStatus != EExfiltrationStatus.UncompleteRequirements)
                 {
-                    PointName = point.Settings.Name,
-                    Command = curStatus,
-                    QueuedPlayers = point.QueuedPlayers
-                };
-                GameClient.SendData(packet.Serialize());
+                    UpdateExfiltrationPointPacket packet = new()
+                    {
+                        PointName = point.Settings.Name,
+                        Command = curStatus,
+                        QueuedPlayers = point.QueuedPlayers
+                    };
+                    GameClient.SendData(packet.Serialize());
+                }
             }
         }
 
