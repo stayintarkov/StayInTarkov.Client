@@ -1,8 +1,10 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
+using Diz.LanguageExtensions;
 using EFT;
 using EFT.InventoryLogic;
 using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static UnityEngine.UIElements.StyleVariableResolver;
@@ -14,22 +16,11 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
     {
         ManualLogSource BepInLogger { get; set; }
 
-        //public MongoID? ForcedExpectedId { get; set; }
         public override MongoID NextId 
         { 
             get 
             {
-                //BepInLogger.LogDebug("Getting NextId");
-                //if (ForcedExpectedId != null) 
-                //{
-                //    var result = new MongoID(ForcedExpectedId.Value);
-                //    ForcedExpectedId = null;
-                //    BepInLogger.LogDebug($">> {result}");
-                //    return result;
-                //}
-
                 mongoID_0++;
-                BepInLogger.LogDebug($">> {mongoID_0}");
                 return mongoID_0;
             } 
         }
@@ -147,22 +138,40 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             base.ExecuteStop(operation);
         }
 
-        public void ReceiveExecute(AbstractInventoryOperation operation)
+        public void ReceiveExecute(AbstractInventoryOperation operation, Action callback)
         {
-            BepInLogger.LogDebug("ReceiveExecute");
             operation.vmethod_0((r) => 
-            { 
-                if (r.Failed) 
-                    BepInLogger.LogError(r.Error); 
+            {
+                operation.Dispose();
 
-                if (r.Succeed)
+                if (r.Failed)
                 {
-                    //BepInLogger.LogDebug(operation.ToJson());
+                    BepInLogger.LogError($"{nameof(ReceiveExecute)}:ERROR");
+                    BepInLogger.LogError(r);
+                    BepInLogger.LogError(r.ErrorCode);
+                    BepInLogger.LogError(r.Error);
                 }
 
-            });
+                if (callback != null)
+                    callback();
+
+            }, true);
+
+
+         
         }
 
+        public override SOperationResult123<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
+        {
+            ThrowItem(item, null, callback);
+            return true;
+        }
+
+        public override bool CheckTransferOwners(Item item, ItemAddress targetAddress, out Error error)
+        {
+            error = null;
+            return true;
+        }
 
     }
 }

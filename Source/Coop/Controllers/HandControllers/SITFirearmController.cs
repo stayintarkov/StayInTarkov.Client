@@ -219,6 +219,11 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void InitiateShot(IWeapon weapon, BulletClass ammo, Vector3 shotPosition, Vector3 shotDirection, Vector3 fireportPosition, int chamberIndex, float overheat)
         {
+            base.InitiateShot(weapon, ammo, shotPosition, shotDirection, fireportPosition, chamberIndex, overheat);
+
+            if (((Weapon)weapon).HasChambers && ((Weapon)weapon).Chambers[0].ContainedItem != null && ((Weapon)weapon).Chambers[0].ContainedItem == ammo && ammo.IsUsed)
+                ((Weapon)weapon).Chambers[0].RemoveItem().OrElse(elseValue: false);
+
             EShotType shotType = EShotType.Unknown;
             switch (weapon.MalfState.State)
             {
@@ -252,7 +257,6 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             initiateShotPacket.Overheat = overheat;
             initiateShotPacket.UnderbarrelShot = weapon.IsUnderbarrelWeapon;
             GameClient.SendData(initiateShotPacket.Serialize());
-            base.InitiateShot(weapon, ammo, shotPosition, shotDirection, fireportPosition, chamberIndex, overheat);
         }
 
         public override void IEventsConsumerOnFiringBullet()

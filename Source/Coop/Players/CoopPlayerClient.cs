@@ -286,7 +286,7 @@ namespace StayInTarkov.Coop.Players
             ApplyReplicatedMotion();
         }
 
-        void FixedUpdate()
+        new void FixedUpdate()
         {
             base.FixedUpdate();
 
@@ -612,13 +612,15 @@ namespace StayInTarkov.Coop.Players
 
         public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
         {
-            Func<FirearmController> controllerFactory = (Func<FirearmController>)(() => FirearmController.smethod_5<SITFirearmControllerClient>(this, weapon));
-            bool fastHide = false;
-            if (_handsController is FirearmController firearmController)
-            {
-                fastHide = firearmController.CheckForFastWeaponSwitch(weapon);
-            }
-            new Process<FirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
+            if (_handsController != null && _handsController.Item == weapon)
+                return;
+
+            Func<SITFirearmControllerClient> controllerFactory = (Func<SITFirearmControllerClient>)(() => FirearmController.smethod_5<SITFirearmControllerClient>(this, weapon));
+            bool fastHide = true;
+            if (_handsController is SITFirearmControllerClient firearmController)
+                firearmController.ClearPreWarmOperationsDict();
+
+            new Process<SITFirearmControllerClient, IFirearmHandsController>(this, controllerFactory, weapon, fastHide).method_0(null, callback, scheduled);
         }
 
         public override void Proceed(KnifeComponent knife, Callback<IKnifeController> callback, bool scheduled = true)
@@ -654,6 +656,12 @@ namespace StayInTarkov.Coop.Players
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
             new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+        }
+
+        public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
+        {
+            Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
+            new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink).method_0(null, callback, scheduled);
         }
 
 

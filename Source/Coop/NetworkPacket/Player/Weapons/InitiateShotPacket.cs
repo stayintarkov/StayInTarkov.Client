@@ -4,20 +4,14 @@
  */
 
 using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using EFT.UI;
-using GPUInstancer;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Players;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
@@ -107,6 +101,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 {
                     case EShotType.DryFire:
                         firearmControllerClient.DryShot(ChamberIndex, UnderbarrelShot);
+
+                        // If I am DryFiring a used bullet in the Chamber, remove it
+                        if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
+                            firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
+
                         break;
                     case EShotType.Misfire:
                     case EShotType.Feed:
@@ -141,6 +140,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                     case EShotType.RegularShot:
                         firearmControllerClient.InitiateShot(firearmControllerClient.Weapon, ammoToFire, ShotPosition, ShotDirection, FireportPosition, ChamberIndex, Overheat);
                         firearmControllerClient.PlaySounds(firearmControllerClient.WeaponSoundPlayer, ammoToFire, ShotPosition, ShotDirection, false);
+                        firearmControllerClient.FirearmsAnimator.SetFire(fire: true);
 
                         if (firearmControllerClient.Weapon.IsBoltCatch && firearmControllerClient.Weapon.ChamberAmmoCount == 0 && firearmControllerClient.Weapon.GetCurrentMagazineCount() == 0 && !firearmControllerClient.Weapon.ManualBoltCatch)
                         {
@@ -159,21 +159,28 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
                         if (firearmControllerClient.Weapon.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
                         {
-                            //BulletClass firstAmmo = cylindermag.GetFirstAmmo(singleFireMode: false);
-                            //if (firstAmmo != null)
-                            //{
-                            //    var pic = ItemFinder.GetPlayerInventoryController(client);
-                            //    cylindermag.RemoveAmmoInCamora(firstAmmo, pic);
-                            //    firearmControllerClient.FirearmsAnimator.SetAmmoOnMag(cylindermag.Count);
-                            //}
                             cylindermag.IncrementCamoraIndex();
                             firearmControllerClient.FirearmsAnimator.SetCamoraIndex(cylindermag.CurrentCamoraIndex);
                         }
+
+                        if (ammoToFire.AmmoTemplate.IsLightAndSoundShot)
+                        {
+                            firearmControllerClient.method_56(ShotPosition, ShotDirection);
+                            firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
+                        }
+
+                        if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
+                            firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
+
+                        ammoToFire.IsUsed = true;
+
                         break;
                     default:
                         break;
                 }
 
+
+                ammoToFire = null;
             }
         }
 
@@ -189,6 +196,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             if (weapon_0.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
             {
                 ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
+                // Is Used?
+                ammoToFire.IsUsed = true;
                 return;
             }
 
@@ -197,6 +206,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             // Find the Ammo in the Chamber
             Slot[] chambers = weapon_0.Chambers;
             ammoToFire = (weapon_0.HasChambers ? chambers[0] : null)?.ContainedItem as BulletClass;
+            // ammoToFire 
+            if (ammoToFire != null)
+            {
+                Logger.LogDebug($"Used {ammoToFire} in Chamber");
+                return;
+            }
 
             // If there is no ammo in the chamber. Get it from the magazine.
             if (ammoToFire == null)
@@ -205,11 +220,24 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 if (currentMagazine == null)
                     return;
 
-                if (currentMagazine.IsAmmoCompatible(chambers))
-                {
+                //if (currentMagazine.IsAmmoCompatible(chambers))
+                //{
+                //    ammoToFire = (BulletClass)currentMagazine.Cartridges.PopTo(pic, new SlotItemAddress(chambers[0])).Value.Item;
+
+                //    Logger.LogDebug($"Popped {ammoToFire} to {new SlotItemAddress(chambers[0])}");
+                //}
+                //else
+                //{
                     ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
-                }
+
+                //    Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+                //}
+
+                
             }
+
+            // Is Used?
+            ammoToFire.IsUsed = true;
             
             if (ammoToFire == null)
             {

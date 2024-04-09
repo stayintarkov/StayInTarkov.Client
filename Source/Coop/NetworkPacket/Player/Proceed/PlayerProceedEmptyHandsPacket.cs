@@ -15,7 +15,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
 
         public bool Scheduled { get; set; }
 
-        public PlayerProceedEmptyHandsPacket(string profileId, bool withNetwork, bool scheduled, string method) : base(profileId, method)
+        public PlayerProceedEmptyHandsPacket() : base("", nameof(PlayerProceedEmptyHandsPacket))
+        { }
+
+        public PlayerProceedEmptyHandsPacket(string profileId, bool withNetwork, bool scheduled) : base(profileId, nameof(PlayerProceedEmptyHandsPacket))
         {
             WithNetwork = withNetwork;
             Scheduled = scheduled;
@@ -28,7 +31,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             WriteHeaderAndProfileId(writer);
             writer.Write(Scheduled);
             writer.Write(WithNetwork);
-            writer.Write(TimeSerializedBetter);
 
             return ms.ToArray();
         }
@@ -39,7 +41,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
             ReadHeaderAndProfileId(reader);
             Scheduled = reader.ReadBoolean();
             WithNetwork = reader.ReadBoolean();
-            TimeSerializedBetter = reader.ReadString();
 
             return this;
         }

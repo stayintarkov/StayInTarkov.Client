@@ -2,19 +2,10 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers.CoopInventory;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using static EFT.UI.CharacterSelectionStartScreen;
-using static GClass2755;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
 {
@@ -100,28 +91,44 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                     using (var binaryWriter = new BinaryWriter(ms))
                     {
                         binaryWriter.WritePolymorph(umod.InternalOperationDescriptor);
-                        ProcessOperationBytes(client, ms.ToArray()); 
+                        ProcessOperationBytes(client, ms.ToArray());
                     }
                 }
-              
+
                 return;
             }
 
-            //if (descriptor is SplitOperationDescriptor split)
-            //{
-            //    Logger.LogDebug($"{descriptor.ToJson()}");
-
-            //}
-
-            //if (descriptor is LoadMagOperationDescriptor)
-            //{
-            //    Logger.LogDebug($"Not processing {nameof(LoadMagOperationDescriptor)}");
-            //    return;
-            //}
-
-
             // Paulov: This is a bit of a hack but it does work. 
             // If an item for some reason doesn't exist on this person. Create it with the same Id as provided.
+            HandleUnknownItem(pic, descriptor);
+
+            var operationResult = client.ToInventoryOperation(descriptor);
+
+
+            if (operationResult.Succeeded)
+            {
+                pic.ReceiveExecute(operationResult.Value, () =>
+                {
+                });
+            }
+            else
+            {
+                if (operationResult.Failed)
+                {
+                    StayInTarkovHelperConstants.Logger.LogError(operationResult.Error);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Paulov: This is a bit of a hack but it does work. 
+        /// If an item for some reason doesn't exist on this person. Create it with the same Id as provided.
+        /// </summary>
+        /// <param name="pic"></param>
+        /// <param name="descriptor"></param>
+        private void HandleUnknownItem(CoopInventoryControllerClient pic, AbstractDescriptor1 descriptor)
+        {
             if (!string.IsNullOrEmpty(ItemId) && !string.IsNullOrEmpty(TemplateId))
             {
                 if (!ItemFinder.TryFindItem(ItemId, out var item))
@@ -138,30 +145,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                     }
                 }
             }
-
-            var operationResult = client.ToInventoryOperation(descriptor);
-            
-            //Logger.LogDebug($"{operationResult}");
-            //Logger.LogDebug($"{operationResult.Value}");
-
-            //if(operationResult.Value is GAbstractOperation126 splitOp)
-            //{
-            //    pic.ForcedExpectedId = splitOp.CloneId;
-            //}
-
-
-            if (operationResult.Succeeded)
-            {
-                pic.ReceiveExecute(operationResult.Value);
-            }
-            else
-            {
-                if (operationResult.Failed)
-                {
-                    StayInTarkovHelperConstants.Logger.LogError(operationResult.Error);
-                }
-            }
         }
-
     }
 }

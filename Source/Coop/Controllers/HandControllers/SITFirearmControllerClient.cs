@@ -18,6 +18,29 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
     {
         ManualLogSource BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITFirearmControllerClient));
 
+        public override bool IsAiming
+        {
+            get
+            {
+                return base.IsAiming;
+            }
+            set
+            {
+                if (!value)
+                {
+                    _player.Physical.HoldBreath(false);
+                }
+                if (_isAiming != value)
+                {
+                    _isAiming = value;
+                    _player.Skills.FastAimTimer.Target = (value ? 0f : 2f);
+                    _player.MovementContext.SetAimingSlowdown(IsAiming, 0.33f);
+                    _player.Physical.Aim((!_isAiming || !(_player.MovementContext.StationaryWeapon == null)) ? 0f : base.ErgonomicWeight);
+                    _player.ProceduralWeaponAnimation.IsAiming = _isAiming;
+                }
+            }
+        }
+
         public override void Spawn(float animationSpeed, Action callback)
         {
             BepInLogger.LogDebug($"{nameof(SITFirearmControllerClient)}:{nameof(Spawn)}");
@@ -143,5 +166,27 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             base.SetInventoryOpened(opened);
         }
+
+        public override bool CanChangeCompassState(bool newState)
+        {
+            return false;
+        }
+
+        public override bool CanRemove()
+        {
+            return true;
+        }
+
+        public override bool CanExecute(IOperation1 operation)
+        {
+            return true;
+        }
+
+        public override void OnPlayerDead()
+        {
+            base.WeaponSoundPlayer.OnBreakLoop();
+            base.OnPlayerDead();
+        }
+
     }
 }
