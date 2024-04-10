@@ -331,12 +331,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //    CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
             //}
 
-            // Start the SIT Garbage Collector
-            BSGMemoryGC.RunHeapPreAllocation();
-            BSGMemoryGC.Collect(force: true);
-            BSGMemoryGC.EmptyWorkingSet();
-            BSGMemoryGC.GCEnabled = true;
-            Resources.UnloadUnusedAssets();
+            GarbageCollect();
+            StartCoroutine(GarbageCollectSIT());
 
             StartCoroutine(SendPlayerStatePacket());
 
@@ -360,6 +356,59 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
+        }
+
+        private void GarbageCollect()
+        {
+            // Start the SIT Garbage Collector
+            Logger.LogDebug($"{nameof(GarbageCollect)}");   
+            BSGMemoryGC.RunHeapPreAllocation();
+            BSGMemoryGC.Collect(force: true);
+            BSGMemoryGC.EmptyWorkingSet();
+            BSGMemoryGC.GCEnabled = true;
+            //Resources.UnloadUnusedAssets();
+        }
+
+        /// <summary>
+        /// Runs the Garbage Collection every 5 minutes
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator GarbageCollectSIT()
+        {
+            while(true)
+            {
+                if (PluginConfigSettings.Instance.AdvancedSettings.SETTING_EnableSITGC)
+                {
+                    var nearestEnemyDist = float.MaxValue;
+                    foreach(var p in Players)
+                    {
+                        if (p.Key == Singleton<GameWorld>.Instance.MainPlayer.ProfileId)
+                            continue;
+
+                        var dist = Vector3.Distance(p.Value.Transform.position, Singleton<GameWorld>.Instance.MainPlayer.Transform.position);
+                        if(dist < nearestEnemyDist)
+                            nearestEnemyDist = dist;
+                    }
+
+                    if (nearestEnemyDist > 10)
+                    {
+                        var mem = MemoryInfo.GetCurrentStatus();
+                        if (mem == null)
+                        {
+                            yield return new WaitForSeconds(1);
+                            continue;
+                        }
+
+                        var memPercentInUse = mem.dwMemoryLoad;
+                        Logger.LogDebug($"Total memory used: {mem.dwMemoryLoad}%");
+                        if (memPercentInUse > PluginConfigSettings.Instance.AdvancedSettings.SETTING_SITGCMemoryThreshold)
+                            GarbageCollect();
+
+                    }
+                }
+
+                yield return new WaitForSeconds(60);
+            }
         }
 
         /// <summary>
@@ -454,7 +503,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                                 player.Profile.EftStats.SessionCounters.AddDouble(0.01,
                                 [
                                     CounterTag.FenceStanding,
-                                EFenceStandingSource.ExitStanding
+                                    EFenceStandingSource.ExitStanding
                                 ]);
                             }
                             AkiBackendCommunicationCoop.PostLocalPlayerData(player
@@ -504,10 +553,29 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     {
                         coopGame.GameClient.ResetStats();
                     }
+
+                    ProcessOtherModsSpawnedPlayers();
+
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError($"{nameof(EverySecondCoroutine)}: caught exception:\n{ex}");
+                }
+            }
+        }
+
+        private void ProcessOtherModsSpawnedPlayers()
+        {
+            // If another mod has spawned people, attempt to handle it.
+            foreach (var p in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+            {
+                if (!Players.ContainsKey(p.ProfileId))
+                {
+                    // As these created players are unlikely to be CoopPlayer, throw an error!
+                    if((p as CoopPlayer) == null)
+                    {
+                        Logger.LogError($"Player of Id:{p.ProfileId} is not found in the SIT {nameof(Players)} list?!");
+                    }
                 }
             }
         }
@@ -518,19 +586,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             StayInTarkovHelperConstants.Logger.LogDebug($"CoopGameComponent:OnDestroy");
 
-            //if (Players != null)
-            //{
-            //    foreach (var pl in Players)
-            //    {
-            //        if (pl.Value == null)
-            //            continue;
-
-            //        if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            //        {
-            //            DestroyImmediate(prc);
-            //        }
-            //    }
-            //}
             Players.Clear();
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
@@ -1105,6 +1160,14 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
                 if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                 {
+                    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Any(x => x.ProfileId == p.Key))
+                    {
+                        if (PlayersToSpawn.ContainsKey(p.Key))
+                            PlayersToSpawn[p.Key] = ESpawnState.Ignore;
+
+                        continue;
+                    }
+
                     if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == p.Key))
                     {
                         if (PlayersToSpawn.ContainsKey(p.Key))
@@ -1229,7 +1292,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profile.ProfileId))
                         return;
 
-
                     if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Any(x => x.ProfileId == profile.ProfileId))
                         return;
 
@@ -1305,14 +1367,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer otherPlayer = CreateLocalPlayer(profile, PlayersToSpawnPositions[profile.Id], playerId);
+                var otherPlayer = SpawnCharacter(profile, PlayersToSpawnPositions[profile.Id], playerId);
                 if (otherPlayer == null)
                 {
                     PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawning;
                     return;
                 }
-                // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
-                //CreateLocalPlayerAsync(profile, position, playerId);
 
                 if (isDead)
                 {
@@ -1327,9 +1387,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         }
 
-        private LocalPlayer CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
+        private LocalPlayer SpawnCharacter(Profile profile, Vector3 position, int playerId)
         {
-            Logger.LogDebug($"{nameof(CreateLocalPlayer)}:{nameof(position)}:{position}");
+            Logger.LogDebug($"{nameof(SpawnCharacter)}:{nameof(position)}:{position}");
 
             // If this is an actual PLAYER player that we're creating a drone for, when we set
             // aiControl to true then they'll automatically run voice lines (eg when throwing

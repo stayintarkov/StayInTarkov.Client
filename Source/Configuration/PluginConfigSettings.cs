@@ -40,21 +40,37 @@ namespace StayInTarkov.Configuration
 
         public class SITAdvancedSettings
         {
+            public const string Advanced = "Advanced";
             public ConfigFile Config { get; }
             public ManualLogSource Logger { get; }
+
+            public bool SETTING_EnableSITGC
+            {
+                get
+                {
+                    return StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "EnableSITGC", false, new ConfigDescription("Enable SIT's own Garbage Collector")).Value;
+                }
+            }
+
+            public uint SETTING_SITGCMemoryThreshold
+            {
+                get
+                {
+                    return StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "SITGCMemoryThreshold", 90u, new ConfigDescription("SIT's Garbage Collector. System Memory % before SIT forces a Garbage Collection.")).Value;
+                }
+            }
+
 
             public SITAdvancedSettings(ManualLogSource logger, ConfigFile config)
             {
                 Logger = logger;
                 Config = config;
-                GetSettings();
+                _ = SETTING_EnableSITGC;
+                _ = SETTING_SITGCMemoryThreshold;
             }
 
-
-            public void GetSettings()
-            {
-
-            }
         }
 
         public class CoopConfigSettings
