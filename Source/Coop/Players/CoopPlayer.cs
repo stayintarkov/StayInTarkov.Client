@@ -195,39 +195,35 @@ namespace StayInTarkov.Coop.Players
 
         /// <summary>
         /// Hybrid damage ownership model
-        /// Damage is owned by the client involved in the exchange, to ensure a good user experience
-        /// Team kill is owned by the player with the lowest ID
-        /// AI vs. AI is owned by the server
+        /// Damage (including TK) is owned by the initiator (AI = server)
         /// </summary>
+        /// <param name="coopGameComponent"></param>
         /// <param name="damageInfo"></param>
         /// <returns></returns>
         protected bool OwnsDamageInstance(SITGameComponent coopGameComponent, DamageInfo damageInfo)
         {
+            // FIXME(belette) Player.IsAI does not seem reliable on the guest/client after the first couple of waves
+            // In other words, Player.IsAI will be set to false even for scavs and AI PMCs.
+            //var initiatorIsAI = initiator.IsAI;
+            //var targetIsAI = this.IsAI;
+
             var targetIsAI = !coopGameComponent.ProfileIdsUser.Contains(ProfileId);
 
             if (damageInfo.DamageType != EDamageType.Bullet)
             {
-                return (!targetIsAI && IsYourPlayer) || (targetIsAI && SITMatchmaking.IsServer);
+                return IsYourPlayer || (targetIsAI && SITMatchmaking.IsServer);
             }
 
             var initiator = damageInfo.Player.iPlayer;
-            // FIXME(belette) Player.IsAI does not seem reliable on the guest/client after the first couple of waves
-            // In other words, Player.IsAI will be set to false even for scavs and AI PMCs. Probably needs to be fixed in spawn replication packets.
-            //var initiatorIsAI = initiator.IsAI;
-            //var targetIsAI = this.IsAI;
             var initiatorIsAI = !coopGameComponent.ProfileIdsUser.Contains(initiator.ProfileId);
             var initiatorIsMe = initiator.IsYourPlayer;
-            var targetIsMe = IsYourPlayer;
 
-            if (targetIsMe)
+            if (initiatorIsAI)
             {
-                return initiatorIsAI || (this.ProfileId.CompareTo(initiator.ProfileId) < 0);
-            } else if (initiatorIsMe)
-            {
-                return targetIsAI || (initiator.ProfileId.CompareTo(this.ProfileId) < 0);
+                return SITMatchmaking.IsServer;
             } else
             {
-                return SITMatchmaking.IsServer && targetIsAI && initiatorIsAI;
+                return initiatorIsMe;
             }
         }
 
@@ -974,7 +970,7 @@ namespace StayInTarkov.Coop.Players
 #endif
             foreach (var kv in pendingArmorUpdates)
             {
-                var armorComp = putOnArmors.First(x => x.Item.Id == kv.Key);
+                var armorComp = putOnArmors.FirstOrDefault(x => x.Repairable.Item.Id == kv.Key);
                 if (armorComp != null)
                 {
 #if DEBUGDAMAGE
