@@ -279,7 +279,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     yield return waitSeconds;
 
                 // Send a message of nothing to keep the Socket Alive whilst loading
-                AkiBackendCommunication.Instance.PostDownWebSocketImmediately("CLIENT_LOADING_KEEP_ALIVE");
+                AkiBackendCommunication.Instance?.WebSocket?.Ping();
 
                 yield return waitSeconds;
             }
