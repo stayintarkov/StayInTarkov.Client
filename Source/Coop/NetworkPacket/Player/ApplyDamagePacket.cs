@@ -38,13 +38,14 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public Vector3 Point { get; set; }
 
-        public float PenetrationPower {  get; set; }
+        public float PenetrationPower { get; set; }
 
         public string SourceId { get; set; }
 
         public string AggressorProfileId { get; set; }
         public string AggressorWeaponId { get; set; }
         public string AggressorWeaponTpl { get; set; }
+        public Dictionary<string, float> PendingArmorUpdates { get; set; }
 
         public override byte[] Serialize()
         {
@@ -70,6 +71,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 writer.Write(AggressorProfileId);
                 writer.Write(AggressorWeaponId);
                 writer.Write(AggressorWeaponTpl);
+            }
+            writer.Write((byte)PendingArmorUpdates.Count);
+            foreach (var kv in PendingArmorUpdates)
+            {
+                writer.Write(kv.Key);
+                writer.Write(kv.Value);
             }
             return ms.ToArray();
         }
@@ -99,6 +106,18 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 AggressorWeaponTpl = reader.ReadString();
             }
 
+            var pendingArmorUpdatesCount = reader.ReadByte();
+            if (pendingArmorUpdatesCount > 0)
+            {
+                PendingArmorUpdates = new(pendingArmorUpdatesCount);
+                for (var i = 0; i < pendingArmorUpdatesCount; i++)
+                {
+                    var k = reader.ReadString();
+                    var v = reader.ReadFloat();
+                    PendingArmorUpdates.Add(k, v);
+                }
+            }
+
             return this;
         }
 
@@ -116,6 +135,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             damageInfo.HitPoint = this.Point;
             damageInfo.Direction = this.Direction;
             damageInfo.PenetrationPower = this.PenetrationPower;
+#if DEBUGDAMAGE
+StayInTarkovHelperConstants.Logger.LogError($"{nameof(ApplyDamagePacket)} dmg={Damage} hitpoint={Point} source={SourceId} Aggressor={(string.IsNullOrEmpty(AggressorProfileId) ? null : Singleton<GameWorld>.Instance?.GetAlivePlayerByProfileID(AggressorProfileId)?.Profile.Nickname)}");
+#endif
             if (!string.IsNullOrEmpty(SourceId))
                 damageInfo.SourceId = this.SourceId;
 
@@ -175,12 +197,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 StayInTarkovHelperConstants.Logger.LogError($"{GetType()}:{nameof(Process)}:Unable to cast {ProfileId}:{playerOwner.GetType()} to CoopPlayer");
                 return;
             }
-            
-            
+
+            if (PendingArmorUpdates != null)
+            {
+                coopPlayer.ReceiveArmorDamageFromServer(PendingArmorUpdates);
+            }
+
             coopPlayer.ReceiveDamageFromServer(damageInfo, BodyPart, ColliderType, Absorbed);
-
-
-
         }
 
     }
