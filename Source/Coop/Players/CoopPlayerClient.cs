@@ -57,13 +57,21 @@ namespace StayInTarkov.Coop.Players
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
         {
+#if DEBUGDAMAGE
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyShot)}:{damageInfo.DamageType}");
+#endif
+
             return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
         }
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
+#if DEBUGDAMAGE
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(ApplyDamageInfo)}:{damageInfo.DamageType}");
+#endif
+
+            if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, colliderType, absorbed);
         }

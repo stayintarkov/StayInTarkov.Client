@@ -21,6 +21,7 @@ using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -179,11 +180,15 @@ namespace StayInTarkov.Coop.Players
             if (!coopGameComponent.GameWorldGameStarted)
                 return null;
 
-            if (!OwnsDamageInstance(coopGameComponent, damageInfo))
-            {
-                ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
-                return null;
-            }
+#if DEBUGDAMAGE
+            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(CoopPlayer)}:{nameof(ApplyShot)} {(SITMatchmaking.IsClient ? "client" : "server")} owns={OwnsDamageInstance(coopGameComponent, damageInfo)} shotId={shotId.GetHashCode()} type={damageInfo.DamageType} dmg={damageInfo.Damage} part={bodyPartType} armor={armorPlateCollider}");
+#endif
+
+            //if (!OwnsDamageInstance(coopGameComponent, damageInfo))
+            //{
+            //    ReceiveDamage(damageInfo.Damage, bodyPartType, damageInfo.DamageType, 0, 0);
+            //    return null;
+            //}
 
             return base.ApplyShot(damageInfo, bodyPartType, colliderType, armorPlateCollider, shotId);
         }
@@ -196,7 +201,7 @@ namespace StayInTarkov.Coop.Players
         /// </summary>
         /// <param name="damageInfo"></param>
         /// <returns></returns>
-        private bool OwnsDamageInstance(SITGameComponent coopGameComponent, DamageInfo damageInfo)
+        protected bool OwnsDamageInstance(SITGameComponent coopGameComponent, DamageInfo damageInfo)
         {
             var targetIsAI = !coopGameComponent.ProfileIdsUser.Contains(ProfileId);
 
@@ -226,6 +231,15 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
+        public override void OnArmorPointsChanged(ArmorComponent armor, bool children = false)
+        {
+            base.OnArmorPointsChanged(armor, children);
+#if DEBUGDAMAGE
+            BepInLogger.LogDebug($"{nameof(OnArmorPointsChanged)} pending {armor.Repairable.Item.Template.Name}({armor.Repairable.Item.Id}) {armor.Repairable.Durability}/{armor.Repairable.MaxDurability}");
+#endif
+            PendingArmorUpdates.Add(armor.Repairable.Item.Id, armor.Repairable.Durability);
+        }
+
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, float absorbed)
         {
             if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
@@ -234,10 +248,16 @@ namespace StayInTarkov.Coop.Players
             if (!coopGameComponent.GameWorldGameStarted)
                 return;
 
-            if (!OwnsDamageInstance(coopGameComponent, damageInfo))
-                return;
+#if DEBUGDAMAGE
+            StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(CoopPlayer)}:{nameof(ApplyShot)} {(SITMatchmaking.IsClient ? "client" : "server")} owns={OwnsDamageInstance(coopGameComponent, damageInfo)} type={damageInfo.DamageType} dmg={damageInfo.Damage} part={bodyPartType}");
+#endif
 
-            SendDamageToAllClients(damageInfo, bodyPartType, colliderType, absorbed);
+            if (OwnsDamageInstance(coopGameComponent, damageInfo))
+            {
+                SendDamageToAllClients(ProfileId, damageInfo, bodyPartType, colliderType, absorbed, PendingArmorUpdates);
+            }
+
+            PendingArmorUpdates.Clear();
         }
 
         /// <summary>
@@ -247,10 +267,10 @@ namespace StayInTarkov.Coop.Players
         /// <param name="bodyPartType"></param>
         /// <param name="bodyPartColliderType"></param>
         /// <param name="absorbed"></param>
-        private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed)
+        private static void SendDamageToAllClients(string ProfileId, DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed, Dictionary<string, float> pendingArmorUpdates)
         {
             ApplyDamagePacket damagePacket = new ApplyDamagePacket();
-            damagePacket.ProfileId = this.ProfileId;
+            damagePacket.ProfileId = ProfileId;
             damagePacket.Damage = damageInfo.Damage;
             damagePacket.DamageType = damageInfo.DamageType;
             damagePacket.BodyPart = bodyPartType;
@@ -273,6 +293,12 @@ namespace StayInTarkov.Coop.Players
                     damagePacket.AggressorWeaponTpl = damageInfo.Weapon.TemplateId;
                 }
             }
+
+            damagePacket.PendingArmorUpdates = pendingArmorUpdates;
+
+#if DEBUGDAMAGE
+            StayInTarkovHelperConstants.Logger.LogError($"{nameof(SendDamageToAllClients)} {(SITMatchmaking.IsClient ? "client" : "server")} sending damage packet {nameof(SendDamageToAllClients)} type={damagePacket.DamageType} dmg={damagePacket.Damage} hitpoint={damagePacket.Point} source={damagePacket.SourceId} Aggressor={damageInfo.Player?.iPlayer.Profile.Nickname}({damageInfo.Player?.iPlayer.Profile.ProfileId}) ArmorUpdates={pendingArmorUpdates?.Count}");
+#endif
             GameClient.SendData(damagePacket.Serialize());
 
             //Dictionary<string, object> packet = new();
@@ -343,8 +369,9 @@ namespace StayInTarkov.Coop.Players
                     fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3);
                 }
             }
-
-            BepInLogger.LogDebug($"{nameof(ApplyDamageInfo)}: profile={ProfileId} type={damageInfo.DamageType} dmg={damageInfo.Damage}");
+#if DEBUGDAMAGE
+            BepInLogger.LogDebug($"{nameof(ReceiveDamageFromServerCR)}: profile={ProfileId} type={damageInfo.DamageType} dmg={damageInfo.Damage}");
+#endif
             base.ApplyDamageInfo(damageInfo, bodyPartType, bodyPartColliderType, absorbed);
 
             yield break;
@@ -547,6 +574,7 @@ namespace StayInTarkov.Coop.Players
         public bool TriggerPressed { get; internal set; }
 
         private Vector2 LastRotationSent = Vector2.zero;
+        private readonly Dictionary<string, float> PendingArmorUpdates = [];
 
         public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
         {
@@ -937,5 +965,26 @@ namespace StayInTarkov.Coop.Players
 
         }
 
+        public void ReceiveArmorDamageFromServer(Dictionary<string, float> pendingArmorUpdates)
+        {
+            List<ArmorComponent> putOnArmors = [];
+            this.Inventory.GetPutOnArmorsNonAlloc(putOnArmors);
+#if DEBUGDAMAGE
+            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(ReceiveArmorDamageFromServer)} applying {pendingArmorUpdates.Count} updates");
+#endif
+            foreach (var kv in pendingArmorUpdates)
+            {
+                var armorComp = putOnArmors.First(x => x.Item.Id == kv.Key);
+                if (armorComp != null)
+                {
+#if DEBUGDAMAGE
+                    BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(ReceiveArmorDamageFromServer)} setting {armorComp.Repairable.Item.Template.Name}({kv.Key}) to {kv.Value}/{armorComp.Repairable.MaxDurability}");
+#endif
+                    armorComp.Repairable.Durability = kv.Value;
+                    armorComp.Buff.TryDisableComponent(armorComp.Repairable.Durability);
+                    armorComp.Item.RaiseRefreshEvent(false, false);
+                }
+            }
+        }
     }
 }
