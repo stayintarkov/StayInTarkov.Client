@@ -531,11 +531,12 @@ namespace StayInTarkov.Coop.Components
 
                     //Extract player count from match before the server is shown
                     int playerCount = int.Parse(match["PlayerCount"].ToString());
+                    string protocol = (string)match["Protocol"];
 
-                    if (playerCount > 0)
+                    if (playerCount > 0 || protocol == "PeerToPeerUdp")
                     {
                         // Display Host Name with "Raid" label
-                        GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
+                        GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"]} Raid", labelStyle);
 
                         // Display Player Count
                         GUI.Label(new UnityEngine.Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
