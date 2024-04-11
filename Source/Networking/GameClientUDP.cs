@@ -128,10 +128,10 @@ namespace StayInTarkov.Networking
 
                 if(!_netClient.IsRunning)
                     _netClient.Start();
-
-                var expli = ServerEndPoints["explicit"];
-                if (expli != null)
+;
+                if (ServerEndPoints.ContainsKey("explicit"))
                 {
+                    var expli = ServerEndPoints["explicit"];
                     msg = $"Forcing connection to {expli}";
                     Logger.LogDebug(msg);
                     EFT.UI.ConsoleScreen.Log(msg);
