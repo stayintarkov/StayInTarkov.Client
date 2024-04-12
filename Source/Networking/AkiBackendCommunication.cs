@@ -186,6 +186,14 @@ namespace StayInTarkov.Networking
             }
         }
 
+        public async void PingAsync()
+        {
+            await Task.Run(() =>
+            {
+                WebSocket?.Ping();
+            });
+        }
+
         public async void PostDownWebSocketImmediately(string packet)
         {
             await Task.Run(() =>

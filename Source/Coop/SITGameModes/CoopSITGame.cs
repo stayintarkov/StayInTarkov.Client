@@ -262,7 +262,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 StartCoroutine(ArmoredTrainTimeSync());
             }
 
-            StartCoroutine(ClientLoadingPinger());
+            clientLoadingPingerCoroutine = StartCoroutine(ClientLoadingPinger());
 
             var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{SITGameComponent.GetServerId()}");
             Logger.LogDebug(friendlyAIJson);
@@ -279,7 +279,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     yield return waitSeconds;
 
                 // Send a message of nothing to keep the Socket Alive whilst loading
-                AkiBackendCommunication.Instance?.WebSocket?.Ping();
+                AkiBackendCommunication.Instance?.PingAsync();
 
                 yield return waitSeconds;
             }
@@ -1161,7 +1161,7 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger.LogInfo("vmethod_4.SessionRun");
 
             // No longer need this ping. Load complete and all other data should keep happening after this point.
-            StopCoroutine(ClientLoadingPinger());
+            StopCoroutine(clientLoadingPingerCoroutine);
             //GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
 
             var magazines = Profile_0.Inventory.AllRealPlayerItems.OfType<MagazineClass>().ToList();
@@ -1546,7 +1546,7 @@ namespace StayInTarkov.Coop.SITGameModes
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
         private Func<EFT.Player, GamePlayerOwner> func_1;
-
+        private Coroutine clientLoadingPingerCoroutine;
 
         public new void method_6(string backendUrl, string locationId, int variantId)
         {
