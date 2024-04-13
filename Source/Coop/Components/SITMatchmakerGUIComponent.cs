@@ -839,6 +839,8 @@ namespace StayInTarkov.Coop.Components
             RaidSettings.WavesSettings.BotDifficulty = EBotDifficulty.AsOnline;
             RaidSettings.WavesSettings.IsBosses = true;
 
+            SITMatchmaking.HostExpectedNumberOfPlayers = 1;
+
             SITMatchmaking.CreateMatch(
                 SITMatchmaking.Profile.ProfileId
                 , RaidSettings
