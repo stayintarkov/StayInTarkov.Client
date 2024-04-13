@@ -221,8 +221,8 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             base.InitiateShot(weapon, ammo, shotPosition, shotDirection, fireportPosition, chamberIndex, overheat);
 
-            if (((Weapon)weapon).HasChambers && ((Weapon)weapon).Chambers[0].ContainedItem != null && ((Weapon)weapon).Chambers[0].ContainedItem == ammo && ammo.IsUsed)
-                ((Weapon)weapon).Chambers[0].RemoveItem().OrElse(elseValue: false);
+            //if (((Weapon)weapon).HasChambers && ((Weapon)weapon).Chambers[0].ContainedItem != null && ((Weapon)weapon).Chambers[0].ContainedItem == ammo && ammo.IsUsed)
+            //    ((Weapon)weapon).Chambers[0].RemoveItem().OrElse(elseValue: false);
 
             EShotType shotType = EShotType.Unknown;
             switch (weapon.MalfState.State)

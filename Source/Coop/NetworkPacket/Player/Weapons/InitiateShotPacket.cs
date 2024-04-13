@@ -96,7 +96,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                     StayInTarkovHelperConstants.Logger.LogError($"Unable to find Ammo for {firearmControllerClient.Weapon.Name}");
                     return;
                 }
-                ammoToFire.IsUsed = true;
+                //ammoToFire.IsUsed = true;
                 switch (ShotType)
                 {
                     case EShotType.DryFire:
@@ -140,7 +140,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                     case EShotType.RegularShot:
                         firearmControllerClient.InitiateShot(firearmControllerClient.Weapon, ammoToFire, ShotPosition, ShotDirection, FireportPosition, ChamberIndex, Overheat);
                         firearmControllerClient.PlaySounds(firearmControllerClient.WeaponSoundPlayer, ammoToFire, ShotPosition, ShotDirection, false);
-                        firearmControllerClient.FirearmsAnimator.SetFire(fire: true);
+                        //firearmControllerClient.FirearmsAnimator.SetFire(fire: true);
 
                         if (firearmControllerClient.Weapon.IsBoltCatch && firearmControllerClient.Weapon.ChamberAmmoCount == 0 && firearmControllerClient.Weapon.GetCurrentMagazineCount() == 0 && !firearmControllerClient.Weapon.ManualBoltCatch)
                         {
@@ -169,10 +169,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                             firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
                         }
 
-                        if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
-                            firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
+                        //if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
+                         //   firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
 
-                        ammoToFire.IsUsed = true;
+                        //ammoToFire.IsUsed = true;
 
                         break;
                     default:

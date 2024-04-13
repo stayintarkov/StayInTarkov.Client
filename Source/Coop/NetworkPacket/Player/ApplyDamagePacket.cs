@@ -180,7 +180,8 @@ StayInTarkovHelperConstants.Logger.LogError($"{nameof(ApplyDamagePacket)} dmg={D
             var bridgeOwner = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(ProfileId);
             if (bridgeOwner == null)
             {
-                StayInTarkovHelperConstants.Logger.LogError($"{GetType()}:{nameof(Process)}:Unable to find BridgeOwner for {ProfileId}");
+                // this happens on high latency, when hit try to register to someone who is already dead, reduced severity from error to warning // bullet
+                StayInTarkovHelperConstants.Logger.LogWarning($"{GetType()}:{nameof(Process)}:Unable to find BridgeOwner for {ProfileId}");
                 return;
             }
 
