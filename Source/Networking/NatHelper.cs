@@ -298,7 +298,7 @@ namespace StayInTarkov.Networking
 
         public async Task<bool> AddThirdPartyIPEndpoint(int port)
         {
-            string[] WebsitesToGetIPs = ["https://api.ipify.org/", "http://wtfismyip.com/text"];
+            string[] WebsitesToGetIPs = ["https://api.ipify.org/", "http://wtfismyip.com/text", "https://ipv4.icanhazip.com/"];
             foreach (var address in WebsitesToGetIPs)
             {
                 var addr = await GetExternalIPAddressByWebCall(address);
