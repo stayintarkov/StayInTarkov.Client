@@ -12,7 +12,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/stayintarkov/StayInTarkov.Client">
-    <img src="Assets/Stay-In-Tarkov-512.png" alt="Logo" width="140" height="120">
+    <img src="Assets/SIT_server_240329_v2.png" alt="Logo" height="240">
   </a>
 
 <h3 align="center">Stay In Tarkov Client</h3>
