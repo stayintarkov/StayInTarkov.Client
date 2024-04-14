@@ -5,12 +5,7 @@ using EFT.UI;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.SITGameModes;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.UI
@@ -39,7 +34,7 @@ namespace StayInTarkov.UI
             }
             catch (Exception ex)
             {
-                ConsoleScreen.LogError(ex.ToString());
+                ConsoleScreen.LogException(ex);
             }
         }
 
@@ -63,7 +58,7 @@ namespace StayInTarkov.UI
             }
             catch (Exception ex)
             {
-                ConsoleScreen.LogError(ex.ToString());
+                ConsoleScreen.LogException(ex);
             }
         }
 
@@ -79,20 +74,27 @@ namespace StayInTarkov.UI
                     return;
                 }
 
+                var hc = player.ActiveHealthController;
                 EFT.UI.ConsoleScreen.Log($"Healing {player.Profile.Nickname}...");
                 foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
                 {
-                    var hc = player.ActiveHealthController;
+                    if (bodyPart == EBodyPart.Common)
+                    {
+                        continue;
+                    }
+
                     var cur = hc.GetBodyPartHealth(bodyPart).Current;
                     var max = hc.GetBodyPartHealth(bodyPart).Maximum;
 
                     EFT.UI.ConsoleScreen.Log($"Healing body part {bodyPart} from {cur} to {max}");
                     hc.FullRestoreBodyPart(bodyPart);
                 }
+                hc.ChangeEnergy(100);
+                hc.ChangeHydration(100);
             }
             catch (Exception ex)
             {
-                ConsoleScreen.LogError(ex.ToString());
+                ConsoleScreen.LogException(ex);
             }
         }
 
@@ -122,7 +124,7 @@ namespace StayInTarkov.UI
             }
             catch (Exception ex)
             {
-                ConsoleScreen.LogError(ex.ToString());
+                ConsoleScreen.LogException(ex);
             }
         }
 
@@ -164,7 +166,7 @@ namespace StayInTarkov.UI
             }
             catch (Exception ex)
             {
-                ConsoleScreen.LogError(ex.ToString());
+                ConsoleScreen.LogException(ex);
             }
         }
 
