@@ -106,7 +106,7 @@ namespace StayInTarkov.Configuration
             public string UdpServerLocalIPv6 { get; set; } = "::";
             public int UdpServerLocalPort { get; set; } = 6972;
             public string UdpServerPublicIP { get; set; } = "";
-            public int UdpServerPublicPort { get; set; } = 0;
+            public int UdpServerPublicPort { get; set; } = 6972;
             //public ServerType SITServerType { get; set; } = ServerType.Relay;
             public NatTraversalMethod SITNatTraversalMethod { get; set; } = NatTraversalMethod.Upnp;
 
@@ -170,19 +170,19 @@ namespace StayInTarkov.Configuration
                 //SITServerType = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITServerType", ServerType.Relay, new ConfigDescription("SIT Server Type (when hosting a match). Possible values: Relay, P2P")).Value;
 
                 UdpServerLocalIPv4 = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "UdpServerLocalIPv4", "0.0.0.0", new ConfigDescription("Peer-to-peer (UDP) only: Default IPv4 address to bind to when listening for connections")).Value;
+                  ("Coop", "UdpServerLocalIPv4", "0.0.0.0", new ConfigDescription("Peer-to-peer (UDP) only: IPv4 address to bind to when listening for connections")).Value;
 
                 UdpServerLocalIPv6 = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "UdpServerLocalIPv6", "::", new ConfigDescription("Peer-to-peer (UDP) only: Default IPv6 address to bind to when listening for connections")).Value;
+                  ("Coop", "UdpServerLocalIPv6", "::", new ConfigDescription("Peer-to-peer (UDP) only: IPv6 address to bind to when listening for connections")).Value;
 
                 UdpServerLocalPort = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "UdpServerLocalPort", 6972, new ConfigDescription("Peer-to-peer (UDP) only: Default Port to bind to when listening for connections")).Value;
+                  ("Coop", "UdpServerLocalPort", 6972, new ConfigDescription("Peer-to-peer (UDP) only: Port to bind to when listening for connections")).Value;
 
                 UdpServerPublicIP = StayInTarkovPlugin.Instance.Config.Bind<string>
-                  ("Coop", "UdpServerPublicIP", "", new ConfigDescription("Peer-to-peer (UDP) only: Default IP address to advertise to peers when listening for connections")).Value;
+                  ("Coop", "UdpServerPublicIP", "", new ConfigDescription("Peer-to-peer (UDP) only: IP address to advertise to peers when listening for connections")).Value;
 
                 UdpServerPublicPort = StayInTarkovPlugin.Instance.Config.Bind<int>
-                  ("Coop", "UdpServerPublicPort", 0, new ConfigDescription("Peer-to-peer (UDP) only: Default Port to advertise to peers when listening for connections")).Value;
+                  ("Coop", "UdpServerPublicPort", 6972, new ConfigDescription("Peer-to-peer (UDP) only: Port to advertise to peers when listening for connections")).Value;
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");

@@ -63,12 +63,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override void Process()
         {
-            // ------------------------------------------------------------------------------------------
-            // Receive the Packet
+#if DEBUGPACKETS
             StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(SpawnPlayersPacket)}:{nameof(Process)}");
-            EFT.UI.ConsoleScreen.Log($"{nameof(SpawnPlayersPacket)}:{nameof(Process)}");
-            // ------------------------------------------------------------------------------------------
-
+#endif
 
             var sitGame = Singleton<ISITGame>.Instance as AbstractGame;
 

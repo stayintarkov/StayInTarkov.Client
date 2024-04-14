@@ -153,7 +153,13 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             GUI.skin.label.fontSize = 10;
             GUI.skin.label.alignment = TextAnchor.UpperLeft;
             GUI.contentColor = Color.white;
-            var text = new GUIContent($"{(SITMatchmaking.IsClient ? "client" : "host")} ping:{gameclient.Ping} up:{gameclient.UploadSpeedKbps:0.00} down:{gameclient.DownloadSpeedKbps:0.00} loss:{gameclient.PacketLoss:0}% {(AkiBackendCommunication.Instance.HighPingMode ? "hpm" : "")}");
+            var protocol = SITMatchmaking.SITProtocol switch
+            {
+                ESITProtocol.RelayTcp => "tcp ",
+                ESITProtocol.PeerToPeerUdp => "udp ",
+                _ => "",
+            };
+            var text = new GUIContent($"{protocol}{(SITMatchmaking.IsClient ? "client" : "host")} ping:{gameclient.Ping} up:{gameclient.UploadSpeedKbps:0.00} down:{gameclient.DownloadSpeedKbps:0.00} loss:{gameclient.PacketLoss:0.00}% {(AkiBackendCommunication.Instance.HighPingMode ? "hpm" : "")}");
             // var newX = GUI.skin.label.CalcSize(text);
             GUI.Label(rect, text);
             GUI.contentColor = Color.white;

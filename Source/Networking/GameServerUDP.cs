@@ -79,36 +79,40 @@ namespace StayInTarkov.Networking
                 NatPunchEnabled = false
             };
 
-            EFT.UI.ConsoleScreen.Log($"Connecting to Nat Helper...");
+            // ===============================================================
+            // HERE BE DRAGONS.
+            // Make sure you understand NAT punching, UPnP and port-forwarding
+            // if you plan on changing this code
+            // ===============================================================
+
+            var localPort = PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort;
+
+            var msg = $"Connecting to NAT Helper...";
+            EFT.UI.ConsoleScreen.Log(msg);
+            Logger.LogDebug(msg);
 
             _natHelper = new NatHelper(_netServer, SITMatchmaking.Profile.ProfileId);
             _natHelper.Connect();
 
-            EFT.UI.ConsoleScreen.Log($"Setting up Public Endpoints...");
-
-            var localPort = PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort;
+            msg = $"Setting up Public Endpoints...";
+            EFT.UI.ConsoleScreen.Log(msg);
+            Logger.LogInfo(msg);
 
             // Use explicitly set ip/port if possible, otherwise use UPnP, then STUN, then 3rd-party
             if (!string.IsNullOrWhiteSpace(SITMatchmaking.PublicIPAddress) && SITMatchmaking.PublicPort != 0)
             {
-                // External (port forwarding)
+                // Port forwarding
                 _natHelper.AddEndPoint("explicit", SITMatchmaking.PublicIPAddress, SITMatchmaking.PublicPort);
             }
             else
             {
                 // UPnP
-                var upnpResult = await _natHelper.AddUpnpEndPoint(localPort, SITMatchmaking.PublicPort, 900, "sit.core");
+                var upnpResult = await _natHelper.AddUpnpEndPoint(localPort, SITMatchmaking.PublicPort, 900, "sit udp");
 
                 // Only do STUN (nat punch) if UPnP failed
                 if (!upnpResult)
                 {
-                    bool stunResult = _natHelper.AddStunEndPoint(SITMatchmaking.PublicPort);
-
-                    // Only do 3rd-party IP services if all else fails
-                    if (!stunResult)
-                    {
-                        await _natHelper.AddThirdPartyIPEndpoint(SITMatchmaking.PublicPort);
-                    }
+                    _natHelper.AddStunEndPoint(ref localPort);
                 }
             }
 
@@ -122,18 +126,20 @@ namespace StayInTarkov.Networking
                 return;
             }
 
-            Logger.LogDebug($"Found endpoints ${string.Join("\n", _natHelper.PublicEndPoints)}");
-
             // Listen locally
             var localIPv4 = IPAddress.Parse(PluginConfigSettings.Instance.CoopSettings.UdpServerLocalIPv4);
             var localIPv6 = IPAddress.Parse(PluginConfigSettings.Instance.CoopSettings.UdpServerLocalIPv6);
             _netServer.Start(localIPv4, localIPv6, localPort);
 
-            var msg = $"Server listening on {localIPv4}:{_netServer.LocalPort} and [{localIPv6}]:{_netServer.LocalPort}.";
-            Logger.LogDebug(msg);
+            msg = $"Server listening on {localIPv4}:{_netServer.LocalPort} and [{localIPv6}]:{_netServer.LocalPort}.";
+            Logger.LogInfo(msg);
             EFT.UI.ConsoleScreen.Log(msg);
             NotificationManagerClass.DisplayMessageNotification(msg,
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.EntryPoint);
+
+            msg = $"Registered endpoints ${string.Join("\n", _natHelper.PublicEndPoints)}";
+            Logger.LogInfo(msg);
+            EFT.UI.ConsoleScreen.Log(msg);
         }
 
         //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)
@@ -147,17 +153,7 @@ namespace StayInTarkov.Networking
             //Logger.LogInfo("[Server] OnNetworkReceive");
             var bytes = reader.GetRemainingBytes();
             _netServer.SendToAll(bytes, deliveryMethod);
-
-#if DEBUG
-
-            if (_netServer.Statistics.PacketLossPercent > 0)
-            {
-                Logger.LogError($"Packet Loss {_netServer.Statistics.PacketLossPercent}%");
-            }
-
-#endif
         }
-
 
         //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
         //{

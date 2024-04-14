@@ -16,7 +16,7 @@ namespace StayInTarkov.Networking
         public BlockingCollection<byte[]> PooledBytesToPost { get; } = [];
         public float DownloadSpeedKbps { get; private set; } = 0;
         public float UploadSpeedKbps { get; private set; } = 0;
-        public uint PacketLoss { get; private set; } = 0;
+        public float PacketLoss { get; private set; } = 0;
         public ushort Ping
         {
             get
