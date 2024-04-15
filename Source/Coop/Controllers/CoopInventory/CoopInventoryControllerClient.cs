@@ -161,12 +161,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
          
         }
 
-        public override SOperationResult123<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
+        public override GStruct417<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
         {
             ThrowItem(item, null, callback);
             return true;
+            //return base.TryThrowItem(item, callback, silent);
         }
-
         public override bool CheckTransferOwners(Item item, ItemAddress targetAddress, out Error error)
         {
             error = null;

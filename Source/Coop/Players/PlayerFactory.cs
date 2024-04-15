@@ -36,7 +36,7 @@ namespace StayInTarkov.Coop.Players
             }
             else
             {
-                statsManager = new NullStatisticsManager();
+                statsManager = new StatisticsManager();
             }
             return statsManager;
         }

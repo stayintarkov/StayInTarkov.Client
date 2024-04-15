@@ -25,7 +25,7 @@ namespace StayInTarkov.Coop
 
                 x.GetParameters().Length >= 2
                 && x.GetParameters()[0].ParameterType == typeof(TimeAndWeatherSettings)
-                && x.GetParameters()[1].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
+                && x.GetParameters()[1].ParameterType == typeof(TimeHasComeScreenController)
                 );
         }
 
@@ -54,9 +54,9 @@ namespace StayInTarkov.Coop
         [PatchPostfix]
         public static async Task Postfix(
             Task __result,
-           TarkovApplication __instance,
-           TimeAndWeatherSettings timeAndWeather,
-           MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController,
+            TarkovApplication __instance,
+            TimeAndWeatherSettings timeAndWeather,
+            TimeHasComeScreenController timeHasComeScreenController,
             RaidSettings ____raidSettings,
             InputTree ____inputTree,
             GameDateTime ____localGameDateTime,
@@ -119,9 +119,6 @@ namespace StayInTarkov.Coop
             await Task.Delay(1000);
             CoopSITGame localGame = CoopSITGame.Create(
 
-            // this is used for testing differences between CoopGame and EFT.LocalGame
-            //EFT.LocalGame localGame = (EFT.LocalGame)ReflectionHelpers.GetMethodForType(typeof(EFT.LocalGame), "smethod_6").Invoke(null, 
-            //    new object[] {
 
                 ____inputTree
                 , profile
@@ -137,12 +134,6 @@ namespace StayInTarkov.Coop
                 , ____raidSettings.SelectedDateTime
                 , new Callback<ExitStatus, TimeSpan, MetricsClass>((r) =>
                 {
-                    // target private async void method_46(string profileId, Profile savageProfile, LocationSettingsClass.Location location, Result<ExitStatus, TimeSpan, MetricsClass> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
-                    //Logger.LogInfo("Callback Metrics. Invoke method 45");
-                    //ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
-                    //session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
-                    //});
-
                     ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
                         x =>
                         x.GetParameters().Length >= 5
@@ -150,7 +141,7 @@ namespace StayInTarkov.Coop
                         && x.GetParameters()[1].ParameterType == typeof(Profile)
                         && x.GetParameters()[2].ParameterType == typeof(LocationSettingsClass.Location)
                         && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, MetricsClass>)
-                        && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
+                        && x.GetParameters()[4].ParameterType == typeof(TimeHasComeScreenController)
                         ).Invoke(__instance, new object[] {
                     session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });
 
@@ -159,7 +150,6 @@ namespace StayInTarkov.Coop
                 , EUpdateQueue.Update
                 , session
                 , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
-            //}
             );
             Singleton<AbstractGame>.Create(localGame);
             timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());

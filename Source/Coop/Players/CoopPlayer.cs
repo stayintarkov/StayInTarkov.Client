@@ -572,15 +572,21 @@ namespace StayInTarkov.Coop.Players
         private Vector2 LastRotationSent = Vector2.zero;
         private readonly Dictionary<string, float> PendingArmorUpdates = [];
 
-        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
-        {
-            // Protection
-            if (this is CoopPlayerClient)
-            {
-                base.Proceed(withNetwork, callback, scheduled);
-                return;
-            }
+        //public override void Proceed(bool withNetwork, Callback<GIController1> callback, bool scheduled = true)
+        //{
+        //    base.Proceed(withNetwork, callback, scheduled);
 
+        //    // Extra unneccessary protection
+        //    if (this is CoopPlayer)
+        //    {
+        //        PlayerProceedEmptyHandsPacket emptyHandsPacket = new PlayerProceedEmptyHandsPacket(this.ProfileId, withNetwork, scheduled);
+        //        BepInLogger.LogDebug(emptyHandsPacket.ToJson());
+        //        GameClient.SendData(emptyHandsPacket.Serialize());
+        //    }
+        //}
+
+        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
+        {
             base.Proceed(withNetwork, callback, scheduled);
 
             // Extra unneccessary protection
@@ -592,7 +598,6 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
-      
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
@@ -751,16 +756,10 @@ namespace StayInTarkov.Coop.Players
             }, callback, scheduled);
         }
 
-        public override void Proceed<T>(Item item, Callback<GIController1> callback, bool scheduled = true)
+        public override void Proceed<T>(Item item, Callback<IGIController5> callback, bool scheduled = true)
         {
             base.Proceed<T>(item, callback, scheduled);
-
-            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}<T>");
-
-            Func<T> controllerFactory = () => UsableItemController.smethod_5<T>(this, item);
-            new Process<T, GIController1>(this, controllerFactory, item, fastHide: true).method_0(null, callback, scheduled);
         }
-
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {
@@ -902,6 +901,9 @@ namespace StayInTarkov.Coop.Players
 
         public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
         {
+            if(MovementContext == null) 
+                return;
+
             try
             {
                 base.ComplexLateUpdate(queue, deltaTime);

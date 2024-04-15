@@ -1,11 +1,5 @@
 ﻿using EFT;
 using EFT.HealthSystem;
-using EFT.InventoryLogic;
-using System;
-using System.Collections.Generic;
-using static Ragfair;
-using UnityEngine;
-using Comfort.Common;
 
 namespace StayInTarkov.Coop
 {

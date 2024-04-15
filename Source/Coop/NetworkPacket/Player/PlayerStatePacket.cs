@@ -32,7 +32,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public Vector2 Rotation { get; set; }
         public Vector3 HeadRotation { get; set; }
         public Vector2 MovementDirection { get; set; }
-        public Physical.PhysicalStamina Stamina { get; set; }
+        public PhysicalStamina Stamina { get; set; }
         public Vector2 InputDirection { get; set; }
         public int Blindfire { get; set; }
         public float LinearSpeed { get; set; }
@@ -47,7 +47,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public PlayerStatePacket(string profileId, Vector3 position, Vector2 rotation, Vector3 headRotation, Vector2 movementDirection,
             EPlayerState state, float tilt, int step, int animatorStateIndex, float characterMovementSpeed,
             bool isProne, float poseLevel, bool isSprinting, Vector2 inputDirection, bool leftStance
-            , PlayerHealthPacket playerHealth, Physical.PhysicalStamina stamina, int blindFire, float linearSpeed)
+            , PlayerHealthPacket playerHealth, PhysicalStamina stamina, int blindFire, float linearSpeed)
             : base(new string(profileId.ToCharArray()), nameof(PlayerStatePacket))
         {
             Position = position;

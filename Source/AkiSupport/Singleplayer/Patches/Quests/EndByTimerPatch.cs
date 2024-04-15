@@ -16,7 +16,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.Quests
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(BaseLocalGame<GamePlayerOwner>), nameof(BaseLocalGame<GamePlayerOwner>.Stop));
+            return AccessTools.Method(typeof(BaseLocalGame<EftGamePlayerOwner>), nameof(BaseLocalGame<EftGamePlayerOwner>.Stop));
         }
 
         // Unused, but left here in case patch breaks and finding the intended method is difficult

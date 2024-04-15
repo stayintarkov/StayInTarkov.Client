@@ -1,39 +1,27 @@
 ﻿using Comfort.Common;
 using EFT;
-using EFT.Communications;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
-using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
-using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
-using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
 //using StayInTarkov.Core.Player;
-using StayInTarkov.EssentialPatches;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-
-using Rect = UnityEngine.Rect;
-using StayInTarkov.Coop.NetworkPacket.Raid;
-using Diz.Jobs;
-using System.Net.NetworkInformation;
 using EFT.Counters;
 using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Coop.NetworkPacket.World;
@@ -538,7 +526,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
 
                     // Add players who have joined to the AI Enemy Lists
-                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<EftGamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
                     if (botController != null)
                     {
                         while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
@@ -1640,7 +1628,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public float LocalTime => 0;
 
-        public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
+        public BaseLocalGame<EftGamePlayerOwner> LocalGameInstance { get; internal set; }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }

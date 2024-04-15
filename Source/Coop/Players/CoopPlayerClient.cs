@@ -4,6 +4,7 @@ using Diz.LanguageExtensions;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using GPUInstancer;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.HandControllers;
@@ -17,8 +18,6 @@ using System.Collections.Generic;
 using System.Security.AccessControl;
 using UnityEngine;
 using UnityEngine.Networking;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
-using static UnityEngine.SendMouseEvents;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -236,12 +235,12 @@ namespace StayInTarkov.Coop.Players
                
         }
 
-        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
             {
                 var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
+                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, AHealthController.BodyPartState>>
                 (player.PlayerHealthController, "Dictionary_0", false);
                 if (bodyPartDict == null)
                 {
@@ -560,54 +559,6 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
-
-        public bool RemoveItem(Item item)
-        {
-            TraderControllerClass invController = this._inventoryController;
-            IOperationResult value;
-            Error error;
-
-            if(item.Owner == null)
-            {
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-            }
-
-            try
-            {
-                if (item.StackObjectsCount > 1)
-                {
-                    var sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
-                    value = sOperationResult.Value;
-                    error = sOperationResult.Error;
-                }
-                else
-                {
-                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, invController, false, false);
-                    value = sOperationResult2.Value;
-                    error = sOperationResult2.Error;
-                }
-                if (error != null)
-                {
-                    BepInLogger.LogError($"Couldn't remove item: {error}");
-                    return false;
-                }
-                if (item.Owner == null)
-                {
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-                }
-                value.RaiseEvents(invController, CommandStatus.Begin);
-                value.RaiseEvents(invController, CommandStatus.Succeed);
-            }
-            catch (Exception)
-            {
-
-            }
-            return true;
-        }
-
-
-
-
         public override void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
         {
             BepInLogger.LogDebug($"{nameof(ReceiveSay)}({trigger},{mask})");
@@ -660,11 +611,13 @@ namespace StayInTarkov.Coop.Players
             new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
         }
 
-        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+
+        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
-            new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+            new Process<EmptyHandsController, IGIController1>(this, controllerFactory, null).method_0(null, callback, scheduled);
         }
+
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {

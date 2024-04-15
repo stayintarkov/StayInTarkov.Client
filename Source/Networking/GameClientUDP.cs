@@ -1,34 +1,21 @@
-﻿using Aki.Custom.Airdrops;
-using BepInEx.Logging;
+﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using EFT.UI;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using Sirenix.Utilities;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
-using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
-using STUN;
-
-//using StayInTarkov.Coop.Players;
-//using StayInTarkov.Networking.Packets;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Profiling;
-using UnityStandardAssets.Water;
-using static BackendConfigManagerConfig;
 using static StayInTarkov.Networking.SITSerialization;
 
 /* 

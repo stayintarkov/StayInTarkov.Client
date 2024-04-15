@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
 
 namespace StayInTarkov.Coop.Player.Health
 {
@@ -104,12 +103,12 @@ namespace StayInTarkov.Coop.Player.Health
             }
         }
 
-        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
             {
                 var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
+                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, AHealthController.BodyPartState>>
                 (player.PlayerHealthController, "Dictionary_0", false);
                 if (bodyPartDict == null)
                 {

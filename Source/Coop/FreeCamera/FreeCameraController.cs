@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.FreeCamera
         //private GameObject _mainCamera;
         private FreeCamera _freeCamScript;
 
-        private BattleUIScreen _playerUi;
+        //private BattleUIScreen _playerUi;
         private bool _uiHidden;
 
         private GamePlayerOwner _gamePlayerOwner;
@@ -179,26 +179,26 @@ namespace StayInTarkov.Coop.FreeCamera
             if (GetLocalPlayerFromWorld() == null)
                 return;
 
-            // If we don't have the UI Component cached, go look for it in the scene
-            if (_playerUi == null)
-            {
-                var gameObject = GameObject.Find("BattleUIScreen");
-                if (gameObject == null)
-                    return;
+            //// If we don't have the UI Component cached, go look for it in the scene
+            //if (_playerUi == null)
+            //{
+            //    var gameObject = GameObject.Find("BattleUIScreen");
+            //    if (gameObject == null)
+            //        return;
 
-                _playerUi = gameObject.GetComponent<BattleUIScreen>();
+            //    _playerUi = gameObject.GetComponent<BattleUIScreen>();
 
-                if (_playerUi == null)
-                {
-                    //FreecamPlugin.Logger.LogError("Failed to locate player UI");
-                    return;
-                }
-            }
+            //    if (_playerUi == null)
+            //    {
+            //        //FreecamPlugin.Logger.LogError("Failed to locate player UI");
+            //        return;
+            //    }
+            //}
 
-            if (_playerUi == null || _playerUi.gameObject == null)
-                return;
+            //if (_playerUi == null || _playerUi.gameObject == null)
+            //    return;
 
-            _playerUi.gameObject.SetActive(_uiHidden);
+            //_playerUi.gameObject.SetActive(_uiHidden);
             _uiHidden = !_uiHidden;
         }
 

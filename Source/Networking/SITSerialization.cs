@@ -1,23 +1,9 @@
-﻿using Comfort.Common;
-using ComponentAce.Compression.Libs.zlib;
+﻿using ComponentAce.Compression.Libs.zlib;
 using EFT;
-using EFT.InventoryLogic;
 using LiteNetLib.Utils;
-using Newtonsoft.Json;
 using StayInTarkov.Coop.NetworkPacket;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Xml;
 using UnityEngine;
-using UnityEngine.Profiling;
-using static Physical;
-using static StayInTarkov.Networking.SITSerialization;
-
-// GClass2800
 
 namespace StayInTarkov.Networking
 {
@@ -77,28 +63,28 @@ namespace StayInTarkov.Networking
 
         public class PhysicalUtils
         {
-            public static void Serialize(NetDataWriter writer, Physical.PhysicalStamina physicalStamina)
+            public static void Serialize(NetDataWriter writer, PhysicalStamina physicalStamina)
             {
                 writer.Put(physicalStamina.StaminaExhausted);
                 writer.Put(physicalStamina.OxygenExhausted);
                 writer.Put(physicalStamina.HandsExhausted);
             }
 
-            public static void Serialize(BinaryWriter writer, Physical.PhysicalStamina physicalStamina)
+            public static void Serialize(BinaryWriter writer, PhysicalStamina physicalStamina)
             {
                 writer.Write(physicalStamina.StaminaExhausted);
                 writer.Write(physicalStamina.OxygenExhausted);
                 writer.Write(physicalStamina.HandsExhausted);
             }
 
-            public static Physical.PhysicalStamina Deserialize(NetDataReader reader)
+            public static PhysicalStamina Deserialize(NetDataReader reader)
             {
-                return new Physical.PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
+                return new PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
             }
 
-            public static Physical.PhysicalStamina Deserialize(BinaryReader reader)
+            public static PhysicalStamina Deserialize(BinaryReader reader)
             {
-                return new Physical.PhysicalStamina() { StaminaExhausted = reader.ReadBoolean(), OxygenExhausted = reader.ReadBoolean(), HandsExhausted = reader.ReadBoolean() };
+                return new PhysicalStamina() { StaminaExhausted = reader.ReadBoolean(), OxygenExhausted = reader.ReadBoolean(), HandsExhausted = reader.ReadBoolean() };
             }
         }
 
