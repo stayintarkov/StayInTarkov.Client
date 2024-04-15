@@ -22,6 +22,8 @@
     <br />
     <a href="https://stayintarkov.com/docs"><strong>Explore the docs »</strong></a>
   </p>
+
+  [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
 </div>
 
 
