@@ -38,9 +38,6 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
             {
                 writer.Write(profileId);
             }
-
-            StayInTarkovHelperConstants.Logger.LogInfo("Serialized RequestSpawnPlayersPacket");
-
             return ms.ToArray();
         }
 
@@ -61,12 +58,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override void Process()
         {
-
-            // ------------------------------------------------------------------------------------------
-            // Receive the Packet
-            StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(RequestSpawnPlayersPacket)}:{nameof(Process)}");
-            EFT.UI.ConsoleScreen.Log($"{nameof(RequestSpawnPlayersPacket)}:{nameof(Process)}");
-            // ------------------------------------------------------------------------------------------
+#if DEBUGPACKETS
+            StaynTarkovHelperConstants.Logger.LogInfo($"{nameof(RequestSpawnPlayersPacket)}:{nameof(Process)}");
+#endif
 
             SpawnPlayersPacket.CreateFromGame(ExistingProfileIds);
         }

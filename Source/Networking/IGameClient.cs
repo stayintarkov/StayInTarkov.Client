@@ -16,7 +16,7 @@ namespace StayInTarkov.Networking
         public ushort Ping { get; }
         public float UploadSpeedKbps { get; }
         public float DownloadSpeedKbps { get; }
-        public uint PacketLoss { get; }
+        public float PacketLoss { get; }
 
         /// <summary>
         /// Reset stats and compute download/upload speed and packet loss

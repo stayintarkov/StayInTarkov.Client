@@ -11,10 +11,10 @@ using StayInTarkov.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
@@ -55,9 +55,7 @@ namespace StayInTarkov.Coop.Components
         private int botDifficultyInput = 0;
         private int protocolInput = 0;
         private string pendingServerId = "";
-        private int p2pAddressOptionInput;
-        private string IpAddressInput { get; set; } = "";
-        private int PortInput { get; set; } = 0;
+        private int p2pModeOptionInput;
 
         private string[] BotAmountStringOptions = new string[]
         {
@@ -80,7 +78,7 @@ namespace StayInTarkov.Coop.Components
         };
 
         private string[] ProtocolStringOptions = StayInTarkovPlugin.LanguageDictionary["PROTOCOL_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
-        private string[] YesOrNoStringOptions = StayInTarkovPlugin.LanguageDictionary["YES_NO_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
+        private string[] P2PModeStringOptions = StayInTarkovPlugin.LanguageDictionary["P2P_MODE_OPTIONS"].ToArray().Select(x=>x.ToString()).ToArray();
 
         private bool BotBossesEnabled = true;
 
@@ -184,16 +182,6 @@ namespace StayInTarkov.Coop.Components
             {
                 var playerImageRect = playerImage.GetComponent<RectTransform>();
                 playerImageRect.localScale = new Vector3(1.4f, 1.4f, 0);
-            }
-
-            if (!string.IsNullOrWhiteSpace(PluginConfigSettings.Instance.CoopSettings.UdpServerPublicIP))
-            {
-                IpAddressInput = PluginConfigSettings.Instance.CoopSettings.UdpServerPublicIP;
-            }
-
-            if (PluginConfigSettings.Instance.CoopSettings.UdpServerPublicPort > 0)
-            {
-                PortInput = PluginConfigSettings.Instance.CoopSettings.UdpServerPublicPort;
             }
 
             DeleteExistingMatches();
@@ -528,7 +516,6 @@ namespace StayInTarkov.Coop.Components
                 {
                     var yPos = yPosOffset + index * (cellHeight + 5);
 
-
                     //Extract player count from match before the server is shown
                     int playerCount = int.Parse(match["PlayerCount"].ToString());
                     string protocol = (string)match["Protocol"];
@@ -613,10 +600,10 @@ namespace StayInTarkov.Coop.Components
             labelStyle.normal.textColor = Color.white;
             labelStyle.fontStyle = FontStyle.Bold;
 
-            GUIStyle labelSmallStyle = new(labelStyle);
-            labelSmallStyle.alignment = TextAnchor.UpperLeft;
-            labelSmallStyle.fontSize = 14;
-
+            GUIStyle infoStyle = new(labelStyle);
+            infoStyle.alignment = TextAnchor.MiddleLeft;
+            infoStyle.fontStyle = FontStyle.Bold;
+            infoStyle.fontSize = 11;
 
             // Define a style for buttons
             GUIStyle buttonStyle = new(GUI.skin.button);
@@ -646,10 +633,10 @@ namespace StayInTarkov.Coop.Components
                         //        , new Vector3(0, 0)
                         //        );
                         // Title label for the number of players
-                        GUI.Label(new UnityEngine.Rect(cols[0], y, calcSizeContentLabelNumberOfPlayers.x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"].ToString(), labelStyle);
+                        GUI.Label(new Rect(cols[0], y, calcSizeContentLabelNumberOfPlayers.x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"].ToString(), labelStyle);
 
                         // Decrease button
-                        if (GUI.Button(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), "-", buttonStyle))
+                        if (GUI.Button(new Rect(cols[1], y, buttonSize, buttonSize), "-", buttonStyle))
                         {
                             if (SITMatchmaking.HostExpectedNumberOfPlayers > 1)
                             {
@@ -659,10 +646,10 @@ namespace StayInTarkov.Coop.Components
 
                         var contentNumberOfPlayers = new GUIContent(SITMatchmaking.HostExpectedNumberOfPlayers.ToString());
                         // Player count label
-                        GUI.Label(new UnityEngine.Rect(cols[2], y, labelStyle.CalcSize(contentNumberOfPlayers).x, labelStyle.CalcSize(contentNumberOfPlayers).y), SITMatchmaking.HostExpectedNumberOfPlayers.ToString(), labelStyle);
+                        GUI.Label(new Rect(cols[2], y, labelStyle.CalcSize(contentNumberOfPlayers).x, labelStyle.CalcSize(contentNumberOfPlayers).y), SITMatchmaking.HostExpectedNumberOfPlayers.ToString(), labelStyle);
 
                         // Increase button
-                        if (GUI.Button(new UnityEngine.Rect(cols[3], y, buttonSize, buttonSize), "+", buttonStyle))
+                        if (GUI.Button(new Rect(cols[3], y, buttonSize, buttonSize), "+", buttonStyle))
                         {
                             if (SITMatchmaking.HostExpectedNumberOfPlayers < 99)
                             {
@@ -672,31 +659,24 @@ namespace StayInTarkov.Coop.Components
                         break;
 
                     case 1:
-                        CalculateXAxis PasswordAmountXAxis = new(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString()), halfWindowWidth);
-                       
                         // "Require Password" text
-                        GUI.Label(new UnityEngine.Rect(cols[0], y, PasswordAmountXAxis.Text, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString(), labelSmallStyle);
+                        GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"].ToString(), labelStyle);
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(cols[1], y, buttonSize, buttonSize), showPasswordField, "");
+                        showPasswordField = GUI.Toggle(new Rect(cols[1], y, buttonSize, buttonSize), showPasswordField, "");
                      
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
-                        var passwordFieldX = cols[2] - passwordFieldWidth / 2;
+                        var passwordFieldX = cols[1] + buttonSize + 10;
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y, 200, buttonSize), passwordInput, '*', 25);
+                            passwordInput = GUI.PasswordField(new Rect(passwordFieldX, y, passwordFieldWidth, buttonSize), passwordInput, '*', 25);
                         }
 
                         break;
 
                     case 2:
-                        var lblBotAmountText = StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"];
-
-                        var botSettingtFieldWidth = 350;
-                        var botSettingsX = halfWindowWidth - botSettingtFieldWidth / 1.5f;
-
                         //Ai Amount
                         GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"].ToString(), labelStyle);
                         Rect botAmountGridRect = new Rect(cols[1], y, BotAmountStringOptions.Count() * 80, 25);
@@ -726,53 +706,30 @@ namespace StayInTarkov.Coop.Components
 
                         break;
                     case 6:
-
                         // If Peer to Peer is chosen
                         if (protocolInput == 1)
                         {
-                            // P2P Address Option Choice
-                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_OPTIONS_LABEL"].ToString(), labelStyle);
+                            // P2P Mode Option Choice
+                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_MODE_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_MODE_LABEL"].ToString(), labelStyle);
 
-                            Rect p2pAddressOptionGridRect = new Rect(cols[1], y, YesOrNoStringOptions.Count() * 120, 25);
-                            p2pAddressOptionInput = GUI.SelectionGrid(p2pAddressOptionGridRect, p2pAddressOptionInput, YesOrNoStringOptions, YesOrNoStringOptions.Count());
+                            Rect p2pModeOptionGridRect = new Rect(cols[1], y, P2PModeStringOptions.Count() * 120, 25);
+                            p2pModeOptionInput = GUI.SelectionGrid(p2pModeOptionGridRect, p2pModeOptionInput, P2PModeStringOptions, P2PModeStringOptions.Count());
                         }
                         break;
                     case 7:
-                        // If Peer to Peer is chosen and manually set
-                        if (protocolInput == 1 && p2pAddressOptionInput == 1)
+                        // If Peer to Peer is chosen
+                        if (protocolInput == 1)
                         {
-                            // P2P Address Option Choice
-                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_IP_ADDRESS_LABEL"].ToString(), labelStyle);
-
-                            Rect p2pAddressIPRect = new Rect(cols[1], y, 200, 25);
-                            IpAddressInput = GUI.TextField(p2pAddressIPRect, IpAddressInput, 16);
-                        }
-                        if (protocolInput == 1 && p2pAddressOptionInput == 0)
-                        {
-                            // Port Number Choice
-                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_PORT_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_PORT_LABEL"].ToString(), labelStyle);
-
-                            Rect p2pPortRect = new Rect(cols[1], y, 100, 25);
-                            PortInput = int.Parse(GUI.TextField(p2pPortRect, PortInput.ToString(), 16));
-                        }
-                        break;
-                    case 8:
-                        if (protocolInput == 1 && p2pAddressOptionInput == 1)
-                        {
-                            // Port Number Choice
-                            GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_PORT_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_PORT_LABEL"].ToString(), labelStyle);
-
-                            Rect p2pPortRect = new Rect(cols[1], y, 100, 25);
-                            PortInput = int.Parse(GUI.TextField(p2pPortRect, PortInput.ToString(), 16));
-                        }
-                        break;
-                    case 9:
-                        if(protocolInput == 1)
-                        {
-                            var warningLabelStyle = new GUIStyle(GUI.skin.label);
-                            warningLabelStyle.fontStyle = FontStyle.Bold;
-
-                            GUI.Label(new Rect(cols[1], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_WARNING_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_WARNING_LABEL"].ToString(), warningLabelStyle);
+                            // Automatic
+                            if (p2pModeOptionInput == 0)
+                            {
+                                GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_AUTOMATIC_INFO_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_AUTOMATIC_INFO_LABEL"].ToString(), infoStyle);
+                            }
+                            // Manual
+                            if (p2pModeOptionInput == 1)
+                            {
+                                GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_MANUAL_INFO_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_MANUAL_INFO_LABEL"].ToString(), infoStyle);
+                            }
                         }
                         break;
                 }
@@ -784,7 +741,7 @@ namespace StayInTarkov.Coop.Components
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 
             // Back button
-            if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString(), smallButtonStyle))
+            if (GUI.Button(new Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"].ToString(), smallButtonStyle))
             {
                 Logger.LogDebug("Click Back Button");
                 showHostGameWindow = false;
@@ -792,7 +749,7 @@ namespace StayInTarkov.Coop.Components
             }
 
             // Start button
-            if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"].ToString(), smallButtonStyle))
+            if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"].ToString(), smallButtonStyle))
             {
                 Logger.LogDebug("Click Start Button");
                 HostRaidAndJoin();
@@ -808,15 +765,23 @@ namespace StayInTarkov.Coop.Components
             RaidSettings.WavesSettings.BotDifficulty = (EBotDifficulty)botDifficultyInput;
             RaidSettings.WavesSettings.IsBosses = BotBossesEnabled;
 
-            bool useIPAddrInput = ((ESITProtocol)protocolInput) == ESITProtocol.PeerToPeerUdp && !string.IsNullOrWhiteSpace(IpAddressInput);
+            var addr = "";
+            var port = 0;
+
+            // use config values in P2P manual mode
+            if (((ESITProtocol)protocolInput) == ESITProtocol.PeerToPeerUdp && p2pModeOptionInput == 1)
+            {
+                addr = PluginConfigSettings.Instance.CoopSettings.UdpServerPublicIP;
+                port = PluginConfigSettings.Instance.CoopSettings.UdpServerPublicPort;
+            }
 
             SITMatchmaking.CreateMatch(
                 SITMatchmaking.Profile.ProfileId
                 , RaidSettings
                 , passwordInput
                 , (ESITProtocol)protocolInput
-                , useIPAddrInput ? IpAddressInput : null
-                , PortInput
+                , addr
+                , port
                 , EMatchmakerType.GroupLeader);
             OriginalAcceptButton.OnClick.Invoke();
 
@@ -847,7 +812,7 @@ namespace StayInTarkov.Coop.Components
                 , ""
                 , ESITProtocol.RelayTcp
                 , null
-                , PortInput,
+                , PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort,
                 EMatchmakerType.GroupLeader);
             OriginalAcceptButton.OnClick.Invoke();
 
@@ -892,31 +857,6 @@ namespace StayInTarkov.Coop.Components
                 GameObject.DestroyImmediate(this.gameObject);
 
             GameObject.DestroyImmediate(this);
-        }
-    }
-
-    internal class CalculateXAxis
-    {
-        /// <summary>
-        /// X-Axis for a checkbox
-        /// </summary>
-        public float Checkbox { get; private set; } = 0;
-        /// <summary>
-        /// X-Axis to put text besides a checkbox
-        /// </summary>
-        public float CheckboxText { get; private set; } = 0;
-        /// <summary>
-        /// X-Axis for text that's not needed to be formatted next to a checkbox
-        /// </summary>
-        public float Text { get; private set; } = 0;
-
-        public CalculateXAxis(GUIContent Content, float WindowWidth, int HorizontalSpacing = 10)
-        {
-            var CalcSize = GUI.skin.label.CalcSize(Content);
-
-            Checkbox = WindowWidth - CalcSize.x / 2 - HorizontalSpacing;
-            CheckboxText = Checkbox + 20;
-            Text = Checkbox;
         }
     }
 }

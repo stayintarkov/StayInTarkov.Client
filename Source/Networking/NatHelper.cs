@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine.Networking;
 using WebSocketSharp;
 
 namespace StayInTarkov.Networking
@@ -37,7 +38,7 @@ namespace StayInTarkov.Networking
         public Dictionary<string, TaskCompletionSource<object>> RequestCompletionSourceList = new Dictionary<string, TaskCompletionSource<object>>();
         public Dictionary<string, IPEndPoint> PublicEndPoints = new Dictionary<string, IPEndPoint>();
 
-        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("Nat Helper");
+        private static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("NAT Helper");
         private readonly string _sessionId;
 
         public NatHelper(LiteNetLib.NetManager netManager, string sid)
@@ -49,14 +50,18 @@ namespace StayInTarkov.Networking
         public void Connect()
         {
             var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{PluginConfigSettings.Instance.CoopSettings.SITNatHelperPort}/{_sessionId}?";
+            var msg = $"Connecting to NAT Helper at {wsUrl}...";
 
-            WebSocket = new WebSocket(wsUrl);
-            WebSocket.WaitTime = TimeSpan.FromMinutes(1);
-            WebSocket.EmitOnPing = true;
-            WebSocket.Connect();
+            WebSocket = new(wsUrl)
+            {
+                WaitTime = TimeSpan.FromMinutes(1),
+                EmitOnPing = true
+            };
 
+            WebSocket.OnOpen += WebSocket_OnOpen;
             WebSocket.OnError += WebSocket_OnError;
             WebSocket.OnMessage += WebSocket_OnMessage;
+            WebSocket.Connect();
         }
 
         public void Close()
@@ -75,14 +80,20 @@ namespace StayInTarkov.Networking
             ProcessMessage(e.Data);
         }
 
+        private void WebSocket_OnOpen(object sender, EventArgs e)
+        {
+            Logger.LogInfo($"Connected to NAT Helper");
+        }
+
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            Logger.LogInfo("WebSocket Error:" + e.Message);
+            Logger.LogError($"WebSocket error {e}");
             WebSocket.Close();
         }
 
         private void ProcessMessage(string message)
         {
+            Logger.LogDebug($"Received {message}");
             JObject msgObj = JObject.Parse(message);
 
             if (msgObj.ContainsKey("requestId") && msgObj.ContainsKey("requestType") && msgObj.ContainsKey("profileId"))
@@ -102,7 +113,13 @@ namespace StayInTarkov.Networking
                         { "publicEndPoints", PublicEndPoints.ToDictionary(x => x.Key, x => x.Value.ToString()) }
                     };
 
-                    WebSocket.Send(JsonConvert.SerializeObject(getEndPointsResponse));
+                    WebSocket.SendAsync(JsonConvert.SerializeObject(getEndPointsResponse), (success) =>
+                    {
+                        if (!success)
+                        {
+                            Logger.LogError("Could not send getEndpoints response");
+                        }
+                    });
                 }
 
                 if (requestType == "natPunchRequest")
@@ -114,6 +131,9 @@ namespace StayInTarkov.Networking
                     if (publicEndPoints.ContainsKey("stun"))
                     {
                         PunchNat(publicEndPoints["stun"]);
+                    } else
+                    {
+                        Logger.LogWarning("Could not find stun endpoint in NAT punch request");
                     }
 
                     var natPunchResponse = new Dictionary<string, object>
@@ -123,7 +143,13 @@ namespace StayInTarkov.Networking
                         { "profileId", profileId },
                     };
 
-                    WebSocket.Send(JsonConvert.SerializeObject(natPunchResponse));
+                    WebSocket.SendAsync(JsonConvert.SerializeObject(natPunchResponse), (success) =>
+                    {
+                        if (!success)
+                        {
+                            Logger.LogError("Could not send NAT punch response");
+                        }
+                    });
                 }
 
                 if (requestType == "getEndPointsResponse")
@@ -133,13 +159,23 @@ namespace StayInTarkov.Networking
                         .ToDictionary(x => x.Key, x => x.Value.ToIPEndPoint());
 
                     if (RequestCompletionSourceList.ContainsKey(requestId))
+                    {
                         RequestCompletionSourceList[requestId].SetResult(publicEndPoints);
+                    } else
+                    {
+                        Logger.LogWarning("Could not find request corresponding to NAT punch response");
+                    }
                 }
 
                 if (requestType == "natPunchResponse")
                 {
                     if (RequestCompletionSourceList.ContainsKey(requestId))
+                    {
                         RequestCompletionSourceList[requestId].SetResult(true);
+                    } else
+                    {
+                        Logger.LogWarning("Could not find request corresponding to NAT punch response");
+                    }
                 }
             }
         }
@@ -163,14 +199,20 @@ namespace StayInTarkov.Networking
                 { "profileId", profileId },
             };
 
-            WebSocket.Send(JsonConvert.SerializeObject(getServerEndPointsRequest));
+            WebSocket.SendAsync(JsonConvert.SerializeObject(getServerEndPointsRequest), (success) =>
+            {
+                if (!success)
+                {
+                    Logger.LogError("Could not send getEndpoints request");
+                }
+            });
 
             var publicEndPoints = (Dictionary<string, IPEndPoint>)await RequestCompletionSourceList[requestId].Task;
 
             return publicEndPoints;
         }
 
-        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId, Dictionary<string, IPEndPoint> remoteEndPoints)
+        public async Task<bool> NatPunchRequestAsync(string serverId, string profileId, IPEndPoint remoteEndPoint)
         {
             var requestId = Guid.NewGuid().ToString();
 
@@ -185,14 +227,17 @@ namespace StayInTarkov.Networking
                 { "publicEndPoints", PublicEndPoints.ToDictionary(x => x.Key, x => x.Value.ToString()) }
             };
 
-            WebSocket.Send(JsonConvert.SerializeObject(natPunchRequest));
+            WebSocket.SendAsync(JsonConvert.SerializeObject(natPunchRequest), (success) =>
+            {
+                if (!success)
+                {
+                    Logger.LogError("Could not send NAT punch request");
+                }
+            });
 
             await RequestCompletionSourceList[requestId].Task;
 
-            if (remoteEndPoints.ContainsKey("stun"))
-            {
-                PunchNat(remoteEndPoints["stun"]);
-            }
+            //PunchNat(remoteEndPoint);
 
             return true;
         }
@@ -200,10 +245,10 @@ namespace StayInTarkov.Networking
         public void PunchNat(IPEndPoint endPoint)
         {
             // bogus punch data
-            NetDataWriter resp = new NetDataWriter();
+            var resp = new NetDataWriter();
             resp.Put(9999);
 
-            EFT.UI.ConsoleScreen.Log($"Punching: {endPoint}");
+            Logger.LogMessage($"Punching {endPoint} from local port {NetManager.LocalPort}");
 
             // send a couple of packets to punch a hole
             for (int i = 0; i < 10; i++)
@@ -214,6 +259,11 @@ namespace StayInTarkov.Networking
 
         public async Task<bool> AddUpnpEndPoint(int localPort, int publicPort, int lifetime, string desc)
         {
+            if (publicPort == 0)
+            {
+                return false;
+            }
+
             try
             {
                 var discoverer = new NatDiscoverer();
@@ -229,14 +279,14 @@ namespace StayInTarkov.Networking
             }
             catch (Exception ex)
             {
-                Logger.LogInfo($"Warning: UPNP mapping failed: {ex.Message}");
-                EFT.UI.ConsoleScreen.Log($"Warning: UPNP mapping failed: {ex.Message}");
+                var warnmsg = $"Warning: UPNP mapping failed: {ex.Message}";
+                Logger.LogWarning(warnmsg);
             }
 
             return false;
         }
 
-        public bool AddStunEndPoint(int port = 0)
+        public bool AddStunEndPoint(ref int localPort)
         {
             bool success = false;
             var stunUdpClient = new UdpClient();
@@ -244,8 +294,8 @@ namespace StayInTarkov.Networking
             {
                 var queryResult = new STUNQueryResult();
 
-                if (port > 0)
-                    stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+                if (localPort > 0)
+                    stunUdpClient.Client.Bind(new IPEndPoint(IPAddress.Any, localPort));
 
                 IPAddress stunIp = Array.Find(Dns.GetHostEntry("stun.l.google.com").AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
                 int stunPort = 19302;
@@ -253,24 +303,22 @@ namespace StayInTarkov.Networking
                 var stunEndPoint = new IPEndPoint(stunIp, stunPort);
 
                 queryResult = STUNClient.Query(stunUdpClient.Client, stunEndPoint, STUNQueryType.ExactNAT, NATTypeDetectionRFC.Rfc3489);
-                //queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true, NATTypeDetectionRFC.Rfc3489);
 
                 success = queryResult.PublicEndPoint != null;
                 if (success)
                 {
+                    Logger.LogInfo($"Found NAT type {queryResult.NATType}, local endpoint {queryResult.LocalEndPoint} and public endpoint {queryResult.PublicEndPoint}");
                     PublicEndPoints.Add("stun", queryResult.PublicEndPoint);
+                    localPort = ((IPEndPoint)stunUdpClient.Client.LocalEndPoint).Port;
                 }
                 else
                 {
-                    var msg = $"Warning: STUN query failed.";
-                    Logger.LogInfo(msg);
-                    EFT.UI.ConsoleScreen.Log(msg);
+                    Logger.LogWarning($"Warning: STUN query failed.");
                 }
             }
             catch (Exception ex)
             {
-                Logger.LogInfo($"STUN Error: {ex.Message}");
-                EFT.UI.ConsoleScreen.Log($"STUN Error: {ex.Message}");
+                Logger.LogError($"STUN Error: {ex.Message}");
             }
             finally
             {
@@ -296,28 +344,15 @@ namespace StayInTarkov.Networking
             return null;
         }
 
-        public async Task<bool> AddThirdPartyIPEndpoint(int port)
-        {
-            string[] WebsitesToGetIPs = ["https://api.ipify.org/", "http://wtfismyip.com/text", "https://ipv4.icanhazip.com/"];
-            foreach (var address in WebsitesToGetIPs)
-            {
-                var addr = await GetExternalIPAddressByWebCall(address);
-                if (addr != null)
-                {
-                    PublicEndPoints.Add("external", new IPEndPoint(addr, port));
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public void AddEndPoint(string name, string ip, int port)
         {
-            // NOTE(belette) probably fail loudly here instead?
-            bool result = IPAddress.TryParse(ip, out var ipAddress);
-
-            if (result)
+            if (IPAddress.TryParse(ip, out var ipAddress))
+            {
                 PublicEndPoints.Add(name, new IPEndPoint(ipAddress, port));
+            } else
+            {
+                Logger.LogWarning($"Could not parse IP from {ip}");
+            }
         }
     }
 
