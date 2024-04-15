@@ -1,19 +1,19 @@
 <a name="readme-top"></a>
 
-<div align="center">
-
-  [![Contributors][contributors-shield]][contributors-url]
-  [![Forks][forks-shield]][forks-url]
-  [![Stargazers][stars-shield]][stars-url]
-</div>
-
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/stayintarkov/StayInTarkov.Client">
     <img src="Assets/sit-logo-5.png" alt="Logo" height="240">
   </a>
+
+  [![Contributors][contributors-shield]][contributors-url]
+  [![Forks][forks-shield]][forks-url]
+  [![Stargazers][stars-shield]][stars-url]
+  <br/>
+  ![TotalDownloads][downloads-total-shield]
+  ![LatestDownloads][downloads-latest-shield]
+
 
 <h3 align="center">Stay In Tarkov Client</h3>
 
@@ -115,8 +115,17 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/stayintarkov/StayInTarkov.Client.svg?style=for-the-badge
+
 [contributors-url]: https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors
+
 [forks-shield]: https://img.shields.io/github/forks/stayintarkov/StayInTarkov.Client.svg?style=for-the-badge&color=%234c1
+
 [forks-url]: https://github.com/stayintarkov/StayInTarkov.Client/network/members
+
 [stars-shield]: https://img.shields.io/github/stars/stayintarkov/StayInTarkov.Client?style=for-the-badge&color=%234c1
+
 [stars-url]: https://github.com/stayintarkov/StayInTarkov.Client/stargazers
+
+[downloads-total-shield]: https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total?style=for-the-badge
+
+[downloads-latest-shield]: https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total?style=for-the-badge
