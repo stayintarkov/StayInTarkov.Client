@@ -25,33 +25,19 @@ namespace StayInTarkov.Coop.Players
     {
         public override ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopPlayerClient));
 
-        public PlayerStatePacket LastState { get; set; }// = new PlayerStatePacket();
-        public PlayerStatePacket NewState { get; set; }// = new PlayerStatePacket();
+        public PlayerStatePacket LastState { get; set; }
+        public PlayerStatePacket NewState { get; set; }
 
         public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new();
 
         protected AbstractHealth NetworkHealthController => base.HealthController as AbstractHealth;
 
-        //public override void InitVoip(EVoipState voipState)
-        //{
-        //    //base.InitVoip(voipState);
-        //    SoundSettings settings = Singleton<SettingsManager>.Instance.Sound.Settings;
-        //}
-
-        //public override void Move(Vector2 direction)
-        //{
-        //    //base.Move(direction);
-        //}
-
         public override void OnDead(EDamageType damageType)
         {
-            //if (damageType == EDamageType.Fall)
-            //    return;
 #if DEBUG
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
 #endif
             base.OnDead(damageType);
-            //Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
         }
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
@@ -95,14 +81,9 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
-            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
-
-            //BepInLogger.LogInfo(NewState.ToJson());
 
             if (LastRPSP == null)
                 LastRPSP = DateTime.Now;
-
-            //BepInLogger.LogInfo($"Time between {nameof(ReceivePlayerStatePacket)} {DateTime.Now - LastRPSP.Value}");
 
             LastRPSP = DateTime.Now;
         }
@@ -131,72 +112,7 @@ namespace StayInTarkov.Coop.Players
                         Proceed(meds, medsPacket.BodyPart, null, medsPacket.AnimationVariant, medsPacket.Scheduled);
                     }
                 }
-                //if (packet is PlayerPostProceedDataSyncPacket postProceedDataSyncPacket)
-                //{
-                //    BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}");
-
-                //    if (ItemFinder.TryFindItem(postProceedDataSyncPacket.ItemId, out Item item))
-                //    {
-                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:Item:{item}");
-                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:packet:{packet}");
-                //        var shouldRemoveItem = false;
-                //        if (item is MedsClass meds)
-                //        {
-                //            if (meds.MedKitComponent != null)
-                //            {
-                //                meds.MedKitComponent.HpResource = postProceedDataSyncPacket.NewValue;
-                //                shouldRemoveItem = (meds.MedKitComponent.HpResource <= 0);
-                //            }
-                //            // one time use
-                //            else
-                //            {
-                //                shouldRemoveItem = true;
-                //            }
-                //        }
-                //        if (item is FoodClass food)
-                //        {
-                //            if (food.FoodDrinkComponent != null)
-                //            {
-                //                food.FoodDrinkComponent.HpPercent = postProceedDataSyncPacket.NewValue;
-                //                shouldRemoveItem = (food.FoodDrinkComponent.HpPercent <= 0);
-
-                //            }
-                //            // one time use
-                //            else
-                //            {
-                //                shouldRemoveItem = true;
-                //            }
-                //        }
-
-                //        item.RaiseRefreshEvent();
-
-                //        //base.DropCurrentController(() => { }, false, null);
-                //        //var medsController = HandsController as MedsController;
-                //        //if (medsController != null)
-                //        {
-                //                if (shouldRemoveItem)
-                //                {
-                //                    BepInLogger.LogDebug($"Discard Requested {item}");
-                //                    var discardAttempt = ItemMovementHandler.Discard(item, this._inventoryController, true, false);
-                //                    if (discardAttempt.Succeeded)
-                //                        RemoveItem(item);
-                //                    else
-                //                    {
-                //                        BepInLogger.LogError($"Unable to Discard {item}. Reason: {discardAttempt.Error}");
-                //                    }
-                //                }
-                //                else
-                //                {
-                //                    BepInLogger.LogDebug($"Not Discard {item}. Reason: Not Requested");
-                //                }
-                //        }
-
-
-                //    }
-                //}
             }
-
-
 
             // Update the Health parts of this character using the packets from the Player State
             UpdatePlayerHealthByPlayerState();
@@ -224,12 +140,10 @@ namespace StayInTarkov.Coop.Players
 
                 if (bodyPartDictionary.ContainsKey(bodyPartPacket.BodyPart))
                 {
-                    //BepInLogger.LogInfo($"{nameof(Update)} set bodyPart current {bodyPartPacket.ToJson()}");
                     bodyPartDictionary[bodyPartPacket.BodyPart].Health.Current = bodyPartPacket.Current;
                 }
                 else
                 {
-                    //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
                 }
             }
 
