@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.Controllers.Health
 
         public EFT.Player _Player;
 
-        public SITHealthController(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
+        public SITHealthController(ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager, bool aiHealth)
             : base(healthInfo, player, inventoryController, skillManager, aiHealth)
         {
             BepInLogger.LogDebug(this.GetType().Name);
