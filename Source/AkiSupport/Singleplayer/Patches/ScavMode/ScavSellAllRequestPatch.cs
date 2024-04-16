@@ -19,7 +19,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         {
             // We want to find a type that contains `SellAllFromSavage` but doesn't extend from `IBackendStatus`
             //Type targetType = StayInTarkovHelperConstants.EftTypes.SingleCustom(IsTargetType);
-            Type targetType = typeof(TradingBackend1);
+            Type targetType = typeof(TradingBackend);
 
             Logger.LogDebug($"{this.GetType().Name} Type: {targetType?.Name}");
 

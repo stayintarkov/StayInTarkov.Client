@@ -16,7 +16,7 @@ namespace Aki.Custom.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(FirstAid), methodName);
+            return ReflectionHelpers.GetMethodForType(typeof(GFirstAid), methodName);
         }
 
         [PatchPrefix]

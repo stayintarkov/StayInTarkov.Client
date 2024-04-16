@@ -10,7 +10,7 @@ namespace StayInTarkov.EssentialPatches.Web
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(TradingBackend1), "TrySendCommands");
+            return ReflectionHelpers.GetMethodForType(typeof(TradingBackend), "TrySendCommands");
         }
 
         [PatchPrefix]
