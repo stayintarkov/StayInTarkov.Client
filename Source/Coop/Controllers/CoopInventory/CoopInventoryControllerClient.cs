@@ -161,7 +161,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
          
         }
 
-        public override SOperationResult123<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
+       
+        /// TODO: Update Remap to support TryThrowItem's Operation struct
+        public override GStruct417<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
         {
             ThrowItem(item, null, callback);
             return true;
