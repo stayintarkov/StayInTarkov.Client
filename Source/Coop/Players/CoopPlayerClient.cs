@@ -2,6 +2,7 @@
 using Comfort.Common;
 using Diz.LanguageExtensions;
 using EFT;
+using EFT.CameraControl;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using GPUInstancer;
@@ -11,6 +12,7 @@ using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using System;
 using System.Collections.Concurrent;
@@ -153,15 +155,12 @@ namespace StayInTarkov.Coop.Players
         {
             try
             {
-                var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, AHealthController.BodyPartState>>
-                (player.PlayerHealthController, "Dictionary_0", false);
+                var bodyPartDict = player.PlayerHealthController?.Dictionary_0;
                 if (bodyPartDict == null)
                 {
                     Logger.LogError($"Could not retreive {player.ProfileId}'s Health State Dictionary");
                     return null;
                 }
-                //Logger.LogInfo(bodyPartDict.ToJson());
                 return bodyPartDict;
             }
             catch (Exception)
