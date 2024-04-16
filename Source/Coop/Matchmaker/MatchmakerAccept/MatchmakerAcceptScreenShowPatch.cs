@@ -29,7 +29,7 @@ namespace StayInTarkov.Coop.Matchmaker
 
         private static DateTime LastClickedTime { get; set; } = DateTime.MinValue;
 
-        private static GameObject MatchmakerObject { get; set; }
+        public static GameObject MatchmakerObject { get; set; }
 
         [PatchPrefix]
         private static void Pre(

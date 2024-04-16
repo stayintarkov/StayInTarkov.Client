@@ -128,6 +128,7 @@ namespace StayInTarkov.Networking
 
         void OnDestroy()
         {
+            Logger.LogDebug("OnDestroy()");
             NetDebug.Logger = null;
             
             if (_netServer != null)

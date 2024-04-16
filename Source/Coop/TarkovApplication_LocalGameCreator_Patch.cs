@@ -161,6 +161,11 @@ namespace StayInTarkov.Coop
                 , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
             //}
             );
+            var i = 100;
+            while (!localGame.Ready() && i-- > 0)
+            {
+                await Task.Delay(100);
+            }
             Singleton<AbstractGame>.Create(localGame);
             timeHasComeScreenController.ChangeStatus(StayInTarkovPlugin.LanguageDictionary["CREATED_COOP_GAME"].ToString());
 
