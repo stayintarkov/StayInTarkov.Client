@@ -104,8 +104,6 @@ namespace StayInTarkov
 
             EnableAirdropPatches();
 
-            ThirdPartyModPatches.Run(Config, this);
-
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
