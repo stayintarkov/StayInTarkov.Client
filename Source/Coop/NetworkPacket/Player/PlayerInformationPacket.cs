@@ -97,7 +97,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         }
 
 
-        public EFT.ProfileHealth ProfileHealth { get; set; }
+        public ProfileHealth ProfileHealth { get; set; }
 
         //public ArenaObservedPlayerSpawnMessage ArenaObservedPlayerSpawnMessage;
 

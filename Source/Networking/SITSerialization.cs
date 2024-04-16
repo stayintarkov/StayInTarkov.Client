@@ -1,21 +1,9 @@
-﻿using Comfort.Common;
-using ComponentAce.Compression.Libs.zlib;
+﻿using ComponentAce.Compression.Libs.zlib;
 using EFT;
-using EFT.InventoryLogic;
 using LiteNetLib.Utils;
-using Newtonsoft.Json;
 using StayInTarkov.Coop.NetworkPacket;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Xml;
 using UnityEngine;
-using UnityEngine.Profiling;
-using static Physical;
-using static StayInTarkov.Networking.SITSerialization;
 
 // GClass2800
 

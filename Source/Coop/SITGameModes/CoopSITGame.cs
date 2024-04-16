@@ -1280,7 +1280,7 @@ namespace StayInTarkov.Coop.SITGameModes
             ExtractingPlayers.Remove(player.ProfileId);
 
 
-            BackendConfigSettingsClass.BackendConfigSettingsClassExperience.BackendConfigSettingsClassMatchEnd matchEnd = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
+            var matchEnd = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
 
 
             if (Profile_0.EftStats.SessionCounters.GetAllInt(new object[] { CounterTag.Exp }) > matchEnd.SurvivedExpRequirement ||
