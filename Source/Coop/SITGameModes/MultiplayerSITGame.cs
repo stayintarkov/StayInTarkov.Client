@@ -10,6 +10,7 @@ using EFT.Interactive;
 using EFT.Weather;
 using StayInTarkov.Networking;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
-    public sealed class MultiplayerSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    public sealed class MultiplayerSITGame : BaseLocalGame<EftGamePlayerOwner>, IBotGame, ISITGame
     {
         public string DisplayName { get; } = "Coop Game";
 
@@ -42,6 +43,11 @@ namespace StayInTarkov.Coop.SITGameModes
         public bool HostReady { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerator vmethod_1()
         {
             throw new NotImplementedException();
         }
