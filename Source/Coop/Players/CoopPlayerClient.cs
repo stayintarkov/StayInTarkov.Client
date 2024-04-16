@@ -4,6 +4,7 @@ using Diz.LanguageExtensions;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using GPUInstancer;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.HandControllers;
@@ -17,8 +18,6 @@ using System.Collections.Generic;
 using System.Security.AccessControl;
 using UnityEngine;
 using UnityEngine.Networking;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
-using static UnityEngine.SendMouseEvents;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -29,7 +28,7 @@ namespace StayInTarkov.Coop.Players
         public PlayerStatePacket LastState { get; set; }// = new PlayerStatePacket();
         public PlayerStatePacket NewState { get; set; }// = new PlayerStatePacket();
 
-        public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new ();
+        public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new();
 
         protected AbstractHealth NetworkHealthController => base.HealthController as AbstractHealth;
 
@@ -233,15 +232,15 @@ namespace StayInTarkov.Coop.Players
                     //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
                 }
             }
-               
+
         }
 
-        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
             {
                 var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
+                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, AHealthController.BodyPartState>>
                 (player.PlayerHealthController, "Dictionary_0", false);
                 if (bodyPartDict == null)
                 {
@@ -312,14 +311,14 @@ namespace StayInTarkov.Coop.Players
             var headPosition = this.MainParts[BodyPartType.head].Position;
             var dir = (headPosition - mainCamera.transform.position);
             var distanceFromCamera = Vector3.Distance(startPosition, headPosition);
-            
+
             RaycastHit hit;
             // Does the ray intersect any objects excluding the player layer
             if (Physics.Raycast(startPosition, dir, out hit, Mathf.Infinity, LayerMaskClass.LowPolyColliderLayerMask))
             {
                 _isTeleporting = false;
 
-                foreach (var c in this._hitColliders) 
+                foreach (var c in this._hitColliders)
                 {
                     if (hit.collider == c)
                         return;
@@ -348,7 +347,7 @@ namespace StayInTarkov.Coop.Players
                 //    _raycastHitCube.GetComponent<Collider>().enabled = false;
                 //}
                 //_raycastHitCube.transform.position = hit.point;
-                 
+
                 // If the guy is further than 40m away. Use the Teleportation system.
                 if (NewState != null && distanceFromCamera > 40)
                 {
@@ -369,7 +368,7 @@ namespace StayInTarkov.Coop.Players
                 //GameObject.Destroy(_raycastHitCube);
             }
 
-              
+
         }
 
         bool _isTeleporting = false;
@@ -377,7 +376,7 @@ namespace StayInTarkov.Coop.Players
 
         public void InterpolateOrTeleport()
         {
-            if(!_isTeleporting)
+            if (!_isTeleporting)
                 Interpolate();
         }
 
@@ -529,7 +528,7 @@ namespace StayInTarkov.Coop.Players
             }
 
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
-            
+
             base.DropCurrentController(callback, fastDrop, nextControllerItem);
 
 
@@ -559,54 +558,6 @@ namespace StayInTarkov.Coop.Players
                 }
             }
         }
-
-
-        public bool RemoveItem(Item item)
-        {
-            TraderControllerClass invController = this._inventoryController;
-            IOperationResult value;
-            Error error;
-
-            if(item.Owner == null)
-            {
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-            }
-
-            try
-            {
-                if (item.StackObjectsCount > 1)
-                {
-                    var sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
-                    value = sOperationResult.Value;
-                    error = sOperationResult.Error;
-                }
-                else
-                {
-                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, invController, false, false);
-                    value = sOperationResult2.Value;
-                    error = sOperationResult2.Error;
-                }
-                if (error != null)
-                {
-                    BepInLogger.LogError($"Couldn't remove item: {error}");
-                    return false;
-                }
-                if (item.Owner == null)
-                {
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-                }
-                value.RaiseEvents(invController, CommandStatus.Begin);
-                value.RaiseEvents(invController, CommandStatus.Succeed);
-            }
-            catch (Exception)
-            {
-
-            }
-            return true;
-        }
-
-
-
 
         public override void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
         {
@@ -643,7 +594,7 @@ namespace StayInTarkov.Coop.Players
             Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
             Action confirmCallback = delegate
             {
-                
+
             };
             process.method_0(delegate (IResult result)
             {
@@ -660,11 +611,13 @@ namespace StayInTarkov.Coop.Players
             new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
         }
 
-        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+
+        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
-            new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+            new Process<EmptyHandsController, IGIController1>(this, controllerFactory, null).method_0(null, callback, scheduled);
         }
+
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
