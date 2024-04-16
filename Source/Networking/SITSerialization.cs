@@ -77,28 +77,28 @@ namespace StayInTarkov.Networking
 
         public class PhysicalUtils
         {
-            public static void Serialize(NetDataWriter writer, Physical.PhysicalStamina physicalStamina)
+            public static void Serialize(NetDataWriter writer, PhysicalStamina physicalStamina)
             {
                 writer.Put(physicalStamina.StaminaExhausted);
                 writer.Put(physicalStamina.OxygenExhausted);
                 writer.Put(physicalStamina.HandsExhausted);
             }
 
-            public static void Serialize(BinaryWriter writer, Physical.PhysicalStamina physicalStamina)
+            public static void Serialize(BinaryWriter writer, PhysicalStamina physicalStamina)
             {
                 writer.Write(physicalStamina.StaminaExhausted);
                 writer.Write(physicalStamina.OxygenExhausted);
                 writer.Write(physicalStamina.HandsExhausted);
             }
 
-            public static Physical.PhysicalStamina Deserialize(NetDataReader reader)
+            public static PhysicalStamina Deserialize(NetDataReader reader)
             {
-                return new Physical.PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
+                return new PhysicalStamina() { StaminaExhausted = reader.GetBool(), OxygenExhausted = reader.GetBool(), HandsExhausted = reader.GetBool() };
             }
 
-            public static Physical.PhysicalStamina Deserialize(BinaryReader reader)
+            public static PhysicalStamina Deserialize(BinaryReader reader)
             {
-                return new Physical.PhysicalStamina() { StaminaExhausted = reader.ReadBoolean(), OxygenExhausted = reader.ReadBoolean(), HandsExhausted = reader.ReadBoolean() };
+                return new PhysicalStamina() { StaminaExhausted = reader.ReadBoolean(), OxygenExhausted = reader.ReadBoolean(), HandsExhausted = reader.ReadBoolean() };
             }
         }
 
