@@ -738,8 +738,7 @@ namespace StayInTarkov.Coop.SITGameModes
                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-               , null // Let the CoopPlayer Create handle this
-               , null // Let the CoopPlayer Create handle this
+               , FilterCustomizationClass.Default
                , isYourPlayer: true);
             // Inventory is FIR if Scav
             profile.SetSpawnedInSession(value: profile.Side == EPlayerSide.Savage);
@@ -1613,7 +1612,14 @@ namespace StayInTarkov.Coop.SITGameModes
 
             int playerId = 1;
             EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
-            var obj = await vmethod_2(playerId, Vector3.zero, Quaternion.identity, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new GClass1800(), null, null);
+            var obj = await vmethod_2(playerId, Vector3.zero, Quaternion.identity, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+            // handled by CoopPlayer.Create
+            , null
+            // handled by CoopPlayer.Create
+            , null
+            // handled by CoopPlayer.Create
+            , null
+            );
             obj.Location = Location_0.Id;
             obj.OnEpInteraction += base.OnEpInteraction;
             return obj;
