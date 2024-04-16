@@ -157,7 +157,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             if (Item.FireMode.FireMode != Weapon.EFireMode.burst || Item.FireMode.BurstShotsCount != 2 || IsBirstOf2Start || Item.ChamberAmmoCount <= 0)
             {
-                float pitchMult = method_55();
+                float pitchMult = method_57();
                 weaponSoundPlayer.FireBullet(ammo, shotPosition, shotDirection.normalized, pitchMult, Malfunction, multiShot, IsBirstOf2Start);
             }
         }
