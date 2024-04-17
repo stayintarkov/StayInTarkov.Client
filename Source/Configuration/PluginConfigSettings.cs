@@ -38,37 +38,34 @@ namespace StayInTarkov.Configuration
 
         }
 
+        internal sealed class ConfigurationManagerAttributes
+        {
+            public bool? IsAdvanced = false;
+            public bool? ShowRangeAsPercent;
+        }
+
         public class SITAdvancedSettings
         {
             public const string Advanced = "Advanced";
             public ConfigFile Config { get; }
             public ManualLogSource Logger { get; }
 
-            public bool SETTING_EnableSITGC
-            {
-                get
-                {
-                    return StayInTarkovPlugin.Instance.Config.Bind
-                       (Advanced, "EnableSITGC", false, new ConfigDescription("Enable SIT's own Garbage Collector")).Value;
-                }
-            }
+            public bool SETTING_EnableSITGC { get; set; }
 
-            public uint SETTING_SITGCMemoryThreshold
-            {
-                get
-                {
-                    return StayInTarkovPlugin.Instance.Config.Bind
-                       (Advanced, "SITGCMemoryThreshold", 90u, new ConfigDescription("SIT's Garbage Collector. System Memory % before SIT forces a Garbage Collection.")).Value;
-                }
-            }
-
+            public uint SETTING_SITGCMemoryThreshold { get; set; }
+            public uint SETTING_SITGCMemoryCheckTime { get; set; }
 
             public SITAdvancedSettings(ManualLogSource logger, ConfigFile config)
             {
                 Logger = logger;
                 Config = config;
-                _ = SETTING_EnableSITGC;
-                _ = SETTING_SITGCMemoryThreshold;
+                SETTING_EnableSITGC = StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "EnableSITGC", false, new ConfigDescription("Enable SIT's own Garbage Collector")).Value;
+                SETTING_SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "SITGCMemoryThreshold", 90u, new ConfigDescription("System Memory usage % limit, above that, SIT forces the run of Garbage Collection.", new AcceptableValueRange<uint>(50u, 95u), new ConfigurationManagerAttributes { IsAdvanced = true, ShowRangeAsPercent = true })).Value;
+                SETTING_SITGCMemoryCheckTime = StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "SITGCMemoryCheckTime", 300u, new ConfigDescription("Set how many seconds to wait between SIT's Garbage Collector checks.", new AcceptableValueRange<uint>(60u, 900u), new ConfigurationManagerAttributes { IsAdvanced = true })).Value;
+
             }
 
         }
