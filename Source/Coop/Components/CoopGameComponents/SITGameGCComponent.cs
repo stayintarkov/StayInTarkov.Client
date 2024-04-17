@@ -25,8 +25,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         void Awake()
         {
-            // ----------------------------------------------------
-            // Create a BepInEx Logger for SITGameGCComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITGameGCComponent));
             Logger.LogDebug($"{nameof(SITGameGCComponent)}:{nameof(Awake)}");
         }
@@ -39,7 +37,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         void Update()
         {
-            if((DateTime.Now - LastTimeRun).Seconds > 30)
+            if((DateTime.Now - LastTimeRun).TotalSeconds > PluginConfigSettings.Instance.AdvancedSettings.SETTING_SITGCMemoryCheckTime)
             {
                 LastTimeRun = DateTime.Now;
                 GarbageCollectSIT();
@@ -65,7 +63,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         }
 
         /// <summary>
-        /// Runs the Garbage Collection every 5 minutes
+        /// Runs the Garbage Collection
         /// </summary>
         /// <returns></returns>
         private void GarbageCollectSIT()
