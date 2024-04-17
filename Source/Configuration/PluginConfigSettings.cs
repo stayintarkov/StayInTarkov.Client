@@ -44,31 +44,18 @@ namespace StayInTarkov.Configuration
             public ConfigFile Config { get; }
             public ManualLogSource Logger { get; }
 
-            public bool SETTING_EnableSITGC
-            {
-                get
-                {
-                    return StayInTarkovPlugin.Instance.Config.Bind
-                       (Advanced, "EnableSITGC", false, new ConfigDescription("Enable SIT's own Garbage Collector")).Value;
-                }
-            }
+            public bool SETTING_EnableSITGC { get; set; }
 
-            public uint SETTING_SITGCMemoryThreshold
-            {
-                get
-                {
-                    return StayInTarkovPlugin.Instance.Config.Bind
-                       (Advanced, "SITGCMemoryThreshold", 90u, new ConfigDescription("SIT's Garbage Collector. System Memory % before SIT forces a Garbage Collection.")).Value;
-                }
-            }
-
+            public uint SETTING_SITGCMemoryThreshold { get; set; }
 
             public SITAdvancedSettings(ManualLogSource logger, ConfigFile config)
             {
                 Logger = logger;
                 Config = config;
-                _ = SETTING_EnableSITGC;
-                _ = SETTING_SITGCMemoryThreshold;
+                SETTING_EnableSITGC = StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "EnableSITGC", false, new ConfigDescription("Enable SIT's own Garbage Collector")).Value;
+                SETTING_SITGCMemoryThreshold = StayInTarkovPlugin.Instance.Config.Bind
+                       (Advanced, "SITGCMemoryThreshold", 90u, new ConfigDescription("SIT's Garbage Collector. System Memory % before SIT forces a Garbage Collection.")).Value;
             }
 
         }
