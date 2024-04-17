@@ -19,13 +19,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private int LastNumberOfPlayers { get; set; }
 
-        private int NumberOfAlivePlayers
-        {
-            get
-            {
-                return Singleton<GameWorld>.Instance.AllAlivePlayersList.Count;
-            }
-        }
+        private int NumberOfAlivePlayers => Singleton<GameWorld>.Instance.AllAlivePlayersList.Count;
 
         #region Unity methods
 
