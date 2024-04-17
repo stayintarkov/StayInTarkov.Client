@@ -331,8 +331,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //    CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
             //}
 
-            GarbageCollect();
-            StartCoroutine(GarbageCollectSIT());
+            this.GetOrAddComponent<SITGameGCComponent>();
 
             StartCoroutine(SendPlayerStatePacket());
 
@@ -358,58 +357,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
         }
 
-        private void GarbageCollect()
-        {
-            // Start the SIT Garbage Collector
-            Logger.LogDebug($"{nameof(GarbageCollect)}");   
-            BSGMemoryGC.RunHeapPreAllocation();
-            BSGMemoryGC.Collect(force: true);
-            BSGMemoryGC.EmptyWorkingSet();
-            BSGMemoryGC.GCEnabled = true;
-            //Resources.UnloadUnusedAssets();
-        }
-
-        /// <summary>
-        /// Runs the Garbage Collection every 5 minutes
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerator GarbageCollectSIT()
-        {
-            while(true)
-            {
-                if (PluginConfigSettings.Instance.AdvancedSettings.SETTING_EnableSITGC)
-                {
-                    var nearestEnemyDist = float.MaxValue;
-                    foreach(var p in Players)
-                    {
-                        if (p.Key == Singleton<GameWorld>.Instance.MainPlayer.ProfileId)
-                            continue;
-
-                        var dist = Vector3.Distance(p.Value.Transform.position, Singleton<GameWorld>.Instance.MainPlayer.Transform.position);
-                        if(dist < nearestEnemyDist)
-                            nearestEnemyDist = dist;
-                    }
-
-                    if (nearestEnemyDist > 10)
-                    {
-                        var mem = MemoryInfo.GetCurrentStatus();
-                        if (mem == null)
-                        {
-                            yield return new WaitForSeconds(1);
-                            continue;
-                        }
-
-                        var memPercentInUse = mem.dwMemoryLoad;
-                        Logger.LogDebug($"Total memory used: {mem.dwMemoryLoad}%");
-                        if (memPercentInUse > PluginConfigSettings.Instance.AdvancedSettings.SETTING_SITGCMemoryThreshold)
-                            GarbageCollect();
-
-                    }
-                }
-
-                yield return new WaitForSeconds(60);
-            }
-        }
+       
 
         /// <summary>
         /// This is a simple coroutine to allow methods to run every second.
@@ -595,6 +543,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
+            GameObject.Destroy(this.GetComponent<SITGameGCComponent>());
         }
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
