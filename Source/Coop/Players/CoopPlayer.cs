@@ -572,7 +572,7 @@ namespace StayInTarkov.Coop.Players
         private Vector2 LastRotationSent = Vector2.zero;
         private readonly Dictionary<string, float> PendingArmorUpdates = [];
 
-        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
         {
             // Protection
             if (this is CoopPlayerClient)
@@ -592,7 +592,6 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
-      
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {
@@ -751,14 +750,10 @@ namespace StayInTarkov.Coop.Players
             }, callback, scheduled);
         }
 
-        public override void Proceed<T>(Item item, Callback<GIController1> callback, bool scheduled = true)
+        public override void Proceed<T>(Item item, Callback<IGIController5> callback, bool scheduled = true)
         {
-            base.Proceed<T>(item, callback, scheduled);
-
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}<T>");
-
-            Func<T> controllerFactory = () => UsableItemController.smethod_5<T>(this, item);
-            new Process<T, GIController1>(this, controllerFactory, item, fastHide: true).method_0(null, callback, scheduled);
+            base.Proceed<T>(item, callback, scheduled);
         }
 
 

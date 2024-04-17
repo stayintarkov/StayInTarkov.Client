@@ -23,7 +23,7 @@ namespace StayInTarkov.Coop.FreeCamera
         //private GameObject _mainCamera;
         private FreeCamera _freeCamScript;
 
-        private BattleUIScreen _playerUi;
+        private EftBattleUIScreen _playerUi;
         private bool _uiHidden;
 
         private GamePlayerOwner _gamePlayerOwner;
@@ -186,7 +186,7 @@ namespace StayInTarkov.Coop.FreeCamera
                 if (gameObject == null)
                     return;
 
-                _playerUi = gameObject.GetComponent<BattleUIScreen>();
+                _playerUi = gameObject.GetComponent<EftBattleUIScreen>();
 
                 if (_playerUi == null)
                 {

@@ -55,7 +55,7 @@ namespace StayInTarkov.Coop.Matchmaker
             }
         }
 
-        public static MatchmakerTimeHasCome.TimeHasComeScreenController? TimeHasComeScreenController { get; internal set; }
+        public static TimeHasComeScreenController? TimeHasComeScreenController { get; internal set; }
         public static ESITProtocol SITProtocol { get; internal set; } = ESITProtocol.RelayTcp;
         public static string PublicIPAddress { get; internal set; } = "";
         public static int PublicPort { get; internal set; } = 6972;

@@ -25,7 +25,7 @@ namespace StayInTarkov.Coop.Session
     {
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(typeof(TradingBackend1), "LoadLocationLoot");
+            var method = ReflectionHelpers.GetMethodForType(typeof(TradingBackend), "LoadLocationLoot");
 
             Logger.LogDebug($"{GetType().Name} Method: {method?.Name}");
 

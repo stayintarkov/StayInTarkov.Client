@@ -29,7 +29,6 @@ namespace StayInTarkov.AkiSupport.Singleplayer
                 new GetNewBotTemplatesPatch().Enable();
                 new DogtagPatch().Enable();
                 new PostRaidHealingPricePatch().Enable();
-                new EndByTimerPatch().Enable();
                 new PostRaidHealScreenPatch().Enable();
                 new LighthouseBridgePatch().Enable();
                 new LighthouseTransmitterPatch().Enable();

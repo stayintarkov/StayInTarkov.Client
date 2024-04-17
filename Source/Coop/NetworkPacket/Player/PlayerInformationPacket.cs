@@ -97,7 +97,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         }
 
 
-        public EFT.Profile.ProfileHealth ProfileHealth { get; set; }
+        public ProfileHealth ProfileHealth { get; set; }
 
         //public ArenaObservedPlayerSpawnMessage ArenaObservedPlayerSpawnMessage;
 
@@ -174,7 +174,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
             //var profileHealthString = reader.ReadString();
             //StayInTarkovHelperConstants.Logger.LogInfo($"{profileHealthString}");
-            //if (profileHealthString.TrySITParseJson(out EFT.Profile.ProfileHealth ph))
+            //if (profileHealthString.TrySITParseJson(out EFT.ProfileHealth ph))
             //    ProfileHealth = ph;
             //else
             //    StayInTarkovHelperConstants.Logger.LogError($"Unable to Process: {ProfileId}");

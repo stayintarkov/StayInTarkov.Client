@@ -19,7 +19,7 @@ namespace StayInTarkov.Coop.Controllers.Health
 
         public override bool _sendNetworkSyncPackets => false;
 
-        public SITHealthControllerClient(Profile.ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager)
+        public SITHealthControllerClient(ProfileHealth healthInfo, EFT.Player player, InventoryControllerClass inventoryController, SkillManager skillManager)
             : base(healthInfo, player, inventoryController, skillManager, true)
         {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITHealthControllerClient));

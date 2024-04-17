@@ -2,14 +2,17 @@
 using Comfort.Common;
 using Diz.LanguageExtensions;
 using EFT;
+using EFT.CameraControl;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using GPUInstancer;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.NetworkPacket.Player;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using System;
 using System.Collections.Concurrent;
@@ -17,8 +20,6 @@ using System.Collections.Generic;
 using System.Security.AccessControl;
 using UnityEngine;
 using UnityEngine.Networking;
-using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractEffect>;
-using static UnityEngine.SendMouseEvents;
 
 namespace StayInTarkov.Coop.Players
 {
@@ -26,33 +27,19 @@ namespace StayInTarkov.Coop.Players
     {
         public override ManualLogSource BepInLogger { get; } = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopPlayerClient));
 
-        public PlayerStatePacket LastState { get; set; }// = new PlayerStatePacket();
-        public PlayerStatePacket NewState { get; set; }// = new PlayerStatePacket();
+        public PlayerStatePacket LastState { get; set; }
+        public PlayerStatePacket NewState { get; set; }
 
-        public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new ();
+        public ConcurrentQueue<PlayerPostProceedDataSyncPacket> ReplicatedPostProceedData { get; } = new();
 
         protected AbstractHealth NetworkHealthController => base.HealthController as AbstractHealth;
 
-        //public override void InitVoip(EVoipState voipState)
-        //{
-        //    //base.InitVoip(voipState);
-        //    SoundSettings settings = Singleton<SettingsManager>.Instance.Sound.Settings;
-        //}
-
-        //public override void Move(Vector2 direction)
-        //{
-        //    //base.Move(direction);
-        //}
-
         public override void OnDead(EDamageType damageType)
         {
-            //if (damageType == EDamageType.Fall)
-            //    return;
 #if DEBUG
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(OnDead)}:{damageType}");
 #endif
             base.OnDead(damageType);
-            //Singleton<BetterAudio>.Instance.UnsubscribeProtagonist();
         }
 
         public override ApplyShot ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType colliderType, EArmorPlateCollider armorPlateCollider, ShotId shotId)
@@ -96,14 +83,9 @@ namespace StayInTarkov.Coop.Players
         public override void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
         {
             NewState = playerStatePacket;
-            //BepInLogger.LogInfo($"{nameof(ReceivePlayerStatePacket)}:Packet took {DateTime.Now - new DateTime(long.Parse(NewState.TimeSerializedBetter))}.");
-
-            //BepInLogger.LogInfo(NewState.ToJson());
 
             if (LastRPSP == null)
                 LastRPSP = DateTime.Now;
-
-            //BepInLogger.LogInfo($"Time between {nameof(ReceivePlayerStatePacket)} {DateTime.Now - LastRPSP.Value}");
 
             LastRPSP = DateTime.Now;
         }
@@ -132,72 +114,7 @@ namespace StayInTarkov.Coop.Players
                         Proceed(meds, medsPacket.BodyPart, null, medsPacket.AnimationVariant, medsPacket.Scheduled);
                     }
                 }
-                //if (packet is PlayerPostProceedDataSyncPacket postProceedDataSyncPacket)
-                //{
-                //    BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}");
-
-                //    if (ItemFinder.TryFindItem(postProceedDataSyncPacket.ItemId, out Item item))
-                //    {
-                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:Item:{item}");
-                //        BepInLogger.LogDebug($"{nameof(Update)}:{nameof(ReceivedPackets)}:Process:{packet.GetType().Name}:packet:{packet}");
-                //        var shouldRemoveItem = false;
-                //        if (item is MedsClass meds)
-                //        {
-                //            if (meds.MedKitComponent != null)
-                //            {
-                //                meds.MedKitComponent.HpResource = postProceedDataSyncPacket.NewValue;
-                //                shouldRemoveItem = (meds.MedKitComponent.HpResource <= 0);
-                //            }
-                //            // one time use
-                //            else
-                //            {
-                //                shouldRemoveItem = true;
-                //            }
-                //        }
-                //        if (item is FoodClass food)
-                //        {
-                //            if (food.FoodDrinkComponent != null)
-                //            {
-                //                food.FoodDrinkComponent.HpPercent = postProceedDataSyncPacket.NewValue;
-                //                shouldRemoveItem = (food.FoodDrinkComponent.HpPercent <= 0);
-
-                //            }
-                //            // one time use
-                //            else
-                //            {
-                //                shouldRemoveItem = true;
-                //            }
-                //        }
-
-                //        item.RaiseRefreshEvent();
-
-                //        //base.DropCurrentController(() => { }, false, null);
-                //        //var medsController = HandsController as MedsController;
-                //        //if (medsController != null)
-                //        {
-                //                if (shouldRemoveItem)
-                //                {
-                //                    BepInLogger.LogDebug($"Discard Requested {item}");
-                //                    var discardAttempt = ItemMovementHandler.Discard(item, this._inventoryController, true, false);
-                //                    if (discardAttempt.Succeeded)
-                //                        RemoveItem(item);
-                //                    else
-                //                    {
-                //                        BepInLogger.LogError($"Unable to Discard {item}. Reason: {discardAttempt.Error}");
-                //                    }
-                //                }
-                //                else
-                //                {
-                //                    BepInLogger.LogDebug($"Not Discard {item}. Reason: Not Requested");
-                //                }
-                //        }
-
-
-                //    }
-                //}
             }
-
-
 
             // Update the Health parts of this character using the packets from the Player State
             UpdatePlayerHealthByPlayerState();
@@ -225,30 +142,25 @@ namespace StayInTarkov.Coop.Players
 
                 if (bodyPartDictionary.ContainsKey(bodyPartPacket.BodyPart))
                 {
-                    //BepInLogger.LogInfo($"{nameof(Update)} set bodyPart current {bodyPartPacket.ToJson()}");
                     bodyPartDictionary[bodyPartPacket.BodyPart].Health.Current = bodyPartPacket.Current;
                 }
                 else
                 {
-                    //BepInLogger.LogError($"{nameof(CoopPlayerClient)}:Unable to find {bodyPartPacket.BodyPart} in BodyPartDictionary {bodyPartDictionary.Keys.ToJson()}");
                 }
             }
-               
+
         }
 
-        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
             {
-                var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
-                (player.PlayerHealthController, "Dictionary_0", false);
+                var bodyPartDict = player.PlayerHealthController?.Dictionary_0;
                 if (bodyPartDict == null)
                 {
                     Logger.LogError($"Could not retreive {player.ProfileId}'s Health State Dictionary");
                     return null;
                 }
-                //Logger.LogInfo(bodyPartDict.ToJson());
                 return bodyPartDict;
             }
             catch (Exception)
@@ -312,14 +224,14 @@ namespace StayInTarkov.Coop.Players
             var headPosition = this.MainParts[BodyPartType.head].Position;
             var dir = (headPosition - mainCamera.transform.position);
             var distanceFromCamera = Vector3.Distance(startPosition, headPosition);
-            
+
             RaycastHit hit;
             // Does the ray intersect any objects excluding the player layer
             if (Physics.Raycast(startPosition, dir, out hit, Mathf.Infinity, LayerMaskClass.LowPolyColliderLayerMask))
             {
                 _isTeleporting = false;
 
-                foreach (var c in this._hitColliders) 
+                foreach (var c in this._hitColliders)
                 {
                     if (hit.collider == c)
                         return;
@@ -348,7 +260,7 @@ namespace StayInTarkov.Coop.Players
                 //    _raycastHitCube.GetComponent<Collider>().enabled = false;
                 //}
                 //_raycastHitCube.transform.position = hit.point;
-                 
+
                 // If the guy is further than 40m away. Use the Teleportation system.
                 if (NewState != null && distanceFromCamera > 40)
                 {
@@ -369,7 +281,7 @@ namespace StayInTarkov.Coop.Players
                 //GameObject.Destroy(_raycastHitCube);
             }
 
-              
+
         }
 
         bool _isTeleporting = false;
@@ -377,7 +289,7 @@ namespace StayInTarkov.Coop.Players
 
         public void InterpolateOrTeleport()
         {
-            if(!_isTeleporting)
+            if (!_isTeleporting)
                 Interpolate();
         }
 
@@ -529,7 +441,7 @@ namespace StayInTarkov.Coop.Players
             }
 
             BepInLogger.LogDebug($"{nameof(CoopPlayerClient)}:{nameof(DropCurrentController)}");
-            
+
             base.DropCurrentController(callback, fastDrop, nextControllerItem);
 
 
@@ -559,54 +471,6 @@ namespace StayInTarkov.Coop.Players
                 }
             }
         }
-
-
-        public bool RemoveItem(Item item)
-        {
-            TraderControllerClass invController = this._inventoryController;
-            IOperationResult value;
-            Error error;
-
-            if(item.Owner == null)
-            {
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-            }
-
-            try
-            {
-                if (item.StackObjectsCount > 1)
-                {
-                    var sOperationResult = ItemMovementHandler.SplitToNowhere(item, 1, invController, invController, simulate: false);
-                    value = sOperationResult.Value;
-                    error = sOperationResult.Error;
-                }
-                else
-                {
-                    global::SOperationResult12<DiscardResult> sOperationResult2 = ItemMovementHandler.Discard(item, invController, false, false);
-                    value = sOperationResult2.Value;
-                    error = sOperationResult2.Error;
-                }
-                if (error != null)
-                {
-                    BepInLogger.LogError($"Couldn't remove item: {error}");
-                    return false;
-                }
-                if (item.Owner == null)
-                {
-                    ReflectionHelpers.SetFieldOrPropertyFromInstance(item, "Owner", invController);
-                }
-                value.RaiseEvents(invController, CommandStatus.Begin);
-                value.RaiseEvents(invController, CommandStatus.Succeed);
-            }
-            catch (Exception)
-            {
-
-            }
-            return true;
-        }
-
-
-
 
         public override void ReceiveSay(EPhraseTrigger trigger, int index, ETagStatus mask, bool aggressive)
         {
@@ -643,7 +507,7 @@ namespace StayInTarkov.Coop.Players
             Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
             Action confirmCallback = delegate
             {
-                
+
             };
             process.method_0(delegate (IResult result)
             {
@@ -660,11 +524,13 @@ namespace StayInTarkov.Coop.Players
             new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
         }
 
-        public override void Proceed(bool withNetwork, Callback<IController> callback, bool scheduled = true)
+
+        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
-            new Process<EmptyHandsController, IController>(this, controllerFactory, null).method_0(null, callback, scheduled);
+            new Process<EmptyHandsController, IGIController1>(this, controllerFactory, null).method_0(null, callback, scheduled);
         }
+
 
         public override void Proceed(FoodClass foodDrink, float amount, Callback<IMedsController> callback, int animationVariant, bool scheduled = true)
         {

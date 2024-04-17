@@ -538,7 +538,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
 
                     // Add players who have joined to the AI Enemy Lists
-                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<EftGamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
                     if (botController != null)
                     {
                         while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
@@ -1640,7 +1640,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public float LocalTime => 0;
 
-        public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
+        public BaseLocalGame<EftGamePlayerOwner> LocalGameInstance { get; internal set; }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
