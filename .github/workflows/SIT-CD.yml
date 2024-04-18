@@ -3,7 +3,6 @@ name: SIT Build Release
 on:
     workflow_dispatch:
 
-
 permissions:
   contents: write
 
@@ -16,7 +15,7 @@ jobs:
       matrix:
         configuration: [Release]
 
-    runs-on: windows-latest 
+    runs-on: ubuntu-latest
 
     env:
       SolutionName: StayInTarkov                              
@@ -28,23 +27,15 @@ jobs:
       with:
         fetch-depth: 0
 
-
-    # Install the .NET Core workload
     - name: Install .NET Core
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
 
-    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    # Restore all projects
     - name: dotnet Restore
       run: dotnet restore
 
-    # Publish the Launcher as Self-Contained Single-File
-    - name: dotnet Publish
+    - name: dotnet build
       run: |
         mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
         dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
@@ -52,42 +43,18 @@ jobs:
     - name: Get version from DLL
       id: extract-version
       run: |
-        $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.dll").ProductVersion
-        echo "::set-output name=VERSION::$version"
-
-
-    - name: Remove unnecessary files
-      run: |
-          del ${{ env.SolutionName }}-${{ matrix.configuration }}\StayInTarkov.pdb
-
-    #- name: Display Version in Logs
-     # run: echo "The extracted version is ${{ steps.extract-version.outputs.VERSION }}"
+        version=`monodis --assembly ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.dll | grep Version | awk '{print $2}'`
+        echo "VERSION=$version" >> "$GITHUB_ENV"
 
     - name: Zip remaining files
       run: |
-          Compress-Archive -Path ${{ env.SolutionName }}-${{ matrix.configuration }} -DestinationPath ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
+        cd ${{ env.SolutionName }}-${{ matrix.configuration }}
+        zip -r ../${{ env.SolutionName }}-${{ matrix.configuration }}.zip ./*.dll
 
-
-
-    # Upload artifact unless its merge to master
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: StayInTarkov-${{ matrix.configuration }}
-        path: ${{ env.SolutionName }}-${{ matrix.configuration }}\
-        if-no-files-found: error
-    
-    #- name: Set build date
-     # run: |
-      #  $NOW=& Get-Date -format yyyy-MM-dd-HH-mm
-       # echo "NOW=$NOW" >> $env:GITHUB_ENV
-        
-    # Create release as draft from the compressed file
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: ${{ matrix.configuration == 'Release' }}
       with:
           draft: true
           generate_release_notes: true
           files: ${{ env.SolutionName }}-${{ matrix.configuration }}.zip
-          tag_name: StayInTarkov.Client-${{ steps.extract-version.outputs.VERSION }}
+          tag_name: StayInTarkov.Client-${{ env.VERSION }}
