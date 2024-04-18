@@ -49,9 +49,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             return TimeSpan.Zero;
         }
 
-        //[JsonProperty(PropertyName = "pong")]
-        //public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
-
         public BasePacket(string method)
         {
             Method = method;

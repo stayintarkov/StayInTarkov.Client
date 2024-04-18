@@ -14,10 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Networking
 {
@@ -175,7 +173,7 @@ namespace StayInTarkov.Networking
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             var bytes = reader.GetRemainingBytes();
-            SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
+            Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(bytes);
         }
 
         void OnDestroy()

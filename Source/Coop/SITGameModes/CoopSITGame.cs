@@ -147,6 +147,11 @@ namespace StayInTarkov.Coop.SITGameModes
                 smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
+            // ---------------------------------------------------------------------------------
+            // Create Coop Game Component
+            Logger.LogDebug($"{nameof(Create)}:Running {nameof(coopGame.CreateCoopGameComponent)}");
+            coopGame.CreateCoopGameComponent();
+
 #if DEBUG
             Logger.LogDebug($"DEBUG:{nameof(backendDateTime)}:{backendDateTime.ToJson()}");
 #endif
@@ -184,11 +189,6 @@ namespace StayInTarkov.Coop.SITGameModes
             Singleton<ISITGame>.Create(coopGame);
 
             // ---------------------------------------------------------------------------------
-            // Create Coop Game Component
-            Logger.LogDebug($"{nameof(Create)}:Running {nameof(coopGame.CreateCoopGameComponent)}");
-            coopGame.CreateCoopGameComponent();
-
-            // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             switch (SITMatchmaking.SITProtocol)
             {
@@ -212,37 +212,20 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public void CreateCoopGameComponent()
         {
-            //var coopGameComponent = SITGameComponent.GetCoopGameComponent();
-            //if (coopGameComponent != null)
-            //{
-            //    Destroy(coopGameComponent);
-            //}
-
-            if (CoopPatches.CoopGameComponentParent != null)
-            {
-                Destroy(CoopPatches.CoopGameComponentParent);
-                CoopPatches.CoopGameComponentParent = null;
-            }
-
-            if (CoopPatches.CoopGameComponentParent == null)
-            {
-                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
-                DontDestroyOnLoad(CoopPatches.CoopGameComponentParent);
-            }
-            CoopPatches.CoopGameComponentParent.AddComponent<ActionPacketHandlerComponent>();
-            var coopGameComponent = CoopPatches.CoopGameComponentParent.AddComponent<SITGameComponent>();
+            var sitGameComponent = this.gameObject.AddComponent<SITGameComponent>();
+            this.gameObject.AddComponent<ActionPacketHandlerComponent>();
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(SITMatchmaking.GetGroupId()))
             {
                 Logger.LogDebug($"{nameof(CreateCoopGameComponent)}:{SITMatchmaking.GetGroupId()}");
-                coopGameComponent.ServerId = SITMatchmaking.GetGroupId();
-                coopGameComponent.Timestamp = SITMatchmaking.GetTimestamp();
+                sitGameComponent.ServerId = SITMatchmaking.GetGroupId();
+                sitGameComponent.Timestamp = SITMatchmaking.GetTimestamp();
             }
             else
             {
-                Destroy(coopGameComponent);
-                coopGameComponent = null;
+                Destroy(sitGameComponent);
+                sitGameComponent = null;
                 Logger.LogError("========== ERROR = COOP ========================");
                 Logger.LogError("No Server Id found, Deleting Coop Game Component");
                 Logger.LogError("================================================");
@@ -257,9 +240,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             clientLoadingPingerCoroutine = StartCoroutine(ClientLoadingPinger());
 
-            var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{SITGameComponent.GetServerId()}");
-            Logger.LogDebug(friendlyAIJson);
-            //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
         }
 
         private IEnumerator ClientLoadingPinger()
@@ -1377,13 +1357,7 @@ namespace StayInTarkov.Coop.SITGameModes
             // end of BaseLocalGame Stop method
             // -----------------------------------------------------------------------------------------------
 
-            //CoopPatches.LeftGameDestroyEverything();
         }
-
-        //public new void Update()
-        //{
-        //    UpdateByUnity?.Invoke();    
-        //}
 
         public override void CleanUp()
         {
@@ -1437,6 +1411,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
 
             base.Dispose();
+            Singleton<ISITGame>.Release(this);
         }
 
         private IEnumerator DisposingCo()
