@@ -2,10 +2,12 @@
 using EFT;
 using EFT.Console.Core;
 using EFT.UI;
+using EFT.Weather;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.SITGameModes;
 using System;
 using System.IO;
+using System.Reflection;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.UI
@@ -162,6 +164,25 @@ namespace StayInTarkov.UI
                 {
                     EFT.UI.ConsoleScreen.LogError($"could not find game component");
                     return;
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+        [ConsoleCommand("weather", "", null, "Dump weather properties", [])]
+        public static void weather()
+        {
+            try
+            {
+                var weatherDebug = EFT.Weather.WeatherController.Instance.WeatherDebug;
+                PropertyInfo[] properties = typeof(WeatherDebug).GetProperties();
+
+                foreach (PropertyInfo property in properties)
+                {
+                    object value = property.GetValue(weatherDebug);
+                    EFT.UI.ConsoleScreen.Log($"{property.Name}: {value}");
                 }
             }
             catch (Exception ex)
