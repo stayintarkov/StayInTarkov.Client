@@ -31,7 +31,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
             var ms = new MemoryStream();
             using BinaryWriter writer = new BinaryWriter(ms);
             WriteHeader(writer);
-            writer.Write(GameDateTime);
+            //writer.Write(GameDateTime);
             writer.Write(CloudDensity);
             writer.Write(Fog);
             writer.Write(LightningThunderProbability);
@@ -47,7 +47,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
         {
             using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
             ReadHeader(reader);
-            GameDateTime = reader.ReadSingle();
+            //GameDateTime = reader.ReadSingle();
             CloudDensity = reader.ReadSingle();
             Fog = reader.ReadSingle();
             LightningThunderProbability = reader.ReadSingle();
