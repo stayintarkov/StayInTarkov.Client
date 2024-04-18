@@ -252,7 +252,6 @@ namespace StayInTarkov.Coop.SITGameModes
             if (SITMatchmaking.IsServer)
             {
                 StartCoroutine(GameTimerSync());
-                StartCoroutine(TimeAndWeatherSync());
                 StartCoroutine(ArmoredTrainTimeSync());
             }
 
@@ -316,52 +315,6 @@ namespace StayInTarkov.Coop.SITGameModes
                     RaidTimerPacket packet = new RaidTimerPacket();
                     packet.SessionTime = (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks;
                     Networking.GameClient.SendData(packet.Serialize());
-                }
-            }
-        }
-
-        private IEnumerator TimeAndWeatherSync()
-        {
-            var waitSeconds = new WaitForSeconds(15f);
-
-            while (true)
-            {
-                yield return waitSeconds;
-
-                if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    yield break;
-
-                Dictionary<string, object> timeAndWeatherDict = new()
-                {
-                    { "serverId", coopGameComponent.ServerId },
-                    { "m", "TimeAndWeather" }
-                };
-
-                if (GameDateTime != null)
-                    timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);
-
-                var weatherController = WeatherController.Instance;
-                if (weatherController != null)
-                {
-                    if (weatherController.CloudsController != null)
-                        timeAndWeatherDict.Add("CloudDensity", weatherController.CloudsController.Density);
-
-                    var weatherCurve = weatherController.WeatherCurve;
-                    if (weatherCurve != null)
-                    {
-                        timeAndWeatherDict.Add("Fog", weatherCurve.Fog);
-                        timeAndWeatherDict.Add("LightningThunderProbability", weatherCurve.LightningThunderProbability);
-                        timeAndWeatherDict.Add("Rain", weatherCurve.Rain);
-                        timeAndWeatherDict.Add("Temperature", weatherCurve.Temperature);
-                        timeAndWeatherDict.Add("WindDirection.x", weatherCurve.Wind.x);
-                        timeAndWeatherDict.Add("WindDirection.y", weatherCurve.Wind.y);
-                        timeAndWeatherDict.Add("TopWindDirection.x", weatherCurve.TopWind.x);
-                        timeAndWeatherDict.Add("TopWindDirection.y", weatherCurve.TopWind.y);
-                    }
-
-                    string packet = timeAndWeatherDict.ToJson();
-                    Logger.LogDebug(packet);
-                    Networking.GameClient.SendData(packet);
                 }
             }
         }
