@@ -49,9 +49,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     if (weatherCurve != null)
                     {
                         packet.Fog = weatherCurve.Fog;
-                        packet.Fog = weatherCurve.LightningThunderProbability;
-                        packet.Fog = weatherCurve.Rain;
-                        packet.Fog = weatherCurve.Temperature;
+                        packet.LightningThunderProbability = weatherCurve.LightningThunderProbability;
+                        packet.Rain = weatherCurve.Rain;
+                        packet.Temperature = weatherCurve.Temperature;
                         packet.Wind = weatherCurve.Wind;
                         packet.TopWind = weatherCurve.TopWind;
                     }
