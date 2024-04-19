@@ -49,8 +49,6 @@ namespace StayInTarkov.Coop
 
         internal static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
-        internal static GameObject CoopGameComponentParent { get; set; }
-
         internal static void EnableDisablePatches()
         {
             // Paulov: There is no reason to disable these anymore as all games are now MP
@@ -108,37 +106,9 @@ namespace StayInTarkov.Coop
 
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                //foreach (var p in coopGameComponent.Players)
-                //{
-                //    if (p.Value == null)
-                //        continue;
-
-                //    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                //    {
-                //        GameObject.Destroy(prc);
-                //    }
-                //}
-
-                //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
-                //{
-                //    GameObject.DestroyImmediate(pl);
-                //}
-
                 coopGameComponent.RunAsyncTasks = false;
                 GameObject.DestroyImmediate(coopGameComponent);
             }
-
-            //foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
-            //{
-            //    GameObject.DestroyImmediate(prc);
-            //}
-
-
-            if (CoopGameComponentParent != null)
-                GameObject.DestroyImmediate(CoopGameComponentParent);
-
-            //GCHelpers.DisableGC(true);
-            //GCHelpers.ClearGarbage(true, true);
 
             AkiBackendCommunication.Instance.WebSocketClose();
 

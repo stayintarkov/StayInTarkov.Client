@@ -46,7 +46,6 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
         }
 
@@ -54,20 +53,7 @@ namespace StayInTarkov.Networking
         {
             NetDebug.Logger = this;
 
-            _packetProcessor.RegisterNestedType(Vector3Utils.Serialize, Vector3Utils.Deserialize);
-            _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
-            _packetProcessor.RegisterNestedType(PhysicalUtils.Serialize, PhysicalUtils.Deserialize);
 
-            //_packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnWeaponPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<HealthPacket, NetPeer>(OnHealthPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<InventoryPacket, NetPeer>(OnInventoryPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<CommonPlayerPacket, NetPeer>(OnCommonPlayerPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<AllCharacterRequestPacket, NetPeer>(OnAllCharacterRequestPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<InformationPacket, NetPeer>(OnInformationPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<PlayerProceedPacket, NetPeer>(OnPlayerProceedPacket);
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -151,6 +137,9 @@ namespace StayInTarkov.Networking
 
         void Update()
         {
+            if (this.CoopGameComponent == null)
+                CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
+
             _netServer.PollEvents();
         }
 

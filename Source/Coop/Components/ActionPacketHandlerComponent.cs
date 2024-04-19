@@ -58,28 +58,9 @@ namespace StayInTarkov.Coop.Components
             ProcessActionPackets();
         }
 
-        public static ActionPacketHandlerComponent GetThisComponent()
-        {
-            if (CoopPatches.CoopGameComponentParent == null)
-                return null;
-
-            if (CoopPatches.CoopGameComponentParent.TryGetComponent<ActionPacketHandlerComponent>(out var component))
-                return component;
-
-            return null;
-        }
-
         private void ProcessActionPackets()
         {
-            if (CoopGameComponent == null)
-            {
-                if (CoopPatches.CoopGameComponentParent != null)
-                {
-                    CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
-                    if (CoopGameComponent == null)
-                        return;
-                }
-            }
+            CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
 
             if (Singleton<GameWorld>.Instance == null)
                 return;

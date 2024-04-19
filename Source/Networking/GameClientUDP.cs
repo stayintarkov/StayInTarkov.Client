@@ -36,7 +36,6 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameClientUDP));
         }
 
@@ -159,6 +158,9 @@ namespace StayInTarkov.Networking
         }
         void Update()
         {
+            if(this.CoopGameComponent == null)
+                CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
+
             _netClient.PollEvents();
         }
 
@@ -197,11 +199,14 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
             NotificationManagerClass.DisplayMessageNotification($"Connected to server {peer.EndPoint}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
+
+            Logger.LogDebug("[CLIENT] We connected to " + peer.EndPoint);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We received error " + socketErrorCode);
+            Logger.LogDebug("[CLIENT] We received error " + socketErrorCode);
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
@@ -209,6 +214,7 @@ namespace StayInTarkov.Networking
             if (messageType == UnconnectedMessageType.BasicMessage && _netClient.ConnectedPeersCount == 0 && reader.GetInt() == 1)
             {
                 EFT.UI.ConsoleScreen.Log("[CLIENT] Received discovery response. Connecting to: " + remoteEndPoint);
+                Logger.LogDebug("[CLIENT] Received discovery response. Connecting to: " + remoteEndPoint);
                 _netClient.Connect(remoteEndPoint, "sit.core");
             }
         }
@@ -226,6 +232,7 @@ namespace StayInTarkov.Networking
         public void OnPeerDisconnected(NetPeer peer, LiteNetLib.DisconnectInfo disconnectInfo)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We disconnected because " + disconnectInfo.Reason);
+            Logger.LogDebug("[CLIENT] We disconnected because " + disconnectInfo.Reason);
         }
 
         int firstPeerErrorCount = 0;
