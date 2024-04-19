@@ -527,6 +527,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             CoopPatches.EnableDisablePatches();
             GameObject.Destroy(this.GetComponent<SITGameGCComponent>());
             GameObject.Destroy(this.GetComponent<SITGameTimeAndWeatherSyncComponent>());
+            Instance = null;
         }
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
