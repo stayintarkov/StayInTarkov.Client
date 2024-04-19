@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
+using StayInTarkov.AI;
 
 namespace StayInTarkov
 {
@@ -381,6 +382,9 @@ namespace StayInTarkov
             new LocationLootCacheBustingPatch().Enable();
             new FixBrokenSpawnOnSandboxPatch().Enable();
             new IsEnemyPatch().Enable();
+
+
+            new BlockerErrorFixPatch().Enable();    
         }
 
         private void EnableCoopPatches()
