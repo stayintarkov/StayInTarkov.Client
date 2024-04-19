@@ -28,20 +28,8 @@ namespace StayInTarkov.Networking
     {
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netServer;
-        public NetPacketProcessor _packetProcessor = new();
-        private NetDataWriter _dataWriter = new();
-        public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
-        public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
-        public List<string> PlayersMissing = [];
-        private SITGameComponent CoopGameComponent { get; set; }
-        public LiteNetLib.NetManager NetServer
-        {
-            get
-            {
-                return _netServer;
-            }
-        }
-
+        public NetPacketProcessor _packetProcessor { get; } = new();
+        private NetDataWriter _dataWriter { get; } = new();
         private ManualLogSource Logger { get; set; }
 
         void Awake()
@@ -52,8 +40,6 @@ namespace StayInTarkov.Networking
         public async void Start()
         {
             NetDebug.Logger = this;
-
-
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -137,9 +123,6 @@ namespace StayInTarkov.Networking
 
         void Update()
         {
-            if (this.CoopGameComponent == null)
-                CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
-
             _netServer.PollEvents();
         }
 
