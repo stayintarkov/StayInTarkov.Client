@@ -21,13 +21,11 @@ namespace StayInTarkov.Networking
 {
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
-        public Dictionary<string, IPEndPoint> ServerEndPoints = new Dictionary<string, IPEndPoint>();
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netClient;
-        private NetDataWriter _dataWriter = new();
-        private SITGameComponent CoopGameComponent { get; set; }
-        public NetPacketProcessor _packetProcessor = new();
-        public int ConnectedClients = 0;
+
+        public Dictionary<string, IPEndPoint> ServerEndPoints { get; set; } = new();
+        public NetPacketProcessor PacketProcessor { get; } = new();
         public ushort Ping { get; private set; } = 0;
         public float DownloadSpeedKbps { get; private set; } = 0;
         public float UploadSpeedKbps { get; private set; } = 0;
@@ -158,9 +156,6 @@ namespace StayInTarkov.Networking
         }
         void Update()
         {
-            if(this.CoopGameComponent == null)
-                CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
-
             _netClient.PollEvents();
         }
 
@@ -273,25 +268,9 @@ namespace StayInTarkov.Networking
 
         public void SendData<T>(ref T packet) where T : BasePacket
         {
-            if (_netClient == null)
-            {
-                EFT.UI.ConsoleScreen.LogError("[CLIENT] Could not communicate to the Server");
-                return;
-            }
-
-            if (_netClient.FirstPeer == null)
-            {
-                string clientFirstPeerIsNullMessage = "[CLIENT] Could not communicate to the Server";
-                EFT.UI.ConsoleScreen.LogError(clientFirstPeerIsNullMessage);
-                return;
-            }
-
             using NetDataWriter writer = new NetDataWriter();
-            _packetProcessor.WriteNetSerializable(writer, ref packet);
-            if (_netClient.FirstPeer != null)
-            {
-                _netClient.FirstPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-            }
+            PacketProcessor.WriteNetSerializable(writer, ref packet);
+            this.SendData(writer.CopyData());
         }
     }
 }
