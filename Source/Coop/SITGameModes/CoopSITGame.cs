@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.LowLevel;
@@ -469,10 +470,8 @@ namespace StayInTarkov.Coop.SITGameModes
             }
             else
             {
-                lock(this)
-                {
-                    botIndexer++;
-                }
+                // Thread-Safe increment the botIndexer so we don't use the same Index for multiple bots
+                botIndexer = Interlocked.Increment(ref botIndexer);
 
                 int num = 999 + botIndexer;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
@@ -1367,6 +1366,10 @@ namespace StayInTarkov.Coop.SITGameModes
                     Callback<ExitStatus, TimeSpan, MetricsClass> callback = ReflectionHelpers.GetFieldFromType(this.GetType(), "callback_0").GetValue(this) as Callback<ExitStatus, TimeSpan, MetricsClass>;
                     callback(new Result<ExitStatus, TimeSpan, MetricsClass>(exitStatus, DateTime.Now - dateTime_0, new MetricsClass()));
                     UIEventSystem.Instance.Enable();
+
+                    // ---------------------------------------------
+                    // Run a Garbage Collection
+                    GCHelpers.RunBSGGarbageCollection();
                 });
             });
             // end of BaseLocalGame Stop method
