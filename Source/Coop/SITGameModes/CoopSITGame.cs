@@ -34,9 +34,11 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -433,7 +435,8 @@ namespace StayInTarkov.Coop.SITGameModes
             return bossLocationSpawns;
         }
 
-        public Dictionary<string, EFT.Player> Bots { get; } = new();
+        public ConcurrentDictionary<string, EFT.Player> Bots { get; } = new();
+        int botIndexer = 0;
 
         private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
@@ -466,7 +469,12 @@ namespace StayInTarkov.Coop.SITGameModes
             }
             else
             {
-                int num = 999 + Bots.Count;
+                lock(this)
+                {
+                    botIndexer++;
+                }
+
+                int num = 999 + botIndexer;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
 
                 // Paulov: After 0.14.5.5 release, I had to add these lines otherwise bundles would not be loaded before the bot is created
@@ -497,12 +505,13 @@ namespace StayInTarkov.Coop.SITGameModes
                 botPlayer.Location = Location_0.Id;
                 if (Bots.ContainsKey(botPlayer.ProfileId))
                 {
+                    Logger.LogDebug($"Destroying: {profile.ProfileId}. Already exists in Bots list.");
                     Destroy(botPlayer);
                     return null;
                 }
                 else
                 {
-                    Bots.Add(botPlayer.ProfileId, botPlayer);
+                    Bots.TryAdd(botPlayer.ProfileId, botPlayer);
                 }
 
                 // Start with SPT-AKI 3.7.0 AI PMC carrying 'FiR' items, this is just a simple "concept" of it.
@@ -714,6 +723,12 @@ namespace StayInTarkov.Coop.SITGameModes
                 Logger.LogDebug($"{nameof(vmethod_2)}:Unable to find {nameof(SITGameComponent)}");
                 await Task.Delay(5000);
             }
+
+            // ---------------------------------------------
+            // Run a Garbage Collection before we wait
+            // This cleans out 6-8 Gb before we just sit and
+            // wait for the next player.
+            GCHelpers.RunBSGGarbageCollection();
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
