@@ -454,11 +454,14 @@ namespace StayInTarkov.Coop.SITGameModes
             return (BotDifficulty)values.GetValue(UnityEngine.Random.Range(0, values.Length));
         }
 
-        private static int[] CultistSpawnTime = new[] { 6, 22 };
+        private static int[] CultistSpawnTime = new[] { 22, 6 };
 
         private static bool CanSpawnCultist(int hour)
         {
-            return hour <= CultistSpawnTime[0] || hour >= CultistSpawnTime[1];
+            if (hour >= CultistSpawnTime[0] && hour <= CultistSpawnTime[1])
+                return true;
+
+            return false;
         }
 
         public BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location)
@@ -468,6 +471,7 @@ namespace StayInTarkov.Coop.SITGameModes
 #endif
 
             var bossLocationSpawns = location.BossLocationSpawn;
+            TimeSpan CurrentGameTime = GameDateTime.Calculate().TimeOfDay;
             if (!wavesSettings.IsBosses)
             {
                 Logger.LogDebug($"{nameof(CoopSITGame)}:{nameof(FixBossWaveSettings)}: Bosses are disabled");
@@ -479,36 +483,39 @@ namespace StayInTarkov.Coop.SITGameModes
                 Logger.LogDebug($"{nameof(FixBossWaveSettings)}:===BEFORE===");
                 Logger.LogDebug($"{nameof(FixBossWaveSettings)}:{bossLocationSpawn.ToJson()}");
 #endif
-                List<int> sourceEscortAmount;
-                try
+
+                if (!CanSpawnCultist(CurrentGameTime.Hours) && bossLocationSpawn.BossName.Contains("sectant"))
                 {
-                    sourceEscortAmount = bossLocationSpawn.BossEscortAmount.Split(',').Select(int.Parse).ToList();
-                    bossLocationSpawn.ParseMainTypesTypes();
+                    Logger.LogInfo($"Block spawn of Sectant (Cultist) in day time in hour {CurrentGameTime.Hours}!");
+                    bossLocationSpawn.BossChance = 0f;
                 }
-                catch (Exception)
-                {
-                    Logger.LogError($"{nameof(CoopSITGame)}:{nameof(FixBossWaveSettings)}: Unable to parse BossEscortAmount");
-                    continue;
-                }
-                float bossChance = bossLocationSpawn.BossChance;
-                if (CanSpawnCultist(GameWorldTime.Hour) && (bossLocationSpawn.BossType == WildSpawnType.sectantPriest || bossLocationSpawn.BossType == WildSpawnType.sectantWarrior))
-                {
-                    Logger.LogDebug($"Block spawn of Sectant (Cultist) in day time in hour {GameWorldTime.Hour}!");
-                    bossChance = -1f;
-                }
-                bossLocationSpawn.BossChance = bossChance;
-                bossLocationSpawn.BossEscortAmount = sourceEscortAmount != null ? sourceEscortAmount.Max((int x) => x).ToString() : "1";
-                if (bossLocationSpawn.Supports == null && !string.IsNullOrEmpty(bossLocationSpawn.BossEscortType) && !bossLocationSpawn.BossName.Equals("bossTagilla"))
+
+                //ArchangelWTF: boss types like 'arenaFighterEvent' can have multiple values, split these out and take the first value.
+                //We could maybe do some fancy randomization here at some point to get a number in between the two values, but for now this works.
+                if (bossLocationSpawn.BossEscortAmount.Contains(","))
+                    bossLocationSpawn.BossEscortAmount = bossLocationSpawn.BossEscortAmount.Split(',')[0];
+
+                int EscortAmount = Convert.ToInt32(bossLocationSpawn.BossEscortAmount);
+
+                if (bossLocationSpawn.Supports == null && !string.IsNullOrEmpty(bossLocationSpawn.BossEscortType) && EscortAmount > 0)
                 {
                     Logger.LogDebug($"bossLocationSpawn.Supports is Null. Attempt to create them.");
 
-                    bossLocationSpawn.Supports = new WildSpawnSupports[1];
-                    bossLocationSpawn.Supports[0] = new WildSpawnSupports();
-                    bossLocationSpawn.Supports[0].BossEscortDifficult = new[] { "normal" };
-                    bossLocationSpawn.Supports[0].BossEscortAmount = 3;
-                    if (Enum.TryParse<WildSpawnType>(bossLocationSpawn.BossEscortType, out var t))
-                        bossLocationSpawn.Supports[0].BossEscortType = t;
+                    Enum.TryParse<WildSpawnType>(bossLocationSpawn.BossEscortType, out var EscortType);
+
+                    bossLocationSpawn.Supports = new WildSpawnSupports[EscortAmount];
+
+                    for (int i = 0; i < EscortAmount; i++)
+                    {
+                        bossLocationSpawn.Supports[i] = new WildSpawnSupports
+                        {
+                            BossEscortDifficult = new[] { bossLocationSpawn.BossEscortDifficult },
+                            BossEscortAmount = 1,
+                            BossEscortType = EscortType
+                        };
+                    }
                 }
+
 #if DEBUG
                 Logger.LogDebug($"{nameof(FixBossWaveSettings)}:===AFTER===");
                 Logger.LogDebug($"{nameof(FixBossWaveSettings)}:{bossLocationSpawn.ToJson()}");
@@ -530,7 +537,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 return null;
             }
 
-            if (GameDateTime.Calculate().TimeOfDay < new TimeSpan(20, 0, 0) && profile.Info != null && profile.Info.Settings != null
+            if (!CanSpawnCultist(GameDateTime.Calculate().TimeOfDay.Hours) && profile.Info != null && profile.Info.Settings != null
                 && (profile.Info.Settings.Role == WildSpawnType.sectantPriest || profile.Info.Settings.Role == WildSpawnType.sectantWarrior)
                 )
             {
