@@ -486,7 +486,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
                 if (!CanSpawnCultist(CurrentGameTime.Hours) && bossLocationSpawn.BossName.Contains("sectant"))
                 {
-                    Logger.LogInfo($"Block spawn of Sectant (Cultist) in day time in hour {CurrentGameTime.Hours}!");
+                    Logger.LogDebug($"Block spawn of Sectant (Cultist) in day time in hour {CurrentGameTime.Hours}!");
                     bossLocationSpawn.BossChance = 0f;
                 }
 
