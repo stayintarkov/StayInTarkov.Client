@@ -460,7 +460,7 @@ namespace StayInTarkov.Coop.SITGameModes
             if (SITMatchmaking.IsClient)
                 return null;
 
-            if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
+            if (Bots != null && !profile.Info.Settings.IsBossOrFollower() && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
             {
                 Logger.LogDebug("Block spawn of Bot. Max Bot Count has been reached!");
                 return null;
