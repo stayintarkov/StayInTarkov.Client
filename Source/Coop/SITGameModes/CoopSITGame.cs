@@ -454,14 +454,11 @@ namespace StayInTarkov.Coop.SITGameModes
             return (BotDifficulty)values.GetValue(UnityEngine.Random.Range(0, values.Length));
         }
 
-        private static int[] CultistSpawnTime = new[] { 22, 6 };
+        private static int[] CultistSpawnTime = new[] { 6, 22 };
 
         private static bool CanSpawnCultist(int hour)
         {
-            if (hour >= CultistSpawnTime[0] && hour <= CultistSpawnTime[1])
-                return true;
-
-            return false;
+            return hour <= CultistSpawnTime[0] || hour >= CultistSpawnTime[1];
         }
 
         public BossLocationSpawn[] FixBossWaveSettings(WavesSettings wavesSettings, LocationSettingsClass.Location location)
