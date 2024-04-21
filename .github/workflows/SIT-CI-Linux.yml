@@ -13,6 +13,8 @@ on:
       - '*.md'
     branches:
       - "master"
+      - "development"
+
 
   workflow_dispatch:
 
