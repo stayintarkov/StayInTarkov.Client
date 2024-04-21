@@ -1593,7 +1593,7 @@ namespace StayInTarkov.Coop.SITGameModes
         internal bool Ready()
         {
             if (GameServer != null) {
-                return GameServer.NetServer?.IsRunning ?? false;
+                return GameServer._netServer?.IsRunning ?? false;
             } else {
                 return true;
             }

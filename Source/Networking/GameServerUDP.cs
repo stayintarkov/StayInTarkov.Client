@@ -27,7 +27,7 @@ namespace StayInTarkov.Networking
     public class GameServerUDP : MonoBehaviour, INetEventListener, INetLogger
     {
         public NatHelper _natHelper;
-        private LiteNetLib.NetManager _netServer;
+        public LiteNetLib.NetManager _netServer;
         public NetPacketProcessor _packetProcessor { get; } = new();
         private NetDataWriter _dataWriter { get; } = new();
         private ManualLogSource Logger { get; set; }
