@@ -147,7 +147,7 @@ namespace StayInTarkov.Networking
             else if (SITMatchmaking.IsServer)
             {
                 var serv = GetComponent<GameServerUDP>();
-                while (!serv.NetServer.IsRunning)
+                while (!serv._netServer.IsRunning)
                 {
                     Logger.LogDebug("Waiting for UDP server to start");
                     await Task.Delay(1000);
