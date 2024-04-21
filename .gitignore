@@ -9,6 +9,7 @@
 # 
 [Bb]in/
 [Dd]ebug/
+/vcpkg_installed
 
 # User-specific files
 *.rsuser

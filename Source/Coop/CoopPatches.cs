@@ -49,40 +49,14 @@ namespace StayInTarkov.Coop
 
         internal static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
-        internal static GameObject CoopGameComponentParent { get; set; }
-
         internal static void EnableDisablePatches()
         {
+            // Paulov: There is no reason to disable these anymore as all games are now MP
             var enablePatches = true;
 
-            var coopGC = SITGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
-            {
-                Logger.LogDebug($"CoopPatches:CoopGameComponent is null, Patches wont be Applied");
-                enablePatches = false;
-            }
-
-            if (coopGC != null && !coopGC.enabled)
-            {
-                Logger.LogDebug($"CoopPatches:CoopGameComponent is not enabled, Patches wont be Applied");
-                enablePatches = false;
-            }
-
-            if (string.IsNullOrEmpty(SITGameComponent.GetServerId()))
-            {
-                Logger.LogDebug($"CoopPatches:CoopGameComponent ServerId is not set, Patches wont be Applied");
-                enablePatches = false;
-            }
-
             if (!NoMRPPatches.Any())
-            {
-                //NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
-                //NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
-                //NoMRPPatches.Add(new ItemControllerHandler_Move_Patch());
                 NoMRPPatches.Add(new LootableContainer_Interact_Patch());
-            }
 
-            //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
             foreach (var patch in NoMRPPatches)
             {
                 if (enablePatches)
@@ -119,7 +93,6 @@ namespace StayInTarkov.Coop
 
                 if (!mrp.DisablePatch && enablePatches)
                 {
-                    //Logger.LogInfo($"Enabled {mrp.GetType()}");
                     mrp.Enable();
                 }
                 else
@@ -133,37 +106,9 @@ namespace StayInTarkov.Coop
 
             if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                //foreach (var p in coopGameComponent.Players)
-                //{
-                //    if (p.Value == null)
-                //        continue;
-
-                //    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                //    {
-                //        GameObject.Destroy(prc);
-                //    }
-                //}
-
-                //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
-                //{
-                //    GameObject.DestroyImmediate(pl);
-                //}
-
                 coopGameComponent.RunAsyncTasks = false;
                 GameObject.DestroyImmediate(coopGameComponent);
             }
-
-            //foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
-            //{
-            //    GameObject.DestroyImmediate(prc);
-            //}
-
-
-            if (CoopGameComponentParent != null)
-                GameObject.DestroyImmediate(CoopGameComponentParent);
-
-            //GCHelpers.DisableGC(true);
-            //GCHelpers.ClearGarbage(true, true);
 
             AkiBackendCommunication.Instance.WebSocketClose();
 

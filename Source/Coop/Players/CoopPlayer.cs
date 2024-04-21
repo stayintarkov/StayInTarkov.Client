@@ -491,11 +491,6 @@ namespace StayInTarkov.Coop.Players
             base.OnDestroy();
         }
 
-        public virtual void ReceivePlayerStatePacket(PlayerStatePacket playerStatePacket)
-        {
-
-        }
-
         protected virtual void Interpolate()
         {
 

@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    {
+      "name": "flatbuffers",
+      "version>=": "23.5.26"
+    }
+  ],
+  "builtin-baseline": "11ed79186fe850bd3a98cfbf1854514d2b3070a2"
+}

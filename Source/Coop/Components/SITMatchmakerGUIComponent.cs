@@ -795,12 +795,12 @@ namespace StayInTarkov.Coop.Components
             DestroyThis();
         }
 
-        private void HostSoloRaidAndJoin()
+        public void HostSoloRaidAndJoin(ESITProtocol protocol = ESITProtocol.RelayTcp, EBotAmount botAmount = EBotAmount.AsOnline)
         {
             FixesHideoutMusclePain();
 
-            RaidSettings.BotSettings.BotAmount = EBotAmount.AsOnline;
-            RaidSettings.WavesSettings.BotAmount = EBotAmount.AsOnline;
+            RaidSettings.BotSettings.BotAmount = botAmount;
+            RaidSettings.WavesSettings.BotAmount = botAmount;
             RaidSettings.WavesSettings.BotDifficulty = EBotDifficulty.AsOnline;
             RaidSettings.WavesSettings.IsBosses = true;
 
@@ -810,7 +810,7 @@ namespace StayInTarkov.Coop.Components
                 SITMatchmaking.Profile.ProfileId
                 , RaidSettings
                 , ""
-                , ESITProtocol.RelayTcp
+                , protocol
                 , null
                 , PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort,
                 EMatchmakerType.GroupLeader);

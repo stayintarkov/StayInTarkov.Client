@@ -2,7 +2,6 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
@@ -120,7 +119,9 @@ namespace StayInTarkov.Networking
             PeriodicallySendPing();
             //PeriodicallySendPooledData();
 
-            SITGameServerClientDataProcessing.OnLatencyUpdated += OnLatencyUpdated;
+            var processor = StayInTarkovPlugin.Instance.GetOrAddComponent<SITGameServerClientDataProcessing>();
+            Singleton<SITGameServerClientDataProcessing>.Create(processor);
+            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated += OnLatencyUpdated;
 
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
@@ -166,7 +167,7 @@ namespace StayInTarkov.Networking
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
             WebSocket.EmitOnPing = true;
             WebSocket.Connect();
-            WebSocket.Send("CONNECTED FROM SIT COOP");
+
             // ---
             // Start up after initial Send
             WebSocket.OnError += WebSocket_OnError;
@@ -243,7 +244,15 @@ namespace StayInTarkov.Networking
             Interlocked.Add(ref BytesReceived, e.RawData.Length);
             GC.AddMemoryPressure(e.RawData.Length);
 
-            SITGameServerClientDataProcessing.ProcessPacketBytes(e.RawData, e.Data);
+            var d = e.RawData;
+            if (d.Length >= 3 && d[0] != '{' && !(d[0] == 'S' && d[1] == 'I' && d[2] == 'T'))
+            {
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessFlatBuffer(d);
+            }
+            else
+            {
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(e.RawData);
+            }
             GC.RemoveMemoryPressure(e.RawData.Length);
         }
 
@@ -869,6 +878,7 @@ namespace StayInTarkov.Networking
                 catch (Exception ex)
                 {
 #if DEBUG
+                    StayInTarkovHelperConstants.Logger.LogError($"could not perform request @ {url}");
                     StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
                     StayInTarkovHelperConstants.Logger.LogError(ex);
 #endif
@@ -913,7 +923,7 @@ namespace StayInTarkov.Networking
         {
             ProfileId = null;
             RemoteEndPoint = null;
-            SITGameServerClientDataProcessing.OnLatencyUpdated -= OnLatencyUpdated;
+            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated -= OnLatencyUpdated;
         }
     }
 }

@@ -36,10 +36,6 @@ namespace StayInTarkov.Coop.Components
         public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
-        private List<string> RemovedFromAIPlayers = new();
-
-        private CoopSITGame CoopGame { get; } = (CoopSITGame)Singleton<AbstractGame>.Instance;
-
         private SITGameComponent CoopGameComponent { get; set; }
 
         void Awake()
@@ -48,52 +44,23 @@ namespace StayInTarkov.Coop.Components
             // Create a BepInEx Logger for ActionPacketHandlerComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource("ActionPacketHandlerComponent");
             Logger.LogDebug("Awake");
-
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             ActionPacketsMovement = new();
         }
 
         void Start()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
+            CoopGameComponent = this.gameObject.GetComponent<SITGameComponent>();
             ActionPacketsMovement = new();
         }
 
-        //void Update()
-        //{
-        //    ProcessActionPackets();
-        //}
-
-        void LateUpdate()
+        void Update()
         {
             ProcessActionPackets();
         }
 
-        
-
-
-        public static ActionPacketHandlerComponent GetThisComponent()
-        {
-            if (CoopPatches.CoopGameComponentParent == null)
-                return null;
-
-            if (CoopPatches.CoopGameComponentParent.TryGetComponent<ActionPacketHandlerComponent>(out var component))
-                return component;
-
-            return null;
-        }
-
         private void ProcessActionPackets()
         {
-            if (CoopGameComponent == null)
-            {
-                if (CoopPatches.CoopGameComponentParent != null)
-                {
-                    CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
-                    if (CoopGameComponent == null)
-                        return;
-                }
-            }
+            CoopGameComponent = gameObject.GetComponent<SITGameComponent>();
 
             if (Singleton<GameWorld>.Instance == null)
                 return;
@@ -139,7 +106,6 @@ namespace StayInTarkov.Coop.Components
 #endif
                     if (!ProcessLastActionDataPacket(result))
                     {
-                        //ActionPackets.Add(result);
                         continue;
                     }
 
@@ -176,67 +142,7 @@ namespace StayInTarkov.Coop.Components
             }
 
 
-            //if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
-            //{
-            //    Stopwatch stopwatchActionPacketsDamage = Stopwatch.StartNew();
-            //    while (ActionPacketsDamage.TryTake(out var packet))
-            //    {
-            //        if (!packet.ContainsKey("profileId"))
-            //            continue;
-
-            //        var profileId = packet["profileId"].ToString();
-
-            //        // The person is missing. Lets add this back until they exist
-            //        if (!CoopGameComponent.Players.ContainsKey(profileId))
-            //        {
-            //            //ActionPacketsDamage.Add(packet);
-            //            continue;
-            //        }
-
-            //        var playerKVP = CoopGameComponent.Players[profileId];
-            //        if (playerKVP == null)
-            //            continue;
-
-            //        var coopPlayer = (CoopPlayer)playerKVP;
-            //        coopPlayer.ReceiveDamageFromServer(packet);
-            //    }
-            //    if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
-            //    {
-            //        Logger.LogDebug($"ActionPacketsDamage took {stopwatchActionPacketsDamage.ElapsedMilliseconds}ms to process!");
-            //    }
-            //}
-
-
             return;
-        }
-
-        bool ProcessSITActionPackets(ISITPacket packet)
-        {
-            //Logger.LogInfo($"{nameof(ProcessSITActionPackets)} received {packet.GetType()}");
-
-            packet.Process();
-
-            //var playerPacket = packet as BasePlayerPacket;
-            //if (playerPacket != null)
-            //{
-            //    if (!Players.ContainsKey(playerPacket.ProfileId))
-            //        return false;
-
-            //    Players[playerPacket.ProfileId].ProcessSITPacket(playerPacket);
-            //}
-            //else
-            //{
-            //    // Process Player States Packet
-            //    if(packet is PlayerStatesPacket playerStatesPacket)
-            //    {
-            //        foreach(var psp in playerStatesPacket.PlayerStates)
-            //        {
-            //            ProcessSITActionPackets(psp);
-            //        }
-            //    }
-            //}
-
-            return false;
         }
 
         bool ProcessLastActionDataPacket(Dictionary<string, object> packet)
@@ -256,11 +162,6 @@ namespace StayInTarkov.Coop.Components
                 result = ProcessWorldPacket(ref packet);
 
             return result;
-        }
-
-        private bool ProcessPlayerStatesPacket(PlayerStatesPacket playerStatesPacket)
-        {
-            return false;
         }
 
         bool ProcessWorldPacket(ref Dictionary<string, object> packet)
@@ -358,39 +259,6 @@ namespace StayInTarkov.Coop.Components
             plyr.ProcessModuleReplicationPatch(packet);
            
             return true;
-        }
-
-        async Task WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
-        {
-            // Start the timer.
-            var startTime = DateTime.Now;
-            var maxWaitTime = TimeSpan.FromMinutes(2);
-
-            while (true)
-            {
-                // Check if maximum wait time has been reached.
-                if (DateTime.Now - startTime > maxWaitTime)
-                {
-                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {profileId} still did not exist after timeout period.");
-                    return;
-                }
-
-                if (Players == null)
-                    continue;
-
-                var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
-
-                // If the player now exists, process the packet and end the thread.
-                if (Players.Any(x => x.Key == profileId) || registeredPlayers.Any(x => x.Profile.ProfileId == profileId))
-                {
-                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {(DateTime.Now - startTime).TotalSeconds}s");
-                    ProcessPlayerPacket(packet);
-                    return;
-                }
-
-                // Wait for a short period before checking again.
-                await Task.Delay(1000);
-            }
         }
 
         void ReplicateAirdrop(Dictionary<string, object> packet)

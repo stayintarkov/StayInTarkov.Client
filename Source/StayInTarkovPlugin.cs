@@ -17,8 +17,6 @@ using StayInTarkov.EssentialPatches;
 using StayInTarkov.EssentialPatches.Web;
 using StayInTarkov.FileChecker;
 using StayInTarkov.Health;
-using StayInTarkov.Networking;
-using StayInTarkov.ThirdParty;
 using StayInTarkov.UI;
 using System;
 using System.Collections;
@@ -29,7 +27,9 @@ using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
+using StayInTarkov.Tools;
 using StayInTarkov.AI;
+
 
 namespace StayInTarkov
 {
@@ -76,7 +76,6 @@ namespace StayInTarkov
 
         public static bool LanguageDictionaryLoaded { get; private set; }
 
-
         internal static string IllegalMessage { get; }
             = LanguageDictionaryLoaded && LanguageDictionary.ContainsKey("ILLEGAL_MESSAGE")
                 ? LanguageDictionary["ILLEGAL_MESSAGE"].ToString()
@@ -96,14 +95,20 @@ namespace StayInTarkov
             ReadInLanguageDictionary();
 
             EnableCorePatches();
-            EnableBundlePatches();
 
+            EnableBundlePatches();
 
             EnableSPPatches();
 
             EnableCoopPatches();
 
             EnableAirdropPatches();
+
+            if (Autoraid.Requested())
+            {
+                Logger.LogInfo($"Running autoraid");
+                gameObject.GetOrAddComponent<Autoraid>();
+            }
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }

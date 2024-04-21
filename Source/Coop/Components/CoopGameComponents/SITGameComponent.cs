@@ -15,28 +15,23 @@ using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
-//using StayInTarkov.Core.Player;
-using StayInTarkov.EssentialPatches;
-using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 using Rect = UnityEngine.Rect;
-using StayInTarkov.Coop.NetworkPacket.Raid;
-using Diz.Jobs;
-using System.Net.NetworkInformation;
 using EFT.Counters;
 using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Coop.NetworkPacket.World;
+using Google.FlatBuffers;
+using StayInTarkov.FlatBuffers;
+using FBPacket = StayInTarkov.FlatBuffers.Packet;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -63,7 +58,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// </summary>
         public HashSet<CoopPlayerClient> PlayerClients { get; } = new();
 
-        //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
         {
             get
@@ -130,23 +124,21 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public ActionPacketHandlerComponent ActionPacketHandler { get; set; }
 
+        public static SITGameComponent Instance { get; set; }
+
         #endregion
 
         #region Public Voids
 
         public static SITGameComponent GetCoopGameComponent()
         {
-            if (CoopPatches.CoopGameComponentParent == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetCoopGameComponent)} before {nameof(SITGameComponent)} has been created.");
-                return null;
-            }
-
-            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
-            if (coopGameComponent != null)
-                return coopGameComponent;
-
+            if (Instance != null)
+                return Instance;
+#if DEBUG
             StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetCoopGameComponent)} before {nameof(SITGameComponent)} has been created.");
+            StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
+#endif
+
             return null;
         }
 
@@ -181,7 +173,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITGameComponent));
             Logger.LogDebug($"{nameof(SITGameComponent)}:{nameof(Awake)}");
 
-            ActionPacketHandler = CoopPatches.CoopGameComponentParent.GetOrAddComponent<ActionPacketHandlerComponent>();
+            ActionPacketHandler = gameObject.GetOrAddComponent<ActionPacketHandlerComponent>();
             gameObject.AddComponent<SITGameGUIComponent>();
 
             SITCheck();
@@ -207,14 +199,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// </summary>
         async void Start()
         {
-            Logger.LogDebug("CoopGameComponent:Start");
-
-            // Get Reference to own Player
-            //OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
-
-            //// Add own Player to Players list
-            //Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
-
+            Instance = this;
+       
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
 
@@ -257,26 +243,14 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private IEnumerator SendPlayerStatePacket()
         {
-            using PlayerStatesPacket playerStatesPacket = new PlayerStatesPacket();
-
-            List<PlayerStatePacket> packets = new List<PlayerStatePacket>();
-            //foreach (var player in Players.Values)
-            foreach (var player in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+            var players = Singleton<GameWorld>.Instance.AllAlivePlayersList;
+            foreach (var player in players)
             {
-                //if (!GameWorldGameStarted)
-                //    continue;
-
                 if (player == null)
                     continue;
 
                 if (player is CoopPlayerClient)
                     continue;
-
-                //if (!player.TryGetComponent(out PlayerReplicatedComponent prc))
-                //    continue;
-
-                //if (prc.IsClientDrone)
-                //    continue;
 
                 if (!player.enabled)
                     continue;
@@ -284,15 +258,81 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!player.isActiveAndEnabled)
                     continue;
 
-                CreatePlayerStatePacketFromPRC(ref packets, player);
+                var builder = new FlatBufferBuilder(1024);
+
+                var profileId = builder.CreateString(player.ProfileId);
+
+                PlayerState.StartPlayerState(builder);
+
+                // Iterate over the BodyParts
+                {
+                    // no Span<T>, Sadge
+                    var currents = new float[Enum.GetValues(typeof(EBodyPart)).Length];
+                    var maximums = new float[Enum.GetValues(typeof(EBodyPart)).Length];
+                    foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+                    {
+                        var health = player.HealthController.GetBodyPartHealth(bodyPart);
+                        currents[(byte)bodyPart] = health.Current;
+                        maximums[(byte)bodyPart] = health.Maximum;
+                    }
+                    PlayerState.AddBodyPartsHealth(builder, BodyPartsHealth.CreateBodyPartsHealth(builder, currents, maximums));
+                }
+
+                // TODO(belette) add this later? seems unused today since these packets only carry profileId and no relevant info atm
+                //if (player.HealthController is SITHealthController sitHealthController)
+                //{
+                //    var tmpHealthEffectPacketList = new List<PlayerHealthEffectPacket>();
+                //    while (sitHealthController.PlayerHealthEffectPackets.TryDequeue(out var p))
+                //    {
+                //        tmpHealthEffectPacketList.Add(p);
+                //    }
+                //    playerHealth.HealthEffectPackets = tmpHealthEffectPacketList.ToArray();
+                //}
+
+                PlayerState.AddProfileId(builder, profileId);
+                PlayerState.AddIsAlive(builder, player.HealthController.IsAlive);
+                PlayerState.AddEnergy(builder, player.HealthController.Energy.Current);
+                PlayerState.AddHydration(builder, player.HealthController.Hydration.Current);
+                PlayerState.AddPosition(builder, Vec3.CreateVec3(builder, player.Position.x, player.Position.y, player.Position.z));
+                PlayerState.AddRotation(builder, Vec2.CreateVec2(builder, player.Rotation.x, player.Rotation.y));
+                PlayerState.AddHeadRotation(builder, Vec3.CreateVec3(builder, player.HeadRotation.x, player.HeadRotation.y, player.HeadRotation.z));
+                PlayerState.AddMovementDirection(builder, Vec2.CreateVec2(builder, player.MovementContext.MovementDirection.x, player.MovementContext.MovementDirection.y));
+                PlayerState.AddState(builder, (FlatBuffers.EPlayerState)player.MovementContext.CurrentState.Name);
+                PlayerState.AddTilt(builder, player.MovementContext.Tilt);
+                PlayerState.AddStep(builder, (sbyte)player.MovementContext.Step);
+                PlayerState.AddAnimatorStateIndex(builder, (byte)player.MovementContext.CurrentAnimatorStateIndex);
+                PlayerState.AddCharacterMovementSpeed(builder, player.MovementContext.CharacterMovementSpeed);
+                PlayerState.AddIsProne(builder, player.MovementContext.IsInPronePose);
+                PlayerState.AddPoseLevel(builder, player.MovementContext.PoseLevel);
+                PlayerState.AddIsSprinting(builder, player.MovementContext.IsSprintEnabled);
+                PlayerState.AddInputDirection(builder, Vec2.CreateVec2(builder, player.InputDirection.x, player.InputDirection.y));
+                PlayerState.AddLeftStance(builder, player.MovementContext.LeftStanceController.LastAnimValue);
+                PlayerState.AddHandsExhausted(builder, player.Physical.SerializationStruct.HandsExhausted);
+                PlayerState.AddStaminaExhausted(builder, player.Physical.SerializationStruct.StaminaExhausted);
+                PlayerState.AddOxygenExhausted(builder, player.Physical.SerializationStruct.OxygenExhausted);
+                PlayerState.AddBlindfire(builder, (sbyte)player.MovementContext.BlindFire);
+                PlayerState.AddLinearSpeed(builder, player.MovementContext.ActualLinearVelocity);
+                var pstateOffset = PlayerState.EndPlayerState(builder);
+
+                FBPacket.StartPacket(builder);
+                FBPacket.AddPacketType(builder, AnyPacket.player_state);
+                FBPacket.AddPacket(builder, pstateOffset.Value);
+                var packetOffset = FBPacket.EndPacket(builder);
+
+                builder.Finish(packetOffset.Value);
+
+                // NOTE(belette) Abstraction zealots in shambles, we never needed inheritance, we had if and switch all along, we can see what's happening inline IDONTWANNAHEARIT
+                if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
+                {
+                    var seg = builder.DataBuffer.ToArraySegment(builder.DataBuffer.Position, builder.DataBuffer.Length - builder.DataBuffer.Position);
+                    udp.SendData(seg.Array, seg.Offset, seg.Count, SITGameServerClientDataProcessing.FLATBUFFER_CHANNEL_NUM, LiteNetLib.DeliveryMethod.Sequenced);
+                }
+                else if (Singleton<ISITGame>.Instance.GameClient is GameClientTCPRelay relay)
+                {
+                    // TODO(belette) fix TCP Relay recipient side to detect FlatBuffers and process as such
+                    GameClient.SendData(builder.SizedByteArray());
+                }
             }
-
-            //playerStates.Add("dataList", playerStateArray);
-            //Logger.LogDebug(playerStates.SITToJson());
-            playerStatesPacket.PlayerStates = packets.ToArray();
-            var serializedPlayerStates = playerStatesPacket.Serialize();
-
-            //Logger.LogDebug($"{nameof(playerStatesPacket)} is {serialized.Length} in Length");
 
             // ----------------------------------------------------------------------------------------------------
             // Paulov: Keeping this here as a note. DO NOT DELETE.
@@ -312,10 +352,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             //                }
             //            }
             // ----------------------------------------------------------------------------------------------------
-
-            GameClient.SendData(serializedPlayerStates);
-
-            LastPlayerStateSent = DateTime.Now;
 
             yield return new WaitForSeconds(PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS / 1000f);
             StartCoroutine(SendPlayerStatePacket());
@@ -540,12 +576,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
-            //StopCoroutine(ProcessServerCharacters());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
             GameObject.Destroy(this.GetComponent<SITGameGCComponent>());
             GameObject.Destroy(this.GetComponent<SITGameTimeAndWeatherSyncComponent>());
+            Instance = null;
         }
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
@@ -1519,72 +1555,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         }
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
-
-        private void CreatePlayerStatePacketFromPRC(ref List<PlayerStatePacket> playerStates, EFT.Player player)
-        {
-            // What this does is create a ISITPacket for the Character's health that can be SIT Serialized.
-            PlayerHealthPacket playerHealth = new PlayerHealthPacket(player.ProfileId);
-            playerHealth.IsAlive = player.HealthController.IsAlive;
-            playerHealth.Energy = player.HealthController.Energy.Current;
-            playerHealth.Hydration = player.HealthController.Hydration.Current;
-            var bpIndex = 0;
-            // Iterate over the BodyParts
-            foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
-            {
-                var health = player.HealthController.GetBodyPartHealth(bodyPart);
-                playerHealth.BodyParts[bpIndex] = new PlayerBodyPartHealthPacket();
-                playerHealth.BodyParts[bpIndex].BodyPart = bodyPart;
-                playerHealth.BodyParts[bpIndex].Current = health.Current;
-                playerHealth.BodyParts[bpIndex].Maximum = health.Maximum;
-                bpIndex++;
-            }
-            if (player.HealthController is SITHealthController sitHealthController)
-            {
-                // Paulov: TODO: Continue from here in another branch
-                var tmpHealthEffectPacketList = new List<PlayerHealthEffectPacket>();
-                while (sitHealthController.PlayerHealthEffectPackets.TryDequeue(out var p))
-                {
-                    tmpHealthEffectPacketList.Add(p);
-                }
-                playerHealth.HealthEffectPackets = tmpHealthEffectPacketList.ToArray();
-            }
-
-            if (playerHealth != null)
-            {
-                if (!LastPlayerHealthPackets.ContainsKey(player.ProfileId))
-                    LastPlayerHealthPackets.Add(player.ProfileId, playerHealth);
-
-                LastPlayerHealthPackets[player.ProfileId] = playerHealth;
-            }
-
-            // Create the ISITPacket for the Character's Current State
-            PlayerStatePacket playerStatePacket = new PlayerStatePacket(
-                player.ProfileId
-                , player.Position
-                , player.Rotation
-                , player.HeadRotation
-                , player.MovementContext.MovementDirection
-                , player.MovementContext.CurrentState.Name
-                , player.MovementContext.Tilt
-                , player.MovementContext.Step
-                , player.MovementContext.CurrentAnimatorStateIndex
-                , player.MovementContext.CharacterMovementSpeed
-                , player.MovementContext.IsInPronePose
-                , player.MovementContext.PoseLevel
-                , player.MovementContext.IsSprintEnabled
-                , player.InputDirection
-                , player.MovementContext.LeftStanceController.LastAnimValue
-                , playerHealth
-                , player.Physical.SerializationStruct
-                , player.MovementContext.BlindFire
-                , player.MovementContext.ActualLinearVelocity
-                );
-            ;
-
-            // Add the serialized packets to the PlayerStates JArray
-            playerStates.Add(playerStatePacket);
-
-        }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
         public ulong LocalIndex { get; set; }
