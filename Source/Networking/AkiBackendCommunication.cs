@@ -2,7 +2,6 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
@@ -120,7 +119,9 @@ namespace StayInTarkov.Networking
             PeriodicallySendPing();
             //PeriodicallySendPooledData();
 
-            SITGameServerClientDataProcessing.OnLatencyUpdated += OnLatencyUpdated;
+            var processor = StayInTarkovPlugin.Instance.GetOrAddComponent<SITGameServerClientDataProcessing>();
+            Singleton<SITGameServerClientDataProcessing>.Create(processor);
+            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated += OnLatencyUpdated;
 
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
@@ -243,7 +244,7 @@ namespace StayInTarkov.Networking
             Interlocked.Add(ref BytesReceived, e.RawData.Length);
             GC.AddMemoryPressure(e.RawData.Length);
 
-            SITGameServerClientDataProcessing.ProcessPacketBytes(e.RawData, e.Data);
+            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(e.RawData);
             GC.RemoveMemoryPressure(e.RawData.Length);
         }
 
@@ -913,7 +914,7 @@ namespace StayInTarkov.Networking
         {
             ProfileId = null;
             RemoteEndPoint = null;
-            SITGameServerClientDataProcessing.OnLatencyUpdated -= OnLatencyUpdated;
+            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated -= OnLatencyUpdated;
         }
     }
 }

@@ -28,46 +28,18 @@ namespace StayInTarkov.Networking
     {
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netServer;
-        public NetPacketProcessor _packetProcessor = new();
-        private NetDataWriter _dataWriter = new();
-        public CoopPlayer MyPlayer => Singleton<GameWorld>.Instance.MainPlayer as CoopPlayer;
-        public ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent.Players;
-        public List<string> PlayersMissing = [];
-        private SITGameComponent CoopGameComponent { get; set; }
-        public LiteNetLib.NetManager NetServer
-        {
-            get
-            {
-                return _netServer;
-            }
-        }
-
+        public NetPacketProcessor _packetProcessor { get; } = new();
+        private NetDataWriter _dataWriter { get; } = new();
         private ManualLogSource Logger { get; set; }
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameServerUDP));
         }
 
         public async void Start()
         {
             NetDebug.Logger = this;
-
-            _packetProcessor.RegisterNestedType(Vector3Utils.Serialize, Vector3Utils.Deserialize);
-            _packetProcessor.RegisterNestedType(Vector2Utils.Serialize, Vector2Utils.Deserialize);
-            _packetProcessor.RegisterNestedType(PhysicalUtils.Serialize, PhysicalUtils.Deserialize);
-
-            //_packetProcessor.SubscribeNetSerializable<PlayerStatePacket, NetPeer>(OnPlayerStatePacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<GameTimerPacket, NetPeer>(OnGameTimerPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<WeatherPacket, NetPeer>(OnWeatherPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<WeaponPacket, NetPeer>(OnWeaponPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<HealthPacket, NetPeer>(OnHealthPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<InventoryPacket, NetPeer>(OnInventoryPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<CommonPlayerPacket, NetPeer>(OnCommonPlayerPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<AllCharacterRequestPacket, NetPeer>(OnAllCharacterRequestPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<InformationPacket, NetPeer>(OnInformationPacketReceived);
-            //_packetProcessor.SubscribeNetSerializable<PlayerProceedPacket, NetPeer>(OnPlayerProceedPacket);
 
             _netServer = new LiteNetLib.NetManager(this)
             {
@@ -142,200 +114,12 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log(msg);
         }
 
-        //private void OnPlayerProceedPacket(PlayerProceedPacket packet, NetPeer peer)
-        //{
-        //    Logger.LogInfo("[Server] OnPlayerProceedPacket");
-        //    Logger.LogInfo(packet.ToJson());
-        //}
-
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             //Logger.LogInfo("[Server] OnNetworkReceive");
             var bytes = reader.GetRemainingBytes();
             _netServer.SendToAll(bytes, deliveryMethod);
         }
-
-        //private void OnInformationPacketReceived(InformationPacket packet, NetPeer peer)
-        //{
-        //    InformationPacket respondPackage = new(false)
-        //    {
-        //        NumberOfPlayers = _netServer.ConnectedPeersCount
-        //    };
-
-        //    _dataWriter.Reset();
-        //    SendDataToPeer(peer, _dataWriter, ref respondPackage, DeliveryMethod.ReliableUnordered);
-        //}
-
-        //private void OnAllCharacterRequestPacketReceived(AllCharacterRequestPacket packet, NetPeer peer)
-        //{
-        //    // This method needs to be refined. For some reason the ping-pong has to be run twice for it to work on the host?
-        //    if (packet.IsRequest)
-        //    {
-        //        foreach (var player in CoopGameComponent.Players.Values)
-        //        {
-        //            if (player.ProfileId == packet.ProfileId)
-        //                continue;
-
-        //            if (packet.Characters.Contains(player.ProfileId))
-        //                continue;
-
-        //            AllCharacterRequestPacket requestPacket = new(player.ProfileId)
-        //            {
-        //                IsRequest = false,
-        //                PlayerInfo = new()
-        //                {
-        //                    Profile = player.Profile
-        //                },
-        //                IsAlive = player.ActiveHealthController.IsAlive,
-        //                Position = player.Transform.position
-        //            };
-        //            _dataWriter.Reset();
-        //            SendDataToPeer(peer, _dataWriter, ref requestPacket, DeliveryMethod.ReliableUnordered);
-        //        }
-        //    }
-        //    if (!Players.ContainsKey(packet.ProfileId) && !PlayersMissing.Contains(packet.ProfileId))
-        //    {
-        //        PlayersMissing.Add(packet.ProfileId);
-        //        EFT.UI.ConsoleScreen.Log($"Requesting missing player from server.");
-        //        AllCharacterRequestPacket requestPacket = new(MyPlayer.ProfileId);
-        //        _dataWriter.Reset();
-        //        SendDataToPeer(peer, _dataWriter, ref requestPacket, DeliveryMethod.ReliableUnordered);
-        //    }
-        //    if (!packet.IsRequest && PlayersMissing.Contains(packet.ProfileId))
-        //    {
-        //        EFT.UI.ConsoleScreen.Log($"Received CharacterRequest from client: ProfileID: {packet.PlayerInfo.Profile.ProfileId}, Nickname: {packet.PlayerInfo.Profile.Nickname}");
-        //        if (packet.ProfileId != MyPlayer.ProfileId)
-        //        {
-        //            if (!CoopGameComponent.PlayersToSpawn.ContainsKey(packet.PlayerInfo.Profile.ProfileId))
-        //                CoopGameComponent.PlayersToSpawn.TryAdd(packet.PlayerInfo.Profile.ProfileId, ESpawnState.None);
-        //            if (!CoopGameComponent.PlayersToSpawnProfiles.ContainsKey(packet.PlayerInfo.Profile.ProfileId))
-        //                CoopGameComponent.PlayersToSpawnProfiles.Add(packet.PlayerInfo.Profile.ProfileId, packet.PlayerInfo.Profile);
-
-        //            //CoopGameComponent.QueueProfile(packet.PlayerInfo.Profile, new Vector3(packet.Position.x, packet.Position.y + 0.5f, packet.Position.y), packet.IsAlive);
-        //            PlayersMissing.Remove(packet.ProfileId);
-        //        }
-        //    }
-        //}
-        //private void OnCommonPlayerPacketReceived(CommonPlayerPacket packet, NetPeer peer)
-        //{
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
-
-        //    _dataWriter.Reset();
-        //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
-
-        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
-        //    if (playerToApply != default && playerToApply != null)
-        //    {
-        //        //playerToApply.CommonPlayerPackets.Enqueue(packet);
-        //    }
-        //}
-        //private void OnInventoryPacketReceived(ItemPlayerPacket packet, NetPeer peer)
-        //{
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
-
-        //    _dataWriter.Reset();
-        //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
-
-        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
-        //    if (playerToApply != default && playerToApply != null)
-        //    {
-        //        //playerToApply.InventoryPackets.Enqueue(packet);
-        //    }
-        //}
-        //private void OnHealthPacketReceived(HealthPacket packet, NetPeer peer)
-        //{
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
-
-        //    _dataWriter.Reset();
-        //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
-
-        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
-        //    if (playerToApply != default && playerToApply != null)
-        //    {
-        //        //playerToApply.HealthPackets.Enqueue(packet);
-        //    }
-        //}
-        //private void OnWeaponPacketReceived(WeaponPacket packet, NetPeer peer)
-        //{
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
-
-        //    _dataWriter.Reset();
-        //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
-
-        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
-        //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
-        //    {
-        //        //playerToApply.FirearmPackets.Enqueue(packet);
-        //    }
-        //}
-        //private void OnWeatherPacketReceived(WeatherPacket packet, NetPeer peer)
-        //{
-        //    if (!packet.IsRequest)
-        //        return;
-
-        //    var weatherController = WeatherController.Instance;
-        //    if (weatherController != null)
-        //    {
-        //        WeatherPacket weatherPacket = new();
-        //        if (weatherController.CloudsController != null)
-        //            weatherPacket.CloudDensity = weatherController.CloudsController.Density;
-
-        //        var weatherCurve = weatherController.WeatherCurve;
-        //        if (weatherCurve != null)
-        //        {
-        //            weatherPacket.Fog = weatherCurve.Fog;
-        //            weatherPacket.LightningThunderProbability = weatherCurve.LightningThunderProbability;
-        //            weatherPacket.Rain = weatherCurve.Rain;
-        //            weatherPacket.Temperature = weatherCurve.Temperature;
-        //            weatherPacket.WindX = weatherCurve.Wind.x;
-        //            weatherPacket.WindY = weatherCurve.Wind.y;
-        //            weatherPacket.TopWindX = weatherCurve.TopWind.x;
-        //            weatherPacket.TopWindY = weatherCurve.TopWind.y;
-        //        }
-
-        //        _dataWriter.Reset();
-        //        SendDataToPeer(peer, _dataWriter, ref weatherPacket, DeliveryMethod.ReliableOrdered);
-        //    }
-        //}
-        //private void OnGameTimerPacketReceived(GameTimerPacket packet, NetPeer peer)
-        //{
-        //    if (!packet.IsRequest)
-        //        return;
-
-        //    var game = (CoopGame)Singleton<AbstractGame>.Instance;
-        //    if (game != null)
-        //    {
-        //        GameTimerPacket gameTimerPacket = new(false, (game.GameTimer.SessionTime - game.GameTimer.PastTime).Value.Ticks);
-        //        _dataWriter.Reset();
-        //        SendDataToPeer(peer, _dataWriter, ref gameTimerPacket, DeliveryMethod.ReliableOrdered);
-        //    }
-        //    else
-        //    {
-        //        EFT.UI.ConsoleScreen.Log("OnGameTimerPacketReceived: Game was null!");
-        //    }
-        //}
-
-        //private void OnPlayerStatePacketReceived(PlayerStatePacket packet, NetPeer peer)
-        //{
-
-        //    Logger.LogInfo($"{nameof(OnPlayerStatePacketReceived)}");
-
-        //    if (!Players.ContainsKey(packet.ProfileId))
-        //        return;
-
-        //    _dataWriter.Reset();
-        //    SendDataToAll(_dataWriter, ref packet, DeliveryMethod.ReliableOrdered, peer);
-
-        //    var playerToApply = Players[packet.ProfileId] as CoopPlayerClient;
-        //    if (playerToApply != default && playerToApply != null && !playerToApply.IsYourPlayer)
-        //    {
-        //        playerToApply.NewState = packet;
-        //    }
-        //}
 
         void Update()
         {

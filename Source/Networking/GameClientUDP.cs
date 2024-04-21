@@ -14,22 +14,18 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Networking
 {
     public class GameClientUDP : MonoBehaviour, INetEventListener, IGameClient
     {
-        public Dictionary<string, IPEndPoint> ServerEndPoints = new Dictionary<string, IPEndPoint>();
         public NatHelper _natHelper;
         private LiteNetLib.NetManager _netClient;
-        private NetDataWriter _dataWriter = new();
-        private SITGameComponent CoopGameComponent { get; set; }
-        public NetPacketProcessor _packetProcessor = new();
-        public int ConnectedClients = 0;
+
+        public Dictionary<string, IPEndPoint> ServerEndPoints { get; set; } = new();
+        public NetPacketProcessor PacketProcessor { get; } = new();
         public ushort Ping { get; private set; } = 0;
         public float DownloadSpeedKbps { get; private set; } = 0;
         public float UploadSpeedKbps { get; private set; } = 0;
@@ -38,7 +34,6 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(GameClientUDP));
         }
 
@@ -175,7 +170,7 @@ namespace StayInTarkov.Networking
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             var bytes = reader.GetRemainingBytes();
-            SITGameServerClientDataProcessing.ProcessPacketBytes(bytes, Encoding.UTF8.GetString(bytes));
+            Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(bytes);
         }
 
         void OnDestroy()
@@ -199,11 +194,14 @@ namespace StayInTarkov.Networking
             EFT.UI.ConsoleScreen.Log("[CLIENT] We connected to " + peer.EndPoint);
             NotificationManagerClass.DisplayMessageNotification($"Connected to server {peer.EndPoint}.",
                 EFT.Communications.ENotificationDurationType.Default, EFT.Communications.ENotificationIconType.Friend);
+
+            Logger.LogDebug("[CLIENT] We connected to " + peer.EndPoint);
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketErrorCode)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We received error " + socketErrorCode);
+            Logger.LogDebug("[CLIENT] We received error " + socketErrorCode);
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
@@ -211,6 +209,7 @@ namespace StayInTarkov.Networking
             if (messageType == UnconnectedMessageType.BasicMessage && _netClient.ConnectedPeersCount == 0 && reader.GetInt() == 1)
             {
                 EFT.UI.ConsoleScreen.Log("[CLIENT] Received discovery response. Connecting to: " + remoteEndPoint);
+                Logger.LogDebug("[CLIENT] Received discovery response. Connecting to: " + remoteEndPoint);
                 _netClient.Connect(remoteEndPoint, "sit.core");
             }
         }
@@ -228,6 +227,7 @@ namespace StayInTarkov.Networking
         public void OnPeerDisconnected(NetPeer peer, LiteNetLib.DisconnectInfo disconnectInfo)
         {
             EFT.UI.ConsoleScreen.Log("[CLIENT] We disconnected because " + disconnectInfo.Reason);
+            Logger.LogDebug("[CLIENT] We disconnected because " + disconnectInfo.Reason);
         }
 
         int firstPeerErrorCount = 0;
@@ -268,25 +268,9 @@ namespace StayInTarkov.Networking
 
         public void SendData<T>(ref T packet) where T : BasePacket
         {
-            if (_netClient == null)
-            {
-                EFT.UI.ConsoleScreen.LogError("[CLIENT] Could not communicate to the Server");
-                return;
-            }
-
-            if (_netClient.FirstPeer == null)
-            {
-                string clientFirstPeerIsNullMessage = "[CLIENT] Could not communicate to the Server";
-                EFT.UI.ConsoleScreen.LogError(clientFirstPeerIsNullMessage);
-                return;
-            }
-
             using NetDataWriter writer = new NetDataWriter();
-            _packetProcessor.WriteNetSerializable(writer, ref packet);
-            if (_netClient.FirstPeer != null)
-            {
-                _netClient.FirstPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-            }
+            PacketProcessor.WriteNetSerializable(writer, ref packet);
+            this.SendData(writer.CopyData());
         }
     }
 }

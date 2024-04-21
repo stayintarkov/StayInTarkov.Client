@@ -23,7 +23,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         GUIStyle middleLargeLabelStyle;
         GUIStyle normalLabelStyle;
 
-        private ISITGame LocalGameInstance { get; } = Singleton<ISITGame>.Instance;
         private SITGameComponent CoopGameComponent { get { return SITGameComponent.GetCoopGameComponent(); } }
 
         private ConcurrentDictionary<string, CoopPlayer> Players => CoopGameComponent?.Players;
@@ -47,8 +46,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         void Awake()
         {
-            // ----------------------------------------------------
-            // Create a BepInEx Logger for CoopGameComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(SITGameGUIComponent)}");
             Logger.LogDebug($"{nameof(SITGameGUIComponent)}:Awake");
 
@@ -57,8 +54,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         void OnGUI()
         {
-
-
             if (normalLabelStyle == null)
             {
                 normalLabelStyle = new GUIStyle(GUI.skin.label);
@@ -95,15 +90,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             var numberOfPlayersDead = Users.Count(x => !x.HealthController.IsAlive);
 
-            if (LocalGameInstance == null)
-                return;
-
-            var coopGame = LocalGameInstance as CoopSITGame;
-            if (coopGame == null)
-                return;
-
-            //rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
-
             var quitState = CoopGameComponent.GetQuitState();
             switch (quitState)
             {
@@ -130,7 +116,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     break;
             }
 
-            //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
             OnGUI_DrawPlayerEnemyTags(rect);
 
@@ -160,7 +145,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 _ => "",
             };
             var text = new GUIContent($"{protocol}{(SITMatchmaking.IsClient ? "client" : "host")} ping:{gameclient.Ping} up:{gameclient.UploadSpeedKbps:0.00} down:{gameclient.DownloadSpeedKbps:0.00} loss:{gameclient.PacketLoss:0.00}% {(AkiBackendCommunication.Instance.HighPingMode ? "hpm" : "")}");
-            // var newX = GUI.skin.label.CalcSize(text);
             GUI.Label(rect, text);
             GUI.contentColor = Color.white;
 
@@ -360,36 +344,5 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             }
         }
 
-        private void OnGUI_DrawPlayerList(Rect rect)
-        {
-            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGShowPlayerList)
-                return;
-
-            rect.y += 15;
-
-            if (Singleton<GameWorld>.Instance != null)
-            {
-                var players = Singleton<GameWorld>.Instance.RegisteredPlayers.ToList();
-                players.AddRange(Players.Values);
-                players = players.Distinct(x => x.ProfileId).ToList();
-
-                rect.y += 15;
-                GUI.Label(rect, $"{StayInTarkovPlugin.LanguageDictionary["PLAYERS_COUNT"]} [{players.Count}]:");
-                //
-                rect.y += 15;
-                foreach (var p in players)
-                {
-                    string aiPlayerText = (string)(p.IsAI ? StayInTarkovPlugin.LanguageDictionary["AI-SESSION"] : StayInTarkovPlugin.LanguageDictionary["PLAYER-SESSION"]);
-                    string aliveDeadText = (string)(p.HealthController.IsAlive ? StayInTarkovPlugin.LanguageDictionary["ALIVE"] : StayInTarkovPlugin.LanguageDictionary["DEAD"]);
-
-                    GUI.Label(rect, $"{p.Profile.Nickname}:{aiPlayerText}:{aliveDeadText}");
-                    //GUI.Label(rect, $"{p.Profile.Nickname}:{(p.IsAI ? "AI" : "Player")}:{(p.HealthController.IsAlive ? "Alive" : "Dead")}");
-                    rect.y += 15;
-                }
-
-                players.Clear();
-                players = null;
-            }
-        }
     }
 }

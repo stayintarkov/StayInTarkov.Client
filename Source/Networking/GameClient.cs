@@ -17,6 +17,8 @@ namespace StayInTarkov.Networking
         static GameClient()
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource("GameClient");
+
+          
         }
 
         public static void SendData(byte[] data)

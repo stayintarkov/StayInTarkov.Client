@@ -15,25 +15,16 @@ using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
-//using StayInTarkov.Core.Player;
-using StayInTarkov.EssentialPatches;
-using StayInTarkov.Memory;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
-using Rect = UnityEngine.Rect;
-using StayInTarkov.Coop.NetworkPacket.Raid;
-using Diz.Jobs;
-using System.Net.NetworkInformation;
 using EFT.Counters;
 using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Coop.NetworkPacket.World;
@@ -63,7 +54,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// </summary>
         public HashSet<CoopPlayerClient> PlayerClients { get; } = new();
 
-        //public EFT.Player[] PlayerUsers
         public IEnumerable<EFT.Player> PlayerUsers
         {
             get
@@ -130,23 +120,21 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public ActionPacketHandlerComponent ActionPacketHandler { get; set; }
 
+        public static SITGameComponent Instance { get; set; }
+
         #endregion
 
         #region Public Voids
 
         public static SITGameComponent GetCoopGameComponent()
         {
-            if (CoopPatches.CoopGameComponentParent == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetCoopGameComponent)} before {nameof(SITGameComponent)} has been created.");
-                return null;
-            }
-
-            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<SITGameComponent>();
-            if (coopGameComponent != null)
-                return coopGameComponent;
-
+            if (Instance != null)
+                return Instance;
+#if DEBUG
             StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetCoopGameComponent)} before {nameof(SITGameComponent)} has been created.");
+            StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
+#endif
+
             return null;
         }
 
@@ -181,7 +169,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITGameComponent));
             Logger.LogDebug($"{nameof(SITGameComponent)}:{nameof(Awake)}");
 
-            ActionPacketHandler = CoopPatches.CoopGameComponentParent.GetOrAddComponent<ActionPacketHandlerComponent>();
+            ActionPacketHandler = gameObject.GetOrAddComponent<ActionPacketHandlerComponent>();
             gameObject.AddComponent<SITGameGUIComponent>();
 
             SITCheck();
@@ -207,14 +195,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// </summary>
         async void Start()
         {
-            Logger.LogDebug("CoopGameComponent:Start");
-
-            // Get Reference to own Player
-            //OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
-
-            //// Add own Player to Players list
-            //Players.TryAdd(OwnPlayer.ProfileId, (CoopPlayer)OwnPlayer);
-
+            Instance = this;
+       
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
 
@@ -540,12 +522,12 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
-            //StopCoroutine(ProcessServerCharacters());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
             GameObject.Destroy(this.GetComponent<SITGameGCComponent>());
             GameObject.Destroy(this.GetComponent<SITGameTimeAndWeatherSyncComponent>());
+            Instance = null;
         }
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
