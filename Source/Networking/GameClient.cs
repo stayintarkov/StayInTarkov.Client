@@ -25,22 +25,15 @@ namespace StayInTarkov.Networking
         {
             if (!Singleton<ISITGame>.Instantiated)
             {
-                Logger.LogError($"{nameof(GameClient)}:{nameof(SendData)} {nameof(ISITGame)} has not been Instantiated");
+                Logger.LogError($"{nameof(GameClient)}:{nameof(SendData)} {nameof(ISITGame)} has not been instantiated");
                 return;
             }
-
 
             if (Singleton<ISITGame>.Instance.GameClient == null)
             {
-                Logger.LogError($"{nameof(ISITGame)}:{nameof(IGameClient)} has not been Instantiated");
+                Logger.LogError($"{nameof(ISITGame)}:{nameof(IGameClient)} has not been instantiated");
                 return;
             }
-
-//#if DEBUG
-//            Logger.LogInfo("SendData(byte[] data)");
-//            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
-//            Logger.LogInfo($"{t.ToString()}");
-//#endif
 
             Singleton<ISITGame>.Instance.GameClient.SendData(data);
         }

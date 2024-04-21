@@ -17,12 +17,20 @@ using StayInTarkov.Coop.NetworkPacket.Player;
 using UnityEngine.Networking;
 using System.Threading;
 using UnityEngine;
+using Google.FlatBuffers;
+using StayInTarkov.FlatBuffers;
+using StayInTarkov.Coop.Players;
 
 namespace StayInTarkov.Networking
 {
     public class SITGameServerClientDataProcessing : NetworkBehaviour
     {
+        public const string PACKET_TAG_METHOD = "m";
+        public const string PACKET_TAG_SERVERID = "serverId";
+        public const string PACKET_TAG_DATA = "data";
+        public const byte FLATBUFFER_CHANNEL_NUM = 1;
         public event Action<ushort> OnLatencyUpdated;
+        private SITGameComponent SITGameComponent { get; set; }
 
         public ManualLogSource Logger { get; set; }
 
@@ -31,12 +39,40 @@ namespace StayInTarkov.Networking
             Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(SITGameServerClientDataProcessing)}");
         }
 
-        private SITGameComponent SITGameComponent { get; set; }
-
         void Update()
         {
-            if(Singleton<ISITGame>.Instantiated)
+            if (Singleton<ISITGame>.Instantiated)
                 SITGameComponent = (Singleton<ISITGame>.Instance as MonoBehaviour).GetComponent<SITGameComponent>();
+        }
+
+        public void ProcessFlatBuffer(byte[] data)
+        {
+            var buf = new ByteBuffer(data);
+            var packet = StayInTarkov.FlatBuffers.Packet.GetRootAsPacket(buf);
+
+            if (SITGameComponent == null)
+            {
+                Logger.LogError($"{nameof(ProcessFlatBuffer)}. game component is null");
+                return;
+            }
+
+            switch (packet.PacketType)
+            {
+                case AnyPacket.player_state:
+                    {
+                        var key = packet.Packet_Asplayer_state().ProfileId;
+                        if (SITGameComponent.Players.ContainsKey(key) && SITGameComponent.Players[key] is CoopPlayerClient client)
+                        {
+                            client.ReceivePlayerStatePacket(packet.Packet_Asplayer_state());
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        Logger.LogWarning("unknown FlatBuffer type received");
+                    }
+                    break;
+            }
         }
 
         public void ProcessPacketBytes(byte[] data)
@@ -134,6 +170,5 @@ namespace StayInTarkov.Networking
 
             return packet;
         }
-
     }
 }
