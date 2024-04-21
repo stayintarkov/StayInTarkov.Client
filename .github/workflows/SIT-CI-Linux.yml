@@ -12,7 +12,7 @@ on:
       - '.github/**'
       - '*.md'
     branches:
-      - "master"
+      - "master, development"
 
   workflow_dispatch:
 
