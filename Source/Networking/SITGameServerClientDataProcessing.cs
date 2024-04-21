@@ -25,9 +25,6 @@ namespace StayInTarkov.Networking
 {
     public class SITGameServerClientDataProcessing : NetworkBehaviour
     {
-        public const string PACKET_TAG_METHOD = "m";
-        public const string PACKET_TAG_SERVERID = "serverId";
-        public const string PACKET_TAG_DATA = "data";
         public const byte FLATBUFFER_CHANNEL_NUM = 1;
         public event Action<ushort> OnLatencyUpdated;
         private SITGameComponent SITGameComponent { get; set; }
