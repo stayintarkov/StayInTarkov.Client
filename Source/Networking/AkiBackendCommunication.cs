@@ -878,6 +878,7 @@ namespace StayInTarkov.Networking
                 catch (Exception ex)
                 {
 #if DEBUG
+                    StayInTarkovHelperConstants.Logger.LogError($"could not perform request @ {url}");
                     StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
                     StayInTarkovHelperConstants.Logger.LogError(ex);
 #endif

@@ -146,6 +146,13 @@ namespace StayInTarkov.Networking
             }
             else if (SITMatchmaking.IsServer)
             {
+                var serv = GetComponent<GameServerUDP>();
+                while (!serv.NetServer.IsRunning)
+                {
+                    Logger.LogDebug("Waiting for UDP server to start");
+                    await Task.Delay(1000);
+                }
+
                 // Connect locally if we're the server.
                 var endpoint = new IPEndPoint(IPAddress.Loopback, PluginConfigSettings.Instance.CoopSettings.UdpServerLocalPort);
                 var msg = $"Server connecting as client to {endpoint}";
@@ -155,6 +162,7 @@ namespace StayInTarkov.Networking
                 _netClient.Connect(endpoint, "sit.core");
             }
         }
+
         void Update()
         {
             _netClient.PollEvents();
@@ -176,6 +184,8 @@ namespace StayInTarkov.Networking
 
         void OnDestroy()
         {
+            Logger.LogDebug("OnDestroy()");
+
             if (_netClient != null)
                 _netClient.Stop();
 

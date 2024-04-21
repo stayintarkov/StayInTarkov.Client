@@ -36,6 +36,7 @@ using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Memory;
 using StayInTarkov.Networking;
+using StayInTarkov.Tools;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -211,6 +212,11 @@ namespace StayInTarkov.Coop.SITGameModes
             }
 
             return coopGame;
+        }
+
+        void OnDestroy()
+        {
+            Logger.LogDebug("OnDestroy()");
         }
 
         public void CreateCoopGameComponent()
@@ -645,13 +651,27 @@ namespace StayInTarkov.Coop.SITGameModes
                     break;
             }
 
-
-
             spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, Location_0.SpawnPointParams);
             int spawnSafeDistance = Location_0.SpawnSafeDistanceMeters > 0 ? Location_0.SpawnSafeDistanceMeters : 100;
             SpawnSystemSettings settings = new(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
             SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
             spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
+
+#if DEBUG
+            // remove non-determinism for more reliable profiling
+            if (Autoraid.Running)
+            {
+                if (spawnPoint is SpawnPoint sp)
+                {
+                    sp.Position = new Vector3(91.29799f, 1.218f, -104.936005f);
+                    sp.Infiltration = "Customs";
+                    sp.Rotation = Quaternion.identity;
+                } else
+                {
+                    Logger.LogWarning($"expected SpawnPoint, got {spawnPoint}");
+                }
+            }
+#endif
 
             if (spawnPoint == null)
             {
@@ -964,7 +984,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (!SITMatchmaking.IsClient)
             {
-
                 var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
 
                 BotsPresets profileCreator =
@@ -1569,6 +1588,15 @@ namespace StayInTarkov.Coop.SITGameModes
             obj.Location = Location_0.Id;
             obj.OnEpInteraction += base.OnEpInteraction;
             return obj;
+        }
+
+        internal bool Ready()
+        {
+            if (GameServer != null) {
+                return GameServer.NetServer?.IsRunning ?? false;
+            } else {
+                return true;
+            }
         }
     }
 }
