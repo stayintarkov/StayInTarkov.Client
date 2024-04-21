@@ -178,8 +178,15 @@ namespace StayInTarkov.Networking
 
         void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
-            var bytes = reader.GetRemainingBytes();
-            Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(bytes);
+            if (channelNumber == SITGameServerClientDataProcessing.FLATBUFFER_CHANNEL_NUM)
+            {
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessFlatBuffer(reader.GetRemainingBytes());
+            }
+            else
+            {
+                var bytes = reader.GetRemainingBytes();
+                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(bytes);
+            }
         }
 
         void OnDestroy()
@@ -281,9 +288,6 @@ namespace StayInTarkov.Networking
         {
             SendData(data, 0, data.Length, 0, LiteNetLib.DeliveryMethod.ReliableOrdered);
         }
-
-
-        // Send(byte[] data, int start, int length, byte channelNumber, DeliveryMethod deliveryMethod)
 
         public void SendData<T>(ref T packet) where T : BasePacket
         {

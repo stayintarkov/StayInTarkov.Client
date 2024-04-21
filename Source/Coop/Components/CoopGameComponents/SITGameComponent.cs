@@ -321,15 +321,13 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                 builder.Finish(packetOffset.Value);
 
-                // NOTE(belette) Abstraction zealots in shambles, we never needed inheritance, we had if and switch all along, we can see what's happening inline IDONTWANNAHEARIT
                 if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
                 {
                     var seg = builder.DataBuffer.ToArraySegment(builder.DataBuffer.Position, builder.DataBuffer.Length - builder.DataBuffer.Position);
                     udp.SendData(seg.Array, seg.Offset, seg.Count, SITGameServerClientDataProcessing.FLATBUFFER_CHANNEL_NUM, LiteNetLib.DeliveryMethod.Sequenced);
                 }
-                else if (Singleton<ISITGame>.Instance.GameClient is GameClientTCPRelay relay)
+                else if (Singleton<ISITGame>.Instance.GameClient is GameClientTCPRelay)
                 {
-                    // TODO(belette) fix TCP Relay recipient side to detect FlatBuffers and process as such
                     GameClient.SendData(builder.SizedByteArray());
                 }
             }
