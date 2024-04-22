@@ -1458,7 +1458,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 MonoBehaviourSingleton<BetterAudio>.Instance.FadeOutVolumeAfterRaid();
                 StaticManager.Instance.WaitSeconds(delay, delegate
                 {
-                    Callback<ExitStatus, TimeSpan, MetricsClass> callback = ReflectionHelpers.GetFieldFromType(this.GetType(), "callback_0").GetValue(this) as Callback<ExitStatus, TimeSpan, MetricsClass>;
+                    var callback = ReflectionHelpers.GetFieldFromType(this.GetType(), "callback_0").GetValue(this) as Callback<ExitStatus, TimeSpan, MetricsClass>;
                     callback(new Result<ExitStatus, TimeSpan, MetricsClass>(exitStatus, DateTime.Now - dateTime_0, new MetricsClass()));
                     UIEventSystem.Instance.Enable();
                 });

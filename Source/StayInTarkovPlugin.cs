@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
+using StayInTarkov.Fixes;
 
 namespace StayInTarkov
 {
@@ -284,6 +285,8 @@ namespace StayInTarkov
                 new SslCertificatePatch().Enable();
                 new Aki.Core.Patches.UnityWebRequestPatch().Enable();
                 new SendCommandsPatch().Enable();
+                // Fixes
+                new FixRankPanelNullGameObjectPatch().Enable();
 
                 //https to http | wss to ws
                 var url = DetectBackendUrlAndToken.GetBackendConnection().BackendUrl;
