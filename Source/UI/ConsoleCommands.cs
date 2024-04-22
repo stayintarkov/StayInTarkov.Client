@@ -192,8 +192,8 @@ namespace StayInTarkov.UI
             }
         }
 
-        [ConsoleCommand("freecam.enable", "", null, "Activates / Deactivates freecam", [])]
-        public static void Freecam_Enable()
+        [ConsoleCommand("freecam", "", null, "Activates / Deactivates freecam", [])]
+        public static void Freecam()
         {
             try
             {
