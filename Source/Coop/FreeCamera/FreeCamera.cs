@@ -25,7 +25,7 @@ namespace StayInTarkov.Coop.FreeCamera
             }
 
             var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            var movementSpeed = fastMode ? 10f : 2f;
+            var movementSpeed = fastMode ? 20f : 3f;
 
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             {
