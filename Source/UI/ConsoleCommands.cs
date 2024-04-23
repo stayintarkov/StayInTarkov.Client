@@ -4,6 +4,7 @@ using EFT.Console.Core;
 using EFT.UI;
 using EFT.Weather;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.SITGameModes;
 using System;
 using System.IO;
@@ -184,6 +185,34 @@ namespace StayInTarkov.UI
                     object value = property.GetValue(weatherDebug);
                     EFT.UI.ConsoleScreen.Log($"{property.Name}: {value}");
                 }
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("freecam", "", null, "Activates / Deactivates freecam", [])]
+        public static void Freecam()
+        {
+            try
+            {
+                FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+                CameraController.ToggleCamera();
+            }
+            catch(Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("freecam.toggleui", "", null, "Activates / Deactivates freecam's ability to hide the UI", [])]
+        public static void Freecam_ToggleUI()
+        {
+            try
+            {
+                FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+                CameraController.ToggleUi();
             }
             catch (Exception ex)
             {

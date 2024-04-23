@@ -173,7 +173,7 @@ namespace StayInTarkov.Coop.FreeCamera
         /// <summary>
         /// Hides the main UI (health, stamina, stance, hotbar, etc.)
         /// </summary>
-        private void ToggleUi()
+        public void ToggleUi()
         {
             // Check if we're currently in a raid
             if (GetLocalPlayerFromWorld() == null)
