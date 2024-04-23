@@ -1961,3 +1961,4 @@ global using PlayerLoopSystemHelpers = GClass567;
 global using BundleLoaderProgressStruct = GStruct119;
 global using BundleLoaderProgress = GClass3278<GStruct119>;
 global using ItemsCount = GStruct370;
+global using BSGUnityHelper = GClass772;
