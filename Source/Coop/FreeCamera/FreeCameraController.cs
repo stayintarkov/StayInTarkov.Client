@@ -129,6 +129,10 @@ namespace StayInTarkov.Coop.FreeCamera
                     DisableAndDestroyEffect(effectsController.GetComponent<CC_Wiggle>());
                     DisableAndDestroyEffect(effectsController.GetComponent<CC_RadialBlur>());
                     DisableAndDestroyEffect(effectsController.GetComponent<MotionBlur>());
+                    DisableAndDestroyEffect(effectsController.GetComponent<BloodOnScreen>());
+                    DisableAndDestroyEffect(effectsController.GetComponent<GrenadeFlashScreenEffect>());
+                    DisableAndDestroyEffect(effectsController.GetComponent<DepthOfField>());
+                    //DisableAndDestroyEffect(effectsController.GetComponent<RainScreenDrops>());
 
                     var ccBlends = fpsCamInstance.EffectsController.GetComponents<CC_Blend>();
                     if (ccBlends != null)
@@ -162,6 +166,14 @@ namespace StayInTarkov.Coop.FreeCamera
 
             if (!_freeCamScript.IsActive)
             {
+                GameObject[] allGameObject = Resources.FindObjectsOfTypeAll<GameObject>();
+                foreach (GameObject gobj in allGameObject)
+                {
+                    if (gobj.GetComponent<DisablerCullingObject>() != null)
+                    {
+                        gobj.GetComponent<DisablerCullingObject>().ForceEnable(true);
+                    }
+                }
                 SetPlayerToFreecamMode(localPlayer);
             }
             else
