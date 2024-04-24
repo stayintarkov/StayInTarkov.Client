@@ -680,7 +680,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             var quitState = GetQuitState();
 
             if (
-                Input.GetKeyDown(KeyCode.F8)
+                PluginConfigSettings.Instance.CoopSettings.SETTING_PressToExtractKey.Value.IsDown()
                 &&
                 quitState != EQuitState.NONE
                 && !RequestQuitGame
@@ -710,7 +710,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 return;
             }
             else if (
-                Input.GetKeyDown(KeyCode.F7)
+                PluginConfigSettings.Instance.CoopSettings.SETTING_PressToForceExtractKey.Value.IsDown()
                 &&
                 quitState != EQuitState.NONE
                 && !RequestQuitGame

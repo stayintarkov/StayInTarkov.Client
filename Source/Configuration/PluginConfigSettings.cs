@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using StayInTarkov.Networking;
 using System;
 using System.Net;
+using UnityEngine;
 
 #nullable enable
 
@@ -96,6 +97,8 @@ namespace StayInTarkov.Configuration
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
             public bool SETTING_ShowSITStatistics { get; set; } = true;
+            public ConfigEntry<KeyboardShortcut> SETTING_PressToExtractKey { get; private set; }
+            public ConfigEntry<KeyboardShortcut> SETTING_PressToForceExtractKey { get; private set; }
             public bool ShowPing { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
             public int SITNatHelperPort { get; set; } = 6971;
@@ -140,6 +143,11 @@ namespace StayInTarkov.Configuration
                 SETTING_ShowFeed = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
 
+                SETTING_PressToExtractKey = StayInTarkovPlugin.Instance.Config.Bind
+                ("Coop", "PressToExtractKey", new KeyboardShortcut(KeyCode.F8), new ConfigDescription("The key you need to press to leave the raid."));
+
+                SETTING_PressToForceExtractKey = StayInTarkovPlugin.Instance.Config.Bind
+                ("Coop", "PressToForceExtractKey", new KeyboardShortcut(KeyCode.F7), new ConfigDescription("The key you need to press to FORCE leave the raid."));
 
                 AllPlayersSpawnTogether = StayInTarkovPlugin.Instance.Config.Bind
                ("Coop", "AllPlayersSpawnTogether", true, new ConfigDescription("Whether to spawn all players in the same place")).Value;
