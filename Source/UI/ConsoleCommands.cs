@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Console.Core;
+using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -213,6 +214,25 @@ namespace StayInTarkov.UI
             {
                 FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
                 CameraController.ToggleUi();
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("unlockd", "", null, "Unlock doors that can be opened", [])]
+        public static void UnlockDoors()
+        {
+            try
+            {
+                foreach (Door door in BSGUnityHelper.FindUnityObjectsOfType<Door>())
+                {
+                    if ((door.DoorState == EDoorState.Locked && !string.IsNullOrEmpty(door.KeyId)) || door.DoorState == EDoorState.Interacting)
+                    {
+                        door.DoorState = EDoorState.Shut;
+                    }
+                }
             }
             catch (Exception ex)
             {
