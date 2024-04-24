@@ -1273,17 +1273,17 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            if (!player.IsYourPlayer)
+            if (!player.IsYourPlayer || ExtractedPlayers.Contains(player.ProfileId))
+            {
                 return;
+            }
 
             Logger.LogDebug($"{nameof(ExfiltrationPoint_OnCancelExtraction)} {point.Settings.Name} {point.Status}");
             ExtractingPlayers.Remove(player.ProfileId);
 
+            var matchEnd = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
 
-            BackendConfigSettingsClass.BackendConfigSettingsClassExperience.BackendConfigSettingsClassMatchEnd matchEnd = Singleton<BackendConfigSettingsClass>.Instance.Experience.MatchEnd;
-
-
-            if (Profile_0.EftStats.SessionCounters.GetAllInt(new object[] { CounterTag.Exp }) > matchEnd.SurvivedExpRequirement ||
+            if (Profile_0.EftStats.SessionCounters.GetAllInt([CounterTag.Exp]) > matchEnd.SurvivedExpRequirement ||
                 RaidTimeUtil.GetElapsedRaidSeconds() > matchEnd.SurvivedTimeRequirement)
             {
                 MyExitStatus = (player.HealthController.IsAlive ? ExitStatus.MissingInAction : ExitStatus.Killed);
@@ -1387,15 +1387,19 @@ namespace StayInTarkov.Coop.SITGameModes
             // If I am the Host/Server, then ensure all the bots have left too
             if (SITMatchmaking.IsServer)
             {
+                var hostProfileId = Singleton<GameWorld>.Instance.MainPlayer.ProfileId;
                 foreach (var p in SITGameComponent.GetCoopGameComponent().Players)
                 {
-                    AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
-
+                    var pid = p.Value.ProfileId;
+                    // make sure the host does not "leave game" before other players since Relay has special handling Aki-side
+                    if (pid != hostProfileId)
+                    {
+                        AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
                             { "m", "PlayerLeft" },
-                            { "profileId", p.Value.ProfileId },
+                            { "profileId", pid },
                             { "serverId", SITGameComponent.GetServerId() }
-
                         }.ToJson());
+                    }
                 }
             }
 
