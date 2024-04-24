@@ -1926,6 +1926,7 @@ global using GJobParallelFor2 = GStruct290;
 global using AbstractFirearmActioner = EFT.Player.FirearmController.GClass1593;
 global using BackendServerConnection = Class263;
 global using FilterCustomizationClass = GClass1454;
+global using FilterCustomizationClass1 = GClass1455;
 global using StatisticsManagerForPlayer = GClass1798;
 global using BackendConfigManager = GClass548;
 global using LocalizedNotification = GClass2052;
