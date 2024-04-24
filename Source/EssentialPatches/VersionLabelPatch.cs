@@ -19,6 +19,8 @@ namespace StayInTarkov.EssentialPatches
         private static string _versionLabel;
         private static bool EnableSITVersionLabel { get; set; } = true;
 
+        private static bool IsDevBuild => true;
+
         public VersionLabelPatch(ConfigFile config)
         {
             EnableSITVersionLabel = config.Bind("SIT.SP", "EnableSITVersionLabel", true).Value;
@@ -86,7 +88,7 @@ namespace StayInTarkov.EssentialPatches
                     Logger.LogInfo($"Assembly {StayInTarkovPlugin.EFTAssemblyVersion} does not match {StayInTarkovPlugin.EFTEXEFileVersion}");
                 }
                 else
-                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion}";
+                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion} {(IsDevBuild ? "[DEV]" : "")}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
