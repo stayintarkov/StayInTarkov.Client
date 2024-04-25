@@ -29,7 +29,7 @@ using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
-using StayInTarkov.Fixes;
+using StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix;
 
 namespace StayInTarkov
 {
@@ -286,7 +286,7 @@ namespace StayInTarkov
                 new Aki.Core.Patches.UnityWebRequestPatch().Enable();
                 new SendCommandsPatch().Enable();
                 // Fixes
-                new FixRankPanelNullGameObjectPatch().Enable();
+                new EndRaidDebug().Enable();
 
                 //https to http | wss to ws
                 var url = DetectBackendUrlAndToken.GetBackendConnection().BackendUrl;
