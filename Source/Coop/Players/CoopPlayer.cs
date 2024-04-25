@@ -567,7 +567,7 @@ namespace StayInTarkov.Coop.Players
         private Vector2 LastRotationSent = Vector2.zero;
         private readonly Dictionary<string, float> PendingArmorUpdates = [];
 
-        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
+        public override void Proceed(bool withNetwork, Callback<IGIController> callback, bool scheduled = true)
         {
             // Protection
             if (this is CoopPlayerClient)
@@ -744,13 +744,6 @@ namespace StayInTarkov.Coop.Players
 
             }, callback, scheduled);
         }
-
-        public override void Proceed<T>(Item item, Callback<IGIController5> callback, bool scheduled = true)
-        {
-            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}<T>");
-            base.Proceed<T>(item, callback, scheduled);
-        }
-
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {

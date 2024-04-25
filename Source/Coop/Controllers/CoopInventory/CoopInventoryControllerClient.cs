@@ -161,13 +161,13 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
          
         }
 
-       
-        /// TODO: Update Remap to support TryThrowItem's Operation struct
-        public override GStruct417<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
+
+        public override GStruct416<bool> TryThrowItem(Item item, Callback callback = null, bool silent = false)
         {
             ThrowItem(item, null, callback);
             return true;
         }
+
 
         public override bool CheckTransferOwners(Item item, ItemAddress targetAddress, out Error error)
         {

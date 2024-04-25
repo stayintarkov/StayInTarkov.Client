@@ -509,10 +509,10 @@ namespace StayInTarkov.Coop.Players
         }
 
 
-        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
+        public override void Proceed(bool withNetwork, Callback<IGIController> callback, bool scheduled = true)
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
-            new Process<EmptyHandsController, IGIController1>(this, controllerFactory, null).method_0(null, callback, scheduled);
+            new Process<EmptyHandsController, IGIController>(this, controllerFactory, null).method_0(null, callback, scheduled); base.Proceed(withNetwork, callback, scheduled);
         }
 
 
