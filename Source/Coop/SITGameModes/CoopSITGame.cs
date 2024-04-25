@@ -154,6 +154,11 @@ namespace StayInTarkov.Coop.SITGameModes
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
 
+            // ---------------------------------------------------------------------------------
+            // Create Coop Game Component
+            Logger.LogDebug($"{nameof(Create)}:Running {nameof(coopGame.CreateCoopGameComponent)}");
+            coopGame.CreateCoopGameComponent();
+
 #if DEBUG
             Logger.LogDebug($"DEBUG:{nameof(backendDateTime)}:{backendDateTime.ToJson()}");
 #endif
@@ -187,14 +192,6 @@ namespace StayInTarkov.Coop.SITGameModes
             Singleton<ISITGame>.Create(coopGame);
 
             // ---------------------------------------------------------------------------------
-            // Create Coop Game Component
-            Logger.LogDebug($"{nameof(Create)}:Running {nameof(coopGame.CreateCoopGameComponent)}");
-            coopGame.CreateCoopGameComponent();
-            SITGameComponent.GetCoopGameComponent().LocalGameInstance = coopGame;
-
-
-
-            // ---------------------------------------------------------------------------------
             // Create GameClient(s)
             switch (SITMatchmaking.SITProtocol)
             {
@@ -219,12 +216,12 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             Logger.LogDebug("OnDestroy()");
         }
+
         public void CreateCoopGameComponent()
         {
             var sitGameComponent = this.gameObject.AddComponent<SITGameComponent>();
             this.gameObject.AddComponent<ActionPacketHandlerComponent>();
 
-            //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(SITMatchmaking.GetGroupId()))
             {
                 Logger.LogDebug($"{nameof(CreateCoopGameComponent)}:{SITMatchmaking.GetGroupId()}");
@@ -250,9 +247,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             clientLoadingPingerCoroutine = StartCoroutine(ClientLoadingPinger());
 
-            var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{SITGameComponent.GetServerId()}");
-            Logger.LogDebug(friendlyAIJson);
-            //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
         }
 
         private IEnumerator ClientLoadingPinger()

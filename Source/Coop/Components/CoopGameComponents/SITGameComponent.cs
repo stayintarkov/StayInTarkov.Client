@@ -150,14 +150,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public static string GetServerId()
         {
-            var coopGC = GetCoopGameComponent();
-            if (coopGC == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetServerId)} before {nameof(SITGameComponent)} has been created.");
-                return null;
-            }
-
-            return coopGC.ServerId;
+            return SITMatchmaking.GetGroupId();
         }
         #endregion
 
