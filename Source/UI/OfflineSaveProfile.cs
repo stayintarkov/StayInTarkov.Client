@@ -112,11 +112,7 @@ namespace StayInTarkov.UI
             };
 
             var convertedJson = request.SITToJson();
-#if DEBUG
-            Logger.LogDebug("SIT: SaveProfileProgress =====================================================");
-            Logger.LogDebug(convertedJson);
-            AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson);
-#endif
+            AkiBackendCommunication.Instance.PostJsonBLOCKING("/raid/profile/save", convertedJson);
         }
 
         public class SaveProfileRequest

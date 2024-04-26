@@ -1,18 +1,16 @@
-﻿using BepInEx.Logging;
+﻿#nullable enable
+
+using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
-using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -21,7 +19,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.XR;
 
 namespace StayInTarkov.Networking
 {
@@ -65,10 +62,9 @@ namespace StayInTarkov.Networking
             set { m_RemoteEndPoint = value; }
         }
 
-        //public bool isUnity;
-        private Dictionary<string, string> m_RequestHeaders { get; set; }
+        private Dictionary<string, string>? m_RequestHeaders = null;
 
-        private static AkiBackendCommunication m_Instance { get; set; }
+        private static AkiBackendCommunication? m_Instance;
         public static AkiBackendCommunication Instance
         {
             get
@@ -522,91 +518,24 @@ namespace StayInTarkov.Networking
         /// <summary>
         /// Send request to the server and get Stream of data back
         /// </summary>
-        /// <param name="url">String url endpoint example: /start</param>
+        /// <param name="path">String url endpoint example: /start</param>
         /// <param name="method">POST or GET</param>
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private MemoryStream SendAndReceive(string url, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> asyncRequestFromPath(string path, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
-            // Force to DEBUG mode if not Compressing.
-            debug = debug || !compress;
-
-            HttpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-
-
-            method = method.ToUpper();
-
-            var fullUri = url;
-            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-                fullUri = RemoteEndPoint + fullUri;
-
-            if (method == "GET")
+            if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
-                var ms = new MemoryStream();
-                var stream = HttpClient.GetStreamAsync(fullUri);
-                stream.Result.CopyTo(ms);
-                return ms;
-            }
-            else if (method == "POST" || method == "PUT")
-            {
-                var uri = new Uri(fullUri);
-                return SendAndReceivePostOld(uri, method, data, compress, timeout, debug);
+                path = RemoteEndPoint + path;
             }
 
-            throw new ArgumentException($"Unknown method {method}");
+            return await asyncRequest(new Uri(path), method, data, timeout, debug);
         }
 
-        // <summary>
-        /// Send request to the server and get Stream of data back
-        /// </summary>
-        /// <param name="url">String url endpoint example: /start</param>
-        /// <param name="method">POST or GET</param>
-        /// <param name="data">string json data</param>
-        /// <param name="compress">Should use compression gzip?</param>
-        /// <returns>Stream or null</returns>
-        private async Task<MemoryStream> SendAndReceiveAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> asyncRequest(Uri uri, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
-            // Force to DEBUG mode if not Compressing.
-            debug = debug || !compress;
-
-            HttpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-
-
-            method = method.ToUpper();
-
-            var fullUri = url;
-            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-                fullUri = RemoteEndPoint + fullUri;
-
-            if (method == "GET")
-            {
-                var ms = new MemoryStream();
-                var stream = await HttpClient.GetStreamAsync(fullUri);
-                stream.CopyTo(ms);
-                return ms;
-            }
-            else if (method == "POST" || method == "PUT")
-            {
-                var uri = new Uri(fullUri);
-                return await SendAndReceivePostAsync(uri, method, data, compress, timeout, debug);
-            }
-
-            throw new ArgumentException($"Unknown method {method}");
-        }
-
-        /// <summary>
-        /// Send request to the server and get Stream of data back by post
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="method"></param>
-        /// <param name="data"></param>
-        /// <param name="compress"></param>
-        /// <param name="timeout"></param>
-        /// <param name="debug"></param>
-        /// <returns></returns>
-        MemoryStream SendAndReceivePostOld(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
-        {
+            var compress = true;
             using (HttpClientHandler handler = new HttpClientHandler())
             {
                 using (HttpClient httpClient = new HttpClient(handler))
@@ -633,14 +562,13 @@ namespace StayInTarkov.Networking
                         {
                             httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                         }
-
                     }
                     if (!debug && method == "POST")
                     {
                         httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
                     }
 
-                    HttpContent byteContent = null;
+                    HttpContent? byteContent = null;
                     if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
                     {
                         if (debug)
@@ -649,7 +577,7 @@ namespace StayInTarkov.Networking
                             httpClient.DefaultRequestHeaders.Add("debug", "1");
                         }
                         var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        byte[] bytes = compress ? Zlib.Compress(inputDataBytes) : inputDataBytes;
+                        var bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Normal) : inputDataBytes;
                         byteContent = new ByteArrayContent(bytes);
                         byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                         if (compress)
@@ -659,205 +587,55 @@ namespace StayInTarkov.Networking
                     }
 
                     HttpResponseMessage response;
-                    if (byteContent != null)
-                    {
-                        response = httpClient.PostAsync(uri, byteContent).Result;
-                    }
-                    else
-                    {
-                        response = method.Equals("POST", StringComparison.OrdinalIgnoreCase)
-                            ? httpClient.PostAsync(uri, null).Result
-                            : httpClient.GetAsync(uri).Result;
-                    }
-
-                    var ms = new MemoryStream();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        Stream responseStream = response.Content.ReadAsStreamAsync().Result;
-                        responseStream.CopyTo(ms);
-                        responseStream.Dispose();
-                    }
-                    else
-                    {
-                        StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
-                    }
-
-                    return ms;
-                }
-
-            }
-        }
-
-        async Task<MemoryStream> SendAndReceivePostAsync(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
-        {
-            using (HttpClientHandler handler = new HttpClientHandler())
-            {
-                using (HttpClient httpClient = new HttpClient(handler))
-                {
-                    handler.UseCookies = true;
-                    handler.CookieContainer = new CookieContainer();
-                    httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-                    Uri baseAddress = new Uri(RemoteEndPoint);
-                    foreach (var item in GetHeaders())
-                    {
-                        if (item.Key == "Cookie")
-                        {
-                            string[] pairs = item.Value.Split(';');
-                            var keyValuePairs = pairs
-                                .Select(p => p.Split(new[] { '=' }, 2))
-                                .Where(kvp => kvp.Length == 2)
-                                .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
-                            foreach (var kvp in keyValuePairs)
-                            {
-                                handler.CookieContainer.Add(baseAddress, new Cookie(kvp.Key, kvp.Value));
-                            }
-                        }
-                        else
-                        {
-                            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                        }
-
-                    }
-                    if (!debug && method == "POST")
-                    {
-                        httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-                    }
-
-                    HttpContent byteContent = null;
-                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
-                    {
-                        if (debug)
-                        {
-                            compress = false;
-                            httpClient.DefaultRequestHeaders.Add("debug", "1");
-                        }
-                        var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        byte[] bytes = compress ? Zlib.Compress(inputDataBytes) : inputDataBytes;
-                        byteContent = new ByteArrayContent(bytes);
-                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                        if (compress)
-                        {
-                            byteContent.Headers.ContentEncoding.Add("deflate");
-                        }
-                    }
-
-                    HttpResponseMessage response;
-                    if (byteContent != null)
+                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase))
                     {
                         response = await httpClient.PostAsync(uri, byteContent);
                     }
                     else
                     {
-                        response = method.Equals("POST", StringComparison.OrdinalIgnoreCase)
-                            ? await httpClient.PostAsync(uri, null)
-                            : await httpClient.GetAsync(uri);
+                        response = await httpClient.GetAsync(uri);
                     }
 
-                    var ms = new MemoryStream();
                     if (response.IsSuccessStatusCode)
                     {
-                        Stream responseStream = await response.Content.ReadAsStreamAsync();
-                        responseStream.CopyTo(ms);
-                        responseStream.Dispose();
+                        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+                        if (Zlib.IsCompressed(bytes))
+                        {
+                            bytes = Zlib.Decompress(bytes);
+                        }
+
+                        return bytes;
                     }
                     else
                     {
                         StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
+                        return null;
                     }
-
-                    return ms;
                 }
 
             }
         }
 
-        public byte[] GetData(string url, bool hasHost = false)
+        public async Task<byte[]?> GetBundleData(string url, int timeout = 60000)
         {
-            using (var dataStream = SendAndReceive(url, "GET"))
-                return dataStream.ToArray();
+            return await asyncRequestFromPath(url, "GET", data: null, timeout);
         }
 
-        public byte[] GetBundleData(string url, int timeout = 300000)
+        public async Task<string> GetJsonAsync(string url)
         {
-            using (var dataStream = SendAndReceive(url, "GET", null, true, timeout))
-                return dataStream.ToArray();
+            var bytes = await asyncRequestFromPath(url, "GET");
+            return Encoding.UTF8.GetString(bytes);
         }
 
-        public void PutJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
+        public string GetJsonBLOCKING(string url)
         {
-            using (Stream stream = SendAndReceive(url, "PUT", data, compress, timeout, debug)) { }
+            return Task.Run(() => GetJsonAsync(url)).GetAwaiter().GetResult();
         }
 
-        //public string GetJson(string url, bool compress = true, int timeout = 9999)
-        //{
-        //    using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
-        //    {
-        //        if (stream == null)
-        //            return "";
-        //        var bytes = stream.ToArray();
-        //        var result = Zlib.Decompress(bytes);
-        //        bytes = null;
-        //        return result;
-        //    }
-        //}
-
-        public string GetJson(string url, bool compress = true, int timeout = 9999)
-        {
-            string result = null;
-            int attempts = 10;
-            while (result == null && attempts-- > 0)
-            {
-                using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
-                {
-                    if (stream == null)
-                        return "";
-                    var bytes = stream.ToArray();
-                    result = Zlib.Decompress(bytes);
-                    bytes = null;
-                }
-            }
-            return result;
-        }
-
-        public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
-        {
-            // people forget the /
-            if(!url.StartsWith("/"))
-                url = "/" + url;
-
-            using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
-            {
-                return ConvertStreamToString(compress, stream);
-            }
-        }
-
-        private static string ConvertStreamToString(bool compress, MemoryStream stream)
-        {
-            if (stream == null)
-                return "";
-
-            var bytes = stream.ToArray();
-            string resultString;
-
-            if (compress)
-            {
-                if (Zlib.IsCompressed(bytes))
-                    resultString = Zlib.Decompress(bytes);
-                else
-                    resultString = Encoding.UTF8.GetString(bytes);
-            }
-            else
-            {
-                resultString = Encoding.UTF8.GetString(bytes);
-            }
-
-            return resultString;
-        }
-
-        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false, int retryAttempts = 5)
+        public async Task<string> PostJsonAsync(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = false)
         {
             int attempt = 0;
-            Task<MemoryStream> sendReceiveTask;
 
             while (attempt++ < retryAttempts)
             {
@@ -865,65 +643,46 @@ namespace StayInTarkov.Networking
                 {
                     // people forget the /
                     if (!url.StartsWith("/"))
-                        url = "/" + url;
-
-                    sendReceiveTask = SendAndReceiveAsync(url, "POST", data, compress, timeout, debug);
-                    using (MemoryStream stream = await sendReceiveTask)
                     {
-                        sendReceiveTask.Dispose();
-                        sendReceiveTask = null;
-                        return ConvertStreamToString(compress, stream);
+                        url = "/" + url;
                     }
+
+                    var bytes = await asyncRequestFromPath(url, "POST", data, timeout, debug);
+                    return Encoding.UTF8.GetString(bytes);
                 }
                 catch (Exception ex)
                 {
-#if DEBUG
-                    StayInTarkovHelperConstants.Logger.LogError($"could not perform request @ {url}");
-                    StayInTarkovHelperConstants.Logger.LogError(new System.Diagnostics.StackTrace());
-                    StayInTarkovHelperConstants.Logger.LogError(ex);
-#endif
+                    StayInTarkovHelperConstants.Logger.LogError($"could not perform request to {url}:\n{ex}");
                 }
                 await Task.Delay(1000);
             }
             throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
 
-        public void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
-        {
-            Task.Run(() => PostJson(url, data, compress, timeout, debug));
-        }
-
-
         /// <summary>
-        /// Retrieves data asyncronously and parses to the desired type
+        /// Retrieves data asyncronously and parses response JSON to the desired type
         /// </summary>
         /// <typeparam name="T">Desired type to Deserialize to</typeparam>
         /// <param name="url">URL to call</param>
         /// <param name="data">data to send</param>
         /// <returns></returns>
-        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = true)
+        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = false)
         {
-            int attempt = 0;
-            while (attempt++ < retryAttempts)
-            {
-                try
-                {
-                    var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug);
-                    return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
-                }
-                catch (Exception ex)
-                {
-                    StayInTarkovHelperConstants.Logger.LogError(ex);
-                }
-            }
-            throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
+            var rsp = await PostJsonAsync(url, data, timeout, retryAttempts, debug);
+            var obj = JsonConvert.DeserializeObject<T>(rsp);
+            return obj != null ? obj : throw new Exception($"unexpected null json object after parsing response from {url}: {rsp}");
+        }
+
+        internal string PostJsonBLOCKING(string url, string data, int timeout = DEFAULT_TIMEOUT_MS)
+        {
+            return Task.Run(() => PostJsonAsync(url, data, timeout)).GetAwaiter().GetResult();
         }
 
         public void Dispose()
         {
             ProfileId = null;
             RemoteEndPoint = null;
-            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated -= OnLatencyUpdated;
+            Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated -= OnLatencyUpdated;
         }
     }
 }

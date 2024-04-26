@@ -56,7 +56,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 
             // Create request and send to server, parse response
             var request = new RaidTimeRequest(____raidSettings.Side, currentMapId);
-            var json = AkiBackendCommunication.Instance.PostJson("/singleplayer/settings/getRaidTime", Json.Serialize(request));
+            var json = AkiBackendCommunication.Instance.PostJsonBLOCKING("/singleplayer/settings/getRaidTime", Json.Serialize(request));
             var serverResult = Json.Deserialize<RaidTimeResponse>(json);
 
             // Capture the changes that will be made to the raid so they can be easily accessed by modders

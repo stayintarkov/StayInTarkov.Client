@@ -6,6 +6,7 @@ using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using StayInTarkov.Networking;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Aki.Custom.Airdrops.Utils
@@ -60,9 +61,9 @@ namespace Aki.Custom.Airdrops.Utils
             }
         }
 
-        public AirdropLootResultModel GetLoot()
+        public async Task<AirdropLootResultModel> GetLoot()
         {
-            var json = AkiBackendCommunication.Instance.GetJson("/client/location/getAirdropLoot");
+            var json = await AkiBackendCommunication.Instance.GetJsonAsync("/client/location/getAirdropLoot");
             var result = JsonConvert.DeserializeObject<AirdropLootResultModel>(json);
 
             return result;

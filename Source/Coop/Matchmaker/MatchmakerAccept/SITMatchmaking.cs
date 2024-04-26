@@ -93,72 +93,6 @@ namespace StayInTarkov.Coop.Matchmaker
             timestamp = ts;
         }
 
-        public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
-        {
-            Logger.LogDebug(nameof(CheckForMatch));
-
-            errorMessage = ((string?)StayInTarkovPlugin.LanguageDictionary["NO-SERVER-MATCH"]) ?? "NO-SERVER-MATCH";
-            outJson = string.Empty;
-
-            if (SITMatchmaking.MatchMakerAcceptScreenInstance != null)
-            {
-                JObject settingsJSON = JObject.FromObject(settings);
-                settingsJSON.Add("password", password);
-
-                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settingsJSON));
-                Logger.LogInfo(outJson);
-
-                if (!string.IsNullOrEmpty(outJson))
-                {
-                    bool serverExists = false;
-                    if (outJson.Equals("null", StringComparison.OrdinalIgnoreCase))
-                    {
-                        serverExists = false;
-                    }
-                    else
-                    {
-                        var outJObject = JObject.Parse(outJson);
-
-                        if (outJObject.ContainsKey("passwordRequired"))
-                        {
-                            errorMessage = "passwordRequired";
-                            return false;
-                        }
-
-                        if (outJObject.ContainsKey("invalidPassword"))
-                        {
-                            errorMessage = (string?)StayInTarkovPlugin.LanguageDictionary["INVALID-PASSWORD"] ?? "INVALID-PASSWORD";
-                            return false;
-                        }
-
-                        if (outJObject.ContainsKey("gameVersion"))
-                        {
-                            if ((string?)JObject.Parse(outJson)["gameVersion"] != StayInTarkovPlugin.EFTVersionMajor)
-                            {
-                                errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-EFT"]} {StayInTarkovPlugin.EFTVersionMajor} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["gameVersion"]}";
-                                return false;
-                            }
-                        }
-
-                        if (outJObject.ContainsKey("sitVersion"))
-                        {
-                            if ((string?)JObject.Parse(outJson)["sitVersion"] != Assembly.GetExecutingAssembly().GetName().Version.ToString())
-                            {
-                                errorMessage = $"{StayInTarkovPlugin.LanguageDictionary["USE-A-DIFFERENT-VERSION-OF-SIT"]} {Assembly.GetExecutingAssembly().GetName().Version.ToString()} {StayInTarkovPlugin.LanguageDictionary["THAN-SERVER-RUNNING"]} {JObject.Parse(outJson)["sitVersion"]}";
-                                return false;
-                            }
-                        }
-
-                        serverExists = true;
-                    }
-                    Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
-
-                    return serverExists;
-                }
-            }
-            return false;
-        }
-
         public static bool TryJoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
         {
             errorMessage = (string?)StayInTarkovPlugin.LanguageDictionary["NO-SERVER-MATCH"] ?? "NO-SERVER-MATCH";
@@ -172,7 +106,7 @@ namespace StayInTarkov.Coop.Matchmaker
                 objectToSend.Add("serverId", serverId);
                 objectToSend.Add("password", password);
 
-                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/join", objectToSend.ToJson());
+                outJson = AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/join", objectToSend.ToJson());
                 Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
@@ -258,7 +192,8 @@ namespace StayInTarkov.Coop.Matchmaker
             Logger.LogDebug($"{objectToSend.ToJson()}");
 
             // KWJimWails: Set request timeout to 20 seconds, because the Streets of Tarkov need a long time to create loot infos.
-            string result = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(objectToSend), true, 20000);
+            string result = AkiBackendCommunication.Instance.PostJsonBLOCKING(
+                "/coop/server/create", JsonConvert.SerializeObject(objectToSend), timeout: 20000);
 
             if (string.IsNullOrEmpty(result))
             {

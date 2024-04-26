@@ -1,17 +1,14 @@
-﻿using Aki.Custom.Airdrops.Models;
-using EFT;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Networking;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
-using UnityEngine.Networking.Match;
-using UnityEngine.Profiling;
+using UnityEngine.UIElements.UIR.Implementation;
+using UnityEngine.VR;
+using UnityEngineInternal.XR.WSA;
 
 namespace StayInTarkov.Coop.Session
 {
@@ -51,20 +48,20 @@ namespace StayInTarkov.Coop.Session
                 , { "serverId", serverId }
             };
 
-            __result = Task.Run(() =>
+            var rsp = AkiBackendCommunication.Instance.PostJsonBLOCKING($"/coop/location/getLoot", JsonConvert.SerializeObject(objectToSend));
+            if (rsp == null)
             {
-                var result = AkiBackendCommunication.Instance.PostJson($"/coop/location/getLoot", JsonConvert.SerializeObject(objectToSend));
-                if (result != null)
-                {
-                    result.TrySITParseJson(out LocationDataRequest locationDataRequest);
-                    if (locationDataRequest != null)
-                        return locationDataRequest.Data;
-                }
-                return null;
-            });
+                return true;
+            }
 
-            // Protection. If the __result is null, then run the original method
-            return __result == null;
+            rsp.TrySITParseJson(out LocationDataRequest locationDataRequest);
+            if (locationDataRequest == null)
+            {
+                return true;
+            }
+
+            __result = Task.FromResult(locationDataRequest.Data);
+            return false;
         }
     }
 }
