@@ -378,6 +378,7 @@ namespace StayInTarkov
         private static void EnableSPPatches_Bots(BepInEx.Configuration.ConfigFile config)
         {
             new CoreDifficultyPatch().Enable();
+            new BossSpawnChancePatch().Enable();
             new BotDifficultyPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
             new BotSelfEnemyPatch().Enable();
