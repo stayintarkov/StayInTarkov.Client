@@ -52,7 +52,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu
                 if (template is AmmoTemplate bulletTemplate)
                 {
                     float absorbedDamage = (float)Math.Round(bulletTemplate.Damage - damageInfo.Damage);
-                    damageInfo.Player.iPlayer.Profile.EftStats.SessionCounters.AddFloat(absorbedDamage, ASessionCounterManager.CauseArmorDamage);
+                    damageInfo.Player.iPlayer.Profile.EftStats.SessionCounters.AddFloat(absorbedDamage, SessionCounterTypesAbstractClass.CauseArmorDamage);
                 }
             }
         }

@@ -7,7 +7,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
     {
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(ServerBotSettingsClass);
+            var desiredType = typeof(BotSettingsRepoClass);
             var desiredMethod = desiredType.GetMethod("IsHostileToEverybody", BindingFlags.Public | BindingFlags.Static);
 
             return desiredMethod;
@@ -16,7 +16,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         [PatchPrefix]
         private static bool PatchPrefix(WildSpawnType role, ref bool __result)
         {
-            if (role == WildSpawnType.sptUsec || role == WildSpawnType.sptBear)
+            if ((int)role == 49 || (int)role == 50)
             {
                 __result = true;
                 return false;

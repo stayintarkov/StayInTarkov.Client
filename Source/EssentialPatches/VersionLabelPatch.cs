@@ -89,6 +89,15 @@ namespace StayInTarkov.EssentialPatches
                 }
                 else
                     _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion} {(IsDevBuild ? "[DEV]" : "")}";
+
+
+                //StayInTarkovPlugin.Instance.OnGameLoaded.In
+                //if (StayInTarkovPlugin.Instance.OnGameLoaded != null)
+                //{
+
+                //}
+
+                StayInTarkovPlugin.Instance.LogLoadedPlugins();
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");

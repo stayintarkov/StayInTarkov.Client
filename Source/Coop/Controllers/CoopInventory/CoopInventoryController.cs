@@ -221,7 +221,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         public override void CallMalfunctionRepaired(Weapon weapon)
         {
             base.CallMalfunctionRepaired(weapon);
-            if (!Player.IsAI && (bool)Singleton<SettingsManager>.Instance.Game.Settings.MalfunctionVisability)
+            if (!Player.IsAI && (bool)Singleton<SharedGameSettingsClass>.Instance.Game.Settings.MalfunctionVisability)
             {
                 MonoBehaviourSingleton<PreloaderUI>.Instance.MalfunctionGlow.ShowGlow(BattleUIMalfunctionGlow.GlowType.Repaired, force: true, GetMalfunctionGlowAlphaMultiplier());
             }

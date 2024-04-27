@@ -23,7 +23,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.MainMenu
         {
             if (__instance.IsYourPlayer)
             {
-                __instance.Profile.EftStats.SessionCounters.AddLong(1L, ASessionCounterManager.AmmoUsed);
+                __instance.Profile.EftStats.SessionCounters.AddLong(1L, SessionCounterTypesAbstractClass.AmmoUsed);
             }
         }
     }

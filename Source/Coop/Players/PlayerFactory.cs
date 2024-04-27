@@ -84,8 +84,8 @@ namespace StayInTarkov.Coop.Players
                // Cant use ObservedPlayerMode, it causes the player to fall through the floor and die
                , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
                //, BackendConfigManager.Config.CharacterController.ClientPlayerMode
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseAimingSensitivity
                , FilterCustomizationClass.Default
                , null
                , isYourPlayer: false

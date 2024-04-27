@@ -39,7 +39,16 @@ namespace StayInTarkov.Networking
         void Update()
         {
             if (Singleton<ISITGame>.Instantiated)
-                SITGameComponent = (Singleton<ISITGame>.Instance as MonoBehaviour).GetComponent<SITGameComponent>();
+            {
+                if ((Singleton<ISITGame>.Instance as MonoBehaviour).TryGetComponent<SITGameComponent>(out var comp))
+                {
+                    SITGameComponent = comp;
+                }
+                else
+                {
+                    SITGameComponent = null;
+                }
+            }
         }
 
         public void ProcessFlatBuffer(byte[] data)

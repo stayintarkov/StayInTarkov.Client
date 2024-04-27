@@ -141,7 +141,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Inventory
                     if (descriptor is MoveOperationDescriptor moveOperationDescriptor)
                     {
                         var address = pic.ToItemAddress(moveOperationDescriptor.From);
-                        ItemMovementHandler.Add(knownItem, address, pic);
+                        InteractionsHandlerClass.Add(knownItem, address, pic);
                     }
                 }
             }

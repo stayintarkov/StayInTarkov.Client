@@ -991,20 +991,20 @@ namespace StayInTarkov.Networking
             }
         }
 
-        //public struct ItemMovementHandlerMovePacket
+        //public struct InteractionsHandlerClassMovePacket
         //{
         //    public string ItemId { get; set; }
         //    public AbstractDescriptor Descriptor { get; set; }
-        //    public static ItemMovementHandlerMovePacket Deserialize(NetDataReader reader)
+        //    public static InteractionsHandlerClassMovePacket Deserialize(NetDataReader reader)
         //    {
         //        GClass1035 polyReader = new(reader.RawData);
-        //        return new ItemMovementHandlerMovePacket()
+        //        return new InteractionsHandlerClassMovePacket()
         //        {
         //            ItemId = polyReader.ReadString(),
         //            Descriptor = polyReader.ReadPolymorph<AbstractDescriptor>()
         //        };
         //    }
-        //    public static void Serialize(NetDataWriter writer, ItemMovementHandlerMovePacket packet)
+        //    public static void Serialize(NetDataWriter writer, InteractionsHandlerClassMovePacket packet)
         //    {
         //        GClass1040 polyWriter = new();
         //        polyWriter.WriteString(packet.ItemId);

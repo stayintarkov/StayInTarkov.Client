@@ -43,7 +43,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix
             }
 
             var inventoryController = Traverse.Create(player).Field<InventoryControllerClass>("_inventoryController").Value;
-            ItemMovementHandler.Remove(accessCardItem, inventoryController, false, true);
+            InteractionsHandlerClass.Remove(accessCardItem, inventoryController, false, true);
         }
     }
 }

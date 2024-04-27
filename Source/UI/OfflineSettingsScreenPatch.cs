@@ -23,7 +23,7 @@ namespace StayInTarkov.UI
         [PatchPrefix]
         public static bool Prefix(
             MatchmakerOfflineRaidScreen __instance
-            , ProfileInfo profileInfo
+            , InfoClass profileInfo
             , RaidSettings raidSettings
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton
@@ -53,7 +53,7 @@ namespace StayInTarkov.UI
         [PatchPostfix]
         public static void PatchPostfix(
            MatchmakerOfflineRaidScreen __instance
-            , ProfileInfo profileInfo
+            , InfoClass profileInfo
             , RaidSettings raidSettings
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton
@@ -86,7 +86,7 @@ namespace StayInTarkov.UI
 
         public static void RemoveBlockers(
             MatchmakerOfflineRaidScreen __instance
-            , ProfileInfo profileInfo
+            , InfoClass profileInfo
             , RaidSettings raidSettings
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton

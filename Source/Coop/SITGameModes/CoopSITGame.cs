@@ -46,8 +46,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
-using UnityEngine.Profiling;
-using static LocationScene;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
@@ -176,7 +174,7 @@ namespace StayInTarkov.Coop.SITGameModes
             coopGame.wavesSpawnScenario_0 = WavesSpawnScenario.smethod_0(
                     coopGame.gameObject
                     , waves
-                    , new Action<BotSpawnWave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
+                    , new Action<BotWaveDataClass>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
                     , location);
 
             // ---------------------------------------------------------------------------------
@@ -215,6 +213,8 @@ namespace StayInTarkov.Coop.SITGameModes
         void OnDestroy()
         {
             Logger.LogDebug("OnDestroy()");
+
+            Comfort.Common.Singleton<ISITGame>.TryRelease(this);   
         }
 
         public void CreateCoopGameComponent()
@@ -612,7 +612,7 @@ namespace StayInTarkov.Coop.SITGameModes
         //public async Task<LocalPlayer> CreatePhysicalPlayer(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
         //{
         //    profile.SetSpawnedInSession(value: false);
-        //    return await LocalPlayer.Create(playerId, position, rotation, "Player", "", EPointOfView.FirstPerson, profile, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), new FilterCustomizationClass(), questController, isYourPlayer: true);
+        //    return await LocalPlayer.Create(playerId, position, rotation, "Player", "", EPointOfView.FirstPerson, profile, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), new FilterCustomizationClass(), questController, isYourPlayer: true);
         //}
 
         public string InfiltrationPoint;
@@ -758,8 +758,8 @@ namespace StayInTarkov.Coop.SITGameModes
                , armsUpdateMode
                , EFT.Player.EUpdateMode.Auto
                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseAimingSensitivity
                , new FilterCustomizationClass()
                , null // Let the CoopPlayer Create handle this
                , null // Let the CoopPlayer Create handle this
@@ -1574,8 +1574,8 @@ namespace StayInTarkov.Coop.SITGameModes
                 dictionary_0.Add(player.ProfileId, player);
                 gparam_0 = func_1(player);
                 PlayerCameraController.Create(gparam_0.Player);
-                FPSCamera.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
-                FPSCamera.Instance.IsActive = false;
+                CameraClass.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
+                CameraClass.Instance.IsActive = false;
 
             await SpawnLoot(location);
             await WaitForPlayersToSpawn();
@@ -1600,7 +1600,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             using (TokenStarter.StartWithToken("SpawnLoot"))
             {
-                Item[] source = location.Loot.Select((GLootItem x) => x.Item).ToArray();
+                Item[] source = location.Loot.Select((LootItemPositionClass x) => x.Item).ToArray();
                 ResourceKey[] array = source.OfType<ContainerCollection>().GetAllItemsFromCollections().Concat(source.Where((Item x) => !(x is ContainerCollection))).SelectMany((Item x) => x.Template.AllResources)
                     .ToArray();
                 if (array.Length != 0)
@@ -1644,7 +1644,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             int playerId = 1;
             EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
-            LocalPlayer obj = await vmethod_2(playerId, Vector3.zero, Quaternion.identity, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, null, null, null);
+            LocalPlayer obj = await vmethod_2(playerId, Vector3.zero, Quaternion.identity, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseAimingSensitivity, null, null, null);
             obj.Location = Location_0.Id;
             obj.OnEpInteraction += base.OnEpInteraction;
             return obj;

@@ -53,7 +53,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Proceed
         {
             if (ItemFinder.TryFindItem(ItemId, out var item) && item is GrenadeClass grenade)
             {
-                client.Proceed(grenade, (Comfort.Common.Result<IThrowableCallback> x) => { }, Scheduled);
+                client.Proceed(grenade, (Comfort.Common.Result<IHandsThrowController> x) => { }, Scheduled);
             }
         }
     }

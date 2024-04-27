@@ -42,7 +42,7 @@ namespace StayInTarkov.Coop.FreeCamera
         public void Start()
         {
             // Find Main Camera
-            CameraMain = FPSCamera.Instance.Camera;
+            CameraMain = CameraClass.Instance.Camera;
             if (CameraMain == null)
             {
                 return;
@@ -110,13 +110,13 @@ namespace StayInTarkov.Coop.FreeCamera
                 {
                     DeadTime = -1;
 
-                    var fpsCamInstance = FPSCamera.Instance;
+                    var fpsCamInstance = CameraClass.Instance;
                     if (fpsCamInstance == null)
                         return;
 
                     // Reset FOV after died
                     if (fpsCamInstance.Camera != null)
-                        fpsCamInstance.Camera.fieldOfView = Singleton<SettingsManager>.Instance.Game.Settings.FieldOfView;
+                        fpsCamInstance.Camera.fieldOfView = Singleton<SharedGameSettingsClass>.Instance.Game.Settings.FieldOfView;
 
                     var effectsController = fpsCamInstance.EffectsController;
                     if (effectsController == null)
@@ -254,7 +254,7 @@ namespace StayInTarkov.Coop.FreeCamera
             _gamePlayerOwner.enabled = true;
 
             localPlayer.PointOfView = EPointOfView.FirstPerson;
-            FPSCamera.Instance.SetOcclusionCullingEnabled(true);
+            CameraClass.Instance.SetOcclusionCullingEnabled(true);
 
         }
 

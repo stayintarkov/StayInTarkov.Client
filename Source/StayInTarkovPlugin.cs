@@ -28,7 +28,8 @@ using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
 using StayInTarkov.Tools;
-using StayInTarkov.AI;
+using BepInEx.Logging;
+//using StayInTarkov.AI;
 
 
 namespace StayInTarkov
@@ -82,6 +83,9 @@ namespace StayInTarkov
                 : "Illegal game found. Please buy, install and launch the game once.";
 
 
+        public delegate void OnGameLoadedHandler(object sender, EventArgs e);
+        public event OnGameLoadedHandler OnGameLoaded;
+
         void Awake()
         {
             Instance = this;
@@ -113,6 +117,26 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
+        public void LogLoadedPlugins()
+        {
+            Logger.LogInfo(nameof(LogLoadedPlugins));
+            foreach (var plugin in Chainloader.PluginInfos)
+            {
+                Logger.LogInfo(plugin.Key);
+                Logger.LogInfo(plugin.Value.Metadata.Name);
+            }
+        }
+        public bool IsAkiCoreLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.core");
+        }
+
+        public bool IsAkiSinglePlayerLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.singleplayer");
+        }
+
+    
 
         private void EnableBundlePatches()
         {
@@ -251,11 +275,11 @@ namespace StayInTarkov
                     {
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
                         var majorN2 = EFTVersionMajor.Split('.')[1]; // 14
-                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 5
-                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 6
+                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 1
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 2
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "5" || majorN4 != "6")
+                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "1" || majorN4 != "2")
                         {
                             Logger.LogError(
                                 "Version Check: This version of SIT is not designed to work with this version of EFT.");
@@ -389,7 +413,7 @@ namespace StayInTarkov
             new IsEnemyPatch().Enable();
 
 
-            new BlockerErrorFixPatch().Enable();    
+            //new BlockerErrorFixPatch().Enable();    
         }
 
         private void EnableCoopPatches()
