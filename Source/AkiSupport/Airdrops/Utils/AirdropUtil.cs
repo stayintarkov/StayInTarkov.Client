@@ -8,6 +8,7 @@ using StayInTarkov.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -15,9 +16,9 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
 {
     public static class AirdropUtil
     {
-        public static AirdropConfigModel GetConfigFromServer()
+        public static async Task<AirdropConfigModel> GetConfigFromServer()
         {
-            string json = AkiBackendCommunication.Instance.GetJson("/singleplayer/airdrop/config");
+            string json = await AkiBackendCommunication.Instance.GetJsonAsync("/singleplayer/airdrop/config");
             return JsonConvert.DeserializeObject<AirdropConfigModel>(json);
         }
 
@@ -79,9 +80,9 @@ namespace StayInTarkov.AkiSupport.Airdrops.Utils
             return airdropPoints.Count > 0 && Random.Range(0, 100) <= dropChance;
         }
 
-        public static AirdropParametersModel InitAirdropParams(GameWorld gameWorld, bool isFlare)
+        public static async Task<AirdropParametersModel> InitAirdropParams(GameWorld gameWorld, bool isFlare)
         {
-            var serverConfig = GetConfigFromServer();
+            var serverConfig = await GetConfigFromServer();
             if (serverConfig == null)
                 return new AirdropParametersModel() { Config = serverConfig, AirdropAvailable = false };
 

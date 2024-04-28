@@ -28,8 +28,9 @@ using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
 using StayInTarkov.Tools;
-using StayInTarkov.AI;
-
+using System.Threading.Tasks;
+using System.Reflection;
+using HarmonyLib;
 
 namespace StayInTarkov
 {
@@ -40,6 +41,12 @@ namespace StayInTarkov
     /// </summary>
     [BepInPlugin("com.stayintarkov", "StayInTarkov", "1.11")]
     [BepInProcess("EscapeFromTarkov.exe")]
+    // Ensure nobody tries to load this module with Fika
+    [BepInIncompatibility("com.fika.core")]
+    // Ensure nobody tries to load this module with Aki Custom
+    //[BepInDependency("com.spt-aki.core", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("com.spt-aki.singleplayer", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("com.spt-aki.custom", BepInDependency.DependencyFlags.SoftDependency)]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
         /// <summary>
@@ -82,7 +89,10 @@ namespace StayInTarkov
                 : "Illegal game found. Please buy, install and launch the game once.";
 
 
-        void Awake()
+        public delegate void OnGameLoadedHandler(object sender, EventArgs e);
+        public event OnGameLoadedHandler OnGameLoaded;
+
+        async Task Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
@@ -90,13 +100,14 @@ namespace StayInTarkov
 
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
+            OnGameLoaded += StayInTarkovPlugin_OnGameLoaded;
             StartCoroutine(VersionChecks());
 
             ReadInLanguageDictionary();
 
             EnableCorePatches();
 
-            EnableBundlePatches();
+            await EnableBundlePatches();
 
             EnableSPPatches();
 
@@ -113,12 +124,134 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
+        private void StayInTarkovPlugin_OnGameLoaded(object sender, EventArgs e)
+        {
+            // Log the list
+            LogLoadedPlugins();
 
-        private void EnableBundlePatches()
+            // Apply actions dependant on the list
+            //DisableAkiSingleplayer();
+            //DisableAkiCustom();
+        }
+
+        private void DisableAkiSingleplayer()
+        {
+            if (Chainloader.PluginInfos.Any(x => x.Key == "com.spt-aki.singleplayer"))
+            {
+                Logger.LogInfo($"AkiSingleplayerPlugin detected. Removing.");
+
+                var akiPlugin = Chainloader.ManagerObject.GetComponent("AkiSingleplayerPlugin");
+                if (akiPlugin == null)
+                {
+                    Logger.LogError($"Unable to find Singleplayer");
+                    return;
+                }
+
+                var akiPluginType = akiPlugin.GetType();
+                if (akiPluginType == null)
+                    return;
+
+                var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
+                    .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch").ToArray();
+
+                var modulePatchType = akiPluginModulePatchTypes[0].BaseType;
+                if (modulePatchType == null)
+                {
+                    Logger.LogError($"Unable to find modulePatchType");
+                    return;
+                }
+
+                var _harmony = ReflectionHelpers.GetFieldFromTypeByFieldType(modulePatchType, typeof(Harmony));
+                if (_harmony == null)
+                {
+                    Logger.LogError($"Unable to find _harmony");
+                    return;
+                }
+
+
+                //Harmony.UnpatchID(akiPluginModulePatchTypes.First(x => x.FullName == "Aki.SinglePlayer.Patches.Progression.OfflineSaveProfilePatch").Name);
+                //foreach(var akiPluginModulePatch in akiPluginModulePatchTypes)
+                //{
+                //    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
+                //    Harmony.UnpatchID(akiPluginModulePatch.Name);
+                //}
+
+
+                GameObject.Destroy(akiPlugin);
+                Logger.LogInfo($"AkiSingleplayerPlugin Removed.");
+
+            }
+        }
+
+        /// <summary>
+        /// Detect and Disable Aki Custom Plugin
+        /// </summary>
+        private void DisableAkiCustom()
+        {
+            if(Chainloader.PluginInfos.Any(x=>x.Key == "com.spt-aki.custom"))
+            {
+                Logger.LogInfo($"Aki Custom detected. Removing.");
+
+                var akiPlugin = Chainloader.ManagerObject.GetComponent("AkiCustomPlugin");
+                if (akiPlugin == null)
+                {
+                    Logger.LogError($"Unable to find AkiCustomPlugin");
+                }
+
+                var akiPluginType = akiPlugin.GetType();
+
+                var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
+                    .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch");
+
+                GameObject.Destroy(akiPlugin);
+                Logger.LogInfo($"Aki Custom Removed.");
+
+                foreach (var akiPluginModulePatch in akiPluginModulePatchTypes)
+                {
+                    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
+                    Harmony.UnpatchID(akiPluginModulePatch.Name);
+                }
+
+                Logger.LogInfo(StayInTarkovPlugin.EFTVersionMajor);
+
+                VersionNumberClass.Current.Major = StayInTarkovPlugin.EFTVersionMajor;
+                VersionLabelPatch.DisplaySITVersionLabel(StayInTarkovPlugin.EFTVersionMajor, null);
+            }
+        }
+
+        public void LogLoadedPlugins()
+        {
+#if DEBUG
+            Logger.LogDebug(nameof(LogLoadedPlugins));
+#endif
+
+            Logger.LogDebug($"Plugin's loaded:");
+
+            foreach (var plugin in Chainloader.PluginInfos)
+            {
+                Logger.LogDebug($"- {plugin.Key} {plugin.Value.Metadata.Name}");
+            }
+        }
+        public bool IsAkiCoreLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.core");
+        }
+
+        public bool IsAkiSinglePlayerLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.singleplayer");
+        }
+
+        public bool IsAkiCustomLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.custom");
+        }
+
+        private async Task EnableBundlePatches()
         {
             try
             {
-                BundleManager.GetBundles();
+                await BundleManager.GetBundles();
                 new EasyAssetsPatch().Enable();
                 new EasyBundlePatch().Enable();
             }
@@ -251,11 +384,11 @@ namespace StayInTarkov
                     {
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
                         var majorN2 = EFTVersionMajor.Split('.')[1]; // 14
-                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 5
-                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 6
+                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 1
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 2
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "5" || majorN4 != "6")
+                        if (majorN1 != "0" || majorN2 != "14" || majorN3 != "1" || majorN4 != "2")
                         {
                             Logger.LogError(
                                 "Version Check: This version of SIT is not designed to work with this version of EFT.");
@@ -265,6 +398,8 @@ namespace StayInTarkov
                             Logger.LogInfo("Version Check: OK.");
                         }
                     }
+
+                    this.OnGameLoaded?.Invoke(this, null);
 
                     break;
                 }
@@ -389,7 +524,7 @@ namespace StayInTarkov
             new IsEnemyPatch().Enable();
 
 
-            new BlockerErrorFixPatch().Enable();    
+            //new BlockerErrorFixPatch().Enable();    
         }
 
         private void EnableCoopPatches()

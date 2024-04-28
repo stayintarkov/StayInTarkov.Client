@@ -34,7 +34,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                 TimeAndWeatherPacket packet = new TimeAndWeatherPacket();
 
-                var sitGame = Singleton<ISITGame>.Instance as BaseLocalGame<EftGamePlayerOwner>;
+                var sitGame = Singleton<ISITGame>.Instance as BaseLocalGame<GamePlayerOwner>;
 
                 if (sitGame.GameDateTime != null)
                     packet.GameDateTime = sitGame.GameDateTime.Calculate().Ticks;

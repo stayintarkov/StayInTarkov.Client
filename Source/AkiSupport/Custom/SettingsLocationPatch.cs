@@ -20,10 +20,10 @@ namespace StayInTarkov.AkiSupport.Custom
                 Directory.CreateDirectory(_sptPath);
 
             // Screenshot
-            FieldInfo DocumentsSettings = ReflectionHelpers.GetFieldFromType(typeof(SettingsManager), "string_0");
+            FieldInfo DocumentsSettings = ReflectionHelpers.GetFieldFromType(typeof(SharedGameSettingsClass), "string_0");
 
             // Game Settings
-            FieldInfo ApplicationDataSettings = ReflectionHelpers.GetFieldFromType(typeof(SettingsManager), "string_1");
+            FieldInfo ApplicationDataSettings = ReflectionHelpers.GetFieldFromType(typeof(SharedGameSettingsClass), "string_1");
 
             // They are 'static' variables, not needed to give a instance.
             DocumentsSettings.SetValue(null, _sptPath);

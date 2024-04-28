@@ -150,14 +150,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public static string GetServerId()
         {
-            var coopGC = GetCoopGameComponent();
-            if (coopGC == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogError($"Attempted to use {nameof(GetServerId)} before {nameof(SITGameComponent)} has been created.");
-                return null;
-            }
-
-            return coopGC.ServerId;
+            return SITMatchmaking.GetGroupId();
         }
         #endregion
 
@@ -521,7 +514,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
 
                     // Add players who have joined to the AI Enemy Lists
-                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<EftGamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
                     if (botController != null)
                     {
                         while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
@@ -1404,8 +1397,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                // Cant use ObservedPlayerMode, it causes the player to fall through the floor and die
                , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
                //, BackendConfigManager.Config.CharacterController.ClientPlayerMode
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseSensitivity
+               , () => Singleton<SharedGameSettingsClass>.Instance.Control.Settings.MouseAimingSensitivity
                , FilterCustomizationClass.Default
                , null
                , isYourPlayer: false
@@ -1559,7 +1552,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public float LocalTime => 0;
 
-        public BaseLocalGame<EftGamePlayerOwner> LocalGameInstance { get; internal set; }
+        public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }

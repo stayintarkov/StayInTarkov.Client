@@ -191,7 +191,7 @@ namespace StayInTarkov.Coop.Components
         {
             JObject jsonObj = new JObject();
             jsonObj.Add("serverId", AkiBackendCommunication.Instance.ProfileId);
-            AkiBackendCommunication.Instance.PostJson("/coop/server/delete", jsonObj.ToString());
+            AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/delete", jsonObj.ToString());
         }
 
         //private void DrawIPAddresses()
@@ -358,7 +358,7 @@ namespace StayInTarkov.Coop.Components
             {
                 while (!StopAllTasks)
                 {
-                    var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000, debug: false);
+                    var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000);
                     if (result != null)
                     {
                         m_Matches = result;
@@ -790,7 +790,6 @@ namespace StayInTarkov.Coop.Components
             joinPacket.Add("serverId", SITMatchmaking.Profile.ProfileId);
             joinPacket.Add("m", "JoinMatch");
             AkiBackendCommunication.Instance.PostDownWebSocketImmediately(joinPacket.SITToJson());
-            //AkiBackendCommunication.Instance.PostJson("coop/server/update", joinPacket.SITToJson());
 
             DestroyThis();
         }

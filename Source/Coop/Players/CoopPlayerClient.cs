@@ -189,10 +189,10 @@ namespace StayInTarkov.Coop.Players
         {
             base.FixedUpdate();
 
-            if (FPSCamera.Instance == null)
+            if (CameraClass.Instance == null)
                 return;
 
-            var mainCamera = FPSCamera.Instance.Camera;
+            var mainCamera = CameraClass.Instance.Camera;
             if (mainCamera == null)
             {
                 return;
@@ -388,10 +388,9 @@ namespace StayInTarkov.Coop.Players
         {
         }
 
-        public override void OnWeaponMastered(MasterSkill masterSkill)
+        public override void OnWeaponMastered(MasterSkillClass masterSkill)
         {
         }
-
 
         public override void StartInflictSelfDamageCoroutine()
         {
@@ -502,17 +501,16 @@ namespace StayInTarkov.Coop.Players
             }, callback, scheduled);
         }
 
-        public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
+        public override void Proceed(GrenadeClass throwWeap, Callback<IHandsThrowController> callback, bool scheduled = true)
         {
             Func<GrenadeController> controllerFactory = () => GrenadeController.smethod_8<GrenadeController>(this, throwWeap);
-            new Process<GrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
+            new Process<GrenadeController, IHandsThrowController>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
         }
 
-
-        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
+        public override void Proceed(bool withNetwork, Callback<IGIController> callback, bool scheduled = true)
         {
             Func<EmptyHandsController> controllerFactory = () => EmptyHandsController.smethod_5<EmptyHandsController>(this);
-            new Process<EmptyHandsController, IGIController1>(this, controllerFactory, null).method_0(null, callback, scheduled);
+            new Process<EmptyHandsController, IGIController>(this, controllerFactory, null).method_0(null, callback, scheduled); base.Proceed(withNetwork, callback, scheduled);
         }
 
 

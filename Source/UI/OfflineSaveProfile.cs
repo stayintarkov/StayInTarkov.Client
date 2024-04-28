@@ -1,4 +1,6 @@
-﻿using Comfort.Common;
+﻿using BepInEx;
+using BepInEx.Bootstrap;
+using Comfort.Common;
 using EFT;
 using StayInTarkov.AkiSupport.Singleplayer.Models.Healing;
 using StayInTarkov.Coop.Components.CoopGameComponents;
@@ -44,15 +46,35 @@ namespace StayInTarkov.UI
             return GetMethod();
         }
 
+        private static ISession _backEndSession;
+        public static ISession BackEndSession
+        {
+            get
+            {
+                if (_backEndSession == null)
+                {
+                    _backEndSession = Singleton<ClientApplication<ISession>>.Instance.GetClientBackEndSession();
+                }
+
+                return _backEndSession;
+            }
+        }
+
         [PatchPrefix]
         public static bool PatchPrefix(string profileId, RaidSettings ____raidSettings, TarkovApplication __instance, Result<ExitStatus, TimeSpan, object> result)
         {
-            Logger.LogInfo("Saving Profile...");
+            if (StayInTarkovPlugin.Instance.IsAkiSinglePlayerLoaded())
+            {
+                Logger.LogDebug("SIT: Detected Aki SP Module. Ignoring SIT's Save Profile Method.");
+                return true;
+            }
+
+            Logger.LogInfo("SIT: Saving Profile...");
 
             // Get scav or pmc profile based on IsScav value
             var profile = ____raidSettings.IsScav
-                ? __instance.GetClientBackEndSession().ProfileOfPet
-                : __instance.GetClientBackEndSession().Profile;
+                ? BackEndSession.ProfileOfPet
+                : BackEndSession.Profile;
 
             var currentHealth = HealthListener.Instance.CurrentHealth;
 
@@ -71,13 +93,6 @@ namespace StayInTarkov.UI
 
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
 
-
-            var coopGC = SITGameComponent.GetCoopGameComponent();
-            if (coopGC != null)
-            {
-                UnityEngine.Object.Destroy(coopGC);
-            }
-
             HealthListener.Instance.MyHealthController = null;
             return true;
         }
@@ -88,18 +103,6 @@ namespace StayInTarkov.UI
             if (exitStatus == ExitStatus.Left)
                 exitStatus = ExitStatus.Runner;
 
-            // TODO: Remove uneccessary data
-            //var clonedProfile = profileData.Clone();
-            //clonedProfile.Encyclopedia = null;
-            //clonedProfile.Hideout = null;
-            //clonedProfile.Notes = null;
-            //clonedProfile.RagfairInfo = null;
-            //clonedProfile.Skills = null;
-            //clonedProfile.TradersInfo = null;
-            //clonedProfile.QuestsData = null;
-            //clonedProfile.UnlockedRecipeInfo = null;
-            //clonedProfile.WishList = null;
-
             SaveProfileRequest request = new()
             {
                 exit = exitStatus.ToString().ToLower(),
@@ -109,13 +112,7 @@ namespace StayInTarkov.UI
             };
 
             var convertedJson = request.SITToJson();
-            //Logger.LogDebug("SaveProfileProgress =====================================================");
-            //Logger.LogDebug(convertedJson);
-            AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson);
-            //_ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, timeout: 10 * 1000, debug: false);
-
-
-            //Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
+            AkiBackendCommunication.Instance.PostJsonBLOCKING("/raid/profile/save", convertedJson);
         }
 
         public class SaveProfileRequest
@@ -123,7 +120,7 @@ namespace StayInTarkov.UI
             public string exit { get; set; }
             public Profile profile { get; set; }
             public bool isPlayerScav { get; set; }
-            public object health { get; set; }
+            public PlayerHealth health { get; set; }
         }
     }
 }

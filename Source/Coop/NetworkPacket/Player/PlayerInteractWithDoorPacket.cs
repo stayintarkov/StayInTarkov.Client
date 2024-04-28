@@ -79,7 +79,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                         if (ProcessJson.ContainsKey("keyParentGrid"))
                         {
                             ItemAddress itemAddress = itemController.ToGridItemAddress(ProcessJson["keyParentGrid"].ToString().SITParseJson<GridItemAddressDescriptor>());
-                            discardResult = new DiscardResult(new RemoveResult(item, itemAddress, itemController, new ResizeResult(item, itemAddress, ItemMovementHandler.ResizeAction.Addition, null, null), null, false), null, null, null);
+                            discardResult = new DiscardResult(new RemoveResult(item, itemAddress, itemController, new ResizeResult(item, itemAddress, InteractionsHandlerClass.ResizeAction.Addition, null, null), null, false), null, null, null);
                         }
 
                         keyInteractionResult = new KeyInteractionResult(keyComponent, discardResult, bool.Parse(ProcessJson["succeed"].ToString()));

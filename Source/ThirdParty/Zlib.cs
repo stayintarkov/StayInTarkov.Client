@@ -1,7 +1,6 @@
 using ComponentAce.Compression.Libs.zlib;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StayInTarkov.ThirdParty
 {
@@ -22,83 +21,72 @@ namespace StayInTarkov.ThirdParty
     /// </summary>
     public static class Zlib
     {
-        // Level | CM/CI FLG
-        // ----- | ---------
-        // 1     | 78 01
-        // 2     | 78 5E
-        // 3     | 78 5E
-        // 4     | 78 5E
-        // 5     | 78 5E
-        // 6     | 78 9C
-        // 7     | 78 DA
-        // 8     | 78 DA
-        // 9     | 78 DA
-
         /// <summary>
         /// Check if the file is ZLib compressed
         /// </summary>
-        /// <param name="Data">Data</param>
+        /// <param name="data">Data</param>
         /// <returns>If the file is Zlib compressed</returns>
-        public static bool IsCompressed(byte[] Data)
+        public static bool IsCompressed(byte[] data)
         {
-            // We need the first two bytes;
-            // First byte:  Info (CM/CINFO) Header, should always be 0x78
-            // Second byte: Flags (FLG) Header, should define our compression level.
-
-            if (Data == null || Data.Length < 3 || Data[0] != 0x78)
+            if (data == null || data.Length < 3)
             {
                 return false;
             }
 
-            switch (Data[1])
+            // data[0]: Info (CM/CINFO) Header; must be 0x78
+            if (data[0] != 0x78)
             {
-                case 0x01:  // fastest
-                case 0x5E:  // low
-                case 0x9C:  // normal
-                case 0xDA:  // max
+                return false;
+            }
+
+            // data[1]: Flags (FLG) Header; compression level.
+            switch (data[1])
+            {
+                case 0x01:  // [0x78 0x01] level 0-2: fastest
+                case 0x5E:  // [0x78 0x5E] level 3-4: low
+                case 0x9C:  // [0x78 0x9C] level 5-6: normal
+                case 0xDA:  // [0x78 0xDA] level 7-9: max
                     return true;
             }
 
             return false;
         }
 
+        private static byte[] Run(byte[] data, ZlibCompression level)
+        {
+            // ZOutputStream.Close() flushes itself.
+            // ZOutputStream.Flush() flushes the target stream.
+            // It's fucking stupid, but whatever.
+            // -- Waffle.Lord, 2022-12-01
+
+            using (var ms = new MemoryStream())
+            {
+                using (var zs = (level > ZlibCompression.Store)
+                    ? new ZOutputStream(ms, (int)level)
+                    : new ZOutputStream(ms))
+                {
+                    zs.Write(data, 0, data.Length);
+                }
+                // <-- zs flushes everything here
+
+                return ms.ToArray();
+            }
+        }
+
         /// <summary>
         /// Deflate data.
         /// </summary>
-
-        public static byte[] Compress(byte[] data, ZlibCompression level = ZlibCompression.Normal)
+        public static byte[] Compress(byte[] data, ZlibCompression level)
         {
-            return SimpleZlib.CompressToBytes(Encoding.UTF8.GetString(data), 6, Encoding.UTF8);
+            return Run(data, level);
         }
-
-        //public static byte[] Compress(byte[] data, ZlibCompression level = ZlibCompression.Normal)
-        //{
-        //    var ms = new MemoryStream();
-        //    using (var zs = (level > ZlibCompression.Store)
-        //            ? new ZOutputStream(ms, (int)level)
-        //            : new ZOutputStream(ms))
-        //        {
-        //            zs.Write(data, 0, data.Length);
-        //        }
-
-        //    var result = ms.ToArray();
-        //    ms.Close();
-        //    ms.Dispose();
-        //    ms = null;
-        //    return result;
-        //}
 
         /// <summary>
         /// Inflate data.
         /// </summary>
-        public static string Decompress(byte[] data)
+        public static byte[] Decompress(byte[] data)
         {
-            return SimpleZlib.Decompress(data);
-        }
-
-        public static byte[] DecompressToBytes(byte[] data)
-        {
-            return SimpleZlib.DecompressToBytes(data);
+            return Run(data, ZlibCompression.Store);
         }
     }
 }

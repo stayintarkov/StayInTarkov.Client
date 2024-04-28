@@ -359,7 +359,7 @@ namespace StayInTarkov.Coop.Players
                 }
 
                 ProceduralWeaponAnimation.ForceReact.AddForce(Mathf.Sqrt(absorbedDamage) / 10, handsShake, cameraShake);
-                if (FPSCamera.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
+                if (CameraClass.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
                 {
                     fastBlur.enabled = true;
                     fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3);
@@ -454,7 +454,7 @@ namespace StayInTarkov.Coop.Players
             //GameClient.SendData(sayPacket.Serialize());
         }
 
-        public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, Speaker speaker)
+        public override void OnPhraseTold(EPhraseTrigger @event, TaggedClip clip, TagBank bank, PhraseSpeakerClass speaker)
         {
             base.OnPhraseTold(@event, clip, bank, speaker);
 
@@ -567,7 +567,7 @@ namespace StayInTarkov.Coop.Players
         private Vector2 LastRotationSent = Vector2.zero;
         private readonly Dictionary<string, float> PendingArmorUpdates = [];
 
-        public override void Proceed(bool withNetwork, Callback<IGIController1> callback, bool scheduled = true)
+        public override void Proceed(bool withNetwork, Callback<IGIController> callback, bool scheduled = true)
         {
             // Protection
             if (this is CoopPlayerClient)
@@ -660,19 +660,20 @@ namespace StayInTarkov.Coop.Players
 
         }
 
-        public override void Proceed(GrenadeClass throwWeap, Callback<IGrenadeQuickUseController> callback, bool scheduled = true)
+        
+        public override void Proceed(GrenadeClass throwWeap, Callback<IGrenadeController> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IGrenadeQuickUseController");
             base.Proceed(throwWeap, callback, scheduled);
         }
 
-        public override void Proceed(GrenadeClass throwWeap, Callback<IThrowableCallback> callback, bool scheduled = true)
+        public override void Proceed(GrenadeClass throwWeap, Callback<IHandsThrowController> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IThrowableCallback");
             //base.Proceed(throwWeap, callback, scheduled);
 
             Func<SITGrenadeController> controllerFactory = () => GrenadeController.smethod_8<SITGrenadeController>(this, throwWeap);
-            new Process<SITGrenadeController, IThrowableCallback>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
+            new Process<SITGrenadeController, IHandsThrowController>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
 
             PlayerProceedGrenadePacket packet = new PlayerProceedGrenadePacket(ProfileId, throwWeap.Id, scheduled);
             GameClient.SendData(packet.Serialize());
@@ -744,13 +745,6 @@ namespace StayInTarkov.Coop.Players
 
             }, callback, scheduled);
         }
-
-        public override void Proceed<T>(Item item, Callback<IGIController5> callback, bool scheduled = true)
-        {
-            BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}<T>");
-            base.Proceed<T>(item, callback, scheduled);
-        }
-
 
         public override void DropCurrentController(Action callback, bool fastDrop, Item nextControllerItem = null)
         {

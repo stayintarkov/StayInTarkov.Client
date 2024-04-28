@@ -57,33 +57,6 @@ namespace StayInTarkov.Coop.Matchmaker
             sitMatchMaker.OriginalAcceptButton = ____acceptButton;
             sitMatchMaker.OriginalBackButton = ____backButton;
             sitMatchMaker.MatchMakerPlayerPreview = ____playerModelView;
-
-
-            //var rs = raidSettings;
-            //____acceptButton.OnClick.AddListener(() =>
-            //{
-            //    if (LastClickedTime < DateTime.Now.AddSeconds(-10))
-            //    {
-            //        LastClickedTime = DateTime.Now;
-
-            //        //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
-            //        if (MatchmakerAcceptPatches.CheckForMatch(rs, out string returnedJson))
-            //        {
-            //            Logger.LogDebug(returnedJson);
-            //            JObject result = JObject.Parse(returnedJson);
-            //            var groupId = result["ServerId"].ToString();
-            //            Matchmaker.MatchmakerAcceptPatches.SetGroupId(groupId);
-            //            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-            //            GC.Collect();
-            //            GC.WaitForPendingFinalizers();
-            //            GC.Collect();
-            //        }
-            //        else
-            //        {
-            //            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, rs);
-            //        }
-            //    }
-            //});
         }
 
 

@@ -1,5 +1,6 @@
 ﻿using Aki.Custom.Models;
 using BepInEx.Logging;
+using EFT.UI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.EssentialPatches;
@@ -9,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -39,10 +41,10 @@ namespace StayInTarkov
                 : CachePath + bundle.FileName;
         }
 
-        public static void GetBundles()
+        public static async Task GetBundles()
         {
             // get bundles
-            var json = AkiBackendCommunication.Instance.GetJson("/singleplayer/bundles");
+            var json = await AkiBackendCommunication.Instance.GetJsonAsync("/singleplayer/bundles");
             var bundles = JsonConvert.DeserializeObject<BundleItem[]>(json);
 
             StayInTarkovHelperConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
@@ -71,6 +73,7 @@ namespace StayInTarkov
             }
             else
             {
+                // FIXME(belette) implement bounded parallelism
                 // download bundles
                 // NOTE: assumes bundle keys to be unique
                 foreach (var bundle in toDownload)
@@ -81,7 +84,7 @@ namespace StayInTarkov
                     try
                     {
                         // Using GetBundleData to download Bundle because the timeout period is 5 minutes.(For big bundles)
-                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}");
+                        var data = await AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}");
                         if (data != null && data.Length == 0)
                         {
                             StayInTarkovHelperConstants.Logger.LogError("Bundle received is 0 bytes. WTF!");
@@ -104,7 +107,7 @@ namespace StayInTarkov
                     try
                     {
                         // Using GetBundleData to download Bundle because the timeout period is 10 minutes.(For big bundles)
-                        var data = AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}", 600000);
+                        var data = await AkiBackendCommunication.Instance.GetBundleData($"/files/bundle/{bundle.FileName}", 600000);
                         if (data != null && data.Length == 0)
                         {
                             StayInTarkovHelperConstants.Logger.LogError("Bundle received is 0 bytes. WTF!");

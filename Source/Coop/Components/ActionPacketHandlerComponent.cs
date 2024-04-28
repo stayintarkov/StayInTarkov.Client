@@ -340,7 +340,7 @@ namespace StayInTarkov.Coop.Components
 
                 if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
                 {
-                    Timer1 gameTimer = coopGame.GameTimer;
+                    var gameTimer = coopGame.GameTimer;
 
                     // Process only after raid began.
                     if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
