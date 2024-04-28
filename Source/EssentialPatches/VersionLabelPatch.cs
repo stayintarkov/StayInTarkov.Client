@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using EFT.UI;
 using HarmonyLib;
 using System;
@@ -16,14 +17,14 @@ namespace StayInTarkov.EssentialPatches
     /// </summary>
     public class VersionLabelPatch : ModulePatch
     {
-        private static string _versionLabel;
+        //private static string _versionLabel;
         private static bool EnableSITVersionLabel { get; set; } = true;
 
         private static bool IsDevBuild => true;
 
         public VersionLabelPatch(ConfigFile config)
         {
-            EnableSITVersionLabel = config.Bind("SIT.SP", "EnableSITVersionLabel", true).Value;
+            EnableSITVersionLabel = config.Bind("SIT", "EnableSITVersionLabel", true).Value;
         }
 
         protected override MethodBase GetTargetMethod()
@@ -52,14 +53,15 @@ namespace StayInTarkov.EssentialPatches
             //GetLogger(typeof(VersionLabelPatch)).LogInfo("Postfix");
         }
 
-        private static void DisplaySITVersionLabel(string major, object __result)
+        public static void DisplaySITVersionLabel(string major, object __result)
         {
             if (!EnableSITVersionLabel)
                 return;
+            string _versionLabel = string.Empty;
 
-            if (string.IsNullOrEmpty(_versionLabel))
+            //if (string.IsNullOrEmpty(_versionLabel))
             {
-                _versionLabel = string.Empty;
+                //_versionLabel = string.Empty;
                 var eftPath = string.Empty;
                 var eftProcesses = Process.GetProcessesByName("EscapeFromTarkov");
                 foreach (var process in eftProcesses)
@@ -79,6 +81,7 @@ namespace StayInTarkov.EssentialPatches
                         StayInTarkovPlugin.EFTEXEFileVersion = myFileVersionInfo.ProductVersion.Split('-')[0] + "." + myFileVersionInfo.ProductVersion.Split('-')[1];
                     }
                 }
+
                 string sitversion = Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString();
                 StayInTarkovPlugin.EFTVersionMajor = major;
                 StayInTarkovPlugin.EFTAssemblyVersion = major;
@@ -88,21 +91,20 @@ namespace StayInTarkov.EssentialPatches
                     Logger.LogInfo($"Assembly {StayInTarkovPlugin.EFTAssemblyVersion} does not match {StayInTarkovPlugin.EFTEXEFileVersion}");
                 }
                 else
-                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion} {(IsDevBuild ? "[DEV]" : "")}";
+                {
+                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion}";
+#if DEBUG
+                    _versionLabel = $"SIT {sitversion} | {StayInTarkovPlugin.EFTAssemblyVersion} {(IsDevBuild ? "[DEV]" : "")} [{Chainloader.Plugins.Count-1} mods]";
+#endif
 
+                }
 
-                //StayInTarkovPlugin.Instance.OnGameLoaded.In
-                //if (StayInTarkovPlugin.Instance.OnGameLoaded != null)
-                //{
-
-                //}
-
-                StayInTarkovPlugin.Instance.LogLoadedPlugins();
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("string_2").SetValue(_versionLabel);
-            Traverse.Create(__result).Field("Major").SetValue(_versionLabel);
+            if(__result != null)
+                Traverse.Create(__result).Field("Major").SetValue(_versionLabel);
         }
     }
 }

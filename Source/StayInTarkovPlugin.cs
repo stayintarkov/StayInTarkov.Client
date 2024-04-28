@@ -29,6 +29,9 @@ using BepInEx.Configuration;
 using UnityEngine;
 using StayInTarkov.Tools;
 using BepInEx.Logging;
+using StayInTarkov.Networking;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 //using StayInTarkov.AI;
 
 
@@ -41,6 +44,10 @@ namespace StayInTarkov
     /// </summary>
     [BepInPlugin("com.stayintarkov", "StayInTarkov", "1.11")]
     [BepInProcess("EscapeFromTarkov.exe")]
+    // Ensure nobody tries to load this module with Fika
+    [BepInIncompatibility("com.fika.core")]
+    // Ensure nobody tries to load this module with Aki Custom
+    //[BepInIncompatibility("com.spt-aki.custom")]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
         /// <summary>
@@ -94,6 +101,7 @@ namespace StayInTarkov
 
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
+            OnGameLoaded += StayInTarkovPlugin_OnGameLoaded;
             StartCoroutine(VersionChecks());
 
             ReadInLanguageDictionary();
@@ -117,13 +125,56 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
+        private void StayInTarkovPlugin_OnGameLoaded(object sender, EventArgs e)
+        {
+            // Log the list
+            LogLoadedPlugins();
+
+            // Apply actions dependant on the list
+            DisableAkiCustom();
+        }
+
+        /// <summary>
+        /// Detect and Disable Aki Custom Plugin
+        /// </summary>
+        private void DisableAkiCustom()
+        {
+            if(Chainloader.PluginInfos.Any(x=>x.Key == "com.spt-aki.custom"))
+            {
+                Logger.LogInfo($"Aki Custom detected. Removing.");
+
+                var akiPlugin = Chainloader.ManagerObject.GetComponent("AkiCustomPlugin");
+                if (akiPlugin == null)
+                {
+                    Logger.LogError($"Unable to find AkiCustomPlugin");
+                }
+
+                var akiPluginType = akiPlugin.GetType();
+
+                var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
+                    .Where(x => x.BaseType.Name == "ModulePatch");
+
+                GameObject.Destroy(akiPlugin);
+                Logger.LogInfo($"Aki Custom Removed.");
+
+                Logger.LogInfo(StayInTarkovPlugin.EFTVersionMajor);
+
+                VersionNumberClass.Current.Major = StayInTarkovPlugin.EFTVersionMajor;
+                VersionLabelPatch.DisplaySITVersionLabel(StayInTarkovPlugin.EFTVersionMajor, null);
+            }
+        }
+
         public void LogLoadedPlugins()
         {
-            Logger.LogInfo(nameof(LogLoadedPlugins));
+#if DEBUG
+            Logger.LogDebug(nameof(LogLoadedPlugins));
+#endif
+
+            Logger.LogDebug($"Plugin's loaded:");
+
             foreach (var plugin in Chainloader.PluginInfos)
             {
-                Logger.LogInfo(plugin.Key);
-                Logger.LogInfo(plugin.Value.Metadata.Name);
+                Logger.LogDebug($"- {plugin.Key} {plugin.Value.Metadata.Name}");
             }
         }
         public bool IsAkiCoreLoaded()
@@ -136,7 +187,10 @@ namespace StayInTarkov
             return Chainloader.PluginInfos.ContainsKey("com.spt-aki.singleplayer");
         }
 
-    
+        public bool IsAkiCustomLoaded()
+        {
+            return Chainloader.PluginInfos.ContainsKey("com.spt-aki.custom");
+        }
 
         private void EnableBundlePatches()
         {
@@ -289,6 +343,8 @@ namespace StayInTarkov
                             Logger.LogInfo("Version Check: OK.");
                         }
                     }
+
+                    this.OnGameLoaded?.Invoke(this, null);
 
                     break;
                 }
