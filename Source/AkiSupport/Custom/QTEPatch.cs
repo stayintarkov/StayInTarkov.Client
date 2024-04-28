@@ -17,7 +17,7 @@ namespace StayInTarkov.AkiSupport.Custom
         [PatchPostfix]
         private static void PatchPostfix(HideoutPlayerOwner __instance)
         {
-            AkiBackendCommunication.Instance.PostJson("/client/hideout/workout", new
+            AkiBackendCommunication.Instance.PostJsonBLOCKING("/client/hideout/workout", new
             {
                 skills = __instance.HideoutPlayer.Skills,
                 effects = __instance.HideoutPlayer.HealthController.BodyPartEffects

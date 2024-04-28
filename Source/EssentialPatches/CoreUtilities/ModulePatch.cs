@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using EFT.UI;
 using HarmonyLib;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;

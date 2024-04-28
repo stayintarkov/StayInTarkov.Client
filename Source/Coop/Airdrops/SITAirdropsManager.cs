@@ -16,6 +16,7 @@ using StayInTarkov.Coop.Web;
 using StayInTarkov.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Aki.Custom.Airdrops
@@ -67,7 +68,7 @@ namespace Aki.Custom.Airdrops
 
             // The server will generate stuff ready for the packet
 
-            AirdropParameters = AirdropUtil.InitAirdropParams(gameWorld, isFlareDrop);
+            AirdropParameters = await AirdropUtil.InitAirdropParams(gameWorld, isFlareDrop);
 
             if (!AirdropParameters.AirdropAvailable)
             {
@@ -98,7 +99,7 @@ namespace Aki.Custom.Airdrops
 
             SetDistanceToDrop();
 
-            BuildLootContainer(AirdropParameters.Config);
+            await BuildLootContainer(AirdropParameters.Config);
 
             StartCoroutine(SendParamsToClients());
 
@@ -232,12 +233,12 @@ namespace Aki.Custom.Airdrops
         public AirdropConfigModel ClientAirdropConfigModel { get; private set; }
         public bool ClientLootBuilt { get; private set; }
 
-        private void BuildLootContainer(AirdropConfigModel config)
+        private async Task BuildLootContainer(AirdropConfigModel config)
         {
             if (SITMatchmaking.IsClient)
                 return;
 
-            var lootData = factory.GetLoot();
+            var lootData = await factory.GetLoot();
 
             // Get the lootData. Sent to Clients.
             if (SITMatchmaking.IsServer)

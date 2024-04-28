@@ -28,12 +28,7 @@ using System.Threading;
 using BepInEx.Configuration;
 using UnityEngine;
 using StayInTarkov.Tools;
-using BepInEx.Logging;
-using StayInTarkov.Networking;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
-//using StayInTarkov.AI;
-
+using System.Threading.Tasks;
 
 namespace StayInTarkov
 {
@@ -93,7 +88,7 @@ namespace StayInTarkov
         public delegate void OnGameLoadedHandler(object sender, EventArgs e);
         public event OnGameLoadedHandler OnGameLoaded;
 
-        void Awake()
+        async Task Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
@@ -108,7 +103,7 @@ namespace StayInTarkov
 
             EnableCorePatches();
 
-            EnableBundlePatches();
+            await EnableBundlePatches();
 
             EnableSPPatches();
 
@@ -192,11 +187,11 @@ namespace StayInTarkov
             return Chainloader.PluginInfos.ContainsKey("com.spt-aki.custom");
         }
 
-        private void EnableBundlePatches()
+        private async Task EnableBundlePatches()
         {
             try
             {
-                BundleManager.GetBundles();
+                await BundleManager.GetBundles();
                 new EasyAssetsPatch().Enable();
                 new EasyBundlePatch().Enable();
             }

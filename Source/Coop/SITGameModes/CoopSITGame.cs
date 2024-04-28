@@ -631,7 +631,7 @@ namespace StayInTarkov.Coop.SITGameModes
             base.vmethod_1(timeBeforeDeploy);
         }
 
-        public static void SendOrReceiveSpawnPoint(ref ISpawnPoint selectedSpawnPoint, SpawnPoints spawnPoints)
+        public static async Task<ISpawnPoint?> SendOrReceiveSpawnPoint(ISpawnPoint selectedSpawnPoint, SpawnPoints spawnPoints)
         {
             var position = selectedSpawnPoint.Position;
             if (!SITMatchmaking.IsClient)
@@ -664,15 +664,13 @@ namespace StayInTarkov.Coop.SITGameModes
                     }
                 };
                 Logger.LogInfo("Setting Spawn Point to " + position);
-                AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson());
-                //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
-                //Logger.LogInfo("Retreived Spawn Point " + json);
+                await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/update", packet.ToJson());
             }
             else if (SITMatchmaking.IsClient)
             {
                 if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
                 {
-                    var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{SITGameComponent.GetServerId()}");
+                    var json = await AkiBackendCommunication.Instance.GetJsonAsync($"/coop/server/spawnPoint/{SITGameComponent.GetServerId()}");
                     Logger.LogInfo("Retreived Spawn Point " + json);
                     var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
                     var x = float.Parse(retrievedPacket["x"].ToString());
@@ -682,7 +680,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     selectedSpawnPoint = spawnPoints.First(x => x.Position == teleportPosition);
                 }
             }
-            //}
+            return selectedSpawnPoint;
         }
 
         internal Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
@@ -740,8 +738,7 @@ namespace StayInTarkov.Coop.SITGameModes
                 return null;
             }
 
-
-            SendOrReceiveSpawnPoint(ref spawnPoint, spawnPoints);
+            spawnPoint = await SendOrReceiveSpawnPoint(spawnPoint, spawnPoints);
 
             Logger.LogDebug($"{nameof(vmethod_2)}:Creating Owner CoopPlayer");
             var myPlayer = await CoopPlayer
@@ -1378,7 +1375,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     // make sure the host does not "leave game" before other players since Relay has special handling Aki-side
                     if (pid != hostProfileId)
                     {
-                        AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
+                        AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/update", new Dictionary<string, object>() {
                             { "m", "PlayerLeft" },
                             { "profileId", pid },
                             { "serverId", SITGameComponent.GetServerId() }
@@ -1388,7 +1385,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
 
             // Notify that I have left the Server
-            AkiBackendCommunication.Instance.PostJson("/coop/server/update", new Dictionary<string, object>() {
+            AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/update", new Dictionary<string, object>() {
                 { "m", "PlayerLeft" },
                 { "profileId", Singleton<GameWorld>.Instance.MainPlayer.ProfileId },
                 { "serverId", SITGameComponent.GetServerId() }

@@ -22,7 +22,7 @@ namespace StayInTarkov.AkiSupport.Custom
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result)
         {
-            __result = AkiBackendCommunication.Instance.GetJson("/singleplayer/settings/bot/difficulty/core/core");
+            __result = AkiBackendCommunication.Instance.GetJsonBLOCKING("/singleplayer/settings/bot/difficulty/core/core");
             return string.IsNullOrWhiteSpace(__result);
         }
     }
