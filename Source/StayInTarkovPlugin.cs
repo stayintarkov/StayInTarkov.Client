@@ -30,6 +30,8 @@ using UnityEngine;
 using StayInTarkov.Tools;
 using System.Threading.Tasks;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix;
+using System.Reflection;
+using HarmonyLib;
 
 namespace StayInTarkov
 {
@@ -43,7 +45,9 @@ namespace StayInTarkov
     // Ensure nobody tries to load this module with Fika
     [BepInIncompatibility("com.fika.core")]
     // Ensure nobody tries to load this module with Aki Custom
-    //[BepInIncompatibility("com.spt-aki.custom")]
+    //[BepInDependency("com.spt-aki.core", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("com.spt-aki.singleplayer", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("com.spt-aki.custom", BepInDependency.DependencyFlags.SoftDependency)]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
         /// <summary>
@@ -127,7 +131,57 @@ namespace StayInTarkov
             LogLoadedPlugins();
 
             // Apply actions dependant on the list
-            DisableAkiCustom();
+            //DisableAkiSingleplayer();
+            //DisableAkiCustom();
+        }
+
+        private void DisableAkiSingleplayer()
+        {
+            if (Chainloader.PluginInfos.Any(x => x.Key == "com.spt-aki.singleplayer"))
+            {
+                Logger.LogInfo($"AkiSingleplayerPlugin detected. Removing.");
+
+                var akiPlugin = Chainloader.ManagerObject.GetComponent("AkiSingleplayerPlugin");
+                if (akiPlugin == null)
+                {
+                    Logger.LogError($"Unable to find Singleplayer");
+                    return;
+                }
+
+                var akiPluginType = akiPlugin.GetType();
+                if (akiPluginType == null)
+                    return;
+
+                var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
+                    .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch").ToArray();
+
+                var modulePatchType = akiPluginModulePatchTypes[0].BaseType;
+                if (modulePatchType == null)
+                {
+                    Logger.LogError($"Unable to find modulePatchType");
+                    return;
+                }
+
+                var _harmony = ReflectionHelpers.GetFieldFromTypeByFieldType(modulePatchType, typeof(Harmony));
+                if (_harmony == null)
+                {
+                    Logger.LogError($"Unable to find _harmony");
+                    return;
+                }
+
+
+                //Harmony.UnpatchID(akiPluginModulePatchTypes.First(x => x.FullName == "Aki.SinglePlayer.Patches.Progression.OfflineSaveProfilePatch").Name);
+                //foreach(var akiPluginModulePatch in akiPluginModulePatchTypes)
+                //{
+                //    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
+                //    Harmony.UnpatchID(akiPluginModulePatch.Name);
+                //}
+
+
+                GameObject.Destroy(akiPlugin);
+                Logger.LogInfo($"AkiSingleplayerPlugin Removed.");
+
+            }
         }
 
         /// <summary>
@@ -148,10 +202,16 @@ namespace StayInTarkov
                 var akiPluginType = akiPlugin.GetType();
 
                 var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
-                    .Where(x => x.BaseType.Name == "ModulePatch");
+                    .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch");
 
                 GameObject.Destroy(akiPlugin);
                 Logger.LogInfo($"Aki Custom Removed.");
+
+                foreach (var akiPluginModulePatch in akiPluginModulePatchTypes)
+                {
+                    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
+                    Harmony.UnpatchID(akiPluginModulePatch.Name);
+                }
 
                 Logger.LogInfo(StayInTarkovPlugin.EFTVersionMajor);
 
