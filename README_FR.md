@@ -1,115 +1,133 @@
+<a name="readme-top"></a>
 
-<div align=center style="text-align: center">
-<h1 style="text-align: center"> SIT.Core </h1>
-Un module BepInEx Escape From Tarkov conçu pour être utilisé avec le serveur SPT-Aki dans le but ultime d'une Coop "hors ligne". 
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/stayintarkov/StayInTarkov.Client">
+    <img src="Assets/sit-logo-5.png" alt="Logo" height="240">
+  </a>
+
+  [![Contributors][contributors-shield]][contributors-url]
+  [![Forks][forks-shield]][forks-url]
+  [![Stargazers][stars-shield]][stars-url]
+  <br/>
+  ![TotalDownloads][downloads-total-shield]
+  ![LatestDownloads][downloads-latest-shield]
+
+
+<h3 align="center">Stay In Tarkov Client</h3>
+
+  <p align="center">
+    An Escape From Tarkov BepInEx module designed to be used with the SIT.Aki-Server-Mod with the ultimate goal of "Offline" Coop
+    <br />
+    <a href="https://stayintarkov.com/docs"><strong>Explore the docs »</strong></a>
+  </p>
+
+  [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
 </div>
 
----
 
-<div align=center>
 
-![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+    </li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#license">License</a></li>
+  </ol>
+</details>
 
-[English-Anglais](README.md) **|** [简体中文-Chinois Simplifié](README_CN.md) **|** [Deutsch-Allemand](README_DE.md) **|** [Portugais-Brésilien](README_PO.md) **|** [日本語-Japonais](README_JA.md) **|** [한국어-Coréen](README_KO.md) **|** [Français](README_FR.md)
-</div>
 
----
 
-## État de Stay In Tarkov
+<!-- ABOUT THE PROJECT -->
+## About The Project
 
-* SPT-Aki 3.7.1 est disponible sur leur site internet
-* Stay In Tarkov has entered a state of limbo development
-* Il y a des bugs que je ne peux pas résoudre ou qui nécessitent des réécritures significatives du code BSG et BSG change son code avec presque chaque patch.
-* Je ne joue plus hors ligne car ce projet a été fait pour mon groupe Tarkov mais ils ont décidé de ne plus y jouer ou de ne pas jouer au Live (ils se sont lassés de Tarkov en général).
-* Je vais probablement continuer à mettre à jour ce projet à chaque mise à jour de BSG et qui sait, nous pourrons peut-être obtenir un support pour Arena, sa serait sympa !
-* Les Pull Requests et les contributions seront toujours acceptées (si elles fonctionnent !).
+Stay In Tarkov (SIT) is a Escape From Tarkov mod designed for cooperative play.
 
---- 
+Stay In Tarkov is currently under development by a small team of developers. While SIT is playable, there are many bugs, synchronization and performance issues during gameplay. Escape From Tarkov and SPT-AKI updates frequently and oftentimes, your progress must be reset.
 
-## à propos
+In other words, SIT is not a perfect replacement of the live experience: always keep in mind that game breaking bugs and progression issues will occur and there are no way around it.
 
-Le projet Stay in Tarkov est né de la réticence de Battlestate Games (BSG) à créer une version purement PvE de Escape from Tarkov. 
-L'objectif du projet est simple : créer une expérience de coopération PvE qui conserve la progression. 
-Si BSG décide de créer la possibilité de faire cela en direct OU si je reçois une demande de la DCMA, ce projet sera arrêté immédiatement.
 
-## Disclaimer
+<!-- GETTING STARTED -->
+## Getting Started
 
-* Vous devez acheter le jeu pour l'utiliser. Vous pouvez l'obtenir ici. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
-* Ce projet n'est en aucun cas conçu pour les cheaters (il a été créé parce que les cheaters ont détruit l'expérience Live).
-* Ce n'est en aucun cas conçu pour télécharger illégalement le jeu (Le projet comporte des blocages pour le piratage !).
-* Il s'agit d'un projet purement éducatif. Je l'utilise pour apprendre Unity et les réseaux TCP/UDP/Web Socket et j'ai beaucoup appris de BattleState Games \o/.
-* Je ne suis pas affilié à BSG ou à d'autres personnes (sur Reddit ou Discord) qui prétendent travailler sur un projet. Ne contactez PAS le subreddit SPTarkov ou le Discord à propos de ce projet.
-* Ce projet n'est pas affilié à SPTarkov mais utilise son excellent serveur.
-* Je n'offre pas de soutien. Ce projet est livré "tel quel". Il peut fonctionner pour vous ou pas.
-## Support
+All the information you'll need to get SIT setup can be found on our docs [here](https://stayintarkov.com/docs)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* **Je n'offre pas de soutien. Tous les tutoriels écrits par moi ou par d'autres contributeurs sont de bonne foi. Si vous n'arrivez pas à le faire fonctionner, je vous suggère de revenir sur la version Live !**
-* Le lien Ko-Fi me permet de m'offrir (ou d'offrir à ma femme) un café, rien d'autre !
-* Les Pull Requests sont encouragés. Merci à tous les contributeurs !
-* Ne donnez pas d'argent en espérant obtenir de l'aide ou une solution.
-* Il s'agit d'un hobby, pour le plaisir. Ne le prenez pas au sérieux.
-* Je sais qu'il s'agit là d'une tentative à moitié ratée, mais je vais essayer de la réparer du mieux que je peux.
-* Un [Discord SIT non officiel](https://discord.gg/VengzHxNmZ) est disponible. La communauté s'est associée pour s'entraider et créer des serveurs communautaires. **Je ne fais pas partie de ce Discord**.
+Please make sure you have read the docs before coming to us in the Discord as they likely contain the answers you're looking for
 
-## Configuration requise pour SPT-AKI
-* Stay in Tarkov nécessite le [dernier serveur AKI](https://dev.sp-tarkov.com/SPT-AKI/Server) pour fonctionner. Vous pouvez en savoir plus sur SPT-Aki [ici](https://www.sp-tarkov.com/).
-* N'INSTALLEZ PAS CELA SUR LE CLIENT SPT-AKI ! INSTALLEZ LE UNIQUEMENT SUR LE SERVEUR !
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
-**Le Wiki a été construit par différents contributeurs. Toutes les instructions sont également conservées dans les sources, dans le répertoire wiki.**
-  - ### [Setup Manuel](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
+<!-- ROADMAP -->
+## Roadmap
+Our roadmap can be found [here](https://docs.stayintarkov.com/en/plans.html)
 
-## Coop
+<!-- CONTACT -->
+## Contact/Support
 
-### Résumé de la coop
-**ATTENTION**
-* la Coop en est aux premiers stades de développement. 
-* La plupart des fonctionnalités fonctionnent (à peu près) et le jeu est "jouable (à peu près) avec des bugs probables". "Jouable" et parfait sont deux choses très différentes. Attendez-vous à des lag (désynchronisation), et à des bugs.
-* L'hôte et le serveur doivent disposer d'une bonne connexion stable avec une vitesse d'envoi d'au moins 5-10mbps. L'IA nécessite beaucoup de CPU et de bande passante pour fonctionner.
-* Même si beaucoup de gens disent le contraire. Vous pouvez jouer avec des gens du monde entier (pas seulement en LAN). J'ai joué avec des gens qui avaient plus de 200 ping. Ils ont un lag similaire à celui du live, juste montré d'une manière différente.
-* Malgré les affirmations selon lesquelles les "VPN" tels que HAMACHI/RADMIN fonctionnent. Je vous recommande vivement de ne pas les utiliser. Ils ont des connexions très lentes. Essayez toujours de trouver un moyen d'héberger direct OU de payer un serveur cheap pour héberger le serveur Aki.
+The best place to get in contact with us is likely on the SIT Discord.\
+Our Discord invite link can be found at https://stayintarkov.com/discord
 
-### PRÉREQUIS
-Vous devez avoir le [mod SPT-Aki ](https://github.com/paulov-t/SIT.Aki-Server-Mod) installé dans votre serveur pour que ce module fonctionne. Si vous ne souhaitez pas utiliser le module Coop, vous devez le désactiver dans le fichier de configuration de BepInEx.
 
-### La Coop peut-il utiliser le code Coop de BSG ?
-Le code du serveur BSG est caché du client pour des raisons évidentes. Donc l'implémentation de la Coop de BSG utilise les mêmes serveurs en ligne que le PvPvE. Nous ne pouvons pas voir le code, donc nous ne pouvons pas l'utiliser.
+<!-- CONTRIBUTING -->
+## Contributing
 
-### Explication du code
-- Le projet utilise plusieurs méthodes de patchs BepInEx Harmony couplés à des composants Unity pour atteindre ses objectifs.
-- Les fonctions/méthodes qui nécessitent une interrogation constante entre Client->Serveur->Client (Déplacer, Tourner, Regarder, etc.) utilisent des composants pour envoyer des données (le code AI exécute la commande Update/LateUpdate et la fonction à chaque tick, ce qui provoque une inondation du réseau).
-- Les fonctionnalités/méthodes qui peuvent être facilement "répliquées" utilisent la classe abstraite ModuleReplicationPatch pour contourner facilement l'appel.
-- Toutes les communications du serveur se font via des appels JSON TCP Http et Web Socket au ["Web Serveur " développé par SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) en utilisant un [mod typecript](https://github.com/paulov-t/SIT.Aki-Server-Mod) pour gérer le travail de "backend".
-- Le CoopGameComponent est attaché à l'objet GameWorld lorsqu'un jeu prêt pour la coopération est lancé (tout jeu qui n'est pas Hideout). CoopGameComponent interroge le serveur pour obtenir des informations et transmet les données au PlayerReplicatedComponent.
+* Pull requests are encouraged and deeply appreciated. Thanks to all contributors!
 
-## SPT-Aki
+* Code contributions have a strict NO GCLASSXXX policy. If your code has a GCLASS that is neccessary to it working please provide the Pull Request with the list so that they can be remapped before merging.
 
-### Les modules Aki BepInEx (modules clients) sont-ils pris en charge ?
-Les modules Aki suivants sont supportés.
-- aki-core
-- Aki.Common
-- Aki.Reflection
-- Les mods SPT-AKI Client fonctionnent-ils ? Cela dépend de la qualité de l'écriture des correctifs. S'ils ciblent directement GCLASSXXX ou PUBLIC/PRIVATE, ils échoueront la plupart du temps.
 
-### Pourquoi n'utilisez-vous pas les DLL du module Aki ?
-Les DLL SPT-Aki sont écrites spécifiquement pour leur propre technique de désobfuscation et ma propre technique ne fonctionne pas bien avec les modules Aki pour le moment.
-J'ai donc porté de nombreuses fonctionnalités de SPT-Aki dans ce module. Mon objectif final est de m'appuyer sur SPT-Aki et que ce module soit uniquement axé sur les fonctionnalités SIT.
-
-## Comment compiler ? 
-[Document de Compilation](COMPILE.md)
-
-## Liste de remerciement
-- L'Équipe d'SPT-Aki
-- L'Équipe MTGA
-- La Communauté de modding SPT-Aki
-- DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain))
-- Dvize ([NoBushESP](https://github.com/dvize/NoBushESP))
-- Contributeur SIT
-
+<!-- LICENSE -->
 ## License
 
-- Les projets DrakiaXYZ contiennent la licence MIT.
-- 95% du noyau original et des fonctionnalités pour le jeu en solo ont été réalisés par les équipes de SPT-Aki. Il peut y avoir des licences les concernant dans cette source.
-- Aucun de mes travaux n'est sous licence. Il s'agit uniquement d'un projet pour le plaisir. Je me fiche de ce que vous en ferez.
+* 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
+
+* Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
+
+* SIT team's work is MIT licensed
+
+* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed
+
+* [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License (as of 1.10, Drakia's projects are no longer embedded)
+
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments & Thanks
+
+* [Paulov Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
+* [Mihai Ko-Fi Donations](https://ko-fi.com/mmihai)
+* [Trippy](https://github.com/trippyone)
+* [Bullet](https://github.com/devbence)
+* [Dounai](https://github.com/dounai2333)
+* [SPT-Aki team](https://www.sp-tarkov.com/) (Credits provided on each code file used and much love to their Dev team for their support)
+* [DrakiaXYZ](https://github.com/DrakiaXYZ/)
+* [Contributors](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) and the original contributors of Paulov's SIT.Core
+* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[contributors-shield]: https://img.shields.io/github/contributors/stayintarkov/StayInTarkov.Client.svg?style=for-the-badge
+
+[contributors-url]: https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors
+
+[forks-shield]: https://img.shields.io/github/forks/stayintarkov/StayInTarkov.Client.svg?style=for-the-badge&color=%234c1
+
+[forks-url]: https://github.com/stayintarkov/StayInTarkov.Client/network/members
+
+[stars-shield]: https://img.shields.io/github/stars/stayintarkov/StayInTarkov.Client?style=for-the-badge&color=%234c1
+
+[stars-url]: https://github.com/stayintarkov/StayInTarkov.Client/stargazers
+
+[downloads-total-shield]: https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/total?style=for-the-badge
+
+[downloads-latest-shield]: https://img.shields.io/github/downloads/stayintarkov/StayInTarkov.Client/latest/total?style=for-the-badge
