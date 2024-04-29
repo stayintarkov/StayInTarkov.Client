@@ -10,11 +10,11 @@ using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,44 +25,10 @@ namespace StayInTarkov.Networking
     public class AkiBackendCommunication : IDisposable
     {
         public const int DEFAULT_TIMEOUT_MS = 9999;
-        public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
-        public const string PACKET_TAG_METHOD = "m";
-        public const string PACKET_TAG_SERVERID = "serverId";
-        public const string PACKET_TAG_DATA = "data";
 
-        private string m_Session;
+        public string ProfileId;
 
-        public string ProfileId
-        {
-            get
-            {
-                return m_Session;
-            }
-            set { m_Session = value; }
-        }
-
-
-
-        private string m_RemoteEndPoint;
-
-        public string RemoteEndPoint
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(m_RemoteEndPoint))
-                    m_RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
-
-                // Remove ending slash on URI for SIT.Manager.Avalonia
-                if(m_RemoteEndPoint.EndsWith("/"))
-                    m_RemoteEndPoint = m_RemoteEndPoint.Substring(0, m_RemoteEndPoint.Length - 1);
-
-                return m_RemoteEndPoint;
-
-            }
-            set { m_RemoteEndPoint = value; }
-        }
-
-        private Dictionary<string, string>? m_RequestHeaders = null;
+        public string RemoteEndPoint;
 
         private static AkiBackendCommunication? m_Instance;
         public static AkiBackendCommunication Instance
@@ -76,11 +42,11 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public HttpClient HttpClient { get; set; }
+        private readonly HttpClient _httpClient;
 
         protected ManualLogSource Logger;
 
-        public WebSocketSharp.WebSocket WebSocket { get; private set; }
+        public WebSocketSharp.WebSocket? WebSocket { get; private set; }
 
         public long BytesSent = 0;
         public long BytesReceived = 0;
@@ -90,85 +56,81 @@ namespace StayInTarkov.Networking
         public static int PING_LIMIT_HIGH { get; } = 125;
         public static int PING_LIMIT_MID { get; } = 100;
         public static bool IsLocal;
+        public bool HighPingMode;
 
+        private Task? _periodicallySendPingTask;
 
-        protected AkiBackendCommunication(ManualLogSource logger = null)
+        protected AkiBackendCommunication(ManualLogSource? logger = null)
         {
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
-            if (logger != null)
-                Logger = logger;
-            else
-                Logger = BepInEx.Logging.Logger.CreateLogSource("Request");
+            Logger = logger ?? BepInEx.Logging.Logger.CreateLogSource("Request");
 
-            if (string.IsNullOrEmpty(RemoteEndPoint))
-                RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
-
-            IsLocal = RemoteEndPoint.Contains("127.0.0.1")
-                    || RemoteEndPoint.Contains("localhost");
-
-            GetHeaders();
-            ConnectToAkiBackend();
-            PeriodicallySendPing();
-            //PeriodicallySendPooledData();
-
-            var processor = StayInTarkovPlugin.Instance.GetOrAddComponent<SITGameServerClientDataProcessing>();
-            Singleton<SITGameServerClientDataProcessing>.Create(processor);
-            Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated += OnLatencyUpdated;
-
-            HttpClient = new HttpClient();
-            foreach (var item in GetHeaders())
+            foreach (string arg in Environment.GetCommandLineArgs())
             {
-                HttpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                if (arg.Contains("-token="))
+                {
+                    ProfileId = arg.Replace("-token=", string.Empty);
+                    break;
+                }
             }
-            HttpClient.MaxResponseContentBufferSize = long.MaxValue;
-            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+            if (ProfileId == null)
+            {
+                throw new ArgumentNullException("could not find valid profile id for AkiBackend");
+            }
 
-            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
+            RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
+            if (RemoteEndPoint == null)
+            {
+                throw new ArgumentNullException("could not find valid remote endpoint for AkiBackend");
+            }
+            RemoteEndPoint = RemoteEndPoint.TrimEnd('/');
+            IsLocal = RemoteEndPoint.Contains("127.0.0.1") || RemoteEndPoint.Contains("localhost");
+
+            _httpClient = new HttpClient(new HttpClientHandler
+            {
+                UseCookies = false // do not use CookieContainer, let us manage cookies thru headers ourselves
+            });
+            _httpClient.DefaultRequestHeaders.Add("Cookie", $"PHPSESSID={ProfileId}");
+            _httpClient.DefaultRequestHeaders.Add("SessionId", ProfileId);
+            _httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+            _httpClient.MaxResponseContentBufferSize = long.MaxValue;
+            _httpClient.Timeout = new TimeSpan(0, 0, 0, 0, 60000);
+
+            PeriodicallySendPing();
+            SITGameServerClientDataProcessing.OnLatencyUpdated += OnLatencyUpdated;
+            HighPingMode = PluginConfigSettings.Instance!.CoopSettings.ForceHighPingMode;
         }
 
-        private void ConnectToAkiBackend()
+        private SITGameComponent? _gameComp = null;
+        private string? _profileId;
+
+        public void WebSocketCreate(SITGameComponent gameComp, string profileId)
         {
-            PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
-        }
+            if (WebSocket != null)
+            {
+                throw new InvalidOperationException("in-raid lifecycle violation, WebSocket already exists");
+            }
 
-        private Profile MyProfile { get; set; }
+            _gameComp = gameComp;
+            _profileId = profileId;
 
-        //private HashSet<string> WebSocketPreviousReceived { get; set; }
+            var webSocketPort = PluginConfigSettings.Instance?.CoopSettings.SITWebSocketPort;
+            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{webSocketPort}/{_profileId}?";
+            Logger.LogDebug($"WebSocketCreate: {wsUrl}");
 
-        public void WebSocketCreate(Profile profile)
-        {
-            MyProfile = profile;
-
-            Logger.LogDebug("WebSocketCreate");
-            //if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
-            //{
-            //    Logger.LogDebug("WebSocketCreate:WebSocket already exits");
-            //    return;
-            //}
-
-            Logger.LogDebug("Request Instance is connecting to WebSocket");
-
-            var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
-            var wsUrl = $"{StayInTarkovHelperConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
-            Logger.LogDebug(webSocketPort);
-            Logger.LogDebug(StayInTarkovHelperConstants.GetREALWSURL());
-            Logger.LogDebug(wsUrl);
-
-            //WebSocketPreviousReceived = new HashSet<string>();
-            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-            WebSocket.WaitTime = TimeSpan.FromMinutes(1);
-            WebSocket.EmitOnPing = true;
+            WebSocket = new WebSocketSharp.WebSocket(wsUrl)
+            {
+                WaitTime = TimeSpan.FromMinutes(1),
+                EmitOnPing = true
+            };
             WebSocket.Connect();
 
-            // ---
-            // Start up after initial Send
             WebSocket.OnError += WebSocket_OnError;
             WebSocket.OnMessage += WebSocket_OnMessage;
-            // ---
         }
 
         public void WebSocketClose()
@@ -181,6 +143,9 @@ namespace StayInTarkov.Networking
                 WebSocket.Close(WebSocketSharp.CloseStatusCode.Normal);
                 WebSocket = null;
             }
+
+            _profileId = null;
+            _gameComp = null;
         }
 
         public async void PingAsync()
@@ -214,22 +179,30 @@ namespace StayInTarkov.Networking
 
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {Environment.NewLine}");
-            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Exception}");
+            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {e.Exception}");
             WebSocket_OnError();
             WebSocketClose();
-            WebSocketCreate(MyProfile);
+
+            if (_gameComp == null || _profileId == null)
+            {
+                Logger.LogError($"unexpected in-raid lifecycle violation {_gameComp} {_profileId}");
+                return;
+            }
+
+            WebSocketCreate(_gameComp, _profileId);
         }
 
         private void WebSocket_OnError()
         {
-            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
+            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance?.CoopSettings.SITWebSocketPort} on the Server {StayInTarkovHelperConstants.GetBackendUrl()}! Application will now close.");
             if (Singleton<ISITGame>.Instantiated)
             {
                 Singleton<ISITGame>.Instance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, Singleton<ISITGame>.Instance.MyExitStatus, Singleton<ISITGame>.Instance.MyExitLocation);
             }
             else
+            {
                 Application.Quit();
+            }
         }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
@@ -238,18 +211,16 @@ namespace StayInTarkov.Networking
                 return;
 
             Interlocked.Add(ref BytesReceived, e.RawData.Length);
-            GC.AddMemoryPressure(e.RawData.Length);
 
             var d = e.RawData;
             if (d.Length >= 3 && d[0] != '{' && !(d[0] == 'S' && d[1] == 'I' && d[2] == 'T'))
             {
-                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessFlatBuffer(d);
+                SITGameServerClientDataProcessing.ProcessFlatBuffer(_gameComp, d);
             }
             else
             {
-                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(e.RawData);
+                SITGameServerClientDataProcessing.ProcessPacketBytes(_gameComp, e.RawData);
             }
-            GC.RemoveMemoryPressure(e.RawData.Length);
         }
 
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
@@ -262,193 +233,9 @@ namespace StayInTarkov.Networking
             return Instance;
         }
 
-        public bool HighPingMode { get; set; }
-
-        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new BlockingCollection<byte[]>();
-        public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
-        public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
-
-        public BlockingCollection<KeyValuePair<string, string>> PooledJsonToPostToUrl { get; } = new();
-
-        //public void SendDataToPool(string url, string serializedData)
-        //{
-        //    PooledJsonToPostToUrl.Add(new(url, serializedData));
-        //}
-
-        //public void SendDataToPool(string serializedData)
-        //{
-        //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-        //        WebSocket.Send(serializedData);
-        //}
-
-        private HashSet<string> _previousPooledData = new HashSet<string>();
-
-        //public void SendDataToPool(byte[] serializedData)
-        //{
-
-        //    if (DEBUGPACKETS)
-        //    {
-        //        Logger.LogDebug(nameof(SendDataToPool));
-        //        Logger.LogDebug(Encoding.UTF8.GetString(serializedData));
-        //    }
-        //    //if (_previousPooledData.Contains(Encoding.UTF8.GetString(serializedData)))
-        //    //    return;
-
-        //    //_previousPooledData.Add(Encoding.UTF8.GetString(serializedData));   
-        //    PooledBytesToPost.Add(serializedData);
-
-        //    //if (HighPingMode)
-        //    //{
-        //    //    PooledBytesToPost.Add(serializedData);
-        //    //}
-        //    //else
-        //    //{
-        //    //    if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-        //    //        WebSocket.Send(serializedData);
-        //    //}
-        //}
-
-        //public void SendDataToPool(string url, Dictionary<string, object> data)
-        //{
-        //    PooledDictionariesToPost.Add(new(url, data));
-        //}
-
-        //public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
-        //{
-        //    PooledDictionaryCollectionToPost.Add(data);
-        //}
-
-        //private Task PeriodicallySendPooledDataTask;
-
-        //private void PeriodicallySendPooledData()
-        //{
-        //    //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
-
-        //    PeriodicallySendPooledDataTask = Task.Run(async () =>
-        //    {
-        //        int awaitPeriod = 1;
-        //        //GCHelpers.EnableGC();
-        //        //GCHelpers.ClearGarbage();
-        //        //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
-
-        //        //while (m_Instance != null)
-        //        Stopwatch swPing = new();
-
-        //        while (true)
-        //        {
-        //            if (WebSocket == null)
-        //            {
-        //                await Task.Delay(awaitPeriod);
-        //                continue;
-        //            }
-
-        //            // If there is nothing to post. Then delay 1ms (to avoid mem leak) and continue.
-        //            if
-        //            (
-        //                !PooledBytesToPost.Any()
-        //                && !PooledDictionariesToPost.Any()
-        //                && !PooledDictionaryCollectionToPost.Any()
-        //                && !PooledJsonToPostToUrl.Any()
-        //            )
-        //            {
-        //                swPing.Restart();
-        //                await Task.Delay(awaitPeriod);
-        //                continue;
-        //            }
-
-        //            // This would the most common delivery from the Client
-        //            // Pooled up bytes will now send to the Web Socket
-        //            while (PooledBytesToPost.Any())
-        //            {
-        //                //await Task.Delay(awaitPeriod);
-        //                if (WebSocket != null)
-        //                {
-        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-        //                    {
-        //                        while (PooledBytesToPost.TryTake(out var bytes))
-        //                        {
-        //                            //Logger.LogDebug($"Sending bytes of {bytes.Length}b in length");
-        //                            if (DEBUGPACKETS)
-        //                            {
-        //                                Logger.LogDebug($"SENT:{Encoding.UTF8.GetString(bytes)}");
-        //                            }
-
-        //                            WebSocket.Send(bytes);
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        WebSocket_OnError();
-        //                    }
-        //                }
-        //            }
-        //            //await Task.Delay(100);
-        //            while (PooledDictionariesToPost.Any())
-        //            {
-        //                await Task.Delay(awaitPeriod);
-
-        //                KeyValuePair<string, Dictionary<string, object>> d;
-        //                if (PooledDictionariesToPost.TryTake(out d))
-        //                {
-
-        //                    var url = d.Key;
-        //                    var json = JsonConvert.SerializeObject(d.Value);
-        //                    //var json = d.Value.ToJson();
-        //                    if (WebSocket != null)
-        //                    {
-        //                        if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-        //                        {
-        //                            WebSocket.Send(json);
-        //                        }
-        //                        else
-        //                        {
-        //                            WebSocket_OnError();
-        //                        }
-        //                    }
-        //                }
-        //            }
-
-        //            if (PooledDictionaryCollectionToPost.TryTake(out var d2))
-        //            {
-        //                var json = JsonConvert.SerializeObject(d2);
-        //                if (WebSocket != null)
-        //                {
-        //                    if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-        //                    {
-        //                        WebSocket.Send(json);
-        //                    }
-        //                    else
-        //                    {
-        //                        StayInTarkovHelperConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
-        //                    }
-        //                }
-        //                json = null;
-        //            }
-
-        //            while (PooledJsonToPostToUrl.Any())
-        //            {
-        //                await Task.Delay(awaitPeriod);
-
-        //                if (PooledJsonToPostToUrl.TryTake(out var kvp))
-        //                {
-        //                    _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
-        //                }
-        //            }
-
-        //            if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
-        //                PostPingSmooth.TryDequeue(out _);
-
-        //            PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
-        //            PostPing = (int)Math.Round(PostPingSmooth.Average());
-        //        }
-        //    });
-        //}
-
-        private Task PeriodicallySendPingTask { get; set; }
-
         private void PeriodicallySendPing()
         {
-            PeriodicallySendPingTask = Task.Run(async () =>
+            _periodicallySendPingTask = Task.Run(async () =>
             {
                 int awaitPeriod = 2000;
                 while (true)
@@ -492,139 +279,72 @@ namespace StayInTarkov.Networking
             Ping = (ushort)(ServerPingSmooth.Count > 0 ? Math.Round(ServerPingSmooth.Average()) : 1);
         }
 
-        private Dictionary<string, string> GetHeaders()
-        {
-            if (m_RequestHeaders != null && m_RequestHeaders.Count > 0)
-                return m_RequestHeaders;
-
-            string[] args = Environment.GetCommandLineArgs();
-
-            foreach (string arg in args)
-            {
-                if (arg.Contains("-token="))
-                {
-                    ProfileId = arg.Replace("-token=", string.Empty);
-                    m_RequestHeaders = new Dictionary<string, string>()
-                        {
-                            { "Cookie", $"PHPSESSID={ProfileId}" },
-                            { "SessionId", ProfileId }
-                        };
-                    break;
-                }
-            }
-            return m_RequestHeaders;
-        }
-
-        /// <summary>
-        /// Send request to the server and get Stream of data back
-        /// </summary>
-        /// <param name="path">String url endpoint example: /start</param>
-        /// <param name="method">POST or GET</param>
-        /// <param name="data">string json data</param>
-        /// <param name="compress">Should use compression gzip?</param>
-        /// <returns>Stream or null</returns>
-        private async Task<byte[]?> asyncRequestFromPath(string path, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequestFromPath(string path, HttpMethod method, string? data = null, int timeout = 9999, bool debug = false)
         {
             if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
                 path = RemoteEndPoint + path;
             }
 
-            return await asyncRequest(new Uri(path), method, data, timeout, debug);
+            return await AsyncRequest(new Uri(path), method, data, timeout, debug);
         }
 
-        private async Task<byte[]?> asyncRequest(Uri uri, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequest(Uri uri, HttpMethod method, string? data = null, int timeout = 9999, bool debug = false)
         {
-            var compress = true;
-            using (HttpClientHandler handler = new HttpClientHandler())
+            HttpRequestMessage req = new(method, uri);
+
+            if (method == HttpMethod.Post)
             {
-                using (HttpClient httpClient = new HttpClient(handler))
+                if (!debug)
                 {
-                    handler.UseCookies = true;
-                    handler.CookieContainer = new CookieContainer();
-                    httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-                    Uri baseAddress = new Uri(RemoteEndPoint);
-                    foreach (var item in GetHeaders())
-                    {
-                        if (item.Key == "Cookie")
-                        {
-                            string[] pairs = item.Value.Split(';');
-                            var keyValuePairs = pairs
-                                .Select(p => p.Split(new[] { '=' }, 2))
-                                .Where(kvp => kvp.Length == 2)
-                                .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
-                            foreach (var kvp in keyValuePairs)
-                            {
-                                handler.CookieContainer.Add(baseAddress, new Cookie(kvp.Key, kvp.Value));
-                            }
-                        }
-                        else
-                        {
-                            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                        }
-                    }
-                    if (!debug && method == "POST")
-                    {
-                        httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-                    }
+                    var bytes = Zlib.Compress(Encoding.UTF8.GetBytes(data), ZlibCompression.Normal);
+                    var byteContent = new ByteArrayContent(bytes);
+                    byteContent.Headers.ContentEncoding.Add("deflate");
+                    byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    req.Content = byteContent;
+                }
+                else
+                {
+                    var byteContent = new ByteArrayContent(Encoding.UTF8.GetBytes(data));
+                    byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    req.Content = byteContent;
+                }
+            }
 
-                    HttpContent? byteContent = null;
-                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
-                    {
-                        if (debug)
-                        {
-                            compress = false;
-                            httpClient.DefaultRequestHeaders.Add("debug", "1");
-                        }
-                        var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        var bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Normal) : inputDataBytes;
-                        byteContent = new ByteArrayContent(bytes);
-                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                        if (compress)
-                        {
-                            byteContent.Headers.ContentEncoding.Add("deflate");
-                        }
-                    }
+            if (debug)
+            {
+                req.Headers.Add("debug", "1");
+            }
 
-                    HttpResponseMessage response;
-                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase))
-                    {
-                        response = await httpClient.PostAsync(uri, byteContent);
-                    }
-                    else
-                    {
-                        response = await httpClient.GetAsync(uri);
-                    }
+            using var cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
+            var response = await _httpClient.SendAsync(req, cts.Token);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var bytes = await response.Content.ReadAsByteArrayAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var bytes = await response.Content.ReadAsByteArrayAsync();
 
-                        if (Zlib.IsCompressed(bytes))
-                        {
-                            bytes = Zlib.Decompress(bytes);
-                        }
-
-                        return bytes;
-                    }
-                    else
-                    {
-                        StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
-                        return null;
-                    }
+                if (Zlib.IsCompressed(bytes))
+                {
+                    bytes = Zlib.Decompress(bytes);
                 }
 
+                return bytes;
+            }
+            else
+            {
+                throw new Exception($"Failed HTTP request {method} {uri} -> {response.StatusCode}");
             }
         }
 
         public async Task<byte[]?> GetBundleData(string url, int timeout = 60000)
         {
-            return await asyncRequestFromPath(url, "GET", data: null, timeout);
+            return await AsyncRequestFromPath(url, HttpMethod.Get, data: null, timeout);
         }
 
         public async Task<string> GetJsonAsync(string url)
         {
-            var bytes = await asyncRequestFromPath(url, "GET");
+            var bytes = await AsyncRequestFromPath(url, HttpMethod.Get);
             return Encoding.UTF8.GetString(bytes);
         }
 
@@ -647,7 +367,7 @@ namespace StayInTarkov.Networking
                         url = "/" + url;
                     }
 
-                    var bytes = await asyncRequestFromPath(url, "POST", data, timeout, debug);
+                    var bytes = await AsyncRequestFromPath(url, HttpMethod.Post, data, timeout, debug);
                     return Encoding.UTF8.GetString(bytes);
                 }
                 catch (Exception ex)
@@ -659,13 +379,6 @@ namespace StayInTarkov.Networking
             throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
 
-        /// <summary>
-        /// Retrieves data asyncronously and parses response JSON to the desired type
-        /// </summary>
-        /// <typeparam name="T">Desired type to Deserialize to</typeparam>
-        /// <param name="url">URL to call</param>
-        /// <param name="data">data to send</param>
-        /// <returns></returns>
         public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = false)
         {
             var rsp = await PostJsonAsync(url, data, timeout, retryAttempts, debug);
@@ -680,9 +393,7 @@ namespace StayInTarkov.Networking
 
         public void Dispose()
         {
-            ProfileId = null;
-            RemoteEndPoint = null;
-            Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated -= OnLatencyUpdated;
+            SITGameServerClientDataProcessing.OnLatencyUpdated -= OnLatencyUpdated;
         }
     }
 }

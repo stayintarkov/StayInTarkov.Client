@@ -23,51 +23,29 @@ using StayInTarkov.Coop.Players;
 
 namespace StayInTarkov.Networking
 {
-    public class SITGameServerClientDataProcessing : NetworkBehaviour
+    public static class SITGameServerClientDataProcessing
     {
         public const byte FLATBUFFER_CHANNEL_NUM = 1;
-        public event Action<ushort> OnLatencyUpdated;
-        private SITGameComponent SITGameComponent { get; set; }
+        public static event Action<ushort> OnLatencyUpdated;
 
-        public ManualLogSource Logger { get; set; }
+        public static ManualLogSource Logger { get; set; }
 
-        void Awake()
+        static SITGameServerClientDataProcessing()
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource($"{nameof(SITGameServerClientDataProcessing)}");
         }
 
-        void Update()
-        {
-            if (Singleton<ISITGame>.Instantiated)
-            {
-                if ((Singleton<ISITGame>.Instance as MonoBehaviour).TryGetComponent<SITGameComponent>(out var comp))
-                {
-                    SITGameComponent = comp;
-                }
-                else
-                {
-                    SITGameComponent = null;
-                }
-            }
-        }
-
-        public void ProcessFlatBuffer(byte[] data)
+        public static void ProcessFlatBuffer(SITGameComponent gameComp, byte[] data)
         {
             var buf = new ByteBuffer(data);
             var packet = StayInTarkov.FlatBuffers.Packet.GetRootAsPacket(buf);
-
-            if (SITGameComponent == null)
-            {
-                Logger.LogError($"{nameof(ProcessFlatBuffer)}. game component is null");
-                return;
-            }
 
             switch (packet.PacketType)
             {
                 case AnyPacket.player_state:
                     {
                         var key = packet.Packet_Asplayer_state().ProfileId;
-                        if (SITGameComponent.Players.ContainsKey(key) && SITGameComponent.Players[key] is CoopPlayerClient client)
+                        if (gameComp.Players.ContainsKey(key) && gameComp.Players[key] is CoopPlayerClient client)
                         {
                             client.ReceivePlayerStatePacket(packet.Packet_Asplayer_state());
                         }
@@ -81,7 +59,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public void ProcessPacketBytes(byte[] data)
+        public static void ProcessPacketBytes(SITGameComponent gameComp, byte[] data)
         {
             try
             {
@@ -97,14 +75,16 @@ namespace StayInTarkov.Networking
                     return;
                 }
 
-                if (SITGameComponent == null)
+                if (gameComp == null)
                     return;
 
                 ISITPacket sitPacket = null;
-                ProcessSITPacket(data, out sitPacket);
+                ProcessSITPacket(gameComp, data, out sitPacket);
 
                 if (sitPacket != null)
-                    SITGameComponent.ActionPacketHandler.ActionSITPackets.Add(sitPacket);
+                {
+                    gameComp.ActionPacketHandler.ActionSITPackets.Add(sitPacket);
+                }
                 else
                 {
 #if DEBUG
@@ -121,7 +101,7 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public void ProcessSITPacket(byte[] data, out ISITPacket packet)
+        public static void ProcessSITPacket(SITGameComponent gameComp, byte[] data, out ISITPacket packet)
         {
             packet = null;
 
@@ -141,9 +121,9 @@ namespace StayInTarkov.Networking
 
             var serverId = stringData.Substring(3, 24);
             // If the serverId is not the same as the one we are connected to. Return;
-            if (serverId != SITGameComponent.ServerId)
+            if (serverId != gameComp.ServerId)
             {
-                Logger.LogError($"{nameof(ProcessSITPacket)}. {serverId} does not equal {SITGameComponent.ServerId}");
+                Logger.LogError($"{nameof(ProcessSITPacket)}. {serverId} does not equal {gameComp.ServerId}");
                 return;
             }
 
@@ -154,7 +134,7 @@ namespace StayInTarkov.Networking
             packet = DeserializeIntoPacket(data, packet, bp);
         }
 
-        private ISITPacket DeserializeIntoPacket(byte[] data, ISITPacket packet, BasePacket bp)
+        private static ISITPacket DeserializeIntoPacket(byte[] data, ISITPacket packet, BasePacket bp)
         {
             var sitPacketType =
                             StayInTarkovHelperConstants

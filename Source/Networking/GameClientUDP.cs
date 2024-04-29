@@ -180,12 +180,12 @@ namespace StayInTarkov.Networking
         {
             if (channelNumber == SITGameServerClientDataProcessing.FLATBUFFER_CHANNEL_NUM)
             {
-                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessFlatBuffer(reader.GetRemainingBytes());
+                SITGameServerClientDataProcessing.ProcessFlatBuffer(GetComponent<SITGameComponent>(), reader.GetRemainingBytes());
             }
             else
             {
                 var bytes = reader.GetRemainingBytes();
-                Singleton<SITGameServerClientDataProcessing>.Instance.ProcessPacketBytes(bytes);
+                SITGameServerClientDataProcessing.ProcessPacketBytes(GetComponent<SITGameComponent>(), bytes);
             }
         }
 

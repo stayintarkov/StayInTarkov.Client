@@ -114,8 +114,6 @@ namespace StayInTarkov.Coop
                 GameObject.DestroyImmediate(coopGameComponent);
             }
 
-            AkiBackendCommunication.Instance.WebSocketClose();
-
             EnableDisablePatches();
         }
     }

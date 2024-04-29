@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Matchmaker;
+﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket;
 using System;
 using System.Collections.Concurrent;
@@ -27,12 +28,15 @@ namespace StayInTarkov.Networking
 
         void Awake()
         {
-            AkiBackendCommunication.Instance.WebSocketClose();
-            AkiBackendCommunication.Instance.WebSocketCreate(SITMatchmaking.Profile);
         }
 
         void Start()
         {
+            AkiBackendCommunication.Instance.WebSocketCreate(GetComponent<SITGameComponent>(), SITMatchmaking.Profile.Id);
+        }
+        void OnDestroy()
+        {
+            AkiBackendCommunication.Instance.WebSocketClose();
         }
 
         void Update()
