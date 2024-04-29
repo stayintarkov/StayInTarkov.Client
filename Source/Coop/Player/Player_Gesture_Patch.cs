@@ -46,29 +46,5 @@ namespace StayInTarkov.Coop.Player
             dictionary.Add("m", "Gesture");
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
-
-
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-            if (HasProcessed(GetType(), player, dict))
-                return;
-
-            if (CallLocally.Contains(player.ProfileId))
-                return;
-
-            try
-            {
-                CallLocally.Add(player.ProfileId);
-                if (Enum.TryParse<EGesture>(dict["g"].ToString(), out var g))
-                {
-                    player.vmethod_3(g);
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogInfo(e);
-            }
-
-        }
     }
 }

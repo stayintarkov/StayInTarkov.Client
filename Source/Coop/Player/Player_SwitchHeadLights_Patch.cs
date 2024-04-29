@@ -45,18 +45,5 @@ namespace StayInTarkov.Coop.Player
             };
             AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, dictionary);
         }
-
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-            if (HasProcessed(GetType(), player, dict))
-                return;
-
-            var togglesActive = bool.Parse(dict["togglesActive"].ToString());
-            var changesState = bool.Parse(dict["changesState"].ToString());
-
-            CallLocally.Add(player.ProfileId);
-            Logger.LogDebug($"Player_SwitchHeadLights_Patch:Replicated. Calling SwitchHeadLights(togglesActive: {togglesActive}, changesState: {changesState})");
-            player.SwitchHeadLights(togglesActive, changesState);
-        }
     }
 }

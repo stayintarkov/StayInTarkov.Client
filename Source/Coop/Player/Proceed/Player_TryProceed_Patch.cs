@@ -33,10 +33,5 @@ namespace StayInTarkov.Coop.Player.Proceed
             PlayerTryProceedPacket tryProceedPacket = new PlayerTryProceedPacket(__instance.ProfileId, item, scheduled);
             GameClient.SendData(tryProceedPacket.Serialize());
         }
-
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-            // Leave empty. Processed via the Packet itself.
-        }
     }
 }

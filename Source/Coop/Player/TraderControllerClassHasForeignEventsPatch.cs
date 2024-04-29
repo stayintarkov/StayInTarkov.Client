@@ -13,10 +13,6 @@ namespace StayInTarkov.Coop.Player
 
         public override string MethodName => "HasForeignEvents";
 
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-        }
-
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);

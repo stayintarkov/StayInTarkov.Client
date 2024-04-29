@@ -112,10 +112,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public List<LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
 
-        public BlockingCollection<Dictionary<string, object>> ActionPackets => ActionPacketHandler.ActionPackets;
-
-        private Dictionary<string, object>[] m_CharactersJson { get; set; }
-
         public bool RunAsyncTasks { get; set; } = true;
 
         float screenScale = 1.0f;
@@ -929,9 +925,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ProcessServerHasStopped();
             ProcessServerCharacters();
 
-            if (ActionPackets == null)
-                return;
-
             if (Players == null)
                 return;
 
@@ -940,10 +933,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
             if (RequestingObj == null)
                 return;
-
-
-
-
 
             if (SpawnedPlayersToFinalize == null)
                 return;
@@ -983,142 +972,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         byte[] SITCheckConfirmed { get; } = new byte[2] { 0, 0 };
 
         #endregion
-
-        //private async Task ReadFromServerCharactersLoop()
-        //{
-        //    if (GetServerId() == null)
-        //        return;
-
-
-        //    while (RunAsyncTasks)
-        //    {
-        //        await Task.Delay(10000);
-
-        //        if (Players == null)
-        //            continue;
-
-        //        await ReadFromServerCharacters();
-
-        //    }
-        //}
-
-        //private async Task ReadFromServerCharacters()
-        //{
-        //    // -----------------------------------------------------------------------------------------------------------
-        //    // We must filter out characters that already exist on this match!
-        //    //
-        //    var playerList = new List<string>();
-        //    if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
-        //    {
-        //        if (PlayersToSpawn.Count > 0)
-        //            playerList.AddRange(PlayersToSpawn.Keys.ToArray());
-        //        if (Players.Keys.Any())
-        //            playerList.AddRange(Players.Keys.ToArray());
-        //        if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
-        //            playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.ProfileId));
-        //        if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Count > 0)
-        //            playerList.AddRange(Singleton<GameWorld>.Instance.AllAlivePlayersList.Select(x => x.ProfileId));
-        //    }
-        //    //
-        //    // -----------------------------------------------------------------------------------------------------------
-        //    await Task.Run(() =>
-        //    {
-        //        // Ensure this is a distinct list of Ids
-        //        var distinctExistingProfileIds = playerList.Distinct().ToArray();
-        //        RequestSpawnPlayersPacket requestSpawnPlayersPacket = new RequestSpawnPlayersPacket(distinctExistingProfileIds);
-        //        GameClient.SendData(requestSpawnPlayersPacket.Serialize());
-        //    });
-        //    //try
-        //    //{
-        //    //    m_CharactersJson = await RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend, 30000);
-        //    //    if (m_CharactersJson == null)
-        //    //        return;
-
-        //    //    if (!m_CharactersJson.Any())
-        //    //        return;
-
-        //    //    if (m_CharactersJson[0].ContainsKey("notFound"))
-        //    //    {
-        //    //        // Game is broken and doesn't exist!
-        //    //        if (LocalGameInstance != null)
-        //    //        {
-        //    //            ServerHasStopped = true;
-        //    //        }
-        //    //        return;
-        //    //    }
-
-        //    //    //Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
-
-        //    //    var packets = m_CharactersJson
-        //    //         .Where(x => x != null);
-        //    //    if (packets == null)
-        //    //        return;
-
-        //    //    foreach (var queuedPacket in packets)
-        //    //    {
-        //    //        if (queuedPacket != null && queuedPacket.Count > 0)
-        //    //        {
-        //    //            if (queuedPacket != null)
-        //    //            {
-        //    //                if (queuedPacket.ContainsKey("m"))
-        //    //                {
-        //    //                    var method = queuedPacket["m"].ToString();
-        //    //                    if (method != "PlayerSpawn")
-        //    //                        continue;
-
-        //    //                    string profileId = queuedPacket["profileId"].ToString();
-        //    //                    if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
-        //    //                    {
-        //    //                        if (Players == null
-        //    //                            || Players.ContainsKey(profileId)
-        //    //                            || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId)
-        //    //                            )
-        //    //                        {
-        //    //                            Logger.LogDebug($"Ignoring call to Spawn player {profileId}. The player already exists in the game.");
-        //    //                            continue;
-        //    //                        }
-        //    //                    }
-
-        //    //                    if (PlayersToSpawn.ContainsKey(profileId))
-        //    //                        continue;
-
-        //    //                    if (!PlayersToSpawnPacket.ContainsKey(profileId))
-        //    //                        PlayersToSpawnPacket.TryAdd(profileId, queuedPacket);
-
-        //    //                    if (!PlayersToSpawn.ContainsKey(profileId))
-        //    //                        PlayersToSpawn.TryAdd(profileId, ESpawnState.None);
-
-        //    //                    if (queuedPacket.ContainsKey("isAI"))
-        //    //                        Logger.LogDebug($"{nameof(ReadFromServerCharacters)}:isAI:{queuedPacket["isAI"]}");
-
-        //    //                    if (queuedPacket.ContainsKey("isAI") && queuedPacket["isAI"].ToString() == "True" && !ProfileIdsAI.Contains(profileId))
-        //    //                    {
-        //    //                        ProfileIdsAI.Add(profileId);
-        //    //                        Logger.LogDebug($"Added AI Character {profileId} to {nameof(ProfileIdsAI)}");
-        //    //                    }
-
-        //    //                    if (queuedPacket.ContainsKey("isAI") && queuedPacket["isAI"].ToString() == "False" && !ProfileIdsUser.Contains(profileId))
-        //    //                    {
-        //    //                        ProfileIdsUser.Add(profileId);
-        //    //                        Logger.LogDebug($"Added User Character {profileId} to {nameof(ProfileIdsUser)}");
-        //    //                    }
-
-        //    //                }
-        //    //            }
-        //    //        }
-        //    //    }
-        //    //}
-        //    //catch (Exception ex)
-        //    //{
-
-        //    //    Logger.LogError(ex.ToString());
-
-        //    //}
-        //    //finally
-        //    //{
-
-        //    //}
-        //}
 
         //private IEnumerator ProcessServerCharacters()
         private void ProcessServerCharacters()

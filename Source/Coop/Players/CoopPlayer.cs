@@ -925,26 +925,6 @@ namespace StayInTarkov.Coop.Players
             }
         }
 
-        public void ProcessModuleReplicationPatch(Dictionary<string, object> packet)
-        {
-            if (!packet.ContainsKey("m"))
-                return;
-
-            var method = packet["m"].ToString();
-
-            if (!ModuleReplicationPatch.Patches.ContainsKey(method))
-                return;
-
-            var patch = ModuleReplicationPatch.Patches[method];
-            if (patch != null)
-            {
-                patch.Replicated(this, packet);
-                return;
-            }
-
-
-        }
-
         public void ReceiveArmorDamageFromServer(Dictionary<string, float> pendingArmorUpdates)
         {
             List<ArmorComponent> putOnArmors = [];

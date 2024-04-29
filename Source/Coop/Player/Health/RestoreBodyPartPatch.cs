@@ -59,50 +59,6 @@ namespace StayInTarkov.Coop.Player.Health
             GameClient.SendData(restoreBodyPartPacket.Serialize());
         }
 
-
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-            RestoreBodyPartPacket restoreBodyPartPacket = new();
-            restoreBodyPartPacket.Deserialize((byte[])dict["data"]);
-
-            if (HasProcessed(GetType(), player, restoreBodyPartPacket))
-                return;
-
-            if (player.HealthController != null && player.HealthController.IsAlive)
-            {
-                Logger.LogDebug("Replicated: Calling RestoreBodyPart");
-                Logger.LogDebug(restoreBodyPartPacket.ToJson());
-
-                if (dict == null)
-                {
-                    Logger.LogError($"Dictionary packet is null?");
-                    return;
-
-                }
-                //Logger.LogInfo(dict.ToJson());
-
-                var bodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), restoreBodyPartPacket.BodyPart, true);
-                var bodyPartState = GetBodyPartDictionary(player)[bodyPart];
-
-                if (bodyPartState == null)
-                {
-                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State for Body Part {restoreBodyPartPacket.BodyPart}");
-                    return;
-                }
-
-                if (bodyPartState.IsDestroyed)
-                {
-                    bodyPartState.IsDestroyed = false;
-                    var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * player.Skills.SurgeryReducePenalty;
-                    Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
-                    bodyPartState.Health = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartState.Health.Maximum * healthPenalty)), 0f);
-
-                    player.ExecuteSkill(new Action<float>(player.Skills.SurgeryAction.Complete));
-                    player.UpdateSpeedLimitByHealth();
-                }
-            }
-        }
-
         private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
