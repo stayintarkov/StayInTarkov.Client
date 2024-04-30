@@ -15,7 +15,6 @@ on:
       - "master"
       - "development"
 
-
   workflow_dispatch:
 
 jobs:
