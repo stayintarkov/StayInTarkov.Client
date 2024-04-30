@@ -41,6 +41,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public int ReadyPlayers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool HostReady { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool GameWorldStarted { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback)
         {
