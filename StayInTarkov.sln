@@ -30,6 +30,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\stay-in-tarkov-client.yml = .github\workflows\stay-in-tarkov-client.yml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SIT.WildSpawnType.PrePatcher", "SIT.WildSpawnType.PrePatcher\SIT.WildSpawnType.PrePatcher.csproj", "{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{79F0E889-A195-42B4-8656-4F35685BBB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79F0E889-A195-42B4-8656-4F35685BBB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79F0E889-A195-42B4-8656-4F35685BBB80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
