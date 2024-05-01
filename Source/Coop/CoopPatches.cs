@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.AI;
 
 namespace StayInTarkov.Coop
 {
@@ -55,7 +56,10 @@ namespace StayInTarkov.Coop
             var enablePatches = true;
 
             if (!NoMRPPatches.Any())
+            {
                 NoMRPPatches.Add(new LootableContainer_Interact_Patch());
+                NoMRPPatches.Add(new BotDespawnPatch());
+            }
 
             foreach (var patch in NoMRPPatches)
             {
