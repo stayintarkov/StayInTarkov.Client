@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using StayInTarkov.AkiSupport.Singleplayer.Patches.RaidFix;
 using System.Reflection;
 using HarmonyLib;
+using TMPro;
 
 namespace StayInTarkov
 {
@@ -42,12 +43,11 @@ namespace StayInTarkov
     /// </summary>
     [BepInPlugin("com.stayintarkov", "StayInTarkov", "1.11")]
     [BepInProcess("EscapeFromTarkov.exe")]
-    // Ensure nobody tries to load this module with Fika
+    // Ensure nobody tries to load this module with Fika. They wont be compatible :)
     [BepInIncompatibility("com.fika.core")]
-    // Ensure nobody tries to load this module with Aki Custom
     //[BepInDependency("com.spt-aki.core", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("com.spt-aki.singleplayer", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("com.spt-aki.custom", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.spt-aki.singleplayer", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.spt-aki.custom", BepInDependency.DependencyFlags.SoftDependency)]
     public class StayInTarkovPlugin : BaseUnityPlugin
     {
         /// <summary>
@@ -93,11 +93,41 @@ namespace StayInTarkov
         public delegate void OnGameLoadedHandler(object sender, EventArgs e);
         public event OnGameLoadedHandler OnGameLoaded;
 
+        private string[] SPTPatchesToRemove => [
+            "AddEnemyToAllGroupsInBotZonePatch",
+            "AirdropPatch",
+            "AirdropFlarePatch",
+            "AmmoUsedCounterPatch",
+            "ArmorDamageCounterPatch",
+            "BotDifficultyPatch",
+            "BotTemplateLimitPatch",
+            "BTRInteractionPatch",
+            "BTRExtractPassengersPatch",
+            "BTRPatch",
+            "DogtagPatch",
+            "EmptyInfilFixPatch",
+            "LabsKeycardRemovalPatch",
+            "LoadOfflineRaidScreenPatch",
+            "MaxBotPatch",
+            "OfflineSpawnPointPatch",
+            "OfflineRaidSettingsMenuPatch",
+            "ScavExfilPatch",
+            "ScavLateStartPatch",
+            "ScavLateStartPatch",
+            "ScavProfileLoadPatch",
+            "ScavRepAdjustmentPatch",
+            "ScavSellAllPriceStorePatch",
+            "ScavSellAllRequestPatch",
+            "VersionLabelPatch"
+            ];
+
         async Task Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
             LogDependancyErrors();
+
+            DisableSPT();
 
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
@@ -125,15 +155,19 @@ namespace StayInTarkov
             Logger.LogInfo($"Stay in Tarkov is loaded!");
         }
 
+        void DisableSPT()
+        {
+            DisableAkiSingleplayer();
+            DisableAkiCustom();
+        }
+
         private void StayInTarkovPlugin_OnGameLoaded(object sender, EventArgs e)
         {
             // Log the list
             LogLoadedPlugins();
-
-            // Apply actions dependant on the list
-            //DisableAkiSingleplayer();
-            //DisableAkiCustom();
         }
+
+
 
         private void DisableAkiSingleplayer()
         {
@@ -155,32 +189,13 @@ namespace StayInTarkov
                 var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
                     .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch").ToArray();
 
-                var modulePatchType = akiPluginModulePatchTypes[0].BaseType;
-                if (modulePatchType == null)
-                {
-                    Logger.LogError($"Unable to find modulePatchType");
+                if (!akiPluginModulePatchTypes.Any())
                     return;
-                }
 
-                var _harmony = ReflectionHelpers.GetFieldFromTypeByFieldType(modulePatchType, typeof(Harmony));
-                if (_harmony == null)
+                foreach (var removeType in SPTPatchesToRemove)
                 {
-                    Logger.LogError($"Unable to find _harmony");
-                    return;
+                    RemovePatch(akiPluginModulePatchTypes, removeType);
                 }
-
-
-                //Harmony.UnpatchID(akiPluginModulePatchTypes.First(x => x.FullName == "Aki.SinglePlayer.Patches.Progression.OfflineSaveProfilePatch").Name);
-                //foreach(var akiPluginModulePatch in akiPluginModulePatchTypes)
-                //{
-                //    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
-                //    Harmony.UnpatchID(akiPluginModulePatch.Name);
-                //}
-
-
-                GameObject.Destroy(akiPlugin);
-                Logger.LogInfo($"AkiSingleplayerPlugin Removed.");
-
             }
         }
 
@@ -204,20 +219,28 @@ namespace StayInTarkov
                 var akiPluginModulePatchTypes = akiPluginType.Assembly.GetTypes()
                     .Where(x => x.BaseType != null && x.BaseType.Name == "ModulePatch");
 
-                GameObject.Destroy(akiPlugin);
-                Logger.LogInfo($"Aki Custom Removed.");
+                if (!akiPluginModulePatchTypes.Any())
+                    return;
 
-                foreach (var akiPluginModulePatch in akiPluginModulePatchTypes)
+                foreach (var removeType in SPTPatchesToRemove)
                 {
-                    Logger.LogInfo($"-> Removed {akiPluginModulePatch.FullName}");
-                    Harmony.UnpatchID(akiPluginModulePatch.Name);
+                    RemovePatch(akiPluginModulePatchTypes, removeType);
                 }
 
-                Logger.LogInfo(StayInTarkovPlugin.EFTVersionMajor);
-
-                VersionNumberClass.Current.Major = StayInTarkovPlugin.EFTVersionMajor;
-                VersionLabelPatch.DisplaySITVersionLabel(StayInTarkovPlugin.EFTVersionMajor, null);
             }
+        }
+
+        private void RemovePatch(IEnumerable<Type> types, string typeToRemove)
+        {
+            var p = types.FirstOrDefault(x => x.Name == typeToRemove);
+            if (p != null)
+                RemovePatch(p);
+        }
+
+        private void RemovePatch(Type typeToRemove)
+        {
+            ReflectionHelpers.GetMethodForType(typeToRemove, "Disable").Invoke(Activator.CreateInstance(typeToRemove), []);
+            Logger.LogInfo($"-> Removed {typeToRemove.FullName}");
         }
 
         public void LogLoadedPlugins()
