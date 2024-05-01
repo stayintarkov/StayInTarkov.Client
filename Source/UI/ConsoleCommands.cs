@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Console.Core;
+using EFT.Game.Spawning;
 using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
@@ -9,12 +10,16 @@ using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.SITGameModes;
 using System;
 using System.IO;
+using System.Linq;
+using System.Numerics;
 using System.Reflection;
+using Systems.Effects;
+using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.UI
 {
-    public class ConsoleCommands
+    public class ConsoleCommands : MonoBehaviour
     {
 #if DEBUG
         [ConsoleCommand("mark", "", null, "Save current position as a teleport location", [])]
@@ -231,6 +236,71 @@ namespace StayInTarkov.UI
                     if ((door.DoorState == EDoorState.Locked && !string.IsNullOrEmpty(door.KeyId)) || door.DoorState == EDoorState.Interacting)
                     {
                         door.DoorState = EDoorState.Shut;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("despawnbots", "", null, "Despawns all AI players", [])]
+        public static void DespawnBots()
+        {
+            try
+            {
+                if (Singleton<ISITGame>.Instance is CoopSITGame game)
+                {
+                    foreach (var bot in game.PBotsController.Players.ToList())
+                    {
+                        if (bot.AIData.BotOwner == null)
+                        {
+                            continue;
+                        }
+
+                        //Taken from SWAG + DONUTS TO replicate this behavior
+                        //Credit to dvize & p-kossa for their amazing work
+                        //For reference: https://github.com/dvize/Donuts/blob/727e1de7c2a0714432ab03947deca2bfd5fad699/DonutComponent.cs#L388
+                        ConsoleScreen.Log($"Despawning bot: {bot.Profile.Info.Nickname}");
+
+                        BotOwner botOwner = bot.AIData.BotOwner;
+
+                        Singleton<Effects>.Instance.EffectsCommutator.StopBleedingForPlayer(botOwner.GetPlayer);
+                        botOwner.Deactivate();
+                        botOwner.Dispose();
+                        game.PBotsController.BotDied(botOwner);
+                        game.PBotsController.DestroyInfo(botOwner.GetPlayer);
+                        DestroyImmediate(botOwner.gameObject);
+                        Destroy(botOwner);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("teleportbots", "", null, "Teleports all AI players to the person running this command", [])]
+        public static void TeleportBots()
+        {
+            try
+            {
+                if (Singleton<ISITGame>.Instance is CoopSITGame game)
+                {
+                    var player = Singleton<GameWorld>.Instance?.MainPlayer;
+                    UnityEngine.Vector3 playerPositon = player.Position;
+
+                    foreach (var bot in game.PBotsController.Players.ToList())
+                    {
+                        if (bot.AIData.BotOwner == null)
+                        {
+                            continue;
+                        }
+
+                        BotOwner botOwner = bot.AIData.BotOwner;
+                        botOwner.GetPlayer.Teleport(playerPositon);
                     }
                 }
             }
