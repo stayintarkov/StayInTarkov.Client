@@ -456,8 +456,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             }
         }
 
-        private HashSet<string> ExtractedProfilesSent = new();
-
         void OnDestroy()
         {
             StayInTarkovHelperConstants.Logger.LogDebug($"CoopGameComponent:OnDestroy");
@@ -475,9 +473,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             Instance = null;
         }
 
-        TimeSpan LateUpdateSpan = TimeSpan.Zero;
-        Stopwatch swActionPackets { get; } = new Stopwatch();
-        bool PerformanceCheck_ActionPackets { get; set; } = false;
         public bool RequestQuitGame { get; set; }
         int ForceQuitGamePressed = 0;
 
