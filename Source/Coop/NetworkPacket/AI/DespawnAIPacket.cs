@@ -1,9 +1,6 @@
 ﻿using StayInTarkov.Coop.Components.CoopGameComponents;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using System;
 using System.IO;
-using System.Linq;
-using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket.AI
 {
