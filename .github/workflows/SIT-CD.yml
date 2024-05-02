@@ -19,7 +19,8 @@ jobs:
 
     env:
       SolutionName: StayInTarkov                              
-      CSProj: Source/StayInTarkov.csproj               
+      ProjectClient: Source/StayInTarkov.csproj      
+      ProjectPrePatcher: Source/StayInTarkov.csproj          
 
     steps:
     - name: Checkout
@@ -38,7 +39,8 @@ jobs:
     - name: dotnet build
       run: |
         mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-        dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+        dotnet build ${{ env.ProjectClient }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+        dotnet build ${{ env.ProjectPrePatcher }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
     - name: Get version from DLL
       id: extract-version
