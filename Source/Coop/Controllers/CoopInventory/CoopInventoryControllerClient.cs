@@ -7,12 +7,11 @@ using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace StayInTarkov.Coop.Controllers.CoopInventory
 {
     public sealed class CoopInventoryControllerClient
-        : EFT.Player.PlayerOwnerInventoryController, ICoopInventoryController, IIdGenerator
+        : EFT.Player.PlayerInventoryController, ICoopInventoryController, IIdGenerator
     {
         ManualLogSource BepInLogger { get; set; }
 
