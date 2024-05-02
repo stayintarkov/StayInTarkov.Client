@@ -6,6 +6,8 @@ namespace StayInTarkov
 {
     public class WebSocketPatch : ModulePatch
     {
+        public static bool IsHttps = true;
+
         protected override MethodBase GetTargetMethod()
         {
             var targetInterface = StayInTarkovHelperConstants.EftTypes.SingleCustom(x => x == typeof(IConnectionHandler) && x.IsInterface);
@@ -19,7 +21,17 @@ namespace StayInTarkov
         [PatchPostfix]
         private static Uri PatchPostfix(Uri __result)
         {
-            return new Uri(__result.ToString().Replace("wss:", "ws:"));
+            string url = __result.ToString();
+            if (url.StartsWith((IsHttps) ? "wss:" : "ws:"))
+            {
+                int firstSlash = url.IndexOf("/", 8);
+                string newWs = url.Substring(firstSlash, url.Length - firstSlash);
+                string backendUrl = StayInTarkovHelperConstants.GetBackendUrl();
+                backendUrl = backendUrl.Replace((IsHttps) ? "https" : "http", (IsHttps) ? "wss" : "ws");
+                newWs = backendUrl + newWs;
+                url = newWs;
+            }
+            return new Uri(url);
         }
 
     }
