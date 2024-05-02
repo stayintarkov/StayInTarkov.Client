@@ -693,6 +693,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForPlayersToSpawn()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingForPlayers);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Session Started. Waiting for Player(s)");
@@ -771,6 +774,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForPlayersToBeReady()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingToStart);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned. Waiting for Player(s) to be Ready.");
@@ -834,6 +840,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForHostToStart()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingToStart);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned and ready. Waiting for Host to start.");
@@ -1089,6 +1098,10 @@ namespace StayInTarkov.Coop.SITGameModes
                 // below is vmethod_5
                 CreateExfiltrationPointAndInitDeathHandler();
             }
+
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.InGame);
+
             runCallback.Succeed();
 
         }
@@ -1292,6 +1305,9 @@ namespace StayInTarkov.Coop.SITGameModes
                 { "serverId", SITGameComponent.GetServerId() }
 
             }.ToJson());
+
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.Complete);
 
             if (BossWaveManager != null)
                 BossWaveManager.Stop();

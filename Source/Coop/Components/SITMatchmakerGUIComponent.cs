@@ -3,6 +3,7 @@ using EFT;
 using EFT.Bots;
 using EFT.UI;
 using EFT.UI.Matchmaker;
+using HarmonyLib.Tools;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
@@ -40,7 +41,7 @@ namespace StayInTarkov.Coop.Components
 
         private Task GetMatchesTask { get; set; }
 
-        private Dictionary<string, object>[] m_Matches { get; set; }
+        private JArray m_Matches { get; set; }
 
         private CancellationTokenSource m_cancellationTokenSource;
 
@@ -360,10 +361,11 @@ namespace StayInTarkov.Coop.Components
             {
                 while (!StopAllTasks)
                 {
-                    var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000);
+                    var result = await AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000);
                     if (result != null)
                     {
-                        m_Matches = result;
+                        m_Matches = JArray.Parse(result);
+                        Logger.LogInfo(m_Matches);
                     }
 
                     if (ct.IsCancellationRequested)
@@ -371,7 +373,7 @@ namespace StayInTarkov.Coop.Components
                         ct.ThrowIfCancellationRequested();
                     }
 
-                    await Task.Delay(7000);
+                    await Task.Delay(5000);
 
                     if (ct.IsCancellationRequested)
                     {
@@ -449,7 +451,6 @@ namespace StayInTarkov.Coop.Components
             // Use the Language Dictionary
             string[] columnLabels = {
                 StayInTarkovPlugin.LanguageDictionary["SERVER"].ToString()
-                , StayInTarkovPlugin.LanguageDictionary["PLAYERS"].ToString()
                 , StayInTarkovPlugin.LanguageDictionary["LOCATION"].ToString()
                 , StayInTarkovPlugin.LanguageDictionary["PASSWORD"].ToString()
             };
@@ -509,46 +510,44 @@ namespace StayInTarkov.Coop.Components
             // Reset the GUI.backgroundColor to its original state
             GUI.backgroundColor = Color.white;
 
-            if (m_Matches != null)
+            if (m_Matches == null)
+                return;
+
+            //Logger.LogDebug(m_Matches.ToString());
+
+            var index = 0;
+            var yPosOffset = 60;
+
+            foreach (var match in m_Matches)
             {
-                var index = 0;
-                var yPosOffset = 60;
+                var yPos = yPosOffset + index * (cellHeight + 5);
 
-                foreach (var match in m_Matches)
+                string protocol = match["Protocol"]?.ToString();
+                string status = match["Status"]?.ToString();
+
+                // Display Host Name with "Raid" label
+                GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"]} Raid", labelStyle);
+
+                // Display Location
+                GUI.Label(new UnityEngine.Rect(cellWidth * 1, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
+
+                // Display Password Locked
+                GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? (string)StayInTarkovPlugin.LanguageDictionary["PASSWORD-YES"] : "", labelStyle);
+
+                // Calculate the width of the combined server information (Host Name, Player Count, Location)
+                var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
+
+                if (status == "WaitingForPlayers")
                 {
-                    var yPos = yPosOffset + index * (cellHeight + 5);
-
-                    //Extract player count from match before the server is shown
-                    int playerCount = int.Parse(match["PlayerCount"].ToString());
-                    string protocol = (string)match["Protocol"];
-
-                    if (playerCount > 0 || protocol == "PeerToPeerUdp")
+                    // Create "Join" button for each match on the next column
+                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString(), buttonStyle))
                     {
-                        // Display Host Name with "Raid" label
-                        GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"]} Raid", labelStyle);
-
-                        // Display Player Count
-                        GUI.Label(new UnityEngine.Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
-
-                        // Display Location
-                        GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
-
-                        // Display Password Locked
-                        GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? (string)StayInTarkovPlugin.LanguageDictionary["PASSWORD-YES"] : "", labelStyle);
-
-                        // Calculate the width of the combined server information (Host Name, Player Count, Location)
-                        var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
-
-                        // Create "Join" button for each match on the next column
-                        if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f), cellWidth * 0.8f, cellHeight * 0.5f), StayInTarkovPlugin.LanguageDictionary["JOIN"].ToString(), buttonStyle))
-                        {
-                            // Perform actions when the "Join" button is clicked
-                            JoinMatch(SITMatchmaking.Profile.ProfileId, match["ServerId"].ToString());
-                        }
-
-                        index++;
+                        // Perform actions when the "Join" button is clicked
+                        JoinMatch(SITMatchmaking.Profile.ProfileId, match["ServerId"].ToString());
                     }
                 }
+
+                index++;
             }
         }
 

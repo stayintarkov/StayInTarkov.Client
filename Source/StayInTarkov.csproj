@@ -154,7 +154,6 @@
   <ItemGroup>
     <Folder Include="Coop\NetworkPacket\FlatBuffers\StayInTarkov\FlatBuffers\" />
     <Folder Include="Networking\Nat\" />
-    <Folder Include="Multiplayer\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
