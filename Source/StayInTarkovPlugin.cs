@@ -95,6 +95,7 @@ namespace StayInTarkov
 
         private string[] SPTPatchesToRemove => [
             "AddEnemyToAllGroupsInBotZonePatch",
+            "AddSptBotSettingsPatch", // Requires Aki.PrePatch
             "AirdropPatch",
             "AirdropFlarePatch",
             "AmmoUsedCounterPatch",
@@ -104,6 +105,7 @@ namespace StayInTarkov
             "BTRInteractionPatch",
             "BTRExtractPassengersPatch",
             "BTRPatch",
+            "CustomAiPatch", // Requires Aki.PrePatch
             "DogtagPatch",
             "EmptyInfilFixPatch",
             "LabsKeycardRemovalPatch",
@@ -111,6 +113,7 @@ namespace StayInTarkov
             "MaxBotPatch",
             "OfflineSpawnPointPatch",
             "OfflineRaidSettingsMenuPatch",
+            "PmcFirstAidPatch", // Requires Aki.PrePatch
             "ScavExfilPatch",
             "ScavLateStartPatch",
             "ScavLateStartPatch",
