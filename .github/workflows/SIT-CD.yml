@@ -20,7 +20,7 @@ jobs:
     env:
       SolutionName: StayInTarkov                              
       ProjectClient: Source/StayInTarkov.csproj      
-      ProjectPrePatcher: Source/StayInTarkov.csproj          
+      ProjectPrePatcher: SIT.WildSpawnType.PrePatcher/SIT.WildSpawnType.PrePatcher.csproj          
 
     steps:
     - name: Checkout
