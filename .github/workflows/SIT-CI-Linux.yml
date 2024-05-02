@@ -28,7 +28,8 @@ jobs:
 
     env:
       SolutionName: StayInTarkov
-      CSProj: Source/StayInTarkov.csproj
+      ProjectClient: Source/StayInTarkov.csproj
+      ProjectPrePatcher: SIT.WildSpawnType.PrePatcher/SIT.WildSpawnType.PrePatcher.csproj          
 
     steps:
       - name: Checkout
@@ -49,7 +50,8 @@ jobs:
       - name: dotnet Publish
         run: |
           mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
-          dotnet build ${{ env.CSProj }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.ProjectClient }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.ProjectPrePatcher }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}
 
       # Remove unnecessary files
       - name: Remove unnecessary files
