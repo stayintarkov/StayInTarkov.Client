@@ -22,12 +22,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{A9DA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{DEB9463E-0556-44FD-A150-BFAFBB433D0B}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\comment-on-pr.yml = .github\workflows\comment-on-pr.yml
 		.github\workflows\publish-wiki.yml = .github\workflows\publish-wiki.yml
 		.github\workflows\SIT-CD.yml = .github\workflows\SIT-CD.yml
 		.github\workflows\SIT-CI-Linux.yml = .github\workflows\SIT-CI-Linux.yml
-		.github\workflows\SIT-CI.yml = .github\workflows\SIT-CI.yml
-		.github\workflows\stay-in-tarkov-client.yml = .github\workflows\stay-in-tarkov-client.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SIT.WildSpawnType.PrePatcher", "SIT.WildSpawnType.PrePatcher\SIT.WildSpawnType.PrePatcher.csproj", "{D5AF3F81-9EAC-4584-A30C-73E6DF3B73E6}"
