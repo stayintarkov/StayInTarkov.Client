@@ -21,17 +21,16 @@ namespace StayInTarkov
         [PatchPostfix]
         private static Uri PatchPostfix(Uri __result)
         {
-            string url = __result.ToString();
-            if (url.StartsWith((IsHttps) ? "wss:" : "ws:"))
+            UriBuilder websocketUriBuilder = new UriBuilder(__result);
+            string uriString = websocketUriBuilder.Uri.ToString();
+            if (uriString.StartsWith((IsHttps) ? "wss" : "ws"))
             {
-                int firstSlash = url.IndexOf("/", 8);
-                string newWs = url.Substring(firstSlash, url.Length - firstSlash);
-                string backendUrl = StayInTarkovHelperConstants.GetBackendUrl();
-                backendUrl = backendUrl.Replace((IsHttps) ? "https" : "http", (IsHttps) ? "wss" : "ws");
-                newWs = backendUrl + newWs;
-                url = newWs;
+                UriBuilder backendUriBuilder = new UriBuilder(StayInTarkovHelperConstants.GetBackendUrl());
+                websocketUriBuilder.Host = backendUriBuilder.Host;
+                websocketUriBuilder.Port = backendUriBuilder.Port;
+                if((uriString.StartsWith("wss") && !IsHttps) || (uriString.StartsWith("ws") && IsHttps)) websocketUriBuilder = new UriBuilder(uriString.Replace((IsHttps) ? "ws" : "wss", (IsHttps) ? "wss" : "ws"));
             }
-            return new Uri(url);
+            return websocketUriBuilder.Uri;
         }
 
     }
