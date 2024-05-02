@@ -69,15 +69,11 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
                 //We either picked something up or something is messed up, dont continue in either case.
                 if (PlyInventoryController == null || ItemOperation.From1 == null)
-                {
                     return false;
-                }
 
                 //I'm not doing BSG's dumb looping code here (At least that's what it looks like in ILSpy) for only one item in an array
                 if (PlyInventoryController.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack) == ItemOperation.From1.Container)
-                {
                     return true;
-                }
 
                 return false;
             }
