@@ -14,9 +14,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Systems.Effects;
 using UnityEngine;
+using UnityEngine.Yoga;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
@@ -134,7 +137,7 @@ namespace StayInTarkov.Coop.Components
             //    }
             //    //Canvas.GetComponent<UnityEngine.GUIText>();
             //}
-            
+
             styleStateBrowserBigButtonsNormal = new GUIStyleState()
             {
                 textColor = Color.white
@@ -173,21 +176,60 @@ namespace StayInTarkov.Coop.Components
             StartCoroutine(ResolveMatches());
             DisableBSGButtons();
 
+            SITRearrangeScreen();
+
+            DeleteExistingMatches();
+        }
+
+        private void SITRearrangeScreen()
+        {
+            var tiles = GameObject.Find("Tiles");
+            var tilesCopy = GameObject.Instantiate(tiles, new Vector3(0,0), Quaternion.identity);
+            //tilesCopy.GetComponent<RectTransform>().position = new Vector3(0, 1000, 0);
+
             var previewsPanel = GameObject.Find("PreviewsPanel");
             if (previewsPanel != null)
             {
                 var previewsPanelRect = previewsPanel.GetComponent<RectTransform>();
                 previewsPanelRect.position = new Vector3(400, 300, 0);
+
+                var levelPanel = GameObject.Find("Level Panel");
+                if (levelPanel != null)
+                {
+                    var levelPanelRect = levelPanel.GetComponent<RectTransform>();
+                    levelPanelRect.position = new Vector3(150, Screen.height, 0);
+                }
             }
 
             var playerImage = GameObject.Find("PlayerImage");
             if (playerImage != null)
             {
                 var playerImageRect = playerImage.GetComponent<RectTransform>();
-                playerImageRect.localScale = new Vector3(1.4f, 1.4f, 0);
+                playerImageRect.localScale = new Vector3(1.39f, 1.39f, 0);
             }
 
-            DeleteExistingMatches();
+            var playerName = GameObject.Find("PlayerInfo");
+            if (playerName != null)
+            {
+                var playerNameRect = playerName.GetComponent<RectTransform>();
+                playerNameRect.position = new Vector3(Screen.width * 0.2f, Screen.height - (Screen.height * 0.02f), 0);
+                playerNameRect.localScale = new Vector3(1.35f, 1.35f, 0);
+
+            }
+
+            ScreenCaption = GameObject.Find("Screen Caption");
+            if (ScreenCaption != null)
+            {
+                Logger.LogInfo("Found Screen Caption");
+                ScreenCaption.gameObject.SetActive(false);
+            }
+
+            Subcaption = GameObject.Find("Subcaption");
+            if (ScreenCaption != null)
+            {
+                Logger.LogInfo("Found Subcaption");
+                Subcaption.gameObject.SetActive(false);
+            }
         }
 
         private void DeleteExistingMatches()
@@ -216,8 +258,13 @@ namespace StayInTarkov.Coop.Components
             StopAllTasks = true;
         }
 
+        GameObject ScreenCaption { get; set; }
+        GameObject Subcaption { get; set; }
+
         void Update()
         {
+            
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 DestroyThis();
@@ -227,6 +274,9 @@ namespace StayInTarkov.Coop.Components
 
         void OnGUI()
         {
+            // Draw the horizontal line for top bar
+            GUI.DrawTexture(new Rect(0, Screen.height * 0.08f, Screen.width, 2), Texture2D.grayTexture);
+
             // Define the proportions for the main window and the host game window (same size)
             var windowWidthFraction = 0.4f;
             var windowHeightFraction = 0.4f;
@@ -351,7 +401,6 @@ namespace StayInTarkov.Coop.Components
             OriginalBackButton.gameObject.SetActive(false);
             OriginalBackButton.enabled = false;
             OriginalBackButton.Interactable = false;
-
         }
 
         void GetMatches()
@@ -365,7 +414,6 @@ namespace StayInTarkov.Coop.Components
                     if (result != null)
                     {
                         m_Matches = JArray.Parse(result);
-                        Logger.LogInfo(m_Matches);
                     }
 
                     if (ct.IsCancellationRequested)
