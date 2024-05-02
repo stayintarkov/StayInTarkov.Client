@@ -643,6 +643,12 @@ namespace StayInTarkov.Coop.SITGameModes
                     Logger.LogDebug("Sending Connect to Relay");
                     GameClient.SendData(Encoding.UTF8.GetBytes(j.ToString()));
                     break;
+                case ESITProtocol.PeerToPeerUdp:
+                    JObject js = new JObject();
+                    js.Add("serverId",  SITGameComponent.GetServerId());
+                    js.Add("profileId", profile.ProfileId);
+                    AkiBackendCommunication.Instance.PostJsonAndForgetAsync("/coop/raid/udp/join", js.SITToJson());
+                    break;
             }
            
 

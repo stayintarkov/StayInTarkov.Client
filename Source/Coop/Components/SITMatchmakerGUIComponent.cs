@@ -520,7 +520,7 @@ namespace StayInTarkov.Coop.Components
                     int playerCount = int.Parse(match["PlayerCount"].ToString());
                     string protocol = (string)match["Protocol"];
 
-                    if (playerCount > 0 || protocol == "PeerToPeerUdp")
+                    if (playerCount > 0)
                     {
                         // Display Host Name with "Raid" label
                         GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"]} Raid", labelStyle);
