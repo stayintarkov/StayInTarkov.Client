@@ -56,7 +56,7 @@ jobs:
       # Remove unnecessary files
       - name: Remove unnecessary files
         run: |
-          rm ${{ env.SolutionName }}-${{ matrix.configuration }}/StayInTarkov.pdb
+          rm ${{ env.SolutionName }}-${{ matrix.configuration }}/*.pdb
 
       # Zip remaining files
       - name: Zip remaining files
