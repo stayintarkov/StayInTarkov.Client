@@ -1,4 +1,5 @@
-﻿using StayInTarkov.Coop.Components.CoopGameComponents;
+﻿using BepInEx.Logging;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 using System;
 using System.IO;
 
@@ -41,18 +42,7 @@ namespace StayInTarkov.Coop.NetworkPacket.AI
             if (!coopGameComponent.ProfileIdsAI.Contains(AIProfileId))
                 return;
 
-            try
-            {
-                EFT.Player Bot = coopGameComponent.Players[AIProfileId];
-                Bot.Dispose();
-                coopGameComponent.ProfileIdsAI.Remove(AIProfileId);
-                UnityEngine.Object.DestroyImmediate(Bot);
-                UnityEngine.Object.Destroy(Bot);
-            }
-            catch(Exception ex)
-            {
-                StayInTarkovHelperConstants.Logger.LogError($"{nameof(DespawnAIPacket)}: {ex}");
-            }
+            coopGameComponent.AddToDespawnList(AIProfileId);
         }
     }
 }

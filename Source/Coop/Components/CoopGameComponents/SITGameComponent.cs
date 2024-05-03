@@ -32,6 +32,7 @@ using StayInTarkov.Coop.NetworkPacket.World;
 using Google.FlatBuffers;
 using StayInTarkov.FlatBuffers;
 using FBPacket = StayInTarkov.FlatBuffers.Packet;
+using Systems.Effects;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -532,6 +533,17 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
                     ProcessOtherModsSpawnedPlayers();
 
+                    if(DespawnList.Count > 0)
+                    {
+                        foreach (string Id in DespawnList.ToList())
+                        {
+                            Logger.LogInfo($"Attempting to despawn queued character: {Id}");
+
+                            if (DespawnCharacter(Id))
+                                DespawnList.Remove(Id);
+                        }
+                    };
+
                 }
                 catch (Exception ex)
                 {
@@ -566,6 +578,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
+            DespawnList.Clear();
             RunAsyncTasks = false;
             StopCoroutine(EverySecondCoroutine());
 
@@ -1543,6 +1556,34 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
 
             });
+        }
+
+        private List<string> DespawnList = new();
+
+        public void AddToDespawnList(string ProfileId) => DespawnList.Add(ProfileId);
+
+        private bool DespawnCharacter(string ProfileId)
+        {
+            //Player is already existent and should have already spawned, we can proceed immediately to removal.
+            if(SpawnedPlayers.ContainsKey(ProfileId))
+            {
+                var Bot = SpawnedPlayers[ProfileId];
+
+                //Bleeding causes an exception on despawn, stop the bleeding effect.
+                Singleton<Effects>.Instance.EffectsCommutator.StopBleedingForPlayer(Bot);
+
+                Bot.Dispose();
+                DestroyImmediate(Bot.gameObject);
+                Destroy(Bot);
+                ProfileIdsAI.Remove(ProfileId);
+                SpawnedPlayers.Remove(ProfileId);
+                Players.TryRemove(ProfileId, out _);
+                return true;
+            }
+
+            Logger.LogWarning($"Character ({ProfileId}) has not spawned yet! Cannot remove");
+
+            return false;
         }
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
