@@ -1564,26 +1564,36 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         private bool DespawnCharacter(string ProfileId)
         {
-            //Player is already existent and should have already spawned, we can proceed immediately to removal.
-            if(SpawnedPlayers.ContainsKey(ProfileId))
+            try
             {
-                var Bot = SpawnedPlayers[ProfileId];
+                //Player is already existent and should have already spawned, we can proceed immediately to removal.
+                if (SpawnedPlayers.ContainsKey(ProfileId))
+                {
+                    var Bot = SpawnedPlayers[ProfileId];
 
-                //Bleeding causes an exception on despawn, stop the bleeding effect.
-                Singleton<Effects>.Instance.EffectsCommutator.StopBleedingForPlayer(Bot);
+                    //Bleeding causes an exception on despawn, stop the bleeding effect.
+                    Singleton<Effects>.Instance.EffectsCommutator.StopBleedingForPlayer(Bot);
 
-                Bot.Dispose();
-                DestroyImmediate(Bot.gameObject);
-                Destroy(Bot);
-                ProfileIdsAI.Remove(ProfileId);
-                SpawnedPlayers.Remove(ProfileId);
-                Players.TryRemove(ProfileId, out _);
-                return true;
+                    Bot.Dispose();
+                    if(Bot.gameObject != null)
+                        DestroyImmediate(Bot.gameObject);
+
+                    Destroy(Bot);
+                    ProfileIdsAI.Remove(ProfileId);
+                    SpawnedPlayers.Remove(ProfileId);
+                    Players.TryRemove(ProfileId, out _);
+                    return true;
+                }
+
+                Logger.LogWarning($"Character ({ProfileId}) has not spawned yet! Cannot remove");
+
+                return false;
             }
-
-            Logger.LogWarning($"Character ({ProfileId}) has not spawned yet! Cannot remove");
-
-            return false;
+            catch(Exception ex)
+            {
+                Logger.LogError($"{nameof(DespawnCharacter)}: {ex}");
+                return false;
+            }
         }
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();
