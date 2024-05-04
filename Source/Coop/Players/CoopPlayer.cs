@@ -16,6 +16,8 @@ using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
+using StayInTarkov.FlatBuffers;
+
 //using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
 using System;
@@ -872,6 +874,15 @@ namespace StayInTarkov.Coop.Players
             GameClient.SendData(packet.Serialize());
 
 
+        }
+
+        public override void vmethod_3(EGesture gesture)
+        {
+            base.vmethod_3(gesture);
+
+            PlayerGesturePacket packet = new PlayerGesturePacket();
+            packet.Gesture = gesture;
+            GameClient.SendData(packet.Serialize());
         }
 
         void Awake()

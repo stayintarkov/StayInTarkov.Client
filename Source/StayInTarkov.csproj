@@ -9,6 +9,7 @@
     <LangVersion>preview</LangVersion>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<Deterministic>false</Deterministic>
+	<Copyright>Copyright @ Stay In Tarkov 2024</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

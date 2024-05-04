@@ -53,7 +53,9 @@ namespace StayInTarkov.Coop.Components
 
         private int botAmountInput = 0;
         private int botDifficultyInput = 0;
-        private int protocolInput = 0;
+        private int protocolInput = 1;
+        private bool p2pModeSelected => protocolInput == 1;
+
         private string pendingServerId = "";
         private int p2pModeOptionInput;
 
@@ -624,14 +626,6 @@ namespace StayInTarkov.Coop.Components
                 {
                     case 0:
 
-                        //if (GameObject_NumberOfPlayersToWaitFor == null)
-                        //    GameObject_NumberOfPlayersToWaitFor = TMPManager.InstantiateTarkovTextLabel(
-                        //        nameof(GameObject_NumberOfPlayersToWaitFor)
-                        //        , StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"]
-                        //        , 14
-                        //        // for TMP, 0 is the middle of the screen
-                        //        , new Vector3(0, 0)
-                        //        );
                         // Title label for the number of players
                         GUI.Label(new Rect(cols[0], y, calcSizeContentLabelNumberOfPlayers.x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"].ToString(), labelStyle);
 
@@ -707,7 +701,7 @@ namespace StayInTarkov.Coop.Components
                         break;
                     case 6:
                         // If Peer to Peer is chosen
-                        if (protocolInput == 1)
+                        if (this.p2pModeSelected)
                         {
                             // P2P Mode Option Choice
                             GUI.Label(new Rect(cols[0], y, labelStyle.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["P2P_MODE_LABEL"].ToString())).x, calcSizeContentLabelNumberOfPlayers.y), StayInTarkovPlugin.LanguageDictionary["P2P_MODE_LABEL"].ToString(), labelStyle);
@@ -718,7 +712,7 @@ namespace StayInTarkov.Coop.Components
                         break;
                     case 7:
                         // If Peer to Peer is chosen
-                        if (protocolInput == 1)
+                        if (this.p2pModeSelected)
                         {
                             // Automatic
                             if (p2pModeOptionInput == 0)

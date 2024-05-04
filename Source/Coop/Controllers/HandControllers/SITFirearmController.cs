@@ -2,15 +2,11 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using EFT.UI;
+using StayInTarkov.Coop.Controllers.CoopInventory;
+using StayInTarkov.Coop.NetworkPacket.Player.Inventory;
 using StayInTarkov.Coop.NetworkPacket.Player.Weapons;
-using StayInTarkov.Coop.Players;
 using StayInTarkov.Networking;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.Controllers.HandControllers
@@ -27,8 +23,65 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void Execute(IOperation1 operation, Callback callback)
         {
+            //Apply the same checks BSG does before invoking DropBackpackOperationInvoke
+            if (!method_18(operation))
+            {
+                IOneItemOperation ProperOperation = TryGetIOneItemOperation(operation);
+
+                if (ProperOperation != null && IsAnimatedSlot(ProperOperation))
+                {   
+                    BepInLogger.LogInfo($"{nameof(SITFirearmController)}:Attempt to quickly replicate a backpack drop");
+
+                    PlayerInventoryDropBackpackPacket packet = new();
+                    packet.ProfileId = _player.ProfileId;
+
+                    GameClient.SendData(packet.Serialize());
+
+                    //Do not send the current operation to the inventory server as the packet we just sent already handles this.
+                    AbstractInventoryOperation AbstractOperation = (AbstractInventoryOperation)operation;
+                    var CoopInventoryController = ((CoopInventoryController)ItemFinder.GetPlayerInventoryController(_player));
+                    CoopInventoryController.IgnoreOperation(AbstractOperation.Id);
+                }
+                
+            }
+
             BepInLogger.LogDebug($"{nameof(SITFirearmController)}:{nameof(Execute)}:{operation}");
             base.Execute(operation, callback);
+        }
+
+        private IOneItemOperation TryGetIOneItemOperation(IOperation1 operation)
+        {
+            if (!(operation is IOneItemOperation ItemOperation))
+                return null;
+
+            return ItemOperation;
+        }
+
+        //Replicate IsAnimatedSlot as this method is not available to us.
+        private bool IsAnimatedSlot(IOneItemOperation ItemOperation)
+        {
+            try
+            {
+                if (ItemOperation == null)
+                    return false;
+
+                var PlyInventoryController = (InventoryControllerClass)ItemFinder.GetPlayerInventoryController(_player);
+
+                //We either picked something up or something is messed up, dont continue in either case.
+                if (PlyInventoryController == null || ItemOperation.From1 == null)
+                    return false;
+
+                //I'm not doing BSG's dumb looping code here (At least that's what it looks like in ILSpy) for only one item in an array
+                if (PlyInventoryController.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack) == ItemOperation.From1.Container)
+                    return true;
+
+                return false;
+            }
+            catch(Exception ex)
+            {
+                BepInLogger.LogError($"{nameof(SITFirearmController)}:{nameof(IsAnimatedSlot)}:{ex}");
+                return false;
+            }
         }
 
         public override void Drop(float animationSpeed, Action callback, bool fastDrop = false, Item nextControllerItem = null)

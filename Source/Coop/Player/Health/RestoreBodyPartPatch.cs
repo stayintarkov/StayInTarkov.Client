@@ -58,37 +58,5 @@ namespace StayInTarkov.Coop.Player.Health
             //Logger.LogInfo(json);
             GameClient.SendData(restoreBodyPartPacket.Serialize());
         }
-
-        private Dictionary<EBodyPart, AHealthController.BodyPartState> GetBodyPartDictionary(EFT.Player player)
-        {
-            try
-            {
-                var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, AHealthController.BodyPartState>>
-                (player.PlayerHealthController, "Dictionary_0", false);
-                if (bodyPartDict == null)
-                {
-                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State Dictionary");
-                    return null;
-                }
-                //Logger.LogInfo(bodyPartDict.ToJson());
-                return bodyPartDict;
-            }
-            catch (Exception)
-            {
-
-                var field = ReflectionHelpers.GetFieldFromType(player.PlayerHealthController.GetType(), "Dictionary_0");
-                Logger.LogError(field);
-                var type = field.DeclaringType;
-                Logger.LogError(type);
-                var val = field.GetValue(player.PlayerHealthController);
-                Logger.LogError(val);
-                var valType = field.GetValue(player.PlayerHealthController).GetType();
-                Logger.LogError(valType);
-            }
-
-            return null;
-        }
-
     }
 }

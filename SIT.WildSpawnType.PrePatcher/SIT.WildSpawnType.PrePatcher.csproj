@@ -1,0 +1,28 @@
+﻿
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>SIT.WildSpawnType.PrePatcher</AssemblyName>
+	<Configuration>Release</Configuration>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>Stay In Tarkov</Company>
+    <Copyright>Copyright @ Stay In Tarkov 2024</Copyright>
+	<Description>Stay in Tarkov plugin for Escape From Tarkov</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp" HintPath="..\References\Assembly-CSharp.dll" Private="False" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" ExcludeAssets="runtime" PrivateAssets="all">
+      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Private="False" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

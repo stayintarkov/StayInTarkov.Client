@@ -536,5 +536,13 @@ namespace StayInTarkov.Coop.Players
                 CurrentManagedState.ExecuteDoorInteraction(door, interactionResult, null, this);
             }
         }
+
+        public override void vmethod_3(EGesture gesture)
+        {
+            if (!HandsController.IsInInteractionStrictCheck())
+            {
+                HandsController.ShowGesture(gesture);
+            }
+        }
     }
 }

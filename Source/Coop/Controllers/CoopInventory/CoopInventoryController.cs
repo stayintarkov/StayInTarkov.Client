@@ -59,6 +59,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return id;
         }
 
+        public void IgnoreOperation(ushort OperationToIgnore) => IgnoreOperations.Add(OperationToIgnore);
 
         public override void Execute(AbstractInventoryOperation operation, [CanBeNull] Callback callback)
         {
@@ -84,6 +85,15 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         /// <returns></returns>
         protected virtual void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
+            if(IgnoreOperations.Contains(operation.Id))
+            {
+                StayInTarkovHelperConstants.Logger.LogWarning($"Ignoring operation: {operation.Id}");
+
+                //Ignore the operation once.
+                IgnoreOperations.Remove(operation.Id);
+                return;
+            }
+
             var itemId = "";
             var templateId = "";
             ushort stackObjectsCount = 1;
