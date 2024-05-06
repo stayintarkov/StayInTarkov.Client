@@ -6,6 +6,7 @@ using EFT.CameraControl;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using GPUInstancer;
+using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
 using StayInTarkov.Coop.Controllers.HandControllers;
@@ -241,7 +242,7 @@ namespace StayInTarkov.Coop.Players
                 //_raycastHitCube.transform.position = hit.point;
 
                 // If the guy is further than 40m away. Use the Teleportation system.
-                if (!NewState.Empty() && distanceFromCamera > 40)
+                if (!NewState.Empty() && distanceFromCamera > PluginConfigSettings.Instance.CoopSettings.BotTeleportDistance)
                 {
                     this.Position = NewState.Position.Value.Unity();
                     this.Rotation = NewState.Rotation.Value.Unity();
