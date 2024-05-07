@@ -114,6 +114,8 @@ namespace StayInTarkov.Configuration
             public bool ArenaMode { get; set; } = false;
             public bool EnableAISpawnWaveSystem { get; set; } = true;
 
+            public int BotTeleportDistance { get; set; } = 40;
+
             public bool ForceHighPingMode { get; set; } = false;
             public bool RunThroughOnServerStop { get; set; } = true;
 
@@ -163,6 +165,9 @@ namespace StayInTarkov.Configuration
 
                 WaitingTimeBeforeStart = Config.Bind("Coop", "WaitingTimeBeforeStart", 120
                         , new ConfigDescription("Time in seconds to wait for players before starting the game automatically")).Value;
+
+                BotTeleportDistance = Config.Bind("Coop", "BotTeleportDistance", 40
+                        , new ConfigDescription("Distance greater than X meters to teleport bots to player")).Value;
 
                 SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
                  ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;
