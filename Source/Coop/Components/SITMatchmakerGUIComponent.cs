@@ -7,6 +7,7 @@ using HarmonyLib.Tools;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Networking;
 using StayInTarkov.UI;
 using System;
@@ -25,6 +26,9 @@ using FontStyle = UnityEngine.FontStyle;
 
 namespace StayInTarkov.Coop.Components
 {
+    /// <summary>
+    /// This is the "Server Browser" and replacement of the "last screen"
+    /// </summary>
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
         private UnityEngine.Rect windowRect = new(20, 20, 120, 50);
@@ -97,6 +101,10 @@ namespace StayInTarkov.Coop.Components
         public Profile Profile { get; internal set; }
         public Rect hostGameWindowInnerRect { get; private set; }
 
+        public bool IsMatchmakingAvailable { get; private set; } = false;
+
+        public bool IsHeadlessServerAvailable { get; private set; } = false;
+
         #region TextMeshPro Game Objects 
 
         private GameObject GOIPv4_Text { get; set; }    
@@ -124,19 +132,6 @@ namespace StayInTarkov.Coop.Components
             Logger.LogInfo("Start");
 
             TMPManager = new PaulovTMPManager();
-            //DrawIPAddresses();
-            //DrawSITButtons();
-            //// Get Canvas
-            //Canvas = GameObject.FindObjectOfType<Canvas>();
-            //if (Canvas != null)
-            //{
-            //    Logger.LogInfo("Canvas found");
-            //    foreach (Transform b in Canvas.GetComponents<Transform>())
-            //    {
-            //        Logger.LogInfo(b);
-            //    }
-            //    //Canvas.GetComponent<UnityEngine.GUIText>();
-            //}
 
             styleStateBrowserBigButtonsNormal = new GUIStyleState()
             {
@@ -148,14 +143,6 @@ namespace StayInTarkov.Coop.Components
             texture2D.Fill(Color.black);
             styleStateBrowserBigButtonsNormal.background = texture2D;
             styleStateBrowserBigButtonsNormal.textColor = Color.black;
-            //styleStateBrowserWindowNormal.background = texture2D;
-            //styleStateBrowserWindowNormal.textColor = Color.white;
-
-            // Create Skin for Window
-            //GUISkin skin = ScriptableObject.CreateInstance<GUISkin>();
-            //skin.window = new GUIStyle();
-            //skin.window.alignment = TextAnchor.MiddleLeft;
-            //skin.window.normal = styleStateBrowserWindowNormal;
 
             m_cancellationTokenSource = new CancellationTokenSource();
             styleBrowserBigButtons = new GUIStyle()
@@ -181,17 +168,16 @@ namespace StayInTarkov.Coop.Components
             DeleteExistingMatches();
         }
 
+        private GameObject SITServersAvailable { get; set; }
+        private GameObject MatchmakingServersAvailable { get; set; }
+
         private void SITRearrangeScreen()
         {
-            var tiles = GameObject.Find("Tiles");
-            var tilesCopy = GameObject.Instantiate(tiles, new Vector3(0,0), Quaternion.identity);
-            //tilesCopy.GetComponent<RectTransform>().position = new Vector3(0, 1000, 0);
-
             var previewsPanel = GameObject.Find("PreviewsPanel");
             if (previewsPanel != null)
             {
                 var previewsPanelRect = previewsPanel.GetComponent<RectTransform>();
-                previewsPanelRect.position = new Vector3(400, 300, 0);
+                previewsPanelRect.position = new Vector3(400, 290, 0);
 
                 var levelPanel = GameObject.Find("Level Panel");
                 if (levelPanel != null)
@@ -230,6 +216,8 @@ namespace StayInTarkov.Coop.Components
                 Logger.LogInfo("Found Subcaption");
                 Subcaption.gameObject.SetActive(false);
             }
+
+            SITServersAvailable = this.TMPManager.InstantiateTarkovTextLabel(nameof(SITServersAvailable), "", 20, new Vector3(((Screen.height / 2)) - 100, ((Screen.height / 2)) - 60, 0));
         }
 
         private void DeleteExistingMatches()
@@ -239,17 +227,7 @@ namespace StayInTarkov.Coop.Components
             AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/delete", jsonObj.ToString());
         }
 
-        //private void DrawIPAddresses()
-        //{
-        //    var GOIPv4_Text = TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", $"IPv4: {SITMatchmaking.IPAddress}", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
-        //    TMPManager.InstantiateTarkovTextLabel("GOIPv4_Text", GOIPv4_Text.transform, $"IPv6: {SITIPAddressManager.SITIPAddresses.ExternalAddresses.IPAddressV6}", 16, new Vector3(0, -20, 0));
-        //}
-
-        //private void DrawSITButtons()
-        //{
-        //    //TMPManager.InstantiateTarkovButton("test_btn", "Test", 16, new Vector3(0, (Screen.height / 2) - 120, 0));
-        //}
-
+      
         void OnDestroy()
         {
             if (m_cancellationTokenSource != null)
@@ -263,7 +241,19 @@ namespace StayInTarkov.Coop.Components
 
         void Update()
         {
-            
+            if(this.m_Matches != null)
+            {
+                var countOfAvailableServers =
+                   // Count open servers that are Waiting for Players
+                   this.m_Matches
+                   .Count(match => match["Status"]?.ToString() == SITMPRaidStatus.WaitingForPlayers.ToString());
+
+                var serverAvailabilityText = $"{countOfAvailableServers} Servers Available " 
+                    + $"{(this.IsMatchmakingAvailable ? " | Matchmaking Available" : "")}"
+                    + $"{(this.IsHeadlessServerAvailable ? " | Headless Server Available" : "")}";
+
+                this.SITServersAvailable.GetComponent<CustomTextMeshProUGUI>().text = serverAvailabilityText;
+            }
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
