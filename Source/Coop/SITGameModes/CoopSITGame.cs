@@ -948,19 +948,17 @@ namespace StayInTarkov.Coop.SITGameModes
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
-            if (!SITMatchmaking.IsClient)
-            {
-
-                var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
-
-                BotsPresets profileCreator =
+            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
+            BotsPresets profileCreator =
                     new(BackEndSession
                     , wavesSpawnScenario_0.SpawnWaves
                     , this.BossWaves
                     , nonwaves
                     , true);
+            BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
 
-                BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
+            if (!SITMatchmaking.IsClient)
+            {
                 BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
                 PBotsController.Init(this
                     , botCreator
@@ -1013,6 +1011,10 @@ namespace StayInTarkov.Coop.SITGameModes
                     ConsoleScreen.LogException(ex);
                     Logger.LogError(ex);
                 }
+            }
+            else
+            {
+                PBotsController.Init(this, botCreator, [], SpawnSystem, wavesSpawnScenario_0.BotLocationModifier, false, false, false, false, false, Singleton<GameWorld>.Instance, "");
             }
 
             yield return new WaitForSeconds(startDelay);
