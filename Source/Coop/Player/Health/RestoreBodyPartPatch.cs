@@ -58,9 +58,5 @@ namespace StayInTarkov.Coop.Player.Health
             //Logger.LogInfo(json);
             GameClient.SendData(restoreBodyPartPacket.Serialize());
         }
-
-        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-        }
     }
 }

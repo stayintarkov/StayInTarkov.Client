@@ -67,8 +67,6 @@ namespace StayInTarkov.Coop
             return default(T);
         }
 
-        public abstract void Replicated(EFT.Player player, Dictionary<string, object> dict);
-
         protected static ConcurrentDictionary<Type, ConcurrentDictionary<string, ConcurrentBag<long>>> ProcessedCalls = new();
 
         protected static bool HasProcessed(Type type, EFT.Player player, Dictionary<string, object> dict)
@@ -119,15 +117,6 @@ namespace StayInTarkov.Coop
                 StayInTarkovHelperConstants.Logger.LogDebug($"HasProcessed {type} took {stopwatch.ElapsedMilliseconds}ms to process!");
 
             return true;
-        }
-
-        public static void Replicate(Type type, EFT.Player player, Dictionary<string, object> dict)
-        {
-            if (!Patches.Any(x => x.GetType().Equals(type)))
-                return;
-
-            var p = Patches.Single(x => x.GetType().Equals(type));
-            p.Value.Replicated(player, dict);
         }
 
         public static bool IsHighPingOrAI(EFT.Player player)
