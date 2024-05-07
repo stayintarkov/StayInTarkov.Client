@@ -1273,8 +1273,9 @@ namespace StayInTarkov.Coop.SITGameModes
                 foreach (var p in SITGameComponent.GetCoopGameComponent().Players)
                 {
                     var pid = p.Value.ProfileId;
+                    bool isBot = p.Value.IsAI;
                     // make sure the host does not "leave game" before other players since Relay has special handling Aki-side
-                    if (pid != hostProfileId)
+                    if (pid != hostProfileId && !isBot)
                     {
                         AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/update", new Dictionary<string, object>() {
                             { "m", "PlayerLeft" },
