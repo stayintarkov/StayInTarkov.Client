@@ -120,9 +120,10 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             if (CanStartReload())
             {
-                base.ReloadWithAmmo(ammoPack, callback);
                 StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadWithAmmoPacket packet = new (_player.ProfileId, ammoPack.GetReloadingAmmoIds());
                 GameClient.SendData(packet.Serialize());
+
+                base.ReloadWithAmmo(ammoPack, callback);
             }
         }
 

@@ -1,4 +1,7 @@
-﻿using EFT.InventoryLogic;
+﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
+using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
@@ -10,6 +13,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class BasePlayerPacket : BasePacket
     {
+        public static ManualLogSource Logger { get; private set; }
+
+        static BasePlayerPacket()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(BasePlayerPacket));
+        }
+
         [JsonProperty(PropertyName = "profileId")]
         public string ProfileId { get; set; }
 
@@ -63,25 +73,35 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             writer.Write(ProfileId);
         }
 
-        //protected void WriteHeaderAndProfileId(NetworkWriter writer)
-        //{
-        //    WriteHeader(writer);
-        //    writer.Write(ProfileId);
-        //}
-
         /// <summary>
         /// Auto discover Client Player object and Process on them
         /// </summary>
         public override void Process()
         {
-            //StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}:{Method}");
-
             if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                Logger.LogError("Unable to obtain Game Component");
+                return;
+            }
+
+            // If it is my Player, it wont be a Client. So ignore.
+            if (Singleton<GameWorld>.Instantiated && Singleton<GameWorld>.Instance.MainPlayer.ProfileId == ProfileId)
                 return;
 
+            // Find the affected Player
             if (coopGameComponent.Players.ContainsKey(ProfileId) && coopGameComponent.Players[ProfileId] is CoopPlayerClient client)
             {
                 Process(client);
+            }
+            // This deals with other mods adding players to the world. TODO: Maybe remove the above call?
+            else if (Singleton<GameWorld>.Instantiated && Singleton<GameWorld>.Instance.allAlivePlayersByID.ContainsKey(ProfileId))
+            {
+                if (Singleton<GameWorld>.Instance.allAlivePlayersByID[ProfileId] is CoopPlayerClient client2)
+                    Process(client2);
+            }
+            else
+            {
+                Logger.LogError($"Unable to find {ProfileId}");
             }
         }
 
