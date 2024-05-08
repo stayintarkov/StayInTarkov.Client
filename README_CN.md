@@ -37,7 +37,7 @@
     <li><a href="#%E6%9C%AA%E6%9D%A5%E8%A7%84%E5%88%92">未来规划</a></li>
     <li><a href="#%E8%81%94%E7%B3%BB%E6%88%91%E4%BB%AC">联系我们</a></li>
     <li><a href="#%E4%BB%A3%E7%A0%81%E8%B4%A1%E7%8C%AE">代码贡献</a></li>
-    <li><a href="#%E8%AE%B8%E5%8F%AF">许可</a></li>
+    <li><a href="#%E8%AE%B8%E5%8F%AF%E8%AF%81">许可证</a></li>
     <li><a href="#%E7%89%B9%E5%88%AB%E8%87%B4%E8%B0%A2">特别致谢</a></li>
   </ol>
 </details>
@@ -83,17 +83,17 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 
 
 <!-- LICENSE -->
-## 许可
+## 许可证
 
 * 几乎所有的单人游戏与其核心代码为 SPT-Aki 项目组编写. 本项目使用与其相同的开源许可: NCSA 开源许可证
 
-* Paulov 所编写的代码没有许可. 但是, 您不可在未经允许的情况下进行挪用或进行商业行为. 在使用 Paulov 的代码时, 您需要在代码中注明作者.
+* Paulov 所编写的代码没有任何许可证. 但是, 您不可在未经允许的情况下进行挪用或进行商业行为. 在使用 Paulov 的代码时, 您需要在代码中注明作者.
 
-* SIT 项目组所编写的代码为 MIT 许可.
+* SIT 项目组所编写的代码为 MIT 许可证.
 
-* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) 为 MIT 许可.
+* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) 为 MIT 许可证.
 
-* [DrakiaXYZ](https://github.com/DrakiaXYZ/) 的项目包含 MIT 许可 (自 1.10 版本开始, DrakiaXYZ 的项目已不再内置于本项目)
+* [DrakiaXYZ](https://github.com/DrakiaXYZ/) 的项目包含 MIT 许可证 (自 1.10 版本开始, DrakiaXYZ 的项目已不再内置于本项目)
 
 
 <!-- ACKNOWLEDGMENTS -->
