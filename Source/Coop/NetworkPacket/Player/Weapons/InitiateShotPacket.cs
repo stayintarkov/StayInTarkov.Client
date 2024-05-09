@@ -4,6 +4,7 @@
  */
 
 using BepInEx.Logging;
+using ChartAndGraph;
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
@@ -15,6 +16,7 @@ using System.IO;
 using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static EFT.UI.CharacterSelectionStartScreen;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
@@ -161,6 +163,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
                         if (firearmControllerClient.Weapon.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
                         {
+                            cylindermag.Camoras[cylindermag.CurrentCamoraIndex].RemoveItem();
                             cylindermag.IncrementCamoraIndex();
                             firearmControllerClient.FirearmsAnimator.SetCamoraIndex(cylindermag.CurrentCamoraIndex);
                         }
@@ -170,6 +173,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                             firearmControllerClient.method_56(ShotPosition, ShotDirection);
                             firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
                         }
+
+
+                       
 
                         break;
                     default:
@@ -190,18 +196,22 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         private void GetBulletToFire(CoopPlayerClient client, Weapon weapon_0, out BulletClass ammoToFire)
         {
+            var pic = ItemFinder.GetPlayerInventoryController(client);
+
             if (weapon_0.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
             {
-                ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
-                // Is Used?
-                ammoToFire.IsUsed = true;
+                //ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
 
-                Logger.LogDebug($"Used CylinderMagazineClass first bullet {ammoToFire}");
+                ammoToFire = cylindermag.Cartridges.Count > 0 
+                    ? (BulletClass)cylindermag.Cartridges.PopToNowhere(pic).Value.Item
+                    : cylindermag.Camoras.Length > 0 ? (BulletClass)cylindermag.Camoras[cylindermag.CurrentCamoraIndex].ContainedItem 
+                    : null;
+
+                Logger.LogDebug($"Used CylinderMagazineClass {ammoToFire}");
 
                 return;
             }
 
-            var pic = ItemFinder.GetPlayerInventoryController(client);
 
             // Find the Ammo in the Chamber
             Slot[] chambers = weapon_0.Chambers;
@@ -209,7 +219,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             // ammoToFire 
             if (ammoToFire != null)
             {
+#if DEBUG
                 Logger.LogDebug($"Used {ammoToFire} in Chamber");
+#endif
                 weapon_0.Chambers[0].RemoveItem().OrElse(elseValue: false);
                 return;
             }
@@ -229,9 +241,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 //}
                 //else
                 //{
-                    ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
-
-                    Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+                ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
+#if DEBUG
+                Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+#endif
                 //}
 
 
