@@ -95,7 +95,7 @@ namespace StayInTarkov
 
         private string[] SPTPatchesToRemove => [
             "AddEnemyToAllGroupsInBotZonePatch",
-            "AddSptBotSettingsPatch", // Requires Aki.PrePatch
+         //   "AddSptBotSettingsPatch", // Requires Aki.PrePatch
             "AirdropPatch",
             "AirdropFlarePatch",
             "AmmoUsedCounterPatch",
