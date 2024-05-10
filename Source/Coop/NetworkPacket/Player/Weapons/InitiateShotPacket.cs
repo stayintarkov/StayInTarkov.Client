@@ -4,19 +4,13 @@
  */
 
 using BepInEx.Logging;
-using ChartAndGraph;
-using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Controllers.HandControllers;
-using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Players;
 using System.Collections;
 using System.IO;
-using System.Net.Sockets;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static EFT.UI.CharacterSelectionStartScreen;
 using static StayInTarkov.Networking.SITSerialization;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
@@ -59,7 +53,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
             writer.Write(IsPrimaryActive);
             writer.Write(AmmoAfterShot);
@@ -75,7 +69,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));  
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             IsPrimaryActive = reader.ReadBoolean();
             AmmoAfterShot = reader.ReadInt32();
@@ -92,7 +86,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         protected override void Process(CoopPlayerClient client)
         {
-            if(client.HandsController is SITFirearmControllerClient firearmControllerClient)
+            if (client.HandsController is SITFirearmControllerClient firearmControllerClient)
             {
                 GetBulletToFire(client, firearmControllerClient.Weapon, out var ammoToFire);
                 if (ammoToFire == null)
@@ -175,7 +169,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                         }
 
 
-                       
+
 
                         break;
                     default:
@@ -202,9 +196,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             {
                 //ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
 
-                ammoToFire = cylindermag.Cartridges.Count > 0 
+                ammoToFire = cylindermag.Cartridges.Count > 0
                     ? (BulletClass)cylindermag.Cartridges.PopToNowhere(pic).Value.Item
-                    : cylindermag.Camoras.Length > 0 ? (BulletClass)cylindermag.Camoras[cylindermag.CurrentCamoraIndex].ContainedItem 
+                    : cylindermag.Camoras.Length > 0 ? (BulletClass)cylindermag.Camoras[cylindermag.CurrentCamoraIndex].ContainedItem
                     : null;
 
                 Logger.LogDebug($"Used CylinderMagazineClass {ammoToFire}");
@@ -252,13 +246,13 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
             // Is Used?
             //ammoToFire.IsUsed = true;
-            
+
             if (ammoToFire == null)
             {
                 Logger.LogError($"Unable to find Ammo to Fire for {client.ProfileId} weapon {weapon_0}");
             }
         }
 
-       
+
     }
 }
