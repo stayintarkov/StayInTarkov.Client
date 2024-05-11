@@ -16,7 +16,7 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
         [PatchPrefix]
         private static bool PatchPrefix(WildSpawnType role, ref bool __result)
         {
-            if ((int)role == 49 || (int)role == 50)
+            if ((int)role == 47 || (int)role == 48)
             {
                 __result = true;
                 return false;
