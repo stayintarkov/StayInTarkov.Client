@@ -4,14 +4,12 @@
  */
 
 using BepInEx.Logging;
-using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Players;
 using System.Collections;
 using System.IO;
-using System.Net.Sockets;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
@@ -55,7 +53,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
             writer.Write(IsPrimaryActive);
             writer.Write(AmmoAfterShot);
@@ -71,7 +69,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));  
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             IsPrimaryActive = reader.ReadBoolean();
             AmmoAfterShot = reader.ReadInt32();
@@ -88,7 +86,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         protected override void Process(CoopPlayerClient client)
         {
-            if(client.HandsController is SITFirearmControllerClient firearmControllerClient)
+            if (client.HandsController is SITFirearmControllerClient firearmControllerClient)
             {
                 GetBulletToFire(client, firearmControllerClient.Weapon, out var ammoToFire);
                 if (ammoToFire == null)
@@ -138,9 +136,9 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                         }
                         break;
                     case EShotType.RegularShot:
+
                         firearmControllerClient.InitiateShot(firearmControllerClient.Weapon, ammoToFire, ShotPosition, ShotDirection, FireportPosition, ChamberIndex, Overheat);
                         firearmControllerClient.PlaySounds(firearmControllerClient.WeaponSoundPlayer, ammoToFire, ShotPosition, ShotDirection, false);
-                        //firearmControllerClient.FirearmsAnimator.SetFire(fire: true);
 
                         if (firearmControllerClient.Weapon.IsBoltCatch && firearmControllerClient.Weapon.ChamberAmmoCount == 0 && firearmControllerClient.Weapon.GetCurrentMagazineCount() == 0 && !firearmControllerClient.Weapon.ManualBoltCatch)
                         {
@@ -159,6 +157,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
                         if (firearmControllerClient.Weapon.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
                         {
+                            cylindermag.Camoras[cylindermag.CurrentCamoraIndex].RemoveItem();
                             cylindermag.IncrementCamoraIndex();
                             firearmControllerClient.FirearmsAnimator.SetCamoraIndex(cylindermag.CurrentCamoraIndex);
                         }
@@ -169,10 +168,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                             firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
                         }
 
-                        //if (firearmControllerClient.Weapon.HasChambers && firearmControllerClient.Weapon.Chambers[0].ContainedItem != null)
-                         //   firearmControllerClient.Weapon.Chambers[0].RemoveItem().OrElse(elseValue: false);
 
-                        //ammoToFire.IsUsed = true;
+
 
                         break;
                     default:
@@ -193,15 +190,22 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
         private void GetBulletToFire(CoopPlayerClient client, Weapon weapon_0, out BulletClass ammoToFire)
         {
+            var pic = ItemFinder.GetPlayerInventoryController(client);
+
             if (weapon_0.GetCurrentMagazine() is CylinderMagazineClass cylindermag)
             {
-                ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
-                // Is Used?
-                ammoToFire.IsUsed = true;
+                //ammoToFire = cylindermag.GetFirstAmmo(singleFireMode: false);
+
+                ammoToFire = cylindermag.Cartridges.Count > 0
+                    ? (BulletClass)cylindermag.Cartridges.PopToNowhere(pic).Value.Item
+                    : cylindermag.Camoras.Length > 0 ? (BulletClass)cylindermag.Camoras[cylindermag.CurrentCamoraIndex].ContainedItem
+                    : null;
+
+                Logger.LogDebug($"Used CylinderMagazineClass {ammoToFire}");
+
                 return;
             }
 
-            var pic = ItemFinder.GetPlayerInventoryController(client);
 
             // Find the Ammo in the Chamber
             Slot[] chambers = weapon_0.Chambers;
@@ -209,7 +213,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             // ammoToFire 
             if (ammoToFire != null)
             {
+#if DEBUG
                 Logger.LogDebug($"Used {ammoToFire} in Chamber");
+#endif
+                weapon_0.Chambers[0].RemoveItem().OrElse(elseValue: false);
                 return;
             }
 
@@ -228,23 +235,24 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
                 //}
                 //else
                 //{
-                    ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
-
-                //    Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+                ammoToFire = (BulletClass)currentMagazine.Cartridges.PopToNowhere(pic).Value.Item;
+#if DEBUG
+                Logger.LogDebug($"Popped {ammoToFire} to nowhere");
+#endif
                 //}
 
-                
+
             }
 
             // Is Used?
-            ammoToFire.IsUsed = true;
-            
+            //ammoToFire.IsUsed = true;
+
             if (ammoToFire == null)
             {
                 Logger.LogError($"Unable to find Ammo to Fire for {client.ProfileId} weapon {weapon_0}");
             }
         }
 
-       
+
     }
 }
