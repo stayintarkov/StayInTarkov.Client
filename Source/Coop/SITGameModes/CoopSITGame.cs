@@ -30,7 +30,6 @@ using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
@@ -41,7 +40,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -216,7 +214,7 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger.LogDebug("OnDestroy()");
             Singleton<GameWorld>.Instance.AfterGameStarted -= Instance_AfterGameStarted;
 
-            Comfort.Common.Singleton<ISITGame>.TryRelease(this);   
+            Comfort.Common.Singleton<ISITGame>.TryRelease(this);
         }
 
         public void CreateCoopGameComponent()
@@ -243,7 +241,6 @@ namespace StayInTarkov.Coop.SITGameModes
             if (SITMatchmaking.IsServer)
             {
                 StartCoroutine(GameTimerSync());
-                StartCoroutine(TimeAndWeatherSync());
                 StartCoroutine(ArmoredTrainTimeSync());
             }
 
@@ -308,55 +305,9 @@ namespace StayInTarkov.Coop.SITGameModes
                     //    { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
                     //};
                     //Networking.GameClient.SendData(raidTimerDict.ToJson());
-                    RaidTimerPacket packet = new RaidTimerPacket();
+                    RaidTimerPacket packet = new();
                     packet.SessionTime = (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks;
                     Networking.GameClient.SendData(packet.Serialize());
-                }
-            }
-        }
-
-        private IEnumerator TimeAndWeatherSync()
-        {
-            var waitSeconds = new WaitForSeconds(15f);
-
-            while (true)
-            {
-                yield return waitSeconds;
-
-                if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    yield break;
-
-                Dictionary<string, object> timeAndWeatherDict = new()
-                {
-                    { "serverId", coopGameComponent.ServerId },
-                    { "m", "TimeAndWeather" }
-                };
-
-                if (GameDateTime != null)
-                    timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);
-
-                var weatherController = WeatherController.Instance;
-                if (weatherController != null)
-                {
-                    if (weatherController.CloudsController != null)
-                        timeAndWeatherDict.Add("CloudDensity", weatherController.CloudsController.Density);
-
-                    var weatherCurve = weatherController.WeatherCurve;
-                    if (weatherCurve != null)
-                    {
-                        timeAndWeatherDict.Add("Fog", weatherCurve.Fog);
-                        timeAndWeatherDict.Add("LightningThunderProbability", weatherCurve.LightningThunderProbability);
-                        timeAndWeatherDict.Add("Rain", weatherCurve.Rain);
-                        timeAndWeatherDict.Add("Temperature", weatherCurve.Temperature);
-                        timeAndWeatherDict.Add("WindDirection.x", weatherCurve.Wind.x);
-                        timeAndWeatherDict.Add("WindDirection.y", weatherCurve.Wind.y);
-                        timeAndWeatherDict.Add("TopWindDirection.x", weatherCurve.TopWind.x);
-                        timeAndWeatherDict.Add("TopWindDirection.y", weatherCurve.TopWind.y);
-                    }
-
-                    string packet = timeAndWeatherDict.ToJson();
-                    Logger.LogDebug(packet);
-                    Networking.GameClient.SendData(packet);
                 }
             }
         }
@@ -619,7 +570,7 @@ namespace StayInTarkov.Coop.SITGameModes
             switch (SITMatchmaking.SITProtocol)
             {
                 case ESITProtocol.RelayTcp:
-                    JObject j = new JObject();
+                    JObject j = new();
                     j.Add("serverId", SITGameComponent.GetServerId());
                     j.Add("profileId", profile.ProfileId);
                     j.Add("connect", true);
@@ -771,7 +722,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
             //});
 
-            ReadyToStartGamePacket packet = new ReadyToStartGamePacket(SITMatchmaking.Profile.ProfileId);
+            ReadyToStartGamePacket packet = new(SITMatchmaking.Profile.ProfileId);
             GameClient.SendData(packet.Serialize());
         }
 
@@ -836,7 +787,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (!SITMatchmaking.IsClient)
             {
-                HostStartingGamePacket packet = new HostStartingGamePacket();
+                HostStartingGamePacket packet = new();
                 GameClient.SendData(packet.Serialize());
             }
         }
@@ -895,7 +846,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private void SendRequestSpawnPlayersPacket()
         {
-            RequestSpawnPlayersPacket requestSpawnPlayersPacket = new RequestSpawnPlayersPacket([Singleton<GameWorld>.Instance.MainPlayer.ProfileId]);
+            RequestSpawnPlayersPacket requestSpawnPlayersPacket = new([Singleton<GameWorld>.Instance.MainPlayer.ProfileId]);
             GameClient.SendData(requestSpawnPlayersPacket.Serialize());
         }
 
@@ -1069,7 +1020,7 @@ namespace StayInTarkov.Coop.SITGameModes
             try
             {
                 bool isWinter = BackEndSession.IsWinter;
-                WinterEventController winterEventController = new WinterEventController();
+                WinterEventController winterEventController = new();
                 ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
                 winterEventController.Run(isWinter).ContinueWith(x => { if (x.IsFaulted) Logger.LogError(x.Exception); return Task.CompletedTask; });
             }
@@ -1486,19 +1437,19 @@ namespace StayInTarkov.Coop.SITGameModes
                     location = await BackEndSession.LoadLocationLoot(Location_0.Id, variantId);
                 }
             }
-            
+
             BackendConfigManagerConfig config = BackendConfigManager.Config;
             if (config.FixedFrameRate > 0f)
             {
                 base.FixedDeltaTime = 1f / config.FixedFrameRate;
             }
-            
-                EFT.Player player = await CreatePlayerSpawn();
-                dictionary_0.Add(player.ProfileId, player);
-                gparam_0 = func_1(player);
-                PlayerCameraController.Create(gparam_0.Player);
-                CameraClass.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
-                CameraClass.Instance.IsActive = false;
+
+            EFT.Player player = await CreatePlayerSpawn();
+            dictionary_0.Add(player.ProfileId, player);
+            gparam_0 = func_1(player);
+            PlayerCameraController.Create(gparam_0.Player);
+            CameraClass.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
+            CameraClass.Instance.IsActive = false;
 
             await SpawnLoot(location);
             await WaitForPlayersToSpawn();
