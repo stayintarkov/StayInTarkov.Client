@@ -12,6 +12,7 @@ using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Airdrop;
 using StayInTarkov.Networking;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace Aki.Custom.Airdrops
 
         void Awake()
         {
-            Logger = BepInEx.Logging.Logger.CreateLogSource("SITAirdropsManager");
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITAirdropsManager));
             Logger.LogInfo("Awake");
             Singleton<SITAirdropsManager>.Create(this);
         }
@@ -182,6 +183,8 @@ namespace Aki.Custom.Airdrops
                 {
                     return;
                 }
+
+
             }
             else
             {
@@ -197,6 +200,18 @@ namespace Aki.Custom.Airdrops
             if (distanceTravelled >= AirdropParameters.DistanceToDrop && !AirdropParameters.BoxSpawned)
             {
                 StartBox();
+            }
+
+            if (AirdropParameters.BoxSpawned && !SITMatchmaking.IsClient)
+            {
+                if (this.LastSyncTime < DateTime.Now.AddSeconds(-1))
+                {
+                    this.LastSyncTime = DateTime.Now;
+
+                    AirdropBoxPositionSyncPacket packet = new();
+                    packet.Position = AirdropBox.transform.position;
+                    GameClient.SendData(packet.Serialize());
+                }
             }
 
             if (distanceTravelled < AirdropParameters.DistanceToTravel)
@@ -229,6 +244,7 @@ namespace Aki.Custom.Airdrops
             AirdropBox.StartCoroutine(AirdropBox.DropCrate(dropPos));
         }
 
+        private DateTime LastSyncTime { get; set; }
         public bool ClientPlaneSpawned { get; private set; }
         public AirdropLootResultModel ClientAirdropLootResultModel { get; private set; }
         public AirdropConfigModel ClientAirdropConfigModel { get; private set; }
@@ -269,6 +285,7 @@ namespace Aki.Custom.Airdrops
 
         public void ReceiveBuildLootContainer(AirdropLootResultModel lootData, AirdropConfigModel config)
         {
+            Logger.LogDebug(nameof(ReceiveBuildLootContainer));
             ClientAirdropConfigModel = config;
             ClientAirdropLootResultModel = lootData;
         }
