@@ -2,6 +2,7 @@
 using EFT.Airdrop;
 using EFT.Interactive;
 using EFT.SynchronizableObjects;
+using StayInTarkov.Coop.Matchmaker;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -43,6 +44,8 @@ namespace StayInTarkov.AkiSupport.Airdrops
                 return audioSource;
             }
         }
+
+        public Vector3 ClientSyncPosition { get; internal set; }
 
         public static async Task<AirdropBox> Init(float crateFallSpeed)
         {
@@ -121,6 +124,19 @@ namespace StayInTarkov.AkiSupport.Airdrops
                 OpenParachute();
                 while (RaycastBoxDistance(LayerMaskClass.TerrainLowPoly, out _))
                 {
+                    if (SITMatchmaking.IsClient)
+                    {
+
+                        if (transform.position.x != this.ClientSyncPosition.x)
+                            transform.position = ClientSyncPosition;
+
+                        // only do this if the box is higher than the client sync
+                        if (transform.position.y > this.ClientSyncPosition.y)
+                            transform.position = ClientSyncPosition;
+
+                        if (transform.position.z != this.ClientSyncPosition.z)
+                            transform.position = ClientSyncPosition;
+                    }
                     transform.Translate(Vector3.down * (Time.deltaTime * fallSpeed));
                     transform.Rotate(Vector3.up, Time.deltaTime * 6f);
                     yield return null;
