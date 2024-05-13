@@ -1,12 +1,24 @@
 ﻿using Aki.Custom.Airdrops;
 using Aki.Custom.Airdrops.Models;
+using BepInEx.Logging;
 using Comfort.Common;
+using StayInTarkov.Coop.Matchmaker;
+using System.Collections;
 using System.IO;
+using UnityEngine;
 
 namespace StayInTarkov.Coop.NetworkPacket.Airdrop
 {
     public sealed class AirdropLootPacket : BasePacket
     {
+
+        static AirdropLootPacket()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(AirdropLootPacket));
+        }
+
+        private static ManualLogSource Logger { get; set; }
+
         public string AirdropLootResultModelJson { get; set; }
         public string AirdropConfigModelJson { get; set; }
 
@@ -41,14 +53,45 @@ namespace StayInTarkov.Coop.NetworkPacket.Airdrop
 
         public override void Process()
         {
-            if (!Singleton<SITAirdropsManager>.Instantiated)
+            if (!SITMatchmaking.IsClient)
                 return;
+
+            if (!Singleton<SITAirdropsManager>.Instantiated)
+            {
+                Logger.LogDebug($"{nameof(SITAirdropsManager)} has not been instantiated! Waiting...");
+                StayInTarkovPlugin.Instance.StartCoroutine(AirdropLootPacketWaitAndProcess());
+                return;
+            }
+
+
+            if (!this.AirdropLootResultModelJson.TrySITParseJson<AirdropLootResultModel>(out var airdropLootResultModel))
+            {
+                Logger.LogError($"{nameof(AirdropLootResultModel)} failed to deserialize!");
+                return;
+            }
+
+            if (!this.AirdropConfigModelJson.TrySITParseJson<AirdropConfigModel>(out var airdropConfigModel))
+            {
+                Logger.LogError($"{nameof(AirdropConfigModel)} failed to deserialize!");
+                return;
+            }
 
 
             Singleton<SITAirdropsManager>.Instance.ReceiveBuildLootContainer(
-                this.AirdropLootResultModelJson.SITParseJson<AirdropLootResultModel>(),
-                this.AirdropConfigModelJson.SITParseJson<AirdropConfigModel>()
+                airdropLootResultModel,
+                airdropConfigModel
             );
+
+
+        }
+
+        private IEnumerator AirdropLootPacketWaitAndProcess()
+        {
+            var waitForSec = new WaitForSeconds(5);
+            while (!Singleton<SITAirdropsManager>.Instantiated)
+                yield return waitForSec;
+
+            Process();
         }
     }
 }

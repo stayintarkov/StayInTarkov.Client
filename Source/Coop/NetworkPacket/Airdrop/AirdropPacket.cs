@@ -1,12 +1,21 @@
 ﻿using Aki.Custom.Airdrops;
+using BepInEx.Logging;
 using Comfort.Common;
 using StayInTarkov.AkiSupport.Airdrops.Models;
+using StayInTarkov.Coop.Matchmaker;
 using System.IO;
 
 namespace StayInTarkov.Coop.NetworkPacket.Airdrop
 {
     public sealed class AirdropPacket : BasePacket
     {
+        static AirdropPacket()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(AirdropPacket));
+        }
+
+        private static ManualLogSource Logger;
+
         public string AirdropParametersModelJson { get; set; }
 
         public AirdropPacket(AirdropParametersModel airdropParametersModel) : base(nameof(AirdropPacket))
@@ -37,10 +46,22 @@ namespace StayInTarkov.Coop.NetworkPacket.Airdrop
 
         public override void Process()
         {
-            if (!Singleton<SITAirdropsManager>.Instantiated)
+            if (!SITMatchmaking.IsClient)
                 return;
 
+            if (!Singleton<SITAirdropsManager>.Instantiated)
+            {
+                Logger.LogError($"{nameof(SITAirdropsManager)} has not been instantiated!");
+                return;
+            }
+
             Singleton<SITAirdropsManager>.Instance.AirdropParameters = this.AirdropParametersModelJson.SITParseJson<AirdropParametersModel>();
+
+#if DEBUG
+            Logger.LogDebug($"{nameof(SITAirdropsManager)}{nameof(Singleton<SITAirdropsManager>.Instance.AirdropParameters)}");
+            Logger.LogDebug($"{Singleton<SITAirdropsManager>.Instance.AirdropParameters.SITToJson()}");
+#endif
+
         }
     }
 }
