@@ -12,13 +12,11 @@ using StayInTarkov.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.SITGameModes
 {
-    public sealed class MultiplayerSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    public sealed class MultiplayerSITGame : BaseLocalGame<EftGamePlayerOwner>, IBotGame, ISITGame
     {
         public string DisplayName { get; } = "Coop Game";
 
@@ -48,5 +46,9 @@ namespace StayInTarkov.Coop.SITGameModes
             throw new NotImplementedException();
         }
 
+        public override IEnumerator vmethod_1()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

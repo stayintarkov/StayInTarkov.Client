@@ -86,7 +86,7 @@ namespace StayInTarkov.Coop.Players
             NewState = state;
         }
 
-        public Queue<ISITPacket> ReceivedPackets = new Queue<ISITPacket>();
+        public Queue<ISITPacket> ReceivedPackets = new();
 
         void Update()
         {
@@ -381,11 +381,12 @@ namespace StayInTarkov.Coop.Players
             InterpolateOrTeleport();
         }
 
-        public override void OnSkillExperienceChanged(AbstractSkill skill)
+
+        public override void OnSkillExperienceChanged(AbstractBaseSkill skill)
         {
         }
 
-        public override void OnSkillLevelChanged(AbstractSkill skill)
+        public override void OnSkillLevelChanged(AbstractBaseSkill skill)
         {
         }
 
@@ -488,7 +489,7 @@ namespace StayInTarkov.Coop.Players
         public override void Proceed(KnifeComponent knife, Callback<IQuickKnifeKickController> callback, bool scheduled = true)
         {
             Func<QuickKnifeKickController> controllerFactory = () => QuickKnifeKickController.smethod_8<QuickKnifeKickController>(this, knife);
-            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new Process<QuickKnifeKickController, IQuickKnifeKickController>(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
+            Process<QuickKnifeKickController, IQuickKnifeKickController> process = new(this, controllerFactory, knife.Item, fastHide: true, AbstractProcess.Completion.Sync, AbstractProcess.Confirmation.Succeed, skippable: false);
             Action confirmCallback = delegate
             {
 

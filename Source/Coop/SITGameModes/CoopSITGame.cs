@@ -20,6 +20,7 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.MovingPlatforms;
 using EFT.UI;
+using EFT.UI.Matchmaker;
 using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
@@ -30,7 +31,6 @@ using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Raid;
 using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Players;
@@ -41,7 +41,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -53,7 +52,7 @@ namespace StayInTarkov.Coop.SITGameModes
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    public sealed class CoopSITGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
+    public sealed class CoopSITGame : BaseLocalGame<EftGamePlayerOwner>, IBotGame, ISITGame
     {
         public string DisplayName { get; } = "Coop Game";
 
@@ -149,7 +148,7 @@ namespace StayInTarkov.Coop.SITGameModes
             //location.OldSpawn = true;
 
             CoopSITGame coopGame =
-                smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
+                smethod_0<CoopSITGame>(inputTree, profile, backendDateTime, insurance, menuUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
 
@@ -183,7 +182,7 @@ namespace StayInTarkov.Coop.SITGameModes
             coopGame.BossWaves = LocalGame.smethod_8(wavesSettings, location.BossLocationSpawn);
             coopGame.BossWaveManager = BossWaveManager.smethod_0(coopGame.BossWaves, new Action<BossLocationSpawn>(coopGame.PBotsController.ActivateBotsByWave));
 
-            coopGame.func_1 = (player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
+            coopGame.func_1 = (player) => EftGamePlayerOwner.Create<EftGamePlayerOwner>(player, inputTree, insurance, backEndSession, gameUI, coopGame.GameDateTime, location);
 
             // ---------------------------------------------------------------------------------
             // Setup ISITGame Singleton
@@ -216,7 +215,7 @@ namespace StayInTarkov.Coop.SITGameModes
             Logger.LogDebug("OnDestroy()");
             Singleton<GameWorld>.Instance.AfterGameStarted -= Instance_AfterGameStarted;
 
-            Comfort.Common.Singleton<ISITGame>.TryRelease(this);   
+            Comfort.Common.Singleton<ISITGame>.TryRelease(this);
         }
 
         public void CreateCoopGameComponent()
@@ -308,7 +307,7 @@ namespace StayInTarkov.Coop.SITGameModes
                     //    { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
                     //};
                     //Networking.GameClient.SendData(raidTimerDict.ToJson());
-                    RaidTimerPacket packet = new RaidTimerPacket();
+                    RaidTimerPacket packet = new();
                     packet.SessionTime = (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks;
                     Networking.GameClient.SendData(packet.Serialize());
                 }
@@ -528,11 +527,16 @@ namespace StayInTarkov.Coop.SITGameModes
         /// <summary>
         /// Matchmaker countdown
         /// </summary>
-        /// <param name="timeBeforeDeploy"></param>
-        public override void vmethod_1(float timeBeforeDeploy)
+        public override IEnumerator vmethod_1()
         {
-
-            base.vmethod_1(timeBeforeDeploy);
+            int timeBeforeDeployLocal = Singleton<BackendConfigSettingsClass>.Instance.TimeBeforeDeployLocal;
+            DateTime gameStartTime = DateTime.Now.AddSeconds(timeBeforeDeployLocal);
+            new MatchmakerFinalCountdown.GClass3182(base.Profile_0, gameStartTime).ShowScreen(EScreenState.Root);
+            MonoBehaviourSingleton<BetterAudio>.Instance.FadeInVolumeBeforeRaid(timeBeforeDeployLocal);
+            Singleton<GUISounds>.Instance.StopMenuBackgroundMusicWithDelay(timeBeforeDeployLocal);
+            GameUi.gameObject.SetActive(value: true);
+            GameUi.TimerPanel.ProfileId = ProfileId;
+            yield return new WaitForSeconds(timeBeforeDeployLocal);
         }
 
         public static async Task<ISpawnPoint?> SendOrReceiveSpawnPoint(ISpawnPoint selectedSpawnPoint, SpawnPoints spawnPoints)
@@ -619,7 +623,7 @@ namespace StayInTarkov.Coop.SITGameModes
             switch (SITMatchmaking.SITProtocol)
             {
                 case ESITProtocol.RelayTcp:
-                    JObject j = new JObject();
+                    JObject j = new();
                     j.Add("serverId", SITGameComponent.GetServerId());
                     j.Add("profileId", profile.ProfileId);
                     j.Add("connect", true);
@@ -771,7 +775,7 @@ namespace StayInTarkov.Coop.SITGameModes
             }
             //});
 
-            ReadyToStartGamePacket packet = new ReadyToStartGamePacket(SITMatchmaking.Profile.ProfileId);
+            ReadyToStartGamePacket packet = new(SITMatchmaking.Profile.ProfileId);
             GameClient.SendData(packet.Serialize());
         }
 
@@ -836,7 +840,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (!SITMatchmaking.IsClient)
             {
-                HostStartingGamePacket packet = new HostStartingGamePacket();
+                HostStartingGamePacket packet = new();
                 GameClient.SendData(packet.Serialize());
             }
         }
@@ -895,7 +899,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private void SendRequestSpawnPlayersPacket()
         {
-            RequestSpawnPlayersPacket requestSpawnPlayersPacket = new RequestSpawnPlayersPacket([Singleton<GameWorld>.Instance.MainPlayer.ProfileId]);
+            RequestSpawnPlayersPacket requestSpawnPlayersPacket = new([Singleton<GameWorld>.Instance.MainPlayer.ProfileId]);
             GameClient.SendData(requestSpawnPlayersPacket.Serialize());
         }
 
@@ -929,9 +933,9 @@ namespace StayInTarkov.Coop.SITGameModes
         /// <param name="spawnSystem"></param>
         /// <param name="runCallback"></param>
         /// <returns></returns>
-        public override IEnumerator vmethod_4(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
+        public override IEnumerator vmethod_4(BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
         {
-            //Logger.LogDebug("vmethod_4");
+            yield return StartCoroutine(vmethod_1());
 
             var shouldSpawnBots = !SITMatchmaking.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
             if (!shouldSpawnBots)
@@ -1017,8 +1021,6 @@ namespace StayInTarkov.Coop.SITGameModes
                 PBotsController.Init(this, botCreator, [], SpawnSystem, wavesSpawnScenario_0.BotLocationModifier, false, false, false, false, false, Singleton<GameWorld>.Instance, "");
             }
 
-            yield return new WaitForSeconds(startDelay);
-
             try
             {
                 if (shouldSpawnBots)
@@ -1066,18 +1068,18 @@ namespace StayInTarkov.Coop.SITGameModes
 
             // ------------------------------------------------------------------------
             // Setup Winter
-            try
-            {
-                bool isWinter = BackEndSession.IsWinter;
-                WinterEventController winterEventController = new WinterEventController();
-                ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
-                winterEventController.Run(isWinter).ContinueWith(x => { if (x.IsFaulted) Logger.LogError(x.Exception); return Task.CompletedTask; });
-            }
-            catch (Exception ex)
-            {
-                ConsoleScreen.LogException(ex);
-                Logger.LogError(ex);
-            }
+            //try
+            //{
+            //    bool isWinter = BackEndSession.IsWinter;
+            //    WinterEventController winterEventController = new WinterEventController();
+            //    ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(GameWorld), typeof(WinterEventController)).SetValue(Singleton<GameWorld>.Instance, winterEventController);
+            //    winterEventController.Run(isWinter).ContinueWith(x => { if (x.IsFaulted) Logger.LogError(x.Exception); return Task.CompletedTask; });
+            //}
+            //catch (Exception ex)
+            //{
+            //    ConsoleScreen.LogException(ex);
+            //    Logger.LogError(ex);
+            //}
 
             if (shouldSpawnBots)
             {
@@ -1456,7 +1458,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
-        private Func<EFT.Player, GamePlayerOwner> func_1;
+        private Func<EFT.Player, EftGamePlayerOwner> func_1;
         private Coroutine clientLoadingPingerCoroutine;
 
         public new void method_6(string backendUrl, string locationId, int variantId)
@@ -1486,19 +1488,19 @@ namespace StayInTarkov.Coop.SITGameModes
                     location = await BackEndSession.LoadLocationLoot(Location_0.Id, variantId);
                 }
             }
-            
+
             BackendConfigManagerConfig config = BackendConfigManager.Config;
             if (config.FixedFrameRate > 0f)
             {
                 base.FixedDeltaTime = 1f / config.FixedFrameRate;
             }
-            
-                EFT.Player player = await CreatePlayerSpawn();
-                dictionary_0.Add(player.ProfileId, player);
-                gparam_0 = func_1(player);
-                PlayerCameraController.Create(gparam_0.Player);
-                CameraClass.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
-                CameraClass.Instance.IsActive = false;
+
+            EFT.Player player = await CreatePlayerSpawn();
+            dictionary_0.Add(player.ProfileId, player);
+            gparam_0 = func_1(player);
+            PlayerCameraController.Create(gparam_0.Player);
+            CameraClass.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
+            CameraClass.Instance.IsActive = false;
 
             await SpawnLoot(location);
             await WaitForPlayersToSpawn();

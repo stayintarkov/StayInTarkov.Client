@@ -47,9 +47,8 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Spawn(animationSpeed, callback);
         }
 
-        public override void Execute(IOperation1 operation, Callback callback)
+        public override void Execute(IBaseInventoryOperation operation, Callback callback)
         {
-            BepInLogger.LogDebug($"{nameof(SITFirearmControllerClient)}:{nameof(Execute)}");
             base.Execute(operation, callback);
         }
 
@@ -157,7 +156,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             if (Item.FireMode.FireMode != Weapon.EFireMode.burst || Item.FireMode.BurstShotsCount != 2 || IsBirstOf2Start || Item.ChamberAmmoCount <= 0)
             {
-                float pitchMult = method_55();
+                float pitchMult = method_57();
                 weaponSoundPlayer.FireBullet(ammo, shotPosition, shotDirection.normalized, pitchMult, Malfunction, multiShot, IsBirstOf2Start);
             }
         }
@@ -177,7 +176,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             return true;
         }
 
-        public override bool CanExecute(IOperation1 operation)
+        public override bool CanExecute(IBaseInventoryOperation operation)
         {
             return true;
         }

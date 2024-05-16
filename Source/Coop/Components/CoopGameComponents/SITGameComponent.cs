@@ -1,20 +1,25 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Communications;
+using EFT.Counters;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
+using Google.FlatBuffers;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
+using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
+using StayInTarkov.FlatBuffers;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
@@ -24,14 +29,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-
-using Rect = UnityEngine.Rect;
-using EFT.Counters;
-using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
-using StayInTarkov.Coop.NetworkPacket.World;
-using Google.FlatBuffers;
-using StayInTarkov.FlatBuffers;
 using FBPacket = StayInTarkov.FlatBuffers.Packet;
+using Rect = UnityEngine.Rect;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -189,7 +188,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         async void Start()
         {
             Instance = this;
-       
+
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
 
@@ -216,7 +215,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
 
-            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;;
+            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted; ;
 
             // In game ping system.
             if (Singleton<FrameMeasurer>.Instantiated)
@@ -382,7 +381,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
         }
 
-       
+
 
         /// <summary>
         /// This is a simple coroutine to allow methods to run every second.
@@ -414,7 +413,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     var world = Singleton<GameWorld>.Instance;
 
                     // Add players who have joined to the AI Enemy Lists
-                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<EftGamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
                     if (botController != null)
                     {
                         while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
@@ -448,7 +447,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 if (!Players.ContainsKey(p.ProfileId))
                 {
                     // As these created players are unlikely to be CoopPlayer, throw an error!
-                    if((p as CoopPlayer) == null)
+                    if ((p as CoopPlayer) == null)
                     {
                         Logger.LogError($"Player of Id:{p.ProfileId} is not found in the SIT {nameof(Players)} list?!");
                     }
@@ -674,8 +673,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Singleton<ISITGame>.Instance.MyExitLocation == null)
             {
                 var gameWorld = Singleton<GameWorld>.Instance;
-                List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                List<ScavExfiltrationPoint> scavExfilFiltered = new();
+                List<ExfiltrationPoint> pmcExfilPiltered = new();
                 foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
                 {
                     if (exfil is ScavExfiltrationPoint scavExfil)
@@ -748,8 +747,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     if (Singleton<ISITGame>.Instance.MyExitLocation == null)
                     {
                         var gameWorld = Singleton<GameWorld>.Instance;
-                        List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                        List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                        List<ScavExfiltrationPoint> scavExfilFiltered = new();
+                        List<ExfiltrationPoint> pmcExfilPiltered = new();
                         foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
                         {
                             if (exfil is ScavExfiltrationPoint scavExfil)
@@ -1304,7 +1303,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         public float LocalTime => 0;
 
-        public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
+        public BaseLocalGame<EftGamePlayerOwner> LocalGameInstance { get; internal set; }
 
         //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }

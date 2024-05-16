@@ -21,7 +21,8 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Spawn(animationSpeed, callback);
         }
 
-        public override void Execute(IOperation1 operation, Callback callback)
+
+        public override void Execute(IBaseInventoryOperation operation, Callback callback)
         {
             //Apply the same checks BSG does before invoking DropBackpackOperationInvoke
             if (!method_18(operation))
@@ -29,7 +30,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                 IOneItemOperation ProperOperation = TryGetIOneItemOperation(operation);
 
                 if (ProperOperation != null && IsAnimatedSlot(ProperOperation))
-                {   
+                {
                     BepInLogger.LogInfo($"{nameof(SITFirearmController)}:Attempt to quickly replicate a backpack drop");
 
                     PlayerInventoryDropBackpackPacket packet = new();
@@ -42,19 +43,11 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                     var CoopInventoryController = ((CoopInventoryController)ItemFinder.GetPlayerInventoryController(_player));
                     CoopInventoryController.IgnoreOperation(AbstractOperation.Id);
                 }
-                
+
             }
 
             BepInLogger.LogDebug($"{nameof(SITFirearmController)}:{nameof(Execute)}:{operation}");
             base.Execute(operation, callback);
-        }
-
-        private IOneItemOperation TryGetIOneItemOperation(IOperation1 operation)
-        {
-            if (!(operation is IOneItemOperation ItemOperation))
-                return null;
-
-            return ItemOperation;
         }
 
         //Replicate IsAnimatedSlot as this method is not available to us.
@@ -77,7 +70,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
                 return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 BepInLogger.LogError($"{nameof(SITFirearmController)}:{nameof(IsAnimatedSlot)}:{ex}");
                 return false;
@@ -96,7 +89,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             if (CanStartReload())
             {
                 base.QuickReloadMag(magazine, callback);
-                QuickReloadMagPacket quickReloadMagPacket = new QuickReloadMagPacket();
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.QuickReloadMagPacket quickReloadMagPacket = new();
                 quickReloadMagPacket.ProfileId = _player.ProfileId;
                 quickReloadMagPacket.ItemId = magazine.Id;
                 GameClient.SendData(quickReloadMagPacket.Serialize());
@@ -108,7 +101,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             if (CanStartReload())
             {
                 base.ReloadMag(magazine, gridItemAddress, callback);
-                ReloadMagPacket reloadMagPacket = new ReloadMagPacket(_player.ProfileId, magazine.Id, gridItemAddress);
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadMagPacket reloadMagPacket = new(_player.ProfileId, magazine.Id, gridItemAddress);
                 reloadMagPacket.ProfileId = _player.ProfileId;
                 reloadMagPacket.ItemId = magazine.Id;
                 reloadMagPacket.GridItemAddress = gridItemAddress;
@@ -120,7 +113,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         {
             if (CanStartReload())
             {
-                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadWithAmmoPacket packet = new (_player.ProfileId, ammoPack.GetReloadingAmmoIds());
+                StayInTarkov.Coop.NetworkPacket.Player.Weapons.ReloadWithAmmoPacket packet = new(_player.ProfileId, ammoPack.GetReloadingAmmoIds());
                 GameClient.SendData(packet.Serialize());
 
                 base.ReloadWithAmmo(ammoPack, callback);
@@ -300,7 +293,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
                     shotType = EShotType.Feed;
                     break;
             }
-            InitiateShotPacket initiateShotPacket = new InitiateShotPacket(_player.ProfileId);
+            InitiateShotPacket initiateShotPacket = new(_player.ProfileId);
             initiateShotPacket.IsPrimaryActive = (weapon == base.Item);
             initiateShotPacket.ShotType = shotType;
             initiateShotPacket.ShotPosition = shotPosition;
@@ -321,14 +314,14 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void ToggleAim()
         {
-            ToggleAimPacket packet = new ToggleAimPacket(_player.ProfileId);
+            ToggleAimPacket packet = new(_player.ProfileId);
             GameClient.SendData(packet.Serialize());
             base.ToggleAim();
         }
 
         public override bool ToggleLauncher()
         {
-            ToggleLauncherPacket packet = new ToggleLauncherPacket(_player.ProfileId);
+            ToggleLauncherPacket packet = new(_player.ProfileId);
             GameClient.SendData(packet.Serialize());
             return base.ToggleLauncher();
         }

@@ -26,7 +26,7 @@ using WebSocketSharp;
 
 namespace StayInTarkov.Coop.NetworkPacket
 {
-    public class BasePacket : ISITPacket, IDisposable, INetSerializable
+    public class BasePacket : ISITPacket, IDisposable
     {
         [JsonProperty(PropertyName = "serverId")]
         public string ServerId { get; set; }
@@ -56,7 +56,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             TimeSerializedBetter = DateTime.UtcNow.Ticks.ToString("G");
         }
 
-        public static Dictionary<Type, PropertyInfo[]> TypeProperties = new ();
+        public static Dictionary<Type, PropertyInfo[]> TypeProperties = new();
         protected bool disposedValue;
 
         public static PropertyInfo[] GetPropertyInfos(ISITPacket packet)
@@ -105,7 +105,7 @@ namespace StayInTarkov.Coop.NetworkPacket
             Method = reader.ReadString();
 
             // A check for the ?
-            var bQ = reader.ReadBytes(1) ; // ?
+            var bQ = reader.ReadBytes(1); // ?
             if (Encoding.UTF8.GetString(bQ) != "?")
                 reader.BaseStream.Position -= 1;
         }
@@ -117,7 +117,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         public virtual byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeader(writer);
             return ms.ToArray();
         }
@@ -128,7 +128,7 @@ namespace StayInTarkov.Coop.NetworkPacket
         /// <returns></returns>
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeader(reader);
             return this;
         }
@@ -166,21 +166,6 @@ namespace StayInTarkov.Coop.NetworkPacket
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
-        }
-
-        void INetSerializable.Serialize(NetDataWriter writer)
-        {
-            var serializedSIT = Serialize();
-            writer.Put(serializedSIT.Length);
-            writer.Put(serializedSIT);
-        }
-
-        void INetSerializable.Deserialize(NetDataReader reader)
-        {
-            var length = reader.GetInt();
-            byte[] bytes = new byte[length];
-            reader.GetBytes(bytes, length);
-            Deserialize(bytes);
         }
 
         /// <summary>
@@ -253,7 +238,7 @@ namespace StayInTarkov.Coop.NetworkPacket
 
         public static byte[] ReadLengthPrefixedBytes(this BinaryReader binaryReader)
         {
-           var length = binaryReader.ReadInt32();
+            var length = binaryReader.ReadInt32();
 
             //StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(SerializerExtensions)},{nameof(ReadLengthPrefixedBytes)},Read Length {length}");
 
@@ -333,9 +318,9 @@ namespace StayInTarkov.Coop.NetworkPacket
         }
 
 
-        public static Stopwatch swDeserializerDebug = new Stopwatch();
+        public static Stopwatch swDeserializerDebug = new();
 
-        
+
     }
 
 

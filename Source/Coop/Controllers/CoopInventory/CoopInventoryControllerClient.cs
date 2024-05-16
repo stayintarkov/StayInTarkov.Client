@@ -15,13 +15,13 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
     {
         ManualLogSource BepInLogger { get; set; }
 
-        public override MongoID NextId 
-        { 
-            get 
+        public override MongoID NextId
+        {
+            get
             {
                 mongoID_0++;
                 return mongoID_0;
-            } 
+            }
         }
 
         public CoopInventoryControllerClient(EFT.Player player, Profile profile, bool examined, string initialMongoId)
@@ -44,12 +44,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         {
             operation.vmethod_0((r) => { callback?.Succeed(); });
         }
-
-        public override void Execute(Operation1 operation, Callback callback)
-        {
-            operation.vmethod_0((r) => { callback?.Succeed(); });
-        }
-
 
         public override void CallUnknownMalfunctionStartRepair(Weapon weapon)
         {
@@ -132,14 +126,9 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             base.StopProcesses();
         }
 
-        public override void ExecuteStop(Operation1 operation)
-        {
-            base.ExecuteStop(operation);
-        }
-
         public void ReceiveExecute(AbstractInventoryOperation operation, Action callback)
         {
-            operation.vmethod_0((r) => 
+            operation.vmethod_0((r) =>
             {
                 operation.Dispose();
 
@@ -157,7 +146,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             }, true);
 
 
-         
+
         }
 
 

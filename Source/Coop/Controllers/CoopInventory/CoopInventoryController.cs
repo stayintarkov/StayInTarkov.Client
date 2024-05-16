@@ -28,8 +28,8 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
 
         private EFT.Player Player { get; set; }
 
-        public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base (player, profile, examined) 
-        { 
+        public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
+        {
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
             Player = player;
         }
@@ -39,16 +39,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             return mongoID_0;
         }
 
-
-        public override void Execute(Operation1 operation, Callback callback)
-        {
-            // Debug the operation
-            BepInLogger.LogDebug($"Execute(Operation1 operation,:{operation}");
-
-            base.Execute(operation, callback);
-        }
-
-        protected readonly Dictionary<uint, Callback<int, bool, EOperationStatus>> OperationCallbacks = new Dictionary<uint, Callback<int, bool, EOperationStatus>>();
+        protected readonly Dictionary<uint, Callback<int, bool, EOperationStatus>> OperationCallbacks = new();
 
         private HashSet<ushort> IgnoreOperations = new();
 
@@ -85,7 +76,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
         /// <returns></returns>
         protected virtual void SendExecuteOperationToServer(AbstractInventoryOperation operation)
         {
-            if(IgnoreOperations.Contains(operation.Id))
+            if (IgnoreOperations.Contains(operation.Id))
             {
                 StayInTarkovHelperConstants.Logger.LogWarning($"Ignoring operation: {operation.Id}");
 
@@ -114,20 +105,20 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
                 opBytes = memoryStream.ToArray();
             }
 
-//#if DEBUG
-//            AbstractDescriptor1 descriptor = null;
-//            using (MemoryStream msTestOutput = new MemoryStream(opBytes))
-//            {
-//                using (BinaryReader binaryReader = new BinaryReader(msTestOutput))
-//                {
-//                    descriptor = binaryReader.ReadPolymorph<AbstractDescriptor1>();
-//                    BepInLogger.LogDebug($"Reading test. {descriptor}");
-//                }
-//            }
-//#endif
+            //#if DEBUG
+            //            AbstractDescriptor1 descriptor = null;
+            //            using (MemoryStream msTestOutput = new MemoryStream(opBytes))
+            //            {
+            //                using (BinaryReader binaryReader = new BinaryReader(msTestOutput))
+            //                {
+            //                    descriptor = binaryReader.ReadPolymorph<AbstractDescriptor1>();
+            //                    BepInLogger.LogDebug($"Reading test. {descriptor}");
+            //                }
+            //            }
+            //#endif
 
-          
-            if(operation is MoveInternalOperation mio)
+
+            if (operation is MoveInternalOperation mio)
             {
                 itemId = mio.Item.Id;
                 templateId = mio.Item.TemplateId;
@@ -135,12 +126,12 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             }
 
 
-            PolymorphInventoryOperationPacket itemPlayerPacket = new PolymorphInventoryOperationPacket(Player.ProfileId, itemId, templateId);
+            PolymorphInventoryOperationPacket itemPlayerPacket = new(Player.ProfileId, itemId, templateId);
             itemPlayerPacket.OperationBytes = opBytes;
             itemPlayerPacket.CallbackId = operation.Id;
             itemPlayerPacket.InventoryId = this.ID;
             itemPlayerPacket.StackObjectsCount = stackObjectsCount;
-            
+
 
             BepInLogger.LogDebug($"Operation: {operation.GetType().Name}, IC Name: {this.Name}, {Player.name}");
 
@@ -160,7 +151,7 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             //return null;
         }
 
-      
+
 
         public override async Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
@@ -188,13 +179,6 @@ namespace StayInTarkov.Coop.Controllers.CoopInventory
             packet.ProfileId = Player.ProfileId;
             GameClient.SendData(packet.Serialize());
 
-        }
-
-        public override void ExecuteStop(Operation1 operation)
-        {
-            BepInLogger.LogDebug($"ExecuteStop");
-
-            base.ExecuteStop(operation);
         }
 
 
