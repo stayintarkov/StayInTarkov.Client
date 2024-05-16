@@ -54,6 +54,14 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Execute(operation, callback);
         }
 
+        private IOneItemOperation TryGetIOneItemOperation(IAbstractOperation operation)
+        {
+            if (!(operation is IOneItemOperation ItemOperation))
+                return null;
+
+            return ItemOperation;
+        }
+
         //Replicate IsAnimatedSlot as this method is not available to us.
         private bool IsAnimatedSlot(IOneItemOperation ItemOperation)
         {

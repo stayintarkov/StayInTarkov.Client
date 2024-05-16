@@ -131,29 +131,14 @@ namespace StayInTarkov.Networking
         {
             Logger.LogDebug("OnDestroy()");
             NetDebug.Logger = null;
-            
+
             if (_netServer != null)
                 _netServer.Stop();
 
-            if(_natHelper != null)
+            if (_natHelper != null)
             {
                 _natHelper.Close();
             }
-        }
-
-        public void SendDataToAll<T>(NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod, NetPeer peer = null) where T : INetSerializable
-        {
-            _packetProcessor.WriteNetSerializable(writer, ref packet);
-            if (peer != null)
-                _netServer.SendToAll(writer, deliveryMethod, peer);
-            else
-                _netServer.SendToAll(writer, deliveryMethod);
-        }
-
-        public void SendDataToPeer<T>(NetPeer peer, NetDataWriter writer, ref T packet, DeliveryMethod deliveryMethod) where T : INetSerializable
-        {
-            _packetProcessor.WriteNetSerializable(writer, ref packet);
-            peer.Send(writer, deliveryMethod);
         }
 
         public void OnPeerConnected(NetPeer peer)
@@ -174,7 +159,7 @@ namespace StayInTarkov.Networking
             if (messageType == UnconnectedMessageType.Broadcast && reader.GetInt() == 1)
             {
                 EFT.UI.ConsoleScreen.Log($"[SERVER] Received discovery request. Send discovery response to {remoteEndPoint}");
-                NetDataWriter resp = new NetDataWriter();
+                NetDataWriter resp = new();
                 resp.Put(1);
                 _netServer.SendUnconnectedMessage(resp, remoteEndPoint);
             }
@@ -199,9 +184,5 @@ namespace StayInTarkov.Networking
             Debug.LogFormat(str, args);
         }
 
-        public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
-        {
-            _packetProcessor.ReadAllPackets(reader, peer);
-        }
     }
 }

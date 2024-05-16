@@ -5,12 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace LiteNetLib.Utils
 {
-
-    /// <summary>
-    /// Paulov. Code scumbag moment again. This should be at least inheriting BinaryReader as it does almost the same thing but adds some helpers.
-    /// TODO: I think we should customize this to properly inherit BinaryReader.
-    /// </summary>
-    public class NetDataReader // : BinaryReader
+    public class NetDataReader
     {
         protected byte[] _data;
         protected int _position;
@@ -102,7 +97,7 @@ namespace LiteNetLib.Utils
             SetSource(writer);
         }
 
-        public NetDataReader(byte[] source) 
+        public NetDataReader(byte[] source)
         {
             SetSource(source);
         }
@@ -326,14 +321,14 @@ namespace LiteNetLib.Utils
 
         public ArraySegment<byte> GetBytesSegment(int count)
         {
-            ArraySegment<byte> segment = new ArraySegment<byte>(_data, _position, count);
+            ArraySegment<byte> segment = new(_data, _position, count);
             _position += count;
             return segment;
         }
 
         public ArraySegment<byte> GetRemainingBytesSegment()
         {
-            ArraySegment<byte> segment = new ArraySegment<byte>(_data, _position, AvailableBytes);
+            ArraySegment<byte> segment = new(_data, _position, AvailableBytes);
             _position = _data.Length;
             return segment;
         }
@@ -635,7 +630,8 @@ namespace LiteNetLib.Utils
 
         public bool TryGetStringArray(out string[] result)
         {
-            if (!TryGetUShort(out ushort strArrayLength)) {
+            if (!TryGetUShort(out ushort strArrayLength))
+            {
                 result = null;
                 return false;
             }

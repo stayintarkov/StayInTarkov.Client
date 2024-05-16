@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using static GClass2416<EFT.HealthSystem.ActiveHealthController.GClass2415>;
+using static GClass2428<EFT.HealthSystem.ActiveHealthController.GClass2427>;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 {
@@ -18,7 +18,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
             writer.Write(BodyPart);
             writer.Write(HealthPenalty);
@@ -27,7 +27,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Health
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             BodyPart = reader.ReadString();
             HealthPenalty = reader.ReadSingle();

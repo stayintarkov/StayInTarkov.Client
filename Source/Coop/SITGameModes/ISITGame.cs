@@ -43,6 +43,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback);
 
+        GameDateTime GameDateTime { get; set; }
         public bool GameWorldStarted { get; set; }
         //Task WaitForPlayersToSpawn();
         //Task WaitForPlayersToBeReady();

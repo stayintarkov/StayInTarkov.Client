@@ -201,10 +201,10 @@ namespace StayInTarkov.UI
         {
             try
             {
-                FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
-                CameraController.ToggleCamera();
+                //FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+                //CameraController.ToggleCamera();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ConsoleScreen.LogException(ex);
             }
@@ -215,8 +215,8 @@ namespace StayInTarkov.UI
         {
             try
             {
-                FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
-                CameraController.ToggleUi();
+                //FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
+                //CameraController.ToggleUi();
             }
             catch (Exception ex)
             {
@@ -274,7 +274,7 @@ namespace StayInTarkov.UI
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ConsoleScreen.LogException(ex);
             }

@@ -199,7 +199,7 @@ namespace StayInTarkov.Networking
             if (_natHelper != null)
                 _natHelper.Close();
         }
-        
+
         public void OnPeerConnected(NetPeer peer)
         {
             // Disconnect if more than one endpoint was reached
@@ -266,7 +266,7 @@ namespace StayInTarkov.Networking
 
                 firstPeerErrorCount++;
 
-                if(firstPeerErrorCount == 30)
+                if (firstPeerErrorCount == 30)
                 {
                     Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("Connection Error"
                         , $"Connection Lost. Unable to communicate with Server. Error: {clientFirstPeerIsNullMessage}"
@@ -291,9 +291,10 @@ namespace StayInTarkov.Networking
 
         public void SendData<T>(ref T packet) where T : BasePacket
         {
-            using NetDataWriter writer = new NetDataWriter();
-            PacketProcessor.WriteNetSerializable(writer, ref packet);
-            this.SendData(writer.CopyData());
+            //using NetDataWriter writer = new NetDataWriter();
+            //PacketProcessor.WriteNetSerializable(writer, ref packet);
+            //this.SendData(writer.CopyData());
+            throw new NotImplementedException();
         }
     }
 }

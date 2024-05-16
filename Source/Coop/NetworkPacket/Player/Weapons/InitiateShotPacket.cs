@@ -164,7 +164,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
 
                         if (ammoToFire.AmmoTemplate.IsLightAndSoundShot)
                         {
-                            firearmControllerClient.method_56(ShotPosition, ShotDirection);
+                            firearmControllerClient.method_58(ShotPosition, ShotDirection);
                             firearmControllerClient.LightAndSoundShot(ShotPosition, ShotDirection, ammoToFire.AmmoTemplate);
                         }
 
