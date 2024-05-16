@@ -1,5 +1,7 @@
 ﻿using EFT;
 using StayInTarkov;
+using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Aki.Custom.Patches
@@ -12,11 +14,30 @@ namespace Aki.Custom.Patches
     /// </summary>
     public class PmcFirstAidPatch : ModulePatch
     {
+        private static Type _targetType;
         private static readonly string methodName = "FirstAidApplied";
+
+        public PmcFirstAidPatch()
+        {
+            _targetType = StayInTarkovHelperConstants.EftTypes.FirstOrDefault(IsTargetType);
+        }
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(GFirstAid), methodName);
+            return _targetType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
+        }
+
+        /// <summary>
+        /// GCLass350 for client version 25782
+        /// </summary>
+        private bool IsTargetType(Type type)
+        {
+            if (type.GetMethod("GetHpPercent") != null && type.GetMethod("TryApplyToCurrentPart") != null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         [PatchPrefix]
