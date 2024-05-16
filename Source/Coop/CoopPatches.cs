@@ -1,8 +1,10 @@
 ﻿using BepInEx.Logging;
-using StayInTarkov.Coop.Session;
+using StayInTarkov.Coop.AI;
+using StayInTarkov.Coop.Components.CoopGameComponents;
 //using StayInTarkov.Coop.ItemControllerPatches;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.Player;
+using StayInTarkov.Coop.Session;
 //using StayInTarkov.Coop.Sounds;
 using StayInTarkov.Coop.World;
 //using StayInTarkov.Core.Player;
@@ -12,8 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using StayInTarkov.Coop.Components.CoopGameComponents;
-using StayInTarkov.Coop.AI;
 
 namespace StayInTarkov.Coop
 {
@@ -40,7 +40,7 @@ namespace StayInTarkov.Coop
             Logger.LogInfo("Stay in Tarkov - Enabling Coop Patches");
 
             new TarkovApplication_LocalGameCreator_Patch().Enable();
-            new LoadLocationLootPatch().Enable();
+            //new LoadLocationLootPatch().Enable();
 
 
             // ------ MATCHMAKER -------------------------

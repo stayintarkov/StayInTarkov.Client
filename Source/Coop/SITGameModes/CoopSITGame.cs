@@ -1470,7 +1470,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public async Task Run(BotControllerSettings botsSettings, string backendUrl, InventoryControllerClass inventoryController, Callback runCallback)
         {
+#if DEBUG
             Logger.LogDebug(nameof(Run));
+#endif
 
             Singleton<GameWorld>.Instance.AfterGameStarted += Instance_AfterGameStarted;
             base.Status = GameStatus.Running;
@@ -1487,6 +1489,9 @@ namespace StayInTarkov.Coop.SITGameModes
                     int variantId = UnityEngine.Random.Range(1, 6);
                     method_6(backendUrl, Location_0.Id, variantId);
                     location = await BackEndSession.LoadLocationLoot(Location_0.Id, variantId);
+#if DEBUG
+                    Logger.LogDebug("Got Loot");
+#endif
                 }
             }
 
@@ -1497,6 +1502,9 @@ namespace StayInTarkov.Coop.SITGameModes
             }
 
             EFT.Player player = await CreatePlayerSpawn();
+#if DEBUG
+            Logger.LogDebug("Created Player");
+#endif
             dictionary_0.Add(player.ProfileId, player);
             gparam_0 = func_1(player);
             PlayerCameraController.Create(gparam_0.Player);
