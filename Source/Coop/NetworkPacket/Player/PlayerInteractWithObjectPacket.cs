@@ -29,7 +29,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public override byte[] Serialize()
         {
             using var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
             writer.WriteLengthPrefixedBytes(Encoding.UTF8.GetBytes(ProcessJson.ToString()));
             return ms.ToArray();
@@ -37,11 +37,11 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             var jsonBytes = reader.ReadLengthPrefixedBytes();
             var jsonString = Encoding.UTF8.GetString(jsonBytes);
-            ProcessJson = JObject.Parse(jsonString);   
+            ProcessJson = JObject.Parse(jsonString);
 
             return this;
         }
@@ -82,7 +82,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                         if (ProcessJson.ContainsKey("keyParentGrid"))
                         {
                             ItemAddress itemAddress = itemController.ToGridItemAddress(ProcessJson["keyParentGrid"].ToString().SITParseJson<GridItemAddressDescriptor>());
-                            discardResult = new DiscardResult(new RemoveResult(item, itemAddress, itemController, new ResizeResult(item, itemAddress, InteractionsHandlerClass.ResizeAction.Addition, null, null), null, false), null, null, null);
+                            discardResult = new DiscardResult(new RemoveOldAmmoResult(item, itemAddress, itemController, new ResizeResult(item, itemAddress, InteractionsHandlerClass.ResizeAction.Addition, null, null), null, false), null, null, null);
                         }
 
                         keyInteractionResult = new KeyInteractionResult(keyComponent, discardResult, bool.Parse(ProcessJson["succeed"].ToString()));
