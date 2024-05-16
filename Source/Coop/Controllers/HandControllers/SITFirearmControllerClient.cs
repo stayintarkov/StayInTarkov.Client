@@ -47,7 +47,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Spawn(animationSpeed, callback);
         }
 
-        public override void Execute(IBaseInventoryOperation operation, Callback callback)
+        public override void Execute(IAbstractOperation operation, Callback callback)
         {
             base.Execute(operation, callback);
         }
@@ -176,7 +176,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             return true;
         }
 
-        public override bool CanExecute(IBaseInventoryOperation operation)
+        public override bool CanExecute(IAbstractOperation operation)
         {
             return true;
         }

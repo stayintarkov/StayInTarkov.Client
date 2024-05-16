@@ -24,7 +24,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Spawn(animationSpeed, callback);
         }
 
-        public override void Execute(IOperation1 operation, Callback callback)
+        public override void Execute(IAbstractOperation operation, Callback callback)
         {
             BepInLogger.LogDebug($"{nameof(SITQuickKnifeKickController)}:{nameof(Execute)}");
             base.Execute(operation, callback);

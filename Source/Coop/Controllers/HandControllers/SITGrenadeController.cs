@@ -22,7 +22,7 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
             base.Spawn(animationSpeed, callback);
         }
 
-        public override void Execute(IOperation1 operation, Callback callback)
+        public override void Execute(IAbstractOperation operation, Callback callback)
         {
             BepInLogger.LogDebug($"{this.GetType().Name}:{nameof(Execute)}:{operation}");
             base.Execute(operation, callback);
@@ -37,28 +37,28 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
         public override void HighThrow()
         {
             base.HighThrow();
-            GrenadeHighThrowPacket packet = new GrenadeHighThrowPacket(_player.ProfileId, _player.Rotation);
+            GrenadeHighThrowPacket packet = new(_player.ProfileId, _player.Rotation);
             GameClient.SendData(packet.Serialize());
         }
 
         public override void LowThrow()
         {
             base.LowThrow();
-            GrenadeLowThrowPacket packet = new GrenadeLowThrowPacket(_player.ProfileId, _player.Rotation);
+            GrenadeLowThrowPacket packet = new(_player.ProfileId, _player.Rotation);
             GameClient.SendData(packet.Serialize());
         }
 
         public override void PullRingForHighThrow()
         {
             base.PullRingForHighThrow();
-            GrenadePullRingForHighThrowPacket packet = new GrenadePullRingForHighThrowPacket(_player.ProfileId);
+            GrenadePullRingForHighThrowPacket packet = new(_player.ProfileId);
             GameClient.SendData(packet.Serialize());
         }
 
         public override void PullRingForLowThrow()
         {
             base.PullRingForLowThrow();
-            GrenadePullRingForLowThrowPacket packet = new GrenadePullRingForLowThrowPacket(_player.ProfileId);
+            GrenadePullRingForLowThrowPacket packet = new(_player.ProfileId);
             GameClient.SendData(packet.Serialize());
         }
 

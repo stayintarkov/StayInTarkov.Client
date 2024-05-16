@@ -1,22 +1,22 @@
-﻿using EFT.InventoryLogic;
+﻿using Comfort.Common;
+using ComponentAce.Compression.Libs.zlib;
 using EFT;
+using EFT.Ballistics;
+using EFT.InventoryLogic;
+using EFT.NextObservedPlayer;
+using MonoMod.Utils;
+using Newtonsoft.Json;
+using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.Players;
+using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using EFT.NextObservedPlayer;
-using EFT.Ballistics;
-using Comfort.Common;
-using System.IO;
 using UnityEngine.Networking;
-using StayInTarkov.Coop.Players;
-using Newtonsoft.Json;
-using StayInTarkov.ThirdParty;
-using MonoMod.Utils;
-using StayInTarkov.Coop.Matchmaker;
-using ComponentAce.Compression.Libs.zlib;
 using static EFT.Profile;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
@@ -67,7 +67,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public EFT.InventoryLogic.Inventory Inventory;
 
-        public HandsCommandMessage HandsController;
+        //public HandsCommandMessage HandsController;
 
         public List<ArmorInfo> ArmorsInfo { get; set; } = new List<ArmorInfo>();
 
@@ -79,8 +79,8 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public EFT.Profile Profile
         {
             get { return profile; }
-            set 
-            { 
+            set
+            {
                 profile = value;
                 //profile = value.Clone(); 
                 //profile.EftStats = new ProfileStats();
@@ -101,16 +101,16 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         //public ArenaObservedPlayerSpawnMessage ArenaObservedPlayerSpawnMessage;
 
-        public string InitialInventoryMongoId { get; set; } 
+        public string InitialInventoryMongoId { get; set; }
 
 
         public override byte[] Serialize()
         {
             using var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
-            writer.Write(RemoteTime);   
-            writer.Write(BodyPosition);   
+            writer.Write(RemoteTime);
+            writer.Write(BodyPosition);
             //SerializeCustomization(writer);
             writer.Write((byte)Side);
             writer.Write((byte)WildSpawnType);
@@ -147,7 +147,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             RemoteTime = reader.ReadFloat();
             BodyPosition = reader.ReadVector3();
@@ -199,7 +199,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public void SerializeInventory(BinaryWriter writer)
         {
-            InventoryDescriptor target = new InventoryDescriptor
+            InventoryDescriptor target = new()
             {
                 //Equipment = InventorySerializationHelpers.SerializeOnlyVisibleEquipment(Inventory.Equipment)
                 Equipment = InventorySerializationHelpers.SerializeOnlyVisibleEquipment(Inventory.Equipment)
@@ -260,7 +260,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
             ArmorsInfo = new List<ArmorInfo>(b);
             for (int i = 0; i < b; i++)
             {
-                ArmorInfo armorInfo = new ArmorInfo
+                ArmorInfo armorInfo = new()
                 {
                     itemID = reader.ReadString(),
                     armorType = (EArmorType)reader.ReadByte(),
