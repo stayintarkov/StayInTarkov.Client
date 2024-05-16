@@ -2811,6 +2811,7 @@ global using KeyBinding = GClass3113;
 global using EffectObserver = GClass3118;
 global using TreatmentWrapper = GClass3119;
 global using Section1 = GClass3123;
+global using ScreenManager = GClass3127;
 global using CoverSearchData1 = GClass316;
 global using CoverSearchDefenceData = GClass317;
 global using PositionPoint = GClass318;
