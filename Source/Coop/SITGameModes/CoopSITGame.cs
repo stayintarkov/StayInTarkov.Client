@@ -1385,41 +1385,32 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public override void CleanUp()
         {
-            foreach (EFT.Player value in Bots.Values)
-            {
-                try
-                {
-                    value.Dispose();
-                    AssetPoolObject.ReturnToPool(value.gameObject);
-                }
-                catch (Exception exception)
-                {
-                    UnityEngine.Debug.LogException(exception);
-                }
-            }
-            Bots.Clear();
-
             if (SITGameComponent.TryGetCoopGameComponent(out var gameComponent))
             {
-                if (gameComponent.PlayerClients != null)
+                if (gameComponent.Players != null)
                 {
-                    foreach (EFT.Player value in gameComponent.PlayerClients)
+                    foreach (var value in gameComponent.Players.Values)
                     {
                         try
                         {
+                            if (value == null)
+                                continue;
+
                             value.Dispose();
-                            AssetPoolObject.ReturnToPool(value.gameObject);
+
+                            if(value.gameObject != null)
+                                AssetPoolObject.ReturnToPool(value.gameObject);
                         }
                         catch (Exception exception)
                         {
                             UnityEngine.Debug.LogException(exception);
                         }
                     }
-                    gameComponent.PlayerClients.Clear();
                 }
             }
 
-            base.CleanUp();
+            gameComponent.PlayerClients.Clear();
+            Bots.Clear();
         }
 
         public override void Dispose()

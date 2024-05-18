@@ -1,20 +1,25 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Communications;
+using EFT.Counters;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
+using Google.FlatBuffers;
 using Newtonsoft.Json.Linq;
+using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components;
 using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
+using StayInTarkov.Coop.NetworkPacket.World;
 using StayInTarkov.Coop.Player;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Coop.Web;
+using StayInTarkov.FlatBuffers;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
@@ -23,15 +28,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Systems.Effects;
 using UnityEngine;
-
-using Rect = UnityEngine.Rect;
-using EFT.Counters;
-using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
-using StayInTarkov.Coop.NetworkPacket.World;
-using Google.FlatBuffers;
-using StayInTarkov.FlatBuffers;
 using FBPacket = StayInTarkov.FlatBuffers.Packet;
+using Rect = UnityEngine.Rect;
 
 namespace StayInTarkov.Coop.Components.CoopGameComponents
 {
@@ -96,9 +96,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         }
 
         /// <summary>
-        /// This is all the spawned players via the spawning process. Not anyone else.
+        /// This is all the spawned characters created via the spawning process. Not anyone else.
         /// </summary>
-        public Dictionary<string, EFT.Player> SpawnedPlayers { get; private set; } = new();
+        public Dictionary<string, EFT.Player> SpawnedCharacters { get; private set; } = new();
 
         public BepInEx.Logging.ManualLogSource Logger { get; private set; }
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
@@ -189,7 +189,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         async void Start()
         {
             Instance = this;
-       
+
             // Instantiate the Requesting Object for Aki Communication
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
 
@@ -216,7 +216,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             // Enable the Coop Patches
             CoopPatches.EnableDisablePatches();
 
-            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted;;
+            Singleton<GameWorld>.Instance.AfterGameStarted += GameWorld_AfterGameStarted; ;
 
             // In game ping system.
             if (Singleton<FrameMeasurer>.Instantiated)
@@ -382,7 +382,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
         }
 
-       
+
 
         /// <summary>
         /// This is a simple coroutine to allow methods to run every second.
@@ -392,69 +392,85 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             var waitSeconds = new WaitForSeconds(1.0f);
 
-            while (RunAsyncTasks)
+            if (!Singleton<ISITGame>.Instantiated)
             {
                 yield return waitSeconds;
-
-                try
-                {
-                    if (!Singleton<ISITGame>.Instantiated)
-                        continue;
-
-                    if (!Singleton<GameWorld>.Instantiated)
-                        continue;
-
-                    if (!GameWorldGameStarted)
-                        continue;
-
-                    //Logger.LogDebug($"DEBUG: {nameof(EverySecondCoroutine)}");
-
-                    var coopGame = Singleton<ISITGame>.Instance;
-
-                    var world = Singleton<GameWorld>.Instance;
-
-                    // Add players who have joined to the AI Enemy Lists
-                    var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
-                    if (botController != null)
-                    {
-                        while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
-                        {
-                            Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
-                            botController.AddActivePLayer(otherPlayer);
-                            botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
-                        }
-                    }
-
-                    if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
-                    {
-                        coopGame.GameClient.ResetStats();
-                    }
-
-                    ProcessOtherModsSpawnedPlayers();
-
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError($"{nameof(EverySecondCoroutine)}: caught exception:\n{ex}");
-                }
+                StartCoroutine(EverySecondCoroutine());
+                yield break;
             }
-        }
 
-        private void ProcessOtherModsSpawnedPlayers()
-        {
-            // If another mod has spawned people, attempt to handle it.
-            foreach (var p in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+            if (!Singleton<GameWorld>.Instantiated)
             {
-                if (!Players.ContainsKey(p.ProfileId))
+                yield return waitSeconds;
+                StartCoroutine(EverySecondCoroutine());
+                yield break;
+            }
+
+            if (!GameWorldGameStarted)
+            {
+                yield return waitSeconds;
+                StartCoroutine(EverySecondCoroutine());
+                yield break;
+            }
+
+            var coopGame = Singleton<ISITGame>.Instance;
+
+            var world = Singleton<GameWorld>.Instance;
+
+            // Add players who have joined to the AI Enemy Lists
+            var botController = (BotsController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotsController)).GetValue(Singleton<ISITGame>.Instance);
+            if (botController != null)
+            {
+                while (PlayersForAIToTarget.TryDequeue(out var otherPlayer))
                 {
-                    // As these created players are unlikely to be CoopPlayer, throw an error!
-                    if((p as CoopPlayer) == null)
-                    {
-                        Logger.LogError($"Player of Id:{p.ProfileId} is not found in the SIT {nameof(Players)} list?!");
-                    }
+                    Logger.LogDebug($"Adding {otherPlayer.Profile.Nickname} to Enemy list");
+                    botController.AddActivePLayer(otherPlayer);
+                    botController.AddEnemyToAllGroups(otherPlayer, otherPlayer, otherPlayer);
                 }
             }
+
+            if (Singleton<ISITGame>.Instance.GameClient is GameClientUDP udp)
+            {
+                coopGame.GameClient.ResetStats();
+            }
+
+            // TODO: Make this work.
+            //ProcessOtherModsSpawnedPlayers();
+
+            if (DespawnList.Count > 0)
+            {
+                foreach (var despawnId in DespawnList)
+                {
+                    Logger.LogInfo($"Attempting to despawn queued character: {despawnId}");
+
+                    if (DespawnCharacter(despawnId))
+                        DespawnList.Remove(despawnId);
+                }
+            };
+
+            yield return waitSeconds;
+
+            //Logger.LogInfo($"{nameof(EverySecondCoroutine)}");
+            StartCoroutine(EverySecondCoroutine());
+
         }
+
+        // TODO: Make this work.
+        //private void ProcessOtherModsSpawnedPlayers()
+        //{
+        //    // If another mod has spawned people, attempt to handle it.
+        //    foreach (var p in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+        //    {
+        //        if (!Players.ContainsKey(p.ProfileId))
+        //        {
+        //            // As these created players are unlikely to be CoopPlayer, throw an error!
+        //            if ((p as CoopPlayer) == null)
+        //            {
+        //                Logger.LogError($"Player of Id:{p.ProfileId} is not found in the SIT {nameof(Players)} list?!");
+        //            }
+        //        }
+        //    }
+        //}
 
         void OnDestroy()
         {
@@ -464,6 +480,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
+            DespawnList.Clear();
             RunAsyncTasks = false;
             StopCoroutine(EverySecondCoroutine());
 
@@ -674,8 +691,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             if (Singleton<ISITGame>.Instance.MyExitLocation == null)
             {
                 var gameWorld = Singleton<GameWorld>.Instance;
-                List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                List<ScavExfiltrationPoint> scavExfilFiltered = new();
+                List<ExfiltrationPoint> pmcExfilPiltered = new();
                 foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
                 {
                     if (exfil is ScavExfiltrationPoint scavExfil)
@@ -748,8 +765,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     if (Singleton<ISITGame>.Instance.MyExitLocation == null)
                     {
                         var gameWorld = Singleton<GameWorld>.Instance;
-                        List<ScavExfiltrationPoint> scavExfilFiltered = new List<ScavExfiltrationPoint>();
-                        List<ExfiltrationPoint> pmcExfilPiltered = new List<ExfiltrationPoint>();
+                        List<ScavExfiltrationPoint> scavExfilFiltered = new();
+                        List<ExfiltrationPoint> pmcExfilPiltered = new();
                         foreach (var exfil in gameWorld.ExfiltrationController.ExfiltrationPoints)
                         {
                             if (exfil is ScavExfiltrationPoint scavExfil)
@@ -1178,8 +1195,8 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 Singleton<GameWorld>.Instance.RegisterPlayer(otherPlayer);
 
 
-            if (!SpawnedPlayers.ContainsKey(profile.ProfileId))
-                SpawnedPlayers.Add(profile.ProfileId, otherPlayer);
+            if (!SpawnedCharacters.ContainsKey(profile.ProfileId))
+                SpawnedCharacters.Add(profile.ProfileId, otherPlayer);
 
             // Create/Add PlayerReplicatedComponent to the LocalPlayer
             // This shouldn't be needed. Handled in CoopPlayer.Create code
@@ -1295,6 +1312,36 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                 }
 
             });
+        }
+
+        private HashSet<string> DespawnList = new();
+
+        public void AddToDespawnList(string ProfileId) => DespawnList.Add(ProfileId);
+
+        private bool DespawnCharacter(string ProfileId)
+        {
+            //Player is already existent and should have already spawned, we can proceed immediately to removal.
+            if (SpawnedCharacters.ContainsKey(ProfileId))
+            {
+                var Bot = SpawnedCharacters[ProfileId];
+
+                //Bleeding causes an exception on despawn, stop the bleeding effect.
+                Singleton<Effects>.Instance.EffectsCommutator.StopBleedingForPlayer(Bot);
+
+                Bot.Dispose();
+                if (Bot.gameObject != null)
+                    DestroyImmediate(Bot.gameObject);
+
+                Destroy(Bot);
+                ProfileIdsAI.Remove(ProfileId);
+                SpawnedCharacters.Remove(ProfileId);
+                Players.TryRemove(ProfileId, out _);
+                return true;
+            }
+
+            Logger.LogWarning($"Character ({ProfileId}) has not spawned yet! Cannot remove");
+
+            return false;
         }
 
         private Dictionary<string, PlayerHealthPacket> LastPlayerHealthPackets = new();

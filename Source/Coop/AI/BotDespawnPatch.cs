@@ -2,6 +2,7 @@
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.NetworkPacket.AI;
+using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Networking;
 using System.Reflection;
 
@@ -19,11 +20,11 @@ namespace StayInTarkov.Coop.AI
             return typeof(BotsController).GetMethod(methodName);
         }
 
-        [PatchPrefix]
-        private static bool PatchPrefix(EFT.Player player)
-        {
-            return false;
-        }
+        //[PatchPrefix]
+        //private static bool PatchPrefix(EFT.Player player)
+        //{
+        //    return false;
+        //}
 
         [PatchPostfix]
         public static void Postfix(EFT.Player player)
@@ -34,7 +35,8 @@ namespace StayInTarkov.Coop.AI
             if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                 return;
 
-            coopGameComponent.ProfileIdsAI.Remove(player.ProfileId);
+            if (coopGameComponent.ProfileIdsAI.Contains(player.ProfileId))
+                coopGameComponent.ProfileIdsAI.Remove(player.ProfileId);
 
             DespawnAIPacket packet = new();
             packet.AIProfileId = player.ProfileId;
