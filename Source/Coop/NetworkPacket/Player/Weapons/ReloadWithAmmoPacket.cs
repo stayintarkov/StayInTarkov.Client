@@ -48,9 +48,15 @@ namespace StayInTarkov.Coop.NetworkPacket.Player.Weapons
             return this;
         }
 
+        public override void Process()
+        {
+            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}()");
+            base.Process();
+        }
+
         protected override void Process(CoopPlayerClient client)
         {
-            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}");
+            StayInTarkovHelperConstants.Logger.LogDebug($"{GetType()}:{nameof(Process)}(client)");
 
             List<BulletClass> ammoList = new();
             foreach (string ammoId in AmmoIds)

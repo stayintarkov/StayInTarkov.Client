@@ -457,9 +457,10 @@ namespace StayInTarkov
                 var url = DetectBackendUrlAndToken.GetBackendConnection().BackendUrl;
                 if (!url.Contains("https"))
                 {
+                    WebSocketPatch.IsHttps = false;
                     new TransportPrefixPatch().Enable();
-                    new WebSocketPatch().Enable();
                 }
+                new WebSocketPatch().Enable();
             }
             catch (Exception e)
             {

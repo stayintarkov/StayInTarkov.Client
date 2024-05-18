@@ -41,6 +41,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -209,9 +210,11 @@ namespace StayInTarkov.Coop.SITGameModes
 
             return coopGame;
         }
+
         void OnDestroy()
         {
             Logger.LogDebug("OnDestroy()");
+            Singleton<GameWorld>.Instance.AfterGameStarted -= Instance_AfterGameStarted;
 
             Comfort.Common.Singleton<ISITGame>.TryRelease(this);   
         }
@@ -693,6 +696,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForPlayersToSpawn()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingForPlayers);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Session Started. Waiting for Player(s)");
@@ -771,6 +777,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForPlayersToBeReady()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingToStart);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned. Waiting for Player(s) to be Ready.");
@@ -834,6 +843,9 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private async Task WaitForHostToStart()
         {
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.WaitingToStart);
+
             if (SITMatchmaking.TimeHasComeScreenController != null)
             {
                 SITMatchmaking.TimeHasComeScreenController.ChangeStatus($"Players spawned and ready. Waiting for Host to start.");
@@ -936,19 +948,17 @@ namespace StayInTarkov.Coop.SITGameModes
                     Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
-            if (!SITMatchmaking.IsClient)
-            {
-
-                var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
-
-                BotsPresets profileCreator =
+            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(nonWavesSpawnScenario_0);
+            BotsPresets profileCreator =
                     new(BackEndSession
                     , wavesSpawnScenario_0.SpawnWaves
                     , this.BossWaves
                     , nonwaves
                     , true);
+            BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
 
-                BotCreator botCreator = new(this, profileCreator, CreatePhysicalBot);
+            if (!SITMatchmaking.IsClient)
+            {
                 BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray();
                 PBotsController.Init(this
                     , botCreator
@@ -1001,6 +1011,10 @@ namespace StayInTarkov.Coop.SITGameModes
                     ConsoleScreen.LogException(ex);
                     Logger.LogError(ex);
                 }
+            }
+            else
+            {
+                PBotsController.Init(this, botCreator, [], SpawnSystem, wavesSpawnScenario_0.BotLocationModifier, false, false, false, false, false, Singleton<GameWorld>.Instance, "");
             }
 
             yield return new WaitForSeconds(startDelay);
@@ -1089,6 +1103,10 @@ namespace StayInTarkov.Coop.SITGameModes
                 // below is vmethod_5
                 CreateExfiltrationPointAndInitDeathHandler();
             }
+
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.InGame);
+
             runCallback.Succeed();
 
         }
@@ -1180,9 +1198,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            if (!player.IsYourPlayer)
-                return;
-
             Logger.LogDebug($"{nameof(ExfiltrationPoint_OnStartExtraction)} {point.Settings.Name} {point.Status} {point.Settings.ExfiltrationTime}");
             bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
@@ -1191,8 +1206,12 @@ namespace StayInTarkov.Coop.SITGameModes
                 Logger.LogDebug($"Added {player.ProfileId} to {nameof(ExtractingPlayers)}");
             }
 
-            MyExitLocation = point.Settings.Name;
-            MyExitStatus = ExitStatus.Survived;
+            // Setup MyExitLocation and MyExitStatus only if this is My Player
+            if (player.IsYourPlayer)
+            {
+                MyExitLocation = point.Settings.Name;
+                MyExitStatus = ExitStatus.Survived;
+            }
         }
 
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
@@ -1273,8 +1292,9 @@ namespace StayInTarkov.Coop.SITGameModes
                 foreach (var p in SITGameComponent.GetCoopGameComponent().Players)
                 {
                     var pid = p.Value.ProfileId;
+                    bool isBot = p.Value.IsAI;
                     // make sure the host does not "leave game" before other players since Relay has special handling Aki-side
-                    if (pid != hostProfileId)
+                    if (pid != hostProfileId && !isBot)
                     {
                         AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/update", new Dictionary<string, object>() {
                             { "m", "PlayerLeft" },
@@ -1292,6 +1312,9 @@ namespace StayInTarkov.Coop.SITGameModes
                 { "serverId", SITGameComponent.GetServerId() }
 
             }.ToJson());
+
+            if (SITMatchmaking.IsServer)
+                _ = SITGameModeHelpers.UpdateRaidStatusAsync(SITMPRaidStatus.Complete);
 
             if (BossWaveManager != null)
                 BossWaveManager.Stop();
@@ -1420,6 +1443,7 @@ namespace StayInTarkov.Coop.SITGameModes
         public BossLocationSpawn[] BossWaves { get; private set; }
         public int ReadyPlayers { get; set; }
         public bool HostReady { get; set; }
+        public bool GameWorldStarted { get; set; }
 
         private NonWavesSpawnScenario nonWavesSpawnScenario_0;
 
@@ -1436,6 +1460,7 @@ namespace StayInTarkov.Coop.SITGameModes
         {
             Logger.LogDebug(nameof(Run));
 
+            Singleton<GameWorld>.Instance.AfterGameStarted += Instance_AfterGameStarted;
             base.Status = GameStatus.Running;
             UnityEngine.Random.InitState((int)DateTime.UtcNow.Ticks);
             LocationSettingsClass.Location location;
@@ -1472,6 +1497,11 @@ namespace StayInTarkov.Coop.SITGameModes
             await WaitForHostToStart();
 
             method_5(botsSettings, SpawnSystem, runCallback);
+        }
+
+        private void Instance_AfterGameStarted()
+        {
+            GameWorldStarted = true;
         }
 
         class PlayerLoopSystemType
