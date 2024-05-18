@@ -32,9 +32,9 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             {
                 LastTimeSent = DateTime.Now;
 
-                TimeAndWeatherPacket packet = new TimeAndWeatherPacket();
+                TimeAndWeatherPacket packet = new();
 
-                var sitGame = Singleton<ISITGame>.Instance as BaseLocalGame<GamePlayerOwner>;
+                var sitGame = Singleton<ISITGame>.Instance;
 
                 if (sitGame.GameDateTime != null)
                     packet.GameDateTime = sitGame.GameDateTime.Calculate().Ticks;
@@ -57,6 +57,13 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
                     }
 
                     Networking.GameClient.SendData(packet.Serialize());
+                }
+
+                if (sitGame.GameTimer.StartDateTime.HasValue && sitGame.GameTimer.SessionTime.HasValue)
+                {
+                    RaidTimerPacket raidTimerPacket = new();
+                    raidTimerPacket.SessionTime = (sitGame.GameTimer.SessionTime - sitGame.GameTimer.PastTime).Value.Ticks;
+                    Networking.GameClient.SendData(raidTimerPacket.Serialize());
                 }
             }
         }

@@ -348,15 +348,15 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         {
             GameWorldGameStarted = true;
             Logger.LogDebug(nameof(GameWorld_AfterGameStarted));
-            //if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
-            //{
-            //    // Send My Player to Aki, so that other clients know about me
-            //    CoopSITGame.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
-            //}
 
             this.GetOrAddComponent<SITGameGCComponent>();
-            this.GetOrAddComponent<SITGameTimeAndWeatherSyncComponent>();
             this.GetOrAddComponent<SITGameExtractionComponent>();
+
+            // Add Server Authority components
+            if (SITMatchmaking.IsServer)
+            {
+                this.GetOrAddComponent<SITGameTimeAndWeatherSyncComponent>();
+            }
 
             StartCoroutine(SendPlayerStatePacket());
 
