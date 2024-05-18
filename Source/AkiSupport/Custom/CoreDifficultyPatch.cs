@@ -1,4 +1,5 @@
 using StayInTarkov.Networking;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -22,7 +23,14 @@ namespace StayInTarkov.AkiSupport.Custom
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result)
         {
-            __result = AkiBackendCommunication.Instance.GetJsonBLOCKING("/singleplayer/settings/bot/difficulty/core/core");
+            try
+            {
+                __result = AkiBackendCommunication.Instance.GetJsonBLOCKING("/singleplayer/settings/bot/difficulty/core/core", 15000);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Could not fetch bot core difficulty: {ex}");
+            }
             return string.IsNullOrWhiteSpace(__result);
         }
     }

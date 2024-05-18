@@ -279,7 +279,7 @@ namespace StayInTarkov.Networking
             Ping = (ushort)(ServerPingSmooth.Count > 0 ? Math.Round(ServerPingSmooth.Average()) : 1);
         }
 
-        private async Task<byte[]?> AsyncRequestFromPath(string path, HttpMethod method, string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequestFromPath(string path, HttpMethod method, string? data = null, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false)
         {
             if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
@@ -289,7 +289,7 @@ namespace StayInTarkov.Networking
             return await AsyncRequest(new Uri(path), method, data, timeout, debug);
         }
 
-        private async Task<byte[]?> AsyncRequest(Uri uri, HttpMethod method, string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequest(Uri uri, HttpMethod method, string? data = null, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false)
         {
             HttpRequestMessage req = new(method, uri);
 
@@ -342,15 +342,15 @@ namespace StayInTarkov.Networking
             return await AsyncRequestFromPath(url, HttpMethod.Get, data: null, timeout);
         }
 
-        public async Task<string> GetJsonAsync(string url)
+        public async Task<string> GetJsonAsync(string url, int timeout = DEFAULT_TIMEOUT_MS)
         {
-            var bytes = await AsyncRequestFromPath(url, HttpMethod.Get);
+            var bytes = await AsyncRequestFromPath(url, HttpMethod.Get, data: null, timeout);
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public string GetJsonBLOCKING(string url)
+        public string GetJsonBLOCKING(string url, int timeout = DEFAULT_TIMEOUT_MS)
         {
-            return Task.Run(() => GetJsonAsync(url)).GetAwaiter().GetResult();
+            return Task.Run(() => GetJsonAsync(url, timeout)).GetAwaiter().GetResult();
         }
 
         public async Task<string> PostJsonAsync(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = false)

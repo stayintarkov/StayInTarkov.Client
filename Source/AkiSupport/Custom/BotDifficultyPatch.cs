@@ -1,8 +1,8 @@
 using EFT;
 using StayInTarkov.Networking;
+using System;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace StayInTarkov.AkiSupport.Custom
 {
@@ -24,7 +24,14 @@ namespace StayInTarkov.AkiSupport.Custom
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result, BotDifficulty botDifficulty, WildSpawnType role)
         {
-            __result = AkiBackendCommunication.Instance.GetJsonBLOCKING($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}");
+            try
+            {
+                __result = AkiBackendCommunication.Instance.GetJsonBLOCKING($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}", 15000);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Could not fetch bot difficulty: {ex}");
+            }
             return string.IsNullOrWhiteSpace(__result);
         }
     }
