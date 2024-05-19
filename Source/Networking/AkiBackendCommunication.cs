@@ -53,7 +53,7 @@ namespace StayInTarkov.Networking
                     m_RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
 
                 // Remove ending slash on URI for SIT.Manager.Avalonia
-                if(m_RemoteEndPoint.EndsWith("/"))
+                if (m_RemoteEndPoint.EndsWith("/"))
                     m_RemoteEndPoint = m_RemoteEndPoint.Substring(0, m_RemoteEndPoint.Length - 1);
 
                 return m_RemoteEndPoint;
@@ -281,7 +281,7 @@ namespace StayInTarkov.Networking
         //        WebSocket.Send(serializedData);
         //}
 
-        private HashSet<string> _previousPooledData = new HashSet<string>();
+        private HashSet<string> _previousPooledData = new();
 
         //public void SendDataToPool(byte[] serializedData)
         //{
@@ -476,7 +476,8 @@ namespace StayInTarkov.Networking
 
                         WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
                         packet = null;
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Logger.LogError($"Periodic ping caught: {ex.GetType()} {ex.Message}");
                     }
@@ -523,27 +524,27 @@ namespace StayInTarkov.Networking
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private async Task<byte[]?> asyncRequestFromPath(string path, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequestFromPath(string path, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
             if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
                 path = RemoteEndPoint + path;
             }
 
-            return await asyncRequest(new Uri(path), method, data, timeout, debug);
+            return await AsyncRequest(new Uri(path), method, data, timeout, debug);
         }
 
-        private async Task<byte[]?> asyncRequest(Uri uri, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequest(Uri uri, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
             var compress = true;
-            using (HttpClientHandler handler = new HttpClientHandler())
+            using (HttpClientHandler handler = new())
             {
-                using (HttpClient httpClient = new HttpClient(handler))
+                using (HttpClient httpClient = new(handler))
                 {
                     handler.UseCookies = true;
                     handler.CookieContainer = new CookieContainer();
                     httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-                    Uri baseAddress = new Uri(RemoteEndPoint);
+                    Uri baseAddress = new(RemoteEndPoint);
                     foreach (var item in GetHeaders())
                     {
                         if (item.Key == "Cookie")
@@ -619,7 +620,7 @@ namespace StayInTarkov.Networking
 
         public async Task<byte[]?> GetBundleData(string url, int timeout = 60000)
         {
-            return await asyncRequestFromPath(url, "GET", data: null, timeout);
+            return await AsyncRequestFromPath(url, "GET", data: null, timeout);
         }
 
         public async Task<string> GetJsonAsync(string url, int maxRetries = 3, int delayMs = 1000)
@@ -629,12 +630,12 @@ namespace StayInTarkov.Networking
             {
                 try
                 {
-                    var bytes = await asyncRequestFromPath(url, "GET");
+                    var bytes = await AsyncRequestFromPath(url, "GET");
                     return Encoding.UTF8.GetString(bytes);
                 }
                 catch (Exception) when (attempt < maxRetries)
                 {
-                    Logger.LogWarning("[ CONFAIL ] Connection failed, retrying! (#"+ attempt +")");
+                    Logger.LogWarning("[ CONFAIL ] Connection failed, retrying! (#" + attempt + ")");
                     attempt++;
                     await Task.Delay(delayMs);
                 }
@@ -660,7 +661,7 @@ namespace StayInTarkov.Networking
                         url = "/" + url;
                     }
 
-                    var bytes = await asyncRequestFromPath(url, "POST", data, timeout, debug);
+                    var bytes = await AsyncRequestFromPath(url, "POST", data, timeout, debug);
                     return Encoding.UTF8.GetString(bytes);
                 }
                 catch (Exception ex)
