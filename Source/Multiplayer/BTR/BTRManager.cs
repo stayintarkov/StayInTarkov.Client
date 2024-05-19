@@ -153,7 +153,7 @@ namespace StayInTarkov.Multiplayer.BTR
                     }
                     if (packet.HasShot)
                     {
-                        ObservedShot(packet.ShotPosition, packet.ShotDirection);
+                        ObservedShot(packet.ShotPosition.Value, packet.ShotDirection.Value);
                     }
                     btrDataPacket = packet.DataPacket;
                 }
