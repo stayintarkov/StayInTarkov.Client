@@ -33,6 +33,8 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public static void InitBTR()
         {
+            Logger.LogDebug($"{nameof(InitBTR)}");
+
             try
             {
                 var btrSettings = Singleton<BackendConfigSettingsClass>.Instance.BTRSettings;
