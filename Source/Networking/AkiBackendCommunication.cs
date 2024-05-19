@@ -11,6 +11,7 @@ using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,7 +26,7 @@ namespace StayInTarkov.Networking
 {
     public class AkiBackendCommunication : IDisposable
     {
-        public const int DEFAULT_TIMEOUT_MS = 9999;
+        public const int DEFAULT_TIMEOUT_MS = 4444;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
         public const string PACKET_TAG_METHOD = "m";
         public const string PACKET_TAG_SERVERID = "serverId";
@@ -591,6 +592,8 @@ namespace StayInTarkov.Networking
             }
 
 #if DEBUG
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             Logger.LogDebug($"{nameof(AsyncRequest)} Send to {uri}");
 #endif
 
@@ -619,7 +622,8 @@ namespace StayInTarkov.Networking
                     bytes = Encoding.UTF8.GetBytes(response.StatusCode.ToString());
 
 #if DEBUG
-                Logger.LogDebug($"{nameof(AsyncRequest)} Received payload {bytes.Length} from {uri}");
+                stopwatch.Stop();
+                Logger.LogDebug($"{nameof(AsyncRequest)} Received {stopwatch.ElapsedMilliseconds}ms, size: {bytes.Length}b from {uri}");
 #endif
 
                 return bytes;
