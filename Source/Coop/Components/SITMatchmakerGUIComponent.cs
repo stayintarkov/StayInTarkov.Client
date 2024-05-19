@@ -224,7 +224,7 @@ namespace StayInTarkov.Coop.Components
         {
             JObject jsonObj = new JObject();
             jsonObj.Add("serverId", AkiBackendCommunication.Instance.ProfileId);
-            AkiBackendCommunication.Instance.PostJsonBLOCKING("/coop/server/delete", jsonObj.ToString());
+            _ = AkiBackendCommunication.Instance.PostJsonAsync("/coop/server/delete", jsonObj.ToString());
         }
 
       
