@@ -1069,15 +1069,10 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
 
                 // Paulov: You don't want this to run on Coop Game's as the raid will end when the host extracts
-                //try
-                //{
-                //    EndByExitTrigerScenario.Run();
-                //}
-                //catch (Exception ex)
-                //{
-                //    ConsoleScreen.LogException(ex);
-                //    Logger.LogError(ex);
-                //}
+                // EndByExitTrigerScenario.Run();
+
+                // Initialize the BTR
+                InitBTR();
 
                 dateTime_0 = DateTime.Now;
                 Status = GameStatus.Started;
@@ -1504,6 +1499,11 @@ namespace StayInTarkov.Coop.SITGameModes
             {
                 return true;
             }
+        }
+
+        public void InitBTR()
+        {
+            SITGameModeHelpers.InitBTR();
         }
     }
 }

@@ -51,5 +51,7 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public GameTimerClass GameTimer { get; set; }
 
+        public void InitBTR();
+
     }
 }
