@@ -1,10 +1,12 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.AssetsManager;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.Vehicle;
 using HarmonyLib;
+using HarmonyLib.Tools;
 using StayInTarkov.AkiSupport.Singleplayer.Utils;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
@@ -59,6 +61,8 @@ namespace StayInTarkov.Multiplayer.BTR
 
         private float originalDamageCoeff;
 
+        private ManualLogSource Logger { get; set; }
+
         BTRManager()
         {
             Type btrControllerType = typeof(BTRControllerClass);
@@ -69,11 +73,15 @@ namespace StayInTarkov.Multiplayer.BTR
 
         private void Awake()
         {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(BTRManager));
+            Logger.LogDebug($"{nameof(Awake)}");
+
             try
             {
                 gameWorld = Singleton<GameWorld>.Instance;
                 if (gameWorld == null)
                 {
+                    Logger.LogError($"{nameof(Awake)} Unable to Spawn BTR, GameWorld has not been instantiated!");
                     Destroy(this);
                     return;
                 }
@@ -89,9 +97,10 @@ namespace StayInTarkov.Multiplayer.BTR
 
                 Comfort.Common.Singleton<BTRManager>.Create(this);
             }
-            catch
+            catch (Exception ex)
             {
-                ConsoleScreen.LogError("[AKI-BTR] Unable to spawn BTR. Check logs.");
+                Logger.LogError($"{nameof(Awake)} Unable to Spawn BTR {ex}");
+                ConsoleScreen.LogError("[AKI-BTR] Unable to spawn BTR");
                 Destroy(this);
                 throw;
             }
