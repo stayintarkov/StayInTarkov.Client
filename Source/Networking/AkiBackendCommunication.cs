@@ -622,10 +622,23 @@ namespace StayInTarkov.Networking
             return await asyncRequestFromPath(url, "GET", data: null, timeout);
         }
 
-        public async Task<string> GetJsonAsync(string url)
+        public async Task<string> GetJsonAsync(string url, int maxRetries = 3, int delayMs = 1000)
         {
-            var bytes = await asyncRequestFromPath(url, "GET");
-            return Encoding.UTF8.GetString(bytes);
+            int attempt = 0;
+            while (true)
+            {
+                try
+                {
+                    var bytes = await asyncRequestFromPath(url, "GET");
+                    return Encoding.UTF8.GetString(bytes);
+                }
+                catch (Exception) when (attempt < maxRetries)
+                {
+                    Logger.LogWarning("[ CONFAIL ] Connection failed, retrying! (#"+ attempt +")");
+                    attempt++;
+                    await Task.Delay(delayMs);
+                }
+            }
         }
 
         public string GetJsonBLOCKING(string url)
