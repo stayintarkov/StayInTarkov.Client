@@ -7,6 +7,7 @@ using EFT.Weather;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.FreeCamera;
 using StayInTarkov.Coop.SITGameModes;
+using StayInTarkov.Multiplayer.BTR;
 using System;
 using System.IO;
 using System.Linq;
@@ -204,7 +205,7 @@ namespace StayInTarkov.UI
                 FreeCameraController CameraController = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
                 CameraController.ToggleCamera();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ConsoleScreen.LogException(ex);
             }
@@ -274,7 +275,7 @@ namespace StayInTarkov.UI
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ConsoleScreen.LogException(ex);
             }
@@ -301,6 +302,21 @@ namespace StayInTarkov.UI
                         botOwner.GetPlayer.Teleport(playerPositon);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                ConsoleScreen.LogException(ex);
+            }
+        }
+
+        [ConsoleCommand("teleportToBtr", "", null, "Teleports you to the Btr", [])]
+        public static void TeleportToBtr()
+        {
+            try
+            {
+                var btrManager = Singleton<BTRManager>.Instance;
+                var player = Singleton<GameWorld>.Instance?.MainPlayer;
+                player.Teleport(btrManager.Position + (Vector3.up * 2));
             }
             catch (Exception ex)
             {
