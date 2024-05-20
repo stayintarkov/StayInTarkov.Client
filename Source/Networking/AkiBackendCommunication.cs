@@ -732,15 +732,13 @@ namespace StayInTarkov.Networking
                     Logger.LogDebug($"Could not perform request to {url}");
                     Logger.LogDebug($"With Exception: {ex.Message}. {ex.InnerException?.Message}.");
                 }
-                finally
-                {
-                    await Task.Delay(timeout + 1);
 
-                    if (cts != null && !cts.IsCancellationRequested)
-                        cts.Cancel();
+                await Task.Delay(timeout + 1);
 
-                    retry++;
-                }
+                if (cts != null && !cts.IsCancellationRequested)
+                    cts.Cancel();
+
+                retry++;
 
             } while (retry < maxRetries);
 
