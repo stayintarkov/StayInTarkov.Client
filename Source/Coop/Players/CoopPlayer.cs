@@ -4,8 +4,8 @@ using EFT;
 using EFT.HealthSystem;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using EFT.Vehicle;
 using Newtonsoft.Json.Linq;
-using RootMotion.FinalIK;
 using StayInTarkov.AkiSupport.Singleplayer.Utils.InRaid;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Controllers;
@@ -13,10 +13,13 @@ using StayInTarkov.Coop.Controllers.CoopInventory;
 using StayInTarkov.Coop.Controllers.HandControllers;
 using StayInTarkov.Coop.Controllers.Health;
 using StayInTarkov.Coop.Matchmaker;
+using StayInTarkov.Coop.NetworkPacket.BTR;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.NetworkPacket.Player.Health;
 using StayInTarkov.Coop.NetworkPacket.Player.Proceed;
 using StayInTarkov.FlatBuffers;
+using StayInTarkov.Multiplayer.BTR;
+
 
 //using StayInTarkov.Core.Player;
 using StayInTarkov.Networking;
@@ -223,7 +226,8 @@ namespace StayInTarkov.Coop.Players
             if (initiatorIsAI)
             {
                 return SITMatchmaking.IsServer;
-            } else
+            }
+            else
             {
                 return initiatorIsMe;
             }
@@ -267,7 +271,7 @@ namespace StayInTarkov.Coop.Players
         /// <param name="absorbed"></param>
         private static void SendDamageToAllClients(string ProfileId, DamageInfo damageInfo, EBodyPart bodyPartType, EBodyPartColliderType bodyPartColliderType, float absorbed, Dictionary<string, float> pendingArmorUpdates)
         {
-            ApplyDamagePacket damagePacket = new ApplyDamagePacket();
+            ApplyDamagePacket damagePacket = new();
             damagePacket.ProfileId = ProfileId;
             damagePacket.Damage = damageInfo.Damage;
             damagePacket.DamageType = damageInfo.DamageType;
@@ -418,7 +422,7 @@ namespace StayInTarkov.Coop.Players
                 && LastRotationSent != Rotation
                 )
             {
-                PlayerRotatePacket packet = new PlayerRotatePacket(this.ProfileId);
+                PlayerRotatePacket packet = new(this.ProfileId);
                 packet.RotationX = Rotation.x;
                 packet.RotationY = Rotation.y;
                 GameClient.SendData(packet.Serialize());
@@ -464,7 +468,7 @@ namespace StayInTarkov.Coop.Players
             if (this is CoopPlayerClient)
                 return;
 
-            PlayerSayPacket sayPacket = new PlayerSayPacket();
+            PlayerSayPacket sayPacket = new();
             sayPacket.ProfileId = this.ProfileId;
             sayPacket.Trigger = @event;
             sayPacket.Index = clip.NetId;
@@ -527,7 +531,7 @@ namespace StayInTarkov.Coop.Players
                 }
             }
 
-            using KillPacket killPacket = new KillPacket(ProfileId, damageType);
+            using KillPacket killPacket = new(ProfileId, damageType);
             GameClient.SendData(killPacket.Serialize());
         }
 
@@ -583,7 +587,7 @@ namespace StayInTarkov.Coop.Players
             // Extra unneccessary protection
             if (this is CoopPlayer)
             {
-                PlayerProceedEmptyHandsPacket emptyHandsPacket = new PlayerProceedEmptyHandsPacket(this.ProfileId, withNetwork, scheduled);
+                PlayerProceedEmptyHandsPacket emptyHandsPacket = new(this.ProfileId, withNetwork, scheduled);
                 BepInLogger.LogDebug(emptyHandsPacket.ToJson());
                 GameClient.SendData(emptyHandsPacket.Serialize());
             }
@@ -600,10 +604,10 @@ namespace StayInTarkov.Coop.Players
             }
 
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, foodDrink, EBodyPart.Head, amount, animationVariant);
-            Process<MedsController, IMedsController> process = new Process<MedsController, IMedsController>(this, controllerFactory, foodDrink);
+            Process<MedsController, IMedsController> process = new(this, controllerFactory, foodDrink);
             Action confirmCallback = delegate
             {
-                PlayerProceedFoodDrinkPacket foodDrinkPacket = new PlayerProceedFoodDrinkPacket(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
+                PlayerProceedFoodDrinkPacket foodDrinkPacket = new(this.ProfileId, foodDrink.Id, foodDrink.TemplateId, amount, animationVariant, scheduled);
                 //BepInLogger.LogDebug(foodDrinkPacket.ToJson());
                 GameClient.SendData(foodDrinkPacket.Serialize());
             };
@@ -648,7 +652,8 @@ namespace StayInTarkov.Coop.Players
 
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(meds)}:{bodyPart}");
             Func<MedsController> controllerFactory = () => MedsController.smethod_5<MedsController>(this, meds, bodyPart, 1f, animationVariant);
-            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, (x) => {
+            new Process<MedsController, IMedsController>(this, controllerFactory, meds).method_0(null, (x) =>
+            {
                 PostProceedData = new SITPostProceedData { PreviousAmount = startResource, UsedItem = meds, HandsController = x.Value };
                 callback(x);
             }, false);
@@ -656,13 +661,13 @@ namespace StayInTarkov.Coop.Players
             // Extra unneccessary protection
             if (this is CoopPlayer)
             {
-                PlayerProceedMedsPacket medsPacket = new PlayerProceedMedsPacket(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
+                PlayerProceedMedsPacket medsPacket = new(this.ProfileId, meds.Id, meds.TemplateId, bodyPart, animationVariant, scheduled, 1f);
                 GameClient.SendData(medsPacket.Serialize());
             }
 
         }
 
-        
+
         public override void Proceed(GrenadeClass throwWeap, Callback<IGrenadeController> callback, bool scheduled = true)
         {
             BepInLogger.LogDebug($"{nameof(CoopPlayer)}:{nameof(Proceed)}:{nameof(throwWeap)}:IGrenadeQuickUseController");
@@ -677,11 +682,11 @@ namespace StayInTarkov.Coop.Players
             Func<SITGrenadeController> controllerFactory = () => GrenadeController.smethod_8<SITGrenadeController>(this, throwWeap);
             new Process<SITGrenadeController, IHandsThrowController>(this, controllerFactory, throwWeap).method_0(null, callback, scheduled);
 
-            PlayerProceedGrenadePacket packet = new PlayerProceedGrenadePacket(ProfileId, throwWeap.Id, scheduled);
+            PlayerProceedGrenadePacket packet = new(ProfileId, throwWeap.Id, scheduled);
             GameClient.SendData(packet.Serialize());
         }
 
-     
+
 
         public override void Proceed(Weapon weapon, Callback<IFirearmHandsController> callback, bool scheduled = true)
         {
@@ -694,7 +699,7 @@ namespace StayInTarkov.Coop.Players
             var process = new Process<SITFirearmController, IFirearmHandsController>(this, controllerFactory, weapon, fastHide);
             Action confirmCallback = delegate
             {
-                PlayerProceedWeaponPacket weaponPacket = new PlayerProceedWeaponPacket();
+                PlayerProceedWeaponPacket weaponPacket = new();
                 weaponPacket.ProfileId = this.ProfileId;
                 weaponPacket.ItemId = weapon.Id;
                 weaponPacket.Scheduled = scheduled;
@@ -713,12 +718,13 @@ namespace StayInTarkov.Coop.Players
         {
             Func<SITKnifeController> controllerFactory = () => KnifeController.smethod_8<SITKnifeController>(this, knife);
             new Process<SITKnifeController, IKnifeController>(this, controllerFactory, knife.Item, fastHide: true)
-                .method_0((IResult result) => {
+                .method_0((IResult result) =>
+                {
 
                     // Check if the Proceed was successful before sending packet
                     if (result.Succeed)
                     {
-                        PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                        PlayerProceedKnifePacket knifePacket = new();
                         knifePacket.ProfileId = this.ProfileId;
                         knifePacket.ItemId = knife.Item.Id;
                         knifePacket.Scheduled = scheduled;
@@ -737,7 +743,7 @@ namespace StayInTarkov.Coop.Players
                 // Check if the Proceed was successful before sending packet
                 if (result.Succeed)
                 {
-                    PlayerProceedKnifePacket knifePacket = new PlayerProceedKnifePacket();
+                    PlayerProceedKnifePacket knifePacket = new();
                     knifePacket.ProfileId = this.ProfileId;
                     knifePacket.ItemId = knife.Item.Id;
                     knifePacket.Scheduled = scheduled;
@@ -770,7 +776,7 @@ namespace StayInTarkov.Coop.Players
                 }
 
                 BepInLogger.LogDebug($"{PostProceedData.Value}");
-                PlayerPostProceedDataSyncPacket postProceedPacket = new PlayerPostProceedDataSyncPacket(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue, PostProceedData.Value.UsedItem.StackObjectsCount);
+                PlayerPostProceedDataSyncPacket postProceedPacket = new(this.ProfileId, PostProceedData.Value.UsedItem.Id, newValue, PostProceedData.Value.UsedItem.StackObjectsCount);
                 GameClient.SendData(postProceedPacket.Serialize());
 
                 PostProceedData = null;
@@ -819,7 +825,7 @@ namespace StayInTarkov.Coop.Players
                 dict.Add("succeed", keyInteractionResult.Succeed);
             }
 
-            PlayerInteractWithObjectPacket playerInteractWithObjectPacket = new PlayerInteractWithObjectPacket(this.ProfileId);
+            PlayerInteractWithObjectPacket playerInteractWithObjectPacket = new(this.ProfileId);
             playerInteractWithObjectPacket.ProcessJson = dict;
 
             BepInLogger.LogInfo($"Sending {nameof(PlayerInteractWithObjectPacket)} packet");
@@ -866,7 +872,7 @@ namespace StayInTarkov.Coop.Players
                 dict.Add("succeed", keyInteractionResult.Succeed);
             }
 
-            PlayerInteractWithDoorPacket packet = new (this.ProfileId);
+            PlayerInteractWithDoorPacket packet = new(this.ProfileId);
             packet.DoorId = door.Id;
             packet.ProcessJson = dict;
 
@@ -880,7 +886,7 @@ namespace StayInTarkov.Coop.Players
         {
             base.vmethod_3(gesture);
 
-            PlayerGesturePacket packet = new PlayerGesturePacket();
+            PlayerGesturePacket packet = new();
             packet.Gesture = gesture;
             GameClient.SendData(packet.Serialize());
         }
@@ -956,6 +962,66 @@ namespace StayInTarkov.Coop.Players
                     armorComp.Item.RaiseRefreshEvent(false, false);
                 }
             }
+        }
+
+        public override void BtrInteraction()
+        {
+            base.BtrInteraction();
+        }
+
+        public override void BtrInteraction(BTRSide btr, byte placeId, EInteractionType interaction)
+        {
+            PlayerInteractPacket bsgInteractPacket = btr.GetInteractWithBtrPacket(placeId, interaction);
+
+            if (SITMatchmaking.IsServer)
+                BtrInteractionHost(bsgInteractPacket);
+            else if (SITMatchmaking.IsClient)
+                BtrInteractionSendData(bsgInteractPacket);
+            //if (SITMatchmaking.IsClient)
+            //{
+            //    BTRInteractionPacket packet = new(NetId)
+            //    {
+            //        HasInteractPacket = true,
+            //        InteractPacket = btr.GetInteractWithBtrPacket(placeId, interaction)
+            //    };
+
+            //    PacketSender?.Writer?.Reset();
+            //    PacketSender?.Client?.SendData(PacketSender?.Writer, ref packet, LiteNetLib.DeliveryMethod.ReliableOrdered);
+            //}
+            //else if (MatchmakerAcceptPatches.IsServer)
+            //{
+            //    if (CoopHandler.TryGetCoopHandler(out CoopHandler coopHandler))
+            //    {
+
+            //        bool success = coopHandler.serverBTR.HostInteraction(this, bsgInteractPacket);
+            //        if (success)
+            //        {
+            //            BTRInteractionPacket packet = new(NetId)
+            //            {
+            //                HasInteractPacket = true,
+            //                InteractPacket = bsgInteractPacket
+            //            };
+
+            //            PacketSender?.Writer?.Reset();
+            //            PacketSender?.Server?.SendDataToAll(PacketSender?.Writer, ref packet, LiteNetLib.DeliveryMethod.ReliableOrdered);
+            //        }
+            //    }
+            //}
+            UpdateInteractionCast();
+        }
+
+        private void BtrInteractionHost(PlayerInteractPacket bsgInteractPacket)
+        {
+            BtrInteractionSendData(bsgInteractPacket);
+        }
+
+        private void BtrInteractionSendData(PlayerInteractPacket bsgInteractPacket)
+        {
+            BTRInteractionPacket packet = new()
+            {
+                InteractPacket = bsgInteractPacket
+            };
+            GameClient.SendData(packet.Serialize());
         }
     }
 }

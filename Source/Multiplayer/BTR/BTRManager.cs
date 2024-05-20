@@ -6,11 +6,10 @@ using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.Vehicle;
 using HarmonyLib;
-using HarmonyLib.Tools;
 using StayInTarkov.AkiSupport.Singleplayer.Utils;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
-using StayInTarkov.Coop.NetworkPacket.Raid;
+using StayInTarkov.Coop.NetworkPacket.BTR;
 using StayInTarkov.Coop.Players;
 using StayInTarkov.Multiplayer.BTR.Utils;
 using System;
@@ -19,7 +18,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -62,6 +60,16 @@ namespace StayInTarkov.Multiplayer.BTR
         private float originalDamageCoeff;
 
         private ManualLogSource Logger { get; set; }
+
+        public Vector3 Position
+        {
+            get
+            {
+
+                return btrClientSide.transform.position;
+
+            }
+        }
 
         BTRManager()
         {
@@ -162,7 +170,7 @@ namespace StayInTarkov.Multiplayer.BTR
                     }
                     if (packet.HasShot)
                     {
-                        ObservedShot(packet.ShotPosition.Value, packet.ShotDirection.Value);
+                        ReplicatedShot(packet.ShotPosition.Value, packet.ShotDirection.Value);
                     }
                     btrDataPacket = packet.DataPacket;
                 }
@@ -182,18 +190,81 @@ namespace StayInTarkov.Multiplayer.BTR
             }
         }
 
-        private void ObservedShot(Vector3 position, Vector3 direction)
+        private void ReplicatedShot(Vector3 position, Vector3 direction)
         {
             gameWorld.SharedBallisticsCalculator.Shoot(btrMachineGunAmmo, position, direction, botShooterId, btrMachineGunWeapon, 1f, 0);
             firearmController.method_54(weaponSoundPlayer, btrMachineGunAmmo, position, direction, false);
         }
 
+        public void PlayerInteractWithDoor(Player player, PlayerInteractPacket interactPacket)
+        {
+            bool playerGoIn = interactPacket.InteractionType == EInteractionType.GoIn;
+            bool playerGoOut = interactPacket.InteractionType == EInteractionType.GoOut;
+
+            player.BtrInteractionSide = btrClientSide.method_9(interactPacket.SideId);
+            lastInteractedBtrSide = player.BtrInteractionSide;
+
+            if (!player.IsYourPlayer)
+            {
+                HandleBtrDoorState(player.BtrState);
+            }
+
+            if (interactPacket.SideId == 0 && playerGoIn)
+            {
+                if (interactPacket.SlotId == 0)
+                {
+                    btrServerSide.LeftSlot0State = 1;
+                }
+                else if (interactPacket.SlotId == 1)
+                {
+                    btrServerSide.LeftSlot1State = 1;
+                }
+            }
+            else if (interactPacket.SideId == 0 && playerGoOut)
+            {
+                if (interactPacket.SlotId == 0)
+                {
+                    btrServerSide.LeftSlot0State = 0;
+                }
+                else if (interactPacket.SlotId == 1)
+                {
+                    btrServerSide.LeftSlot1State = 0;
+                }
+            }
+            else if (interactPacket.SideId == 1 && playerGoIn)
+            {
+                if (interactPacket.SlotId == 0)
+                {
+                    btrServerSide.RightSlot0State = 1;
+                }
+                else if (interactPacket.SlotId == 1)
+                {
+                    btrServerSide.RightSlot1State = 1;
+                }
+            }
+            else if (interactPacket.SideId == 1 && playerGoOut)
+            {
+                if (interactPacket.SlotId == 0)
+                {
+                    btrServerSide.RightSlot0State = 0;
+                }
+                else if (interactPacket.SlotId == 1)
+                {
+                    btrServerSide.RightSlot1State = 0;
+                }
+            }
+
+            GameWorld gameWorld = Singleton<GameWorld>.Instance;
+            gameWorld.BtrController.BtrView.Interaction(player, interactPacket);
+
+        }
+
         public void AttachBot(string profileId)
         {
-            if (!SITGameComponent.TryGetCoopGameComponent(out var coopHandler))
+            if (!SITGameComponent.TryGetCoopGameComponent(out var sitGameComponent))
                 return;
 
-            if (!coopHandler.Players.TryGetValue(profileId, out CoopPlayer player))
+            if (!sitGameComponent.Players.TryGetValue(profileId, out CoopPlayer player))
                 return;
 
             BTRTurretView turretView = btrClientSide.turret;
@@ -625,6 +696,25 @@ namespace StayInTarkov.Multiplayer.BTR
             yield return new WaitForSecondsRealtime(waitTime);
 
             isShooting = false;
+        }
+
+        private void OnGUI()
+        {
+#if DEBUG
+            if (btrServerSide == null || btrClientSide == null || Camera.current == null)
+                return;
+
+            Vector3 screenPos = Camera.current.WorldToScreenPoint(btrServerSide.botPosition);
+            Rect rect = new();
+            rect.x = screenPos.x;
+            rect.y = Screen.height - (screenPos.y);
+            GUI.Label(rect, $"BTR is Here!");
+
+            screenPos = Camera.current.WorldToScreenPoint(btrClientSide.gameObject.transform.position);
+            rect.x = screenPos.x;
+            rect.y = Screen.height - (screenPos.y);
+            GUI.Label(rect, $"BTR is Here!");
+#endif
         }
 
         private void OnDestroy()

@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
-namespace StayInTarkov.Coop.NetworkPacket.Raid
+namespace StayInTarkov.Coop.NetworkPacket.BTR
 {
     public sealed class BTRPacket : BasePacket
     {

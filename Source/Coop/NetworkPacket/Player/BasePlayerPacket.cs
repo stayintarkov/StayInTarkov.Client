@@ -13,7 +13,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 {
     public class BasePlayerPacket : BasePacket
     {
-        public static ManualLogSource Logger { get; private set; }
+        public static ManualLogSource Logger { get; protected set; }
 
         static BasePlayerPacket()
         {
@@ -48,7 +48,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeaderAndProfileId(reader);
             return this;
         }
@@ -62,7 +62,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeaderAndProfileId(writer);
             return ms.ToArray();
         }
