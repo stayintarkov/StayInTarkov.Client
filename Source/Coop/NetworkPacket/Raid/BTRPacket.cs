@@ -1,12 +1,7 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using StayInTarkov.Multiplayer.BTR;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static StayInTarkov.Networking.SITSerialization;
 
@@ -49,6 +44,23 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
                 Vector3Utils.Serialize(writer, ShotPosition.Value);
             }
 
+            writer.Write(DataPacket.BtrBotId);
+            writer.Write(DataPacket.currentSpeed);
+            writer.Write(DataPacket.gunsBlockRotation);
+            writer.Write(DataPacket.LeftSideState);
+            writer.Write(DataPacket.LeftSlot0State);
+            writer.Write(DataPacket.LeftSlot1State);
+            writer.Write(DataPacket.moveDirection);
+            writer.Write(DataPacket.MoveSpeed);
+            writer.Write(DataPacket.position);
+            writer.Write(DataPacket.RightSideState);
+            writer.Write(DataPacket.RightSlot0State);
+            writer.Write(DataPacket.RightSlot1State);
+            writer.Write(DataPacket.rotation);
+            writer.Write(DataPacket.RouteState);
+            writer.Write(DataPacket.State);
+            writer.Write(DataPacket.timeToEndPause);
+            writer.Write(DataPacket.turretRotation);
 
             return ms.ToArray();
         }
@@ -57,6 +69,37 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
         {
             using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeader(reader);
+
+            if (reader.ReadBoolean())
+                BotProfileId = reader.ReadString();
+
+            if (reader.ReadBoolean())
+            {
+                ShotDirection = Vector3Utils.Deserialize(reader);
+                ShotPosition = Vector3Utils.Deserialize(reader);
+            }
+
+            DataPacket = new()
+            {
+                BtrBotId = reader.ReadInt(),
+                currentSpeed = reader.ReadFloat(),
+                gunsBlockRotation = reader.ReadQuaternion(),
+                LeftSideState = reader.ReadByte(),
+                LeftSlot0State = reader.ReadByte(),
+                LeftSlot1State = reader.ReadByte(),
+                moveDirection = reader.ReadByte(),
+                MoveSpeed = reader.ReadFloat(),
+                position = Vector3Utils.Deserialize(reader),
+                RightSideState = reader.ReadByte(),
+                RightSlot0State = reader.ReadByte(),
+                RightSlot1State = reader.ReadByte(),
+                rotation = reader.ReadQuaternion(),
+                RouteState = reader.ReadByte(),
+                State = reader.ReadByte(),
+                timeToEndPause = reader.ReadFloat(),
+                turretRotation = reader.ReadQuaternion(),
+            };
+
             return this;
         }
 
@@ -68,7 +111,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
                 return;
             }
 
-
+            Singleton<BTRManager>.Instance.BTRPacketsOnClient.Enqueue(this);
         }
     }
 }
