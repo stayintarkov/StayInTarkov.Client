@@ -1,20 +1,27 @@
-﻿using EFT.UI.BattleTimer;
+﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
+using EFT.UI.BattleTimer;
+using HarmonyLib.Tools;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.SITGameModes;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket.Raid
 {
     internal sealed class RaidTimerPacket : BasePacket
     {
+        static RaidTimerPacket()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(RaidTimerPacket));
+        }
+
         public long SessionTime { get; set; }
+        public static ManualLogSource Logger { get; }
 
         public RaidTimerPacket() : base(nameof(RaidTimerPacket))
         {
@@ -23,7 +30,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeader(writer);
             writer.Write(SessionTime);
             return ms.ToArray();
@@ -31,7 +38,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeader(reader);
             SessionTime = reader.ReadInt64();
             return this;
@@ -48,9 +55,24 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
             var sessionTime = new TimeSpan(SessionTime);
 
-            if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
+            if (!Singleton<ISITGame>.Instantiated)
             {
-                var gameTimer = coopGame.GameTimer;
+                Logger.LogError($"{nameof(Process)} failed {nameof(ISITGame)} was not instantiated!");
+                return;
+            }
+
+            if (!Singleton<AbstractGame>.Instantiated)
+            {
+                Logger.LogError($"{nameof(Process)} failed {nameof(AbstractGame)} was not instantiated!");
+                return;
+            }
+
+            var sitGame = Singleton<ISITGame>.Instance;
+            var abstractGame = Singleton<AbstractGame>.Instance;
+
+            //if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame)
+            {
+                var gameTimer = sitGame.GameTimer;
                 if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
                 {
                     if (gameTimer.PastTime.TotalSeconds < 3)
@@ -64,7 +86,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
                     StayInTarkovHelperConstants.Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
                     gameTimer.ChangeSessionTime(timeRemain);
 
-                    MainTimerPanel mainTimerPanel = ReflectionHelpers.GetFieldOrPropertyFromInstance<MainTimerPanel>(coopGame.GameUi.TimerPanel, "_mainTimerPanel", false);
+                    MainTimerPanel mainTimerPanel = ReflectionHelpers.GetFieldOrPropertyFromInstance<MainTimerPanel>(abstractGame.GameUi.TimerPanel, "_mainTimerPanel", false);
                     if (mainTimerPanel != null)
                     {
                         FieldInfo extractionDateTimeField = ReflectionHelpers.GetFieldFromType(typeof(TimerPanel), "dateTime_0");

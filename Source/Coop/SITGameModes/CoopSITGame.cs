@@ -240,7 +240,6 @@ namespace StayInTarkov.Coop.SITGameModes
 
             if (SITMatchmaking.IsServer)
             {
-                StartCoroutine(GameTimerSync());
                 StartCoroutine(ArmoredTrainTimeSync());
             }
 
@@ -282,33 +281,6 @@ namespace StayInTarkov.Coop.SITGameModes
                 }
                 yield return waitSeconds;
 
-            }
-        }
-
-        private IEnumerator GameTimerSync()
-        {
-            var waitSeconds = new WaitForSeconds(10f);
-
-            while (true)
-            {
-                yield return waitSeconds;
-
-                if (!SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    yield break;
-
-                if (GameTimer.StartDateTime.HasValue && GameTimer.SessionTime.HasValue)
-                {
-                    //Dictionary<string, object> raidTimerDict = new()
-                    //{
-                    //    { "serverId", coopGameComponent.ServerId },
-                    //    { "m", "RaidTimer" },
-                    //    { "sessionTime", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
-                    //};
-                    //Networking.GameClient.SendData(raidTimerDict.ToJson());
-                    RaidTimerPacket packet = new();
-                    packet.SessionTime = (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks;
-                    Networking.GameClient.SendData(packet.Serialize());
-                }
             }
         }
 
@@ -1336,41 +1308,32 @@ namespace StayInTarkov.Coop.SITGameModes
 
         public override void CleanUp()
         {
-            foreach (EFT.Player value in Bots.Values)
-            {
-                try
-                {
-                    value.Dispose();
-                    AssetPoolObject.ReturnToPool(value.gameObject);
-                }
-                catch (Exception exception)
-                {
-                    UnityEngine.Debug.LogException(exception);
-                }
-            }
-            Bots.Clear();
-
             if (SITGameComponent.TryGetCoopGameComponent(out var gameComponent))
             {
-                if (gameComponent.PlayerClients != null)
+                if (gameComponent.Players != null)
                 {
-                    foreach (EFT.Player value in gameComponent.PlayerClients)
+                    foreach (var value in gameComponent.Players.Values)
                     {
                         try
                         {
+                            if (value == null)
+                                continue;
+
                             value.Dispose();
-                            AssetPoolObject.ReturnToPool(value.gameObject);
+
+                            if (value.gameObject != null)
+                                AssetPoolObject.ReturnToPool(value.gameObject);
                         }
                         catch (Exception exception)
                         {
                             UnityEngine.Debug.LogException(exception);
                         }
                     }
-                    gameComponent.PlayerClients.Clear();
                 }
             }
 
-            base.CleanUp();
+            gameComponent.PlayerClients.Clear();
+            Bots.Clear();
         }
 
         public override void Dispose()

@@ -47,5 +47,9 @@ namespace StayInTarkov.Coop.SITGameModes
         //Task WaitForPlayersToSpawn();
         //Task WaitForPlayersToBeReady();
 
+        GameDateTime GameDateTime { get; set; }
+
+        public GameTimerClass GameTimer { get; set; }
+
     }
 }

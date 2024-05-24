@@ -11,6 +11,8 @@ using StayInTarkov.ThirdParty;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,7 +26,7 @@ namespace StayInTarkov.Networking
 {
     public class AkiBackendCommunication : IDisposable
     {
-        public const int DEFAULT_TIMEOUT_MS = 9999;
+        public const int DEFAULT_TIMEOUT_MS = 4444;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
         public const string PACKET_TAG_METHOD = "m";
         public const string PACKET_TAG_SERVERID = "serverId";
@@ -53,7 +55,7 @@ namespace StayInTarkov.Networking
                     m_RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
 
                 // Remove ending slash on URI for SIT.Manager.Avalonia
-                if(m_RemoteEndPoint.EndsWith("/"))
+                if (m_RemoteEndPoint.EndsWith("/"))
                     m_RemoteEndPoint = m_RemoteEndPoint.Substring(0, m_RemoteEndPoint.Length - 1);
 
                 return m_RemoteEndPoint;
@@ -63,6 +65,9 @@ namespace StayInTarkov.Networking
         }
 
         private Dictionary<string, string>? m_RequestHeaders = null;
+
+
+        #region Instance
 
         private static AkiBackendCommunication? m_Instance;
         public static AkiBackendCommunication Instance
@@ -76,9 +81,18 @@ namespace StayInTarkov.Networking
             }
         }
 
-        public HttpClient HttpClient { get; set; }
+        #endregion
+
+        #region HttpClient
+
+        protected HttpClient HttpClient { get; set; }
+        protected string Cookie;
+
+        #endregion
 
         protected ManualLogSource Logger;
+
+        #region WebSocket
 
         public WebSocketSharp.WebSocket WebSocket { get; private set; }
 
@@ -87,9 +101,9 @@ namespace StayInTarkov.Networking
         public ushort Ping = 0;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
 
-        public static int PING_LIMIT_HIGH { get; } = 125;
-        public static int PING_LIMIT_MID { get; } = 100;
-        public static bool IsLocal;
+        public static bool IsLocal { get; set; }
+
+        #endregion
 
 
         protected AkiBackendCommunication(ManualLogSource logger = null)
@@ -102,7 +116,7 @@ namespace StayInTarkov.Networking
             if (logger != null)
                 Logger = logger;
             else
-                Logger = BepInEx.Logging.Logger.CreateLogSource("Request");
+                Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(AkiBackendCommunication));
 
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = StayInTarkovHelperConstants.GetBackendUrl();
@@ -111,28 +125,33 @@ namespace StayInTarkov.Networking
                     || RemoteEndPoint.Contains("localhost");
 
             GetHeaders();
-            ConnectToAkiBackend();
-            PeriodicallySendPing();
-            //PeriodicallySendPooledData();
 
             var processor = StayInTarkovPlugin.Instance.GetOrAddComponent<SITGameServerClientDataProcessing>();
             Singleton<SITGameServerClientDataProcessing>.Create(processor);
             Comfort.Common.Singleton<SITGameServerClientDataProcessing>.Instance.OnLatencyUpdated += OnLatencyUpdated;
 
-            HttpClient = new HttpClient();
-            foreach (var item in GetHeaders())
+            // Setup Cookie Header
+            Cookie = $"PHPSESSID={GetHeaders()["Cookie"]}";
+            var handler = new HttpClientHandler
             {
+                UseCookies = false
+            };
+            // Client single HttpClient
+            HttpClient = new HttpClient(handler);
+            foreach (var item in GetHeaders())
                 HttpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
-            }
+
             HttpClient.MaxResponseContentBufferSize = long.MaxValue;
-            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+
+            ConnectToAkiBackend();
+            PeriodicallySendPing();
 
             HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
         }
 
         private void ConnectToAkiBackend()
         {
-            PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
+            this.PostJsonBLOCKING("/coop/connect", "{}");
         }
 
         private Profile MyProfile { get; set; }
@@ -281,7 +300,7 @@ namespace StayInTarkov.Networking
         //        WebSocket.Send(serializedData);
         //}
 
-        private HashSet<string> _previousPooledData = new HashSet<string>();
+        private HashSet<string> _previousPooledData = new();
 
         //public void SendDataToPool(byte[] serializedData)
         //{
@@ -476,7 +495,8 @@ namespace StayInTarkov.Networking
 
                         WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
                         packet = null;
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Logger.LogError($"Periodic ping caught: {ex.GetType()} {ex.Message}");
                     }
@@ -515,6 +535,8 @@ namespace StayInTarkov.Networking
             return m_RequestHeaders;
         }
 
+
+
         /// <summary>
         /// Send request to the server and get Stream of data back
         /// </summary>
@@ -523,109 +545,138 @@ namespace StayInTarkov.Networking
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private async Task<byte[]?> asyncRequestFromPath(string path, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequestFromPath(string path, CancellationTokenSource cts, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
             if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
                 path = RemoteEndPoint + path;
             }
 
-            return await asyncRequest(new Uri(path), method, data, timeout, debug);
+            return await AsyncRequest(new Uri(path), cts, method, data, timeout, debug);
         }
 
-        private async Task<byte[]?> asyncRequest(Uri uri, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
+        private async Task<byte[]?> AsyncRequest(Uri uri, CancellationTokenSource cts, string method = "GET", string? data = null, int timeout = 9999, bool debug = false)
         {
             var compress = true;
-            using (HttpClientHandler handler = new HttpClientHandler())
+            var httpClient = this.HttpClient;
+
+            // Reset AcceptEncoding
+            httpClient.DefaultRequestHeaders.AcceptEncoding.Clear();
+            if (!debug && method == "POST")
             {
-                using (HttpClient httpClient = new HttpClient(handler))
+                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+            }
+            // Reset debug
+            if (httpClient.DefaultRequestHeaders.Contains("debug"))
+                httpClient.DefaultRequestHeaders.Remove("debug");
+
+
+            HttpContent? byteContent = null;
+            if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
+            {
+                // If debug. We do not compress.
+                if (debug)
                 {
-                    handler.UseCookies = true;
-                    handler.CookieContainer = new CookieContainer();
-                    httpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
-                    Uri baseAddress = new Uri(RemoteEndPoint);
-                    foreach (var item in GetHeaders())
-                    {
-                        if (item.Key == "Cookie")
-                        {
-                            string[] pairs = item.Value.Split(';');
-                            var keyValuePairs = pairs
-                                .Select(p => p.Split(new[] { '=' }, 2))
-                                .Where(kvp => kvp.Length == 2)
-                                .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
-                            foreach (var kvp in keyValuePairs)
-                            {
-                                handler.CookieContainer.Add(baseAddress, new Cookie(kvp.Key, kvp.Value));
-                            }
-                        }
-                        else
-                        {
-                            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                        }
-                    }
-                    if (!debug && method == "POST")
-                    {
-                        httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-                    }
-
-                    HttpContent? byteContent = null;
-                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(data))
-                    {
-                        if (debug)
-                        {
-                            compress = false;
-                            httpClient.DefaultRequestHeaders.Add("debug", "1");
-                        }
-                        var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                        var bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Normal) : inputDataBytes;
-                        byteContent = new ByteArrayContent(bytes);
-                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                        if (compress)
-                        {
-                            byteContent.Headers.ContentEncoding.Add("deflate");
-                        }
-                    }
-
-                    HttpResponseMessage response;
-                    if (method.Equals("POST", StringComparison.OrdinalIgnoreCase))
-                    {
-                        response = await httpClient.PostAsync(uri, byteContent);
-                    }
-                    else
-                    {
-                        response = await httpClient.GetAsync(uri);
-                    }
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var bytes = await response.Content.ReadAsByteArrayAsync();
-
-                        if (Zlib.IsCompressed(bytes))
-                        {
-                            bytes = Zlib.Decompress(bytes);
-                        }
-
-                        return bytes;
-                    }
-                    else
-                    {
-                        StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
-                        return null;
-                    }
+                    compress = false;
+                    httpClient.DefaultRequestHeaders.Add("debug", "1");
                 }
 
+                var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                var bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Normal) : inputDataBytes;
+                byteContent = new ByteArrayContent(bytes);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                if (compress)
+                {
+                    byteContent.Headers.ContentEncoding.Add("deflate");
+                }
+            }
+
+#if DEBUG
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            Logger.LogDebug($"{nameof(AsyncRequest)} Send to {uri}");
+#endif
+
+            HttpResponseMessage response;
+            if (method.Equals("POST", StringComparison.OrdinalIgnoreCase))
+            {
+                response = await httpClient.PostAsync(uri, byteContent, cts.Token);
+            }
+            else
+            {
+                response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                using MemoryStream ms = new();
+                using var stream = await response.Content.ReadAsStreamAsync();
+                //var bytes = await response.Content.ReadAsByteArrayAsync();
+                await stream.CopyToAsync(ms);
+                var bytes = ms.ToArray();
+
+                if (Zlib.IsCompressed(bytes))
+                    bytes = Zlib.Decompress(bytes);
+
+                if (bytes.IsNullOrEmpty())
+                    bytes = Encoding.UTF8.GetBytes(response.StatusCode.ToString());
+
+#if DEBUG
+                stopwatch.Stop();
+                Logger.LogDebug($"{nameof(AsyncRequest)} Received {stopwatch.ElapsedMilliseconds}ms, size: {bytes.Length}b from {uri}");
+#endif
+
+                return bytes;
+            }
+            else
+            {
+                StayInTarkovHelperConstants.Logger.LogError($"Unable to send api request to server.Status code" + response.StatusCode);
+                return null;
             }
         }
 
         public async Task<byte[]?> GetBundleData(string url, int timeout = 60000)
         {
-            return await asyncRequestFromPath(url, "GET", data: null, timeout);
+            using var cts = new CancellationTokenSource();
+            return await AsyncRequestFromPath(url, cts, "GET", data: null, timeout);
         }
 
-        public async Task<string> GetJsonAsync(string url)
+        /// <summary>
+        /// If a method in the Client forgets the prefix / then add it
+        /// </summary>
+        /// <param name="url"></param>
+        private void FixUrl(ref string url)
         {
-            var bytes = await asyncRequestFromPath(url, "GET");
-            return Encoding.UTF8.GetString(bytes);
+            // people forget the /
+            if (!url.StartsWith("/"))
+            {
+                url = "/" + url;
+            }
+        }
+
+        public async Task<string> GetJsonAsync(string url, int maxRetries = 3, int delayMs = 2000)
+        {
+            FixUrl(ref url);
+
+            int attempt = 0;
+            while (attempt < maxRetries)
+            {
+                using var cts = new CancellationTokenSource();
+
+                try
+                {
+                    var bytes = await AsyncRequestFromPath(url, cts, "GET");
+                    return Encoding.UTF8.GetString(bytes);
+                }
+                catch (Exception) when (attempt < maxRetries)
+                {
+                    Logger.LogWarning("[ CONFAIL ] Connection failed, retrying! (#" + attempt + ")");
+                    attempt++;
+                    await Task.Delay(delayMs);
+                }
+                cts.Cancel();
+            }
+            return string.Empty;
         }
 
         public string GetJsonBLOCKING(string url)
@@ -633,29 +684,67 @@ namespace StayInTarkov.Networking
             return Task.Run(() => GetJsonAsync(url)).GetAwaiter().GetResult();
         }
 
-        public async Task<string> PostJsonAsync(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = false)
-        {
-            int attempt = 0;
+        private HashSet<string> Posts = new();
 
-            while (attempt++ < retryAttempts)
+        public async Task<string> PostJsonAsync(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int maxRetries = 3, bool debug = false)
+        {
+            FixUrl(ref url);
+
+            while (Posts.Contains(url))
             {
+                Logger.LogInfo($"{nameof(PostJsonAsync)} has held a call to {url} because its waiting for the previous call to finish!");
+                await Task.Delay(timeout);
+            }
+            Posts.Add(url);
+
+            int retry = 0;
+
+            do
+            {
+                if (retry > 0)
+                    Logger.LogDebug($"{nameof(PostJsonAsync)} attempt {retry} to call {url}...");
+
+                using var cts = new CancellationTokenSource();
                 try
                 {
-                    // people forget the /
-                    if (!url.StartsWith("/"))
+                    return await AsyncRequestFromPath(url, cts, "POST", data, timeout, debug)
+                        .ContinueWith(x =>
                     {
-                        url = "/" + url;
-                    }
 
-                    var bytes = await asyncRequestFromPath(url, "POST", data, timeout, debug);
-                    return Encoding.UTF8.GetString(bytes);
+                        if (x.Status == TaskStatus.RanToCompletion)
+                        {
+                            if (Posts.Contains(url))
+                                Posts.Remove(url);
+
+                            return Encoding.UTF8.GetString(x.Result);
+                        }
+                        else
+                        {
+                            Logger.LogError($"{nameof(PostJsonAsync)}:{url}:{x.Status}");
+                            throw x.Exception;
+                        }
+                    }, cts.Token);
                 }
                 catch (Exception ex)
                 {
-                    StayInTarkovHelperConstants.Logger.LogError($"could not perform request to {url}:\n{ex}");
+                    // Only a Dev would care about these failures when developing Client against the Server
+                    // Debug Log
+                    Logger.LogDebug($"Could not perform request to {url}");
+                    Logger.LogDebug($"With Exception: {ex.Message}. {ex.InnerException?.Message}.");
                 }
-                await Task.Delay(1000);
-            }
+
+                await Task.Delay(timeout + 1);
+
+                if (cts != null && !cts.IsCancellationRequested)
+                    cts.Cancel();
+
+                retry++;
+
+            } while (retry < maxRetries);
+
+            if (Posts.Contains(url))
+                Posts.Remove(url);
+
             throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
 
