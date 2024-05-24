@@ -1,4 +1,9 @@
-﻿using JetBrains.Annotations;
+﻿#nullable enable
+
+using StayInTarkov.Coop.Components.CoopGameComponents;
+using StayInTarkov.Coop.Players;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace StayInTarkov.Coop.FreeCamera
@@ -10,85 +15,195 @@ namespace StayInTarkov.Coop.FreeCamera
     /// https://gist.github.com/ashleydavis/f025c03a9221bc840a2b
     /// 
     /// This is HEAVILY based on Terkoiz's work found here. Thanks for your work Terkoiz! 
-    /// https://dev.sp-tarkov.com/Terkoiz/Freecam/raw/branch/master/project/Terkoiz.Freecam/FreecamController.cs
+    /// https://dev.sp-tarkov.com/Terkoiz/Freecam/raw/branch/master/project/Terkoiz.Freecam/Freecam.cs
     /// </summary>
     public class FreeCamera : MonoBehaviour
     {
+        private CoopPlayer? _playerSpectating;
+        private bool _isSpectatingPlayer = false;
+
         public bool IsActive = false;
 
-        [UsedImplicitly]
-        public void Update()
+        private void StopSpectatingPlayer()
+        {
+            if (_playerSpectating != null)
+            {
+                _playerSpectating = null;
+            }
+            if (_isSpectatingPlayer)
+            {
+                _isSpectatingPlayer = false;
+                transform.parent = null;
+            }
+        }
+
+        private void SpectateNextPlayer()
+        {
+            UpdatePlayerSpectator(true);
+        }
+
+        private void SpectatePreviousPlayer()
+        {
+            UpdatePlayerSpectator(false);
+        }
+
+        /// <summary>
+        /// Updates the player beign followed by the camera
+        /// </summary>
+        /// <param name="nextPlayer">True for the next player and false for the previous player</param>
+        private void UpdatePlayerSpectator(bool nextPlayer)
+        {
+            List<CoopPlayer> players = [.. SITGameComponent.GetCoopGameComponent()
+                .Players
+                .Values
+                .Where(x => !x.IsYourPlayer && !x.IsAI && x.HealthController.IsAlive)
+            ];
+            if (players.Count > 0)
+            {
+                if (_playerSpectating == null)
+                {
+                    if (players[0] != null)
+                    {
+                        _playerSpectating = players[0];
+                    }
+                }
+                else
+                {
+                    // We want to look for the next player
+                    if (nextPlayer)
+                    {
+                        int playerIndex = players.IndexOf(_playerSpectating) + 1;
+                        if (players.Count - 1 >= playerIndex)
+                        {
+                            _playerSpectating = players[playerIndex];
+                        }
+                        else
+                        {
+                            _playerSpectating = players[0];
+                        }
+                    }
+                    // We are going backwards looking for the previous player
+                    else
+                    {
+                        int playerIndex = players.IndexOf(_playerSpectating) - 1;
+                        if (playerIndex >= 0)
+                        {
+                            _playerSpectating = players[playerIndex];
+                        }
+                        else
+                        {
+                            _playerSpectating = players[players.Count - 1];
+                        }
+                    }
+
+                }
+
+                if (_playerSpectating != null)
+                {
+                    // Attach the camera to the player we are spectating;
+                    transform.parent = _playerSpectating?.PlayerBones.Head.Original;
+                    transform.localPosition = new Vector3(-0.05f, 0.17f, 0f);
+                    transform.localEulerAngles = new Vector3(260, 80, 0);
+                    _isSpectatingPlayer = true;
+                }
+            }
+            else
+            {
+                StopSpectatingPlayer();
+            }
+        }
+
+        private void MoveAndRotateCamera()
+        {
+            bool fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            float movementSpeed = fastMode ? 20f : 3f;
+
+            // Strafe Right
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                transform.position += (-transform.right * (movementSpeed * Time.deltaTime));
+            }
+
+            // Strafe Left
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                transform.position += (transform.right * (movementSpeed * Time.deltaTime));
+            }
+
+            // Forwards
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            {
+                transform.position += (transform.forward * (movementSpeed * Time.deltaTime));
+            }
+
+            // Backwards
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            {
+                transform.position += (-transform.forward * (movementSpeed * Time.deltaTime));
+            }
+
+            // Up
+            if (Input.GetKey(KeyCode.Q))
+            {
+                transform.position += (transform.up * (movementSpeed * Time.deltaTime));
+            }
+
+            // Down
+            if (Input.GetKey(KeyCode.E))
+            {
+                transform.position += (-transform.up * (movementSpeed * Time.deltaTime));
+            }
+
+            // Up
+            if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
+            {
+                transform.position += (Vector3.up * (movementSpeed * Time.deltaTime));
+            }
+
+            // Down
+            if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
+            {
+                transform.position += (-Vector3.up * (movementSpeed * Time.deltaTime));
+            }
+
+            float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * 3f;
+            float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * 3f;
+            transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
+        }
+
+        protected void OnDestroy()
+        {
+            Destroy(this);
+        }
+
+        protected void Update()
         {
             if (!IsActive)
             {
                 return;
             }
 
-            var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            var movementSpeed = fastMode ? 20f : 3f;
-
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            // Spectate the next player
+            if (Input.GetKey(KeyCode.Mouse0))
             {
-                transform.position += (-transform.right * (movementSpeed * Time.deltaTime));
+                SpectateNextPlayer();
+            }
+            // Spectate the previous player
+            else if (Input.GetKey(KeyCode.Mouse1))
+            {
+                SpectatePreviousPlayer();
+            }
+            // Stop following the currently selected player
+            else if (Input.GetKey(KeyCode.End))
+            {
+                StopSpectatingPlayer();
             }
 
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            // If we aren't spectating anyone then just update the camera normally
+            if (!_isSpectatingPlayer)
             {
-                transform.position += (transform.right * (movementSpeed * Time.deltaTime));
+                MoveAndRotateCamera();
             }
-
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-            {
-                transform.position += (transform.forward * (movementSpeed * Time.deltaTime));
-            }
-
-            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-            {
-                transform.position += (-transform.forward * (movementSpeed * Time.deltaTime));
-            }
-
-            if (true)
-            {
-                if (Input.GetKey(KeyCode.Q))
-                {
-                    transform.position += (transform.up * (movementSpeed * Time.deltaTime));
-                }
-
-                if (Input.GetKey(KeyCode.E))
-                {
-                    transform.position += (-transform.up * (movementSpeed * Time.deltaTime));
-                }
-
-                if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
-                {
-                    transform.position += (Vector3.up * (movementSpeed * Time.deltaTime));
-                }
-
-                if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
-                {
-                    transform.position += (-Vector3.up * (movementSpeed * Time.deltaTime));
-                }
-            }
-
-            float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * 3f;
-            float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * 3f;
-            transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
-
-            //if (FreecamPlugin.CameraMousewheelZoom.Value)
-            //{
-            //    float axis = Input.GetAxis("Mouse ScrollWheel");
-            //    if (axis != 0)
-            //    {
-            //        var zoomSensitivity = fastMode ? FreecamPlugin.CameraFastZoomSpeed.Value : FreecamPlugin.CameraZoomSpeed.Value;
-            //        transform.position += transform.forward * (axis * zoomSensitivity);
-            //    }
-            //}
-        }
-
-        [UsedImplicitly]
-        private void OnDestroy()
-        {
-            Destroy(this);
         }
     }
 }
