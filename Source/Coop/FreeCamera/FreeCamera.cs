@@ -33,8 +33,8 @@ namespace StayInTarkov.Coop.FreeCamera
             if (_isSpectatingPlayer)
             {
                 _isSpectatingPlayer = false;
-                transform.parent = null;
             }
+            transform.parent = null;
         }
 
         private void SpectateNextPlayer()
@@ -53,11 +53,13 @@ namespace StayInTarkov.Coop.FreeCamera
         /// <param name="nextPlayer">True for the next player and false for the previous player</param>
         private void UpdatePlayerSpectator(bool nextPlayer)
         {
-            List<CoopPlayer> players = [.. SITGameComponent.GetCoopGameComponent()
+            SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
+            List<CoopPlayer> players = [.. coopGameComponent
                 .Players
                 .Values
-                .Where(x => !x.IsYourPlayer && !x.IsAI && x.HealthController.IsAlive)
+                .Where(x => !x.IsYourPlayer && x.HealthController.IsAlive && x.GroupId?.Contains("SIT") == true)
             ];
+
             if (players.Count > 0)
             {
                 if (_playerSpectating == null)
@@ -102,7 +104,7 @@ namespace StayInTarkov.Coop.FreeCamera
                 {
                     // Attach the camera to the player we are spectating;
                     transform.parent = _playerSpectating?.PlayerBones.Head.Original;
-                    transform.localPosition = new Vector3(-0.05f, 0.17f, 0f);
+                    transform.localPosition = new Vector3(-0.05f, 0.17f, -0.5f);
                     transform.localEulerAngles = new Vector3(260, 80, 0);
                     _isSpectatingPlayer = true;
                 }

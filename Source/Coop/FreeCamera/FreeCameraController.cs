@@ -170,7 +170,6 @@ namespace StayInTarkov.Coop.FreeCamera
                 {
                     gobj.GetComponent<DisablerCullingObject>()?.ForceEnable(true);
                 }
-                Logger.LogDebug($"Enabled Culling on {allGameObject.Length}.");
                 SetPlayerToFreecamMode(Player);
             }
             else
