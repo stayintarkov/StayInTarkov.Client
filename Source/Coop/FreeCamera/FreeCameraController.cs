@@ -1,4 +1,6 @@
-﻿using BepInEx.Logging;
+﻿#nullable enable
+
+using BepInEx.Logging;
 using BSG.CameraEffects;
 using Comfort.Common;
 using EFT;
@@ -22,21 +24,20 @@ namespace StayInTarkov.Coop.FreeCamera
 
     public class FreeCameraController : MonoBehaviour
     {
-        //private GameObject _mainCamera;
-        private FreeCamera _freeCamScript;
+        private FreeCamera? _freeCamScript;
 
-        private BattleUIScreen _playerUi;
+        private BattleUIScreen? _playerUi;
         private bool _uiHidden;
 
-        private GamePlayerOwner _gamePlayerOwner;
+        private GamePlayerOwner? _gamePlayerOwner;
         private DateTime _lastTime = DateTime.MinValue;
 
         private ManualLogSource Logger { get; } = BepInEx.Logging.Logger.CreateLogSource("FreeCameraController");
         private CoopPlayer Player => (CoopPlayer) Singleton<GameWorld>.Instance.MainPlayer;
 
-        public GameObject CameraParent { get; set; }
-        public Camera CameraFreeCamera { get; private set; }
-        public Camera CameraMain { get; private set; }
+        public GameObject? CameraParent { get; set; }
+        public Camera? CameraFreeCamera { get; private set; }
+        public Camera? CameraMain { get; private set; }
 
         protected void Awake()
         {
@@ -62,7 +63,7 @@ namespace StayInTarkov.Coop.FreeCamera
             }
 
             // Get GamePlayerOwner component
-            _gamePlayerOwner = GetLocalPlayerFromWorld().GetComponentInChildren<GamePlayerOwner>();
+            _gamePlayerOwner = GetLocalPlayerFromWorld()?.GetComponentInChildren<GamePlayerOwner>();
             if (_gamePlayerOwner == null)
             {
                 return;
@@ -73,7 +74,7 @@ namespace StayInTarkov.Coop.FreeCamera
 
         private IEnumerator PlayerDeathRoutine()
         {
-            yield return new WaitForSeconds(PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime);
+            yield return new WaitForSeconds(PluginConfigSettings.Instance?.CoopSettings.BlackScreenOnDeathTime ?? 5);
 
             var fpsCamInstance = CameraClass.Instance;
             if (fpsCamInstance == null)
@@ -139,13 +140,13 @@ namespace StayInTarkov.Coop.FreeCamera
             if (!SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGC))
                 return;
 
-            CoopSITGame coopGame = coopGC.LocalGameInstance as CoopSITGame;
+            CoopSITGame coopGame = (CoopSITGame) coopGC.LocalGameInstance;
             if (coopGame == null)
                 return;
 
             var quitState = coopGC.GetQuitState();
             if (Player.PlayerHealthController.IsAlive && 
-                (Input.GetKey(KeyCode.F9) || (quitState != SITGameComponent.EQuitState.NONE && !_freeCamScript.IsActive)) && 
+                (Input.GetKey(KeyCode.F9) || (quitState != SITGameComponent.EQuitState.NONE && _freeCamScript?.IsActive == false)) && 
                 _lastTime < DateTime.Now.AddSeconds(-3))
             {
                 _lastTime = DateTime.Now;
@@ -163,7 +164,7 @@ namespace StayInTarkov.Coop.FreeCamera
             if (Player == null)
                 return;
 
-            if (!_freeCamScript.IsActive)
+            if (_freeCamScript?.IsActive == false)
             {
                 GameObject[] allGameObject = Resources.FindObjectsOfTypeAll<GameObject>();
                 foreach (GameObject gobj in allGameObject)
@@ -225,8 +226,14 @@ namespace StayInTarkov.Coop.FreeCamera
                 localPlayer.GetComponent<PlayerCameraController>().UpdatePointOfView();
             }
 
-            _gamePlayerOwner.enabled = false;
-            _freeCamScript.IsActive = true;
+            if (_gamePlayerOwner != null)
+            {
+                _gamePlayerOwner.enabled = false;
+            }
+            if (_freeCamScript != null)
+            {
+                _freeCamScript.IsActive = true;
+            }
         }
 
         /// <summary>
@@ -235,10 +242,16 @@ namespace StayInTarkov.Coop.FreeCamera
         /// <param name="localPlayer"></param>
         private void SetPlayerToFirstPersonMode(EFT.Player localPlayer)
         {
-            _freeCamScript.IsActive = false;
+            if (_freeCamScript != null)
+            {
+                _freeCamScript.IsActive = true;
+            }
 
             // re-enable _gamePlayerOwner
-            _gamePlayerOwner.enabled = true;
+            if (_gamePlayerOwner != null)
+            {
+                _gamePlayerOwner.enabled = false;
+            }
 
             localPlayer.PointOfView = EPointOfView.FirstPerson;
             CameraClass.Instance.SetOcclusionCullingEnabled(true);
@@ -249,12 +262,14 @@ namespace StayInTarkov.Coop.FreeCamera
         /// Gets the current <see cref="Player"/> instance if it's available
         /// </summary>
         /// <returns>Local <see cref="Player"/> instance; returns null if the game is not in raid</returns>
-        private EFT.Player GetLocalPlayerFromWorld()
+        private EFT.Player? GetLocalPlayerFromWorld()
         {
             // If the GameWorld instance is null or has no RegisteredPlayers, it most likely means we're not in a raid
             GameWorld gameWorld = Singleton<GameWorld>.Instance;
             if (gameWorld == null || gameWorld.MainPlayer == null)
+            {
                 return null;
+            }
 
             // One of the RegisteredPlayers will have the IsYourPlayer flag set, which will be our own Player instance
             return gameWorld.MainPlayer;

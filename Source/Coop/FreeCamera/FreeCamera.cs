@@ -21,8 +21,9 @@ namespace StayInTarkov.Coop.FreeCamera
     {
         private CoopPlayer? _playerSpectating;
         private bool _isSpectatingPlayer = false;
+        private bool _isUpdatingPlayerSpectate = false;
 
-        public bool IsActive = false;
+        public bool IsActive { get; set; } = false;
 
         private void StopSpectatingPlayer()
         {
@@ -30,11 +31,11 @@ namespace StayInTarkov.Coop.FreeCamera
             {
                 _playerSpectating = null;
             }
-            if (_isSpectatingPlayer)
+            if (transform.parent != null)
             {
-                _isSpectatingPlayer = false;
+                transform.parent = null;
             }
-            transform.parent = null;
+            _isSpectatingPlayer = false;
         }
 
         private void SpectateNextPlayer()
@@ -52,7 +53,13 @@ namespace StayInTarkov.Coop.FreeCamera
         /// </summary>
         /// <param name="nextPlayer">True for the next player and false for the previous player</param>
         private void UpdatePlayerSpectator(bool nextPlayer)
-        {
+        { 
+            if (_isUpdatingPlayerSpectate)
+            {
+                return;
+            }
+            _isUpdatingPlayerSpectate = true;
+
             SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
             List<CoopPlayer> players = [.. coopGameComponent
                 .Players
@@ -71,40 +78,35 @@ namespace StayInTarkov.Coop.FreeCamera
                 }
                 else
                 {
-                    // We want to look for the next player
+                    int playerIndex = 0;
                     if (nextPlayer)
                     {
-                        int playerIndex = players.IndexOf(_playerSpectating) + 1;
-                        if (players.Count - 1 >= playerIndex)
+                        // We want to look for the next player in the list
+                        playerIndex = players.IndexOf(_playerSpectating) + 1;
+                        if (playerIndex > players.Count - 1)
                         {
-                            _playerSpectating = players[playerIndex];
-                        }
-                        else
-                        {
-                            _playerSpectating = players[0];
+                            playerIndex = 0;
                         }
                     }
-                    // We are going backwards looking for the previous player
                     else
                     {
-                        int playerIndex = players.IndexOf(_playerSpectating) - 1;
-                        if (playerIndex >= 0)
+                        // We want to find the previous player
+                        playerIndex = players.IndexOf(_playerSpectating) - 1;
+                        if (playerIndex < 0)
                         {
-                            _playerSpectating = players[playerIndex];
-                        }
-                        else
-                        {
-                            _playerSpectating = players[players.Count - 1];
+                            playerIndex = players.Count - 1;
                         }
                     }
-
+                    
+                    // Update the player we are spectating
+                    _playerSpectating = players[playerIndex];
                 }
 
                 if (_playerSpectating != null)
                 {
                     // Attach the camera to the player we are spectating;
                     transform.parent = _playerSpectating?.PlayerBones.Head.Original;
-                    transform.localPosition = new Vector3(-0.05f, 0.17f, -0.05f);
+                    transform.localPosition = new Vector3(-0.02f, 0.16f, -0.04f);
                     transform.localEulerAngles = new Vector3(260, 80, 0);
                     _isSpectatingPlayer = true;
                 }
@@ -113,6 +115,8 @@ namespace StayInTarkov.Coop.FreeCamera
             {
                 StopSpectatingPlayer();
             }
+
+            _isUpdatingPlayerSpectate = false;
         }
 
         private void MoveAndRotateCamera()
