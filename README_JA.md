@@ -18,9 +18,9 @@
 <h3 align="center">Stay In Tarkov Client</h3>
 
   <p align="center">
-    An Escape From Tarkov BepInEx module designed to be used with the SIT.Aki-Server-Mod with the ultimate goal of "Offline" Coop
+    SIT.Aki-Server-Modを使用した「オフライン」協力プレイを目標とするEscape From TarkovのBepInExモジュール
     <br />
-    <a href="https://stayintarkov.com/docs"><strong>Explore the docs »</strong></a>
+    <a href="https://stayintarkov.com/docs"><strong>ドキュメントへ »</strong></a>
   </p>
 
   [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
@@ -30,19 +30,19 @@
 
 <!-- TABLE OF CONTENTS -->
 <details>
-  <summary>Table of Contents</summary>
+  <summary>目次</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#about-the-project">このプロジェクトについて</a>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
+      <a href="#getting-started">はじめに</a>
     </li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-    <li><a href="#license">License</a></li>
+    <li><a href="#contact">連絡先</a></li>
+    <li><a href="#roadmap">ロードマップ</a></li>
+    <li><a href="#contributing">コントリビュート</a></li>
+    <li><a href="#acknowledgments">クレジット</a></li>
+    <li><a href="#license">ライセンス</a></li>
   </ol>
 </details>
 
@@ -51,66 +51,65 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Stay In Tarkov (SIT) is a Escape From Tarkov mod designed for cooperative play.
+Stay In Tarkov (SIT) はEscape From Tarkovの協力プレイMODです。
 
-Stay In Tarkov is currently under development by a small team of developers. While SIT is playable, there are many bugs, synchronization and performance issues during gameplay. Escape From Tarkov and SPT-AKI updates frequently and oftentimes, your progress must be reset.
+Stay In Tarkovは少ないチーム員開発者によって作られています。SITがプレイできる限りはバグとプレイヤー間のシンクと性能の問題などが発生することもあります。 Escape From TarkovとSPT-AKI更新の頻度が多くなってしまったらあなたの進行（プロフィール）がリセットされる可能性があります。
 
-In other words, SIT is not a perfect replacement of the live experience: always keep in mind that game breaking bugs and progression issues will occur and there are no way around it.
+あと、SITは完璧ではないライブでの経験を提供することには難しいことをいつもお分かりいただきたいと思います。
 
 
 <!-- GETTING STARTED -->
-## Getting Started
+## はじめに
 
-All the information you'll need to get SIT setup can be found on our docs [here](https://stayintarkov.com/docs)
+全てのSITセットアップのマニュアルは[こっち](https://stayintarkov.com/docs)のドキュメントを参考してください。
 
-Please make sure you have read the docs before coming to us in the Discord as they likely contain the answers you're looking for
-
+先にこのページを読むことにしてDiscordの質問チャンネルで可能であればドキュメントにも記載されている問題については質問を避けてください。
 
 <!-- ROADMAP -->
-## Roadmap
-Our roadmap can be found [here](https://docs.stayintarkov.com/en/plans.html)
+## ロードマップ
+開発ロードマップは[こっち](https://docs.stayintarkov.com/en/plans.html)をクリックしてください。
 
 <!-- CONTACT -->
-## Contact/Support
+## 連絡/サポート
 
-The best place to get in contact with us is likely on the SIT Discord.\
-Our Discord invite link can be found at https://stayintarkov.com/discord
+連絡を最も取りやすいところはSITのDiscord先です。\
+こっちらは私たちのDiscord招待URLです > https://stayintarkov.com/discord
 
 
 <!-- CONTRIBUTING -->
-## Contributing
+## コントリビュート
 
-* Pull requests are encouraged and deeply appreciated. Thanks to all contributors!
+* 草生やし(コントリビュート)はいつでも歓迎です！
 
-* Code contributions have a strict NO GCLASSXXX policy. If your code has a GCLASS that is neccessary to it working please provide the Pull Request with the list so that they can be remapped before merging.
+* GCLASSXXXのコードについては制限的であることでコード作成にも制限が与えられます。コントリビュートすることに必要がある場合はプールリクエスト先にそのGCLASSのリストを作成してから少しお待ちしてください。
 
 
 <!-- LICENSE -->
 ## License
 
-* 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
+* 99%の機能はSPT-Akiチームにより立てられています。このソースと共にライセンスが存在します。
 
-* Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
+* Paulovはライセンスなしです。Paulovのことを商売の目的には許可しません。クレジットを記載する必要があります。
 
-* SIT team's work is MIT licensed
+* SITチームのコントリビュートはMITライセンス基盤です。
 
-* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed
+* [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) MITライセンス
 
-* [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License (as of 1.10, Drakia's projects are no longer embedded)
+* [DrakiaXYZ](https://github.com/DrakiaXYZ/)のプロジェクトにはMITライセンスが含まれていましたが、1.10以降はDrakiaのプロジェクトが含まれていません
 
 
 
 <!-- ACKNOWLEDGMENTS -->
-## Acknowledgments & Thanks
+## クレジット & 感謝
 
-* [Paulov Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
-* [Mihai Ko-Fi Donations](https://ko-fi.com/mmihai)
+* [Paulov Ko-Fi サポート](https://ko-fi.com/paulovt) (Stay in Tarkovを組み上げたオリジナル開発者)
+* [Mihai Ko-Fi サポート](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Bullet](https://github.com/devbence)
 * [Dounai](https://github.com/dounai2333)
-* [SPT-Aki team](https://www.sp-tarkov.com/) (Credits provided on each code file used and much love to their Dev team for their support)
+* [SPT-Aki チーム](https://www.sp-tarkov.com/) (使用した一つ一つのコードファイルと開発担当の人への多くの感謝クレジット)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
-* [Contributors](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) and the original contributors of Paulov's SIT.Core
+* [コントリビューター](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors)と以前のSIT.Coreのコントリビューター
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 
