@@ -21,7 +21,7 @@ namespace StayInTarkov.Coop.FreeCamera
     {
         private CoopPlayer? _playerSpectating;
         private bool _isSpectatingPlayer = false;
-        private bool _isUpdatingPlayerSpectate = false;
+        private bool _spectateRightShoulder = true;
 
         public bool IsActive { get; set; } = false;
 
@@ -53,13 +53,7 @@ namespace StayInTarkov.Coop.FreeCamera
         /// </summary>
         /// <param name="nextPlayer">True for the next player and false for the previous player</param>
         private void UpdatePlayerSpectator(bool nextPlayer)
-        { 
-            if (_isUpdatingPlayerSpectate)
-            {
-                return;
-            }
-            _isUpdatingPlayerSpectate = true;
-
+        {
             SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
             List<CoopPlayer> players = [.. coopGameComponent
                 .Players
@@ -104,19 +98,17 @@ namespace StayInTarkov.Coop.FreeCamera
 
                 if (_playerSpectating != null)
                 {
+                    _isSpectatingPlayer = true;
+
                     // Attach the camera to the player we are spectating;
                     transform.parent = _playerSpectating?.PlayerBones.Head.Original;
-                    transform.localPosition = new Vector3(-0.02f, 0.16f, -0.04f);
-                    transform.localEulerAngles = new Vector3(260, 80, 0);
-                    _isSpectatingPlayer = true;
+                    SetPlayerSpectateShoulder();
                 }
             }
             else
             {
                 StopSpectatingPlayer();
             }
-
-            _isUpdatingPlayerSpectate = false;
         }
 
         private void MoveAndRotateCamera()
@@ -177,6 +169,23 @@ namespace StayInTarkov.Coop.FreeCamera
             transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
         }
 
+        private void SetPlayerSpectateShoulder()
+        {
+            if (_isSpectatingPlayer)
+            {
+                if (_spectateRightShoulder)
+                {
+                    transform.localEulerAngles = new Vector3(240, 80, 0);
+                    transform.localPosition = new Vector3(0.24f, 0.12f, -0.16f);
+                }
+                else
+                {
+                    transform.localEulerAngles = new Vector3(240, 80, 0);
+                    transform.localPosition = new Vector3(0.24f, 0.12f, 0.16f);
+                }
+            }
+        }
+
         protected void OnDestroy()
         {
             Destroy(this);
@@ -190,19 +199,24 @@ namespace StayInTarkov.Coop.FreeCamera
             }
 
             // Spectate the next player
-            if (Input.GetKey(KeyCode.Mouse0))
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 SpectateNextPlayer();
             }
             // Spectate the previous player
-            else if (Input.GetKey(KeyCode.Mouse1))
+            else if (Input.GetKeyDown(KeyCode.Mouse1))
             {
                 SpectatePreviousPlayer();
             }
             // Stop following the currently selected player
-            else if (Input.GetKey(KeyCode.End))
+            else if (Input.GetKeyDown(KeyCode.End))
             {
                 StopSpectatingPlayer();
+            }
+            else if (Input.GetKeyDown(KeyCode.Home))
+            {
+                _spectateRightShoulder = !_spectateRightShoulder;
+                SetPlayerSpectateShoulder();
             }
 
             // If we aren't spectating anyone then just update the camera normally
