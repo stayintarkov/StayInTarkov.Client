@@ -7,12 +7,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace StayInTarkov.AkiSupport.Airdrops
 {
     /// <summary>
     /// Created by: SPT-Aki team
-    /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Custom/Airdrops/AirdropBox.cs
+    /// Link: https://dev.sp-tarkov.com/SPT/Modules/src/branch/master/project/SPT.Custom/Airdrops/AirdropBox.cs
     /// </summary>
     public class AirdropBox : MonoBehaviour
     {
@@ -163,6 +164,15 @@ namespace StayInTarkov.AkiSupport.Airdrops
                 Falloff = (int)surfaceSet.LandingSoundBank.Rolloff,
                 Volume = surfaceSet.LandingSoundBank.BaseVolume
             });
+
+            AddNavMeshObstacle();
+        }
+
+        private void AddNavMeshObstacle()
+        {
+            var navMeshObstacle = this.GetOrAddComponent<NavMeshObstacle>();
+            navMeshObstacle.size = boxSync.CollisionCollider.bounds.size;
+            navMeshObstacle.carving = true;
         }
 
         private bool RaycastBoxDistance(LayerMask layerMask, out RaycastHit hitInfo)
