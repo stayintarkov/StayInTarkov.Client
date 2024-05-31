@@ -101,7 +101,6 @@ namespace StayInTarkov.Coop.FreeCamera
                     _isSpectatingPlayer = true;
 
                     // Attach the camera to the player we are spectating;
-                    transform.parent = _playerSpectating?.PlayerBones.Head.Original;
                     SetPlayerSpectateShoulder();
                 }
             }
@@ -175,13 +174,15 @@ namespace StayInTarkov.Coop.FreeCamera
             {
                 if (_spectateRightShoulder)
                 {
-                    transform.localEulerAngles = new Vector3(240, 80, 0);
-                    transform.localPosition = new Vector3(0.24f, 0.12f, -0.16f);
+                    transform.parent = _playerSpectating?.PlayerBones.RightShoulder.Original;
+                    transform.localEulerAngles = new Vector3(250, 270, 270);
+                    transform.localPosition = new Vector3(-0.12f, 0.04f, 0.16f);
                 }
                 else
                 {
-                    transform.localEulerAngles = new Vector3(240, 80, 0);
-                    transform.localPosition = new Vector3(0.24f, 0.12f, 0.16f);
+                    transform.parent = _playerSpectating?.PlayerBones.LeftShoulder.Original;
+                    transform.localEulerAngles = new Vector3(250, 90, 270);
+                    transform.localPosition = new Vector3(-0.12f, -0.04f, -0.16f);
                 }
             }
         }
