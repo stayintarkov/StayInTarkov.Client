@@ -335,11 +335,11 @@ namespace StayInTarkov.Coop.Controllers.HandControllers
 
         public override void CreateFlareShot(BulletClass flareItem, Vector3 shotPosition, Vector3 forward)
         {
+            Logger.LogDebug(nameof(CreateFlareShot));
             var createFlareShotPacket = new CreateFlareShotPacket(_player.ProfileId, shotPosition, forward, flareItem.TemplateId);
             GameClient.SendData(createFlareShotPacket.Serialize());
 
             base.CreateFlareShot(flareItem, shotPosition, forward);
         }
-
     }
 }

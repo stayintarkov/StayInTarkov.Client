@@ -22,6 +22,8 @@ namespace StayInTarkov.AkiSupport.Airdrops
         private readonly int CROSSFADE = Shader.PropertyToID("_Crossfade");
         private readonly int COLLISION = Animator.StringToHash("collision");
 
+        private static int AirdropContainerCount = 0;
+
         public LootableContainer Container { get; set; }
         private float fallSpeed;
         private AirdropSynchronizableObject boxSync;
@@ -54,6 +56,8 @@ namespace StayInTarkov.AkiSupport.Airdrops
             instance.soundsDictionary = await LoadSounds();
 
             instance.Container = instance.GetComponentInChildren<LootableContainer>();
+            instance.Container.Id = $"AirdropBox_{AirdropContainerCount}";
+            AirdropContainerCount++;
 
             instance.boxSync = instance.GetComponent<AirdropSynchronizableObject>();
             instance.boxLogic = new AirdropLogicClass();

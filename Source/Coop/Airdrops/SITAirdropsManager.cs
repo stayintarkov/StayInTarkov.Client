@@ -3,7 +3,6 @@ using Aki.Custom.Airdrops.Utils;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.Interactive;
 using StayInTarkov;
 using StayInTarkov.AkiSupport.Airdrops;
 using StayInTarkov.AkiSupport.Airdrops.Models;
@@ -14,7 +13,6 @@ using StayInTarkov.Coop.NetworkPacket.Airdrop;
 using StayInTarkov.Networking;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -28,16 +26,23 @@ namespace Aki.Custom.Airdrops
     public class SITAirdropsManager : MonoBehaviour
     {
         private AirdropPlane airdropPlane;
-        public AirdropBox AirdropBox { get; private set; }
         private ItemFactoryUtil factory;
 
-        public bool isFlareDrop;
+        private float distanceTravelled = 0;
+
+        private DateTime LastSyncTime { get; set; }
+        private ManualLogSource Logger { get; } = BepInEx.Logging.Logger.CreateLogSource(nameof(SITAirdropsManager));
+
+        public AirdropBox AirdropBox { get; private set; }
         public AirdropParametersModel AirdropParameters { get; set; }
-        private ManualLogSource Logger { get; set; }
+        public bool ClientPlaneSpawned { get; private set; }
+        public AirdropLootResultModel ClientAirdropLootResultModel { get; private set; }
+        public AirdropConfigModel ClientAirdropConfigModel { get; private set; }
+        public bool ClientLootBuilt { get; private set; }
+        public bool IsFlareDrop { get; set; }
 
         void Awake()
         {
-            Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(SITAirdropsManager));
             Logger.LogInfo("Awake");
             Singleton<SITAirdropsManager>.Create(this);
         }
@@ -67,7 +72,7 @@ namespace Aki.Custom.Airdrops
 
             // The server will generate stuff ready for the packet
 
-            AirdropParameters = await AirdropUtil.InitAirdropParams(gameWorld, isFlareDrop);
+            AirdropParameters = await AirdropUtil.InitAirdropParams(gameWorld, IsFlareDrop);
 
             if (!AirdropParameters.AirdropAvailable)
             {
@@ -101,7 +106,6 @@ namespace Aki.Custom.Airdrops
             await BuildLootContainer(AirdropParameters.Config);
 
             StartCoroutine(SendParamsToClients());
-
         }
 
         public IEnumerator SendParamsToClients()
@@ -112,13 +116,10 @@ namespace Aki.Custom.Airdrops
             yield return new WaitForSeconds(AirdropParameters.TimeToStart);
 
             Logger.LogDebug("Sending Airdrop Params");
-            //var packet = new Dictionary<string, object>();
-            //packet.Add("serverId", SITGameComponent.GetServerId());
-            //packet.Add("m", "AirdropPacket");
-            //packet.Add("model", AirdropParameters);
-            //GameClient.SendData(packet.SITToJson());
-            var airdropPacket = new AirdropPacket();
-            airdropPacket.AirdropParametersModelJson = AirdropParameters.SITToJson();
+            AirdropPacket airdropPacket = new()
+            {
+                AirdropParametersModelJson = AirdropParameters.SITToJson()
+            };
             GameClient.SendData(airdropPacket.Serialize());
 
             yield break;
@@ -150,16 +151,11 @@ namespace Aki.Custom.Airdrops
 
                 factory.BuildContainer(AirdropBox.Container, ClientAirdropConfigModel, ClientAirdropLootResultModel.DropType);
                 factory.AddLoot(AirdropBox.Container, ClientAirdropLootResultModel);
-                if (AirdropBox.Container != null)
+
+                if (AirdropBox.Container != null && SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGameComponent))
                 {
-                    if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                    {
-                        List<WorldInteractiveObject> oldInteractiveObjectList = new(coopGameComponent.ListOfInteractiveObjects)
-                        {
-                            AirdropBox.Container
-                        };
-                        coopGameComponent.ListOfInteractiveObjects = [.. oldInteractiveObjectList];
-                    }
+                    Logger.LogDebug($"Adding Airdrop box with id {AirdropBox.Container.Id}");
+                    coopGameComponent.WorldnteractiveObjects.TryAdd(AirdropBox.Container.Id, AirdropBox.Container);
                 }
             }
 
@@ -183,8 +179,6 @@ namespace Aki.Custom.Airdrops
                 {
                     return;
                 }
-
-
             }
             else
             {
@@ -208,8 +202,10 @@ namespace Aki.Custom.Airdrops
                 {
                     this.LastSyncTime = DateTime.Now;
 
-                    AirdropBoxPositionSyncPacket packet = new();
-                    packet.Position = AirdropBox.transform.position;
+                    AirdropBoxPositionSyncPacket packet = new()
+                    {
+                        Position = AirdropBox.transform.position
+                    };
                     GameClient.SendData(packet.Serialize());
                 }
             }
@@ -227,8 +223,6 @@ namespace Aki.Custom.Airdrops
             }
         }
 
-        float distanceTravelled = 0;
-
         private void StartPlane()
         {
             airdropPlane.gameObject.SetActive(true);
@@ -244,42 +238,30 @@ namespace Aki.Custom.Airdrops
             AirdropBox.StartCoroutine(AirdropBox.DropCrate(dropPos));
         }
 
-        private DateTime LastSyncTime { get; set; }
-        public bool ClientPlaneSpawned { get; private set; }
-        public AirdropLootResultModel ClientAirdropLootResultModel { get; private set; }
-        public AirdropConfigModel ClientAirdropConfigModel { get; private set; }
-        public bool ClientLootBuilt { get; private set; }
-
         private async Task BuildLootContainer(AirdropConfigModel config)
         {
             if (!SITMatchmaking.IsServer)
                 return;
 
             // Get the lootData for this Raid
-            var lootData = await factory.GetLoot();
+            AirdropLootResultModel lootData = await factory.GetLoot() ?? throw new Exception("Airdrops. Tried to BuildLootContainer without any Loot.");
 
             // Send the lootData to Clients.
-            var airdropLootPacket = new AirdropLootPacket();
-            airdropLootPacket.AirdropLootResultModelJson = lootData.SITToJson();
-            airdropLootPacket.AirdropConfigModelJson = config.SITToJson();
+            AirdropLootPacket airdropLootPacket = new()
+            {
+                AirdropLootResultModelJson = lootData.SITToJson(),
+                AirdropConfigModelJson = config.SITToJson()
+            };
             GameClient.SendData(airdropLootPacket.Serialize());
-
-            if (lootData == null)
-                throw new System.Exception("Airdrops. Tried to BuildLootContainer without any Loot.");
 
             factory.BuildContainer(AirdropBox.Container, config, lootData.DropType);
             factory.AddLoot(AirdropBox.Container, lootData);
             ClientLootBuilt = true;
-            if (AirdropBox.Container != null)
+
+            if (AirdropBox.Container != null && SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGameComponent))
             {
-                if (SITGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                {
-                    List<WorldInteractiveObject> oldInteractiveObjectList = new(coopGameComponent.ListOfInteractiveObjects)
-                    {
-                        AirdropBox.Container
-                    };
-                    coopGameComponent.ListOfInteractiveObjects = [.. oldInteractiveObjectList];
-                }
+                Logger.LogDebug($"Adding Airdrop box with id {AirdropBox.Container.Id}");
+                coopGameComponent.WorldnteractiveObjects.TryAdd(AirdropBox.Container.Id, AirdropBox.Container);
             }
         }
 
@@ -297,7 +279,7 @@ namespace Aki.Custom.Airdrops
                 airdropPlane.transform.position);
         }
 
-        void OnDestroy()
+        protected void OnDestroy()
         {
             if (Singleton<SITAirdropsManager>.Instantiated)
                 Singleton<SITAirdropsManager>.Release(Singleton<SITAirdropsManager>.Instance);

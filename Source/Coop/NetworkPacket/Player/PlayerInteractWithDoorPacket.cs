@@ -1,16 +1,11 @@
-﻿using Comfort.Common;
-using EFT;
+﻿using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Players;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
 {
@@ -95,9 +90,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 }
             }
 
-
-            WorldInteractiveObject worldInteractiveObject = SITGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == ProcessJson["WIOId"].ToString());
-            if (worldInteractiveObject == null)
+            if (!SITGameComponent.GetCoopGameComponent().WorldnteractiveObjects.TryGetValue(ProcessJson["WIOId"].ToString(), out WorldInteractiveObject worldInteractiveObject))
             {
                 StayInTarkovHelperConstants.Logger.LogError($"Player_ExecuteDoorInteraction_Patch:Replicated:Could not find {nameof(worldInteractiveObject)}");
                 return;

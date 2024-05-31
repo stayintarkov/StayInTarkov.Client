@@ -43,10 +43,12 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
         public override void Process()
         {
             SITGameComponent coopGameComponent = SITGameComponent.GetCoopGameComponent();
-            LootableContainer lootableContainer = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == this.LootableContainerId) as LootableContainer;
-
-            if (lootableContainer == null)
+            if (!coopGameComponent.WorldnteractiveObjects.TryGetValue(LootableContainerId, out WorldInteractiveObject worldInteractiveObject))
+            {
+                StayInTarkovHelperConstants.Logger.LogError($"LootableContainerInteractionPacket:Process:Could not find {nameof(worldInteractiveObject)}");
                 return;
+            }
+            LootableContainer lootableContainer = worldInteractiveObject as LootableContainer;
 
             string methodName = string.Empty;
             switch (InteractionType)

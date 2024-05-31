@@ -41,7 +41,7 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
     public class SITGameComponent : MonoBehaviour
     {
         #region Fields/Properties        
-        public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
+        public ConcurrentDictionary<string, WorldInteractiveObject> WorldnteractiveObjects { get; set; } = [];
         private AkiBackendCommunication RequestingObj { get; set; }
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
@@ -379,7 +379,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
             }
 
             // Get a List of Interactive Objects (this is a slow method), so run once here to maintain a reference
-            ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
+            foreach (WorldInteractiveObject worldInteractiveObject in FindObjectsOfType<WorldInteractiveObject>())
+            {
+                this.WorldnteractiveObjects.TryAdd(worldInteractiveObject.Id, worldInteractiveObject);
+            }
         }
 
 

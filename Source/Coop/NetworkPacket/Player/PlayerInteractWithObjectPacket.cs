@@ -5,7 +5,6 @@ using Newtonsoft.Json.Linq;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Players;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace StayInTarkov.Coop.NetworkPacket.Player
@@ -56,9 +55,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Player
                 return;
             }
 
-            WorldInteractiveObject worldInteractiveObject = SITGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == ProcessJson["WIOId"].ToString());
-
-            if (worldInteractiveObject == null)
+            if (!SITGameComponent.GetCoopGameComponent().WorldnteractiveObjects.TryGetValue(ProcessJson["WIOId"].ToString(), out WorldInteractiveObject worldInteractiveObject))
             {
                 StayInTarkovHelperConstants.Logger.LogError($"Player_ExecuteDoorInteraction_Patch:Replicated:Could not find {nameof(worldInteractiveObject)}");
                 return;
