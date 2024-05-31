@@ -20,18 +20,19 @@ namespace Aki.Custom.Airdrops.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(FlareCartridge), nameof(FlareCartridge.Init), false, true);
+            return typeof(FlareCartridge).GetMethod(nameof(FlareCartridge.Init),
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         }
 
         [PatchPostfix]
-        private static void PatchPostfix(FlareCartridgeSettings flareCartridgeSettings, IPlayer player, BulletClass flareCartridge, Weapon weapon)
+        private static void PatchPostfix(BulletClass flareCartridge)
         {
             var gameWorld = Singleton<GameWorld>.Instance;
             var points = LocationScene.GetAll<AirdropPoint>().Any();
 
             if (gameWorld != null && points && _usableFlares.Any(x => x == flareCartridge.Template._id))
             {
-                gameWorld.gameObject.AddComponent<SITAirdropsManager>().isFlareDrop = true;
+                gameWorld.gameObject.AddComponent<SITAirdropsManager>().IsFlareDrop = true;
             }
         }
     }
