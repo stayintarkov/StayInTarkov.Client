@@ -37,7 +37,10 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
 
         void Update()
         {
-            if((DateTime.Now - LastTimeRun).TotalSeconds > PluginConfigSettings.Instance.AdvancedSettings.SETTING_SITGCMemoryCheckTime)
+            if (!PluginConfigSettings.Instance.AdvancedSettings.SETTING_EnableSITGC)
+                return;
+
+            if ((DateTime.Now - LastTimeRun).TotalSeconds > PluginConfigSettings.Instance.AdvancedSettings.SETTING_SITGCMemoryCheckTime)
             {
                 LastTimeRun = DateTime.Now;
                 GarbageCollectSIT();
@@ -68,9 +71,6 @@ namespace StayInTarkov.Coop.Components.CoopGameComponents
         /// <returns></returns>
         private void GarbageCollectSIT()
         {
-            if (!PluginConfigSettings.Instance.AdvancedSettings.SETTING_EnableSITGC)
-                return;
-
             var nearestEnemyDist = float.MaxValue;
             foreach (var p in Singleton<GameWorld>.Instance.AllAlivePlayersList)
             {
