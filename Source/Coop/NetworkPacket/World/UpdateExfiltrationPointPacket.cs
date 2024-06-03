@@ -13,12 +13,12 @@ namespace StayInTarkov.Coop.NetworkPacket.World
         public EFT.Interactive.EExfiltrationStatus Command;
         public List<string> QueuedPlayers;
 
-        public UpdateExfiltrationPointPacket() : base(nameof(UpdateExfiltrationPointPacket)) {}
+        public UpdateExfiltrationPointPacket() : base(nameof(UpdateExfiltrationPointPacket)) { }
 
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeader(writer);
             writer.Write(PointName);
             writer.Write((byte)Command);
@@ -32,7 +32,7 @@ namespace StayInTarkov.Coop.NetworkPacket.World
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeader(reader);
             PointName = reader.ReadString();
             Command = (EFT.Interactive.EExfiltrationStatus)reader.ReadByte();
@@ -46,7 +46,13 @@ namespace StayInTarkov.Coop.NetworkPacket.World
         }
         public override void Process()
         {
-            var point = ExfiltrationControllerClass.Instance.ExfiltrationPoints.First(x => x.Settings.Name == PointName);
+            if (ExfiltrationControllerClass.Instance == null)
+                return;
+
+            if (ExfiltrationControllerClass.Instance.ExfiltrationPoints == null)
+                return;
+
+            var point = ExfiltrationControllerClass.Instance.ExfiltrationPoints.FirstOrDefault(x => x.Settings != null && x.Settings.Name == PointName);
             if (point == null)
             {
                 return;

@@ -2,12 +2,10 @@
 using StayInTarkov.Coop.Matchmaker;
 using StayInTarkov.Coop.SITGameModes;
 using StayInTarkov.Networking;
-using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using EFT;
 
 namespace StayInTarkov.Coop.NetworkPacket.Raid
 {
@@ -29,7 +27,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
         public override byte[] Serialize()
         {
             var ms = new MemoryStream();
-            using BinaryWriter writer = new BinaryWriter(ms);
+            using BinaryWriter writer = new(ms);
             WriteHeader(writer);
             //writer.Write(GameDateTime);
             writer.Write(CloudDensity);
@@ -45,7 +43,7 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
 
         public override ISITPacket Deserialize(byte[] bytes)
         {
-            using BinaryReader reader = new BinaryReader(new MemoryStream(bytes));
+            using BinaryReader reader = new(new MemoryStream(bytes));
             ReadHeader(reader);
             //GameDateTime = reader.ReadSingle();
             CloudDensity = reader.ReadSingle();
@@ -72,10 +70,10 @@ namespace StayInTarkov.Coop.NetworkPacket.Raid
             if (!SITMatchmaking.IsClient)
                 return;
 
-#if DEBUG
-            StayInTarkov.StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ReplicateTimeAndWeather)}");
+            //#if DEBUG
+            //            StayInTarkov.StayInTarkovHelperConstants.Logger.LogDebug($"{nameof(ReplicateTimeAndWeather)}");
 
-#endif
+            //#endif
 
             var gameDateTime = new DateTime(long.Parse(GameDateTime.ToString()));
             if (coopGameComponent.LocalGameInstance is CoopSITGame coopGame && coopGame.GameDateTime != null)

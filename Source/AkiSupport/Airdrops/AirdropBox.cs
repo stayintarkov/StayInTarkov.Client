@@ -2,16 +2,18 @@
 using EFT.Airdrop;
 using EFT.Interactive;
 using EFT.SynchronizableObjects;
+using StayInTarkov.Coop.Matchmaker;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace StayInTarkov.AkiSupport.Airdrops
 {
     /// <summary>
     /// Created by: SPT-Aki team
-    /// Link: https://dev.sp-tarkov.com/SPT-AKI/Modules/src/branch/master/project/Aki.Custom/Airdrops/AirdropBox.cs
+    /// Link: https://dev.sp-tarkov.com/SPT/Modules/src/branch/master/project/SPT.Custom/Airdrops/AirdropBox.cs
     /// </summary>
     public class AirdropBox : MonoBehaviour
     {
@@ -19,6 +21,8 @@ namespace StayInTarkov.AkiSupport.Airdrops
         private const string AIRDROP_SOUNDS_PATH = "assets/content/audio/prefabs/airdrop/airdropsounds.bundle";
         private readonly int CROSSFADE = Shader.PropertyToID("_Crossfade");
         private readonly int COLLISION = Animator.StringToHash("collision");
+
+        private static int AirdropContainerCount = 0;
 
         public LootableContainer Container { get; set; }
         private float fallSpeed;
@@ -44,12 +48,16 @@ namespace StayInTarkov.AkiSupport.Airdrops
             }
         }
 
+        public Vector3 ClientSyncPosition { get; internal set; }
+
         public static async Task<AirdropBox> Init(float crateFallSpeed)
         {
             var instance = (await LoadCrate()).AddComponent<AirdropBox>();
             instance.soundsDictionary = await LoadSounds();
 
             instance.Container = instance.GetComponentInChildren<LootableContainer>();
+            instance.Container.Id = $"AirdropBox_{AirdropContainerCount}";
+            AirdropContainerCount++;
 
             instance.boxSync = instance.GetComponent<AirdropSynchronizableObject>();
             instance.boxLogic = new AirdropLogicClass();
@@ -121,6 +129,19 @@ namespace StayInTarkov.AkiSupport.Airdrops
                 OpenParachute();
                 while (RaycastBoxDistance(LayerMaskClass.TerrainLowPoly, out _))
                 {
+                    if (SITMatchmaking.IsClient)
+                    {
+
+                        if (transform.position.x != this.ClientSyncPosition.x)
+                            transform.position = ClientSyncPosition;
+
+                        // only do this if the box is higher than the client sync
+                        if (transform.position.y > this.ClientSyncPosition.y)
+                            transform.position = ClientSyncPosition;
+
+                        if (transform.position.z != this.ClientSyncPosition.z)
+                            transform.position = ClientSyncPosition;
+                    }
                     transform.Translate(Vector3.down * (Time.deltaTime * fallSpeed));
                     transform.Rotate(Vector3.up, Time.deltaTime * 6f);
                     yield return null;
@@ -147,6 +168,15 @@ namespace StayInTarkov.AkiSupport.Airdrops
                 Falloff = (int)surfaceSet.LandingSoundBank.Rolloff,
                 Volume = surfaceSet.LandingSoundBank.BaseVolume
             });
+
+            AddNavMeshObstacle();
+        }
+
+        private void AddNavMeshObstacle()
+        {
+            var navMeshObstacle = this.GetOrAddComponent<NavMeshObstacle>();
+            navMeshObstacle.size = boxSync.CollisionCollider.bounds.size;
+            navMeshObstacle.carving = true;
         }
 
         private bool RaycastBoxDistance(LayerMask layerMask, out RaycastHit hitInfo)
