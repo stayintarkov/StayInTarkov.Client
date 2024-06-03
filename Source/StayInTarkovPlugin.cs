@@ -149,6 +149,8 @@ namespace StayInTarkov
 
             EnableAirdropPatches();
 
+            EnableAiPatches();
+
             if (Autoraid.Requested())
             {
                 Logger.LogInfo($"Running autoraid");
@@ -295,6 +297,11 @@ namespace StayInTarkov
         {
             //new AirdropPatch().Enable();
             new AirdropFlarePatch().Enable();
+        }
+
+        private void EnableAiPatches()
+        {
+            new CustomAiPatch().Enable();
         }
 
         private bool shownCheckError = false;
