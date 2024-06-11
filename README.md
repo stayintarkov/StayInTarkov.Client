@@ -90,7 +90,7 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 
 * 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
 
-* Paulov's work is unlicensed. Unlicensed does not allow any unauthorized use of Paulov's work. Any work or fork that is not Stay in Tarkov and uses any line of code from Paulov, including but not limited to previous commits and forks of old commits is strictly prohibited. If you are using any code in your works, you must obtain permission directly from Paulov via their GitHub. 
+* [Paulov-t LICENSE](LICENSE-Paulov-t.md)
 
 * SIT team's work is MIT licensed
 
