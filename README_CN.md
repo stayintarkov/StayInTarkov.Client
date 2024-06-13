@@ -95,7 +95,7 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 <!-- ACKNOWLEDGMENTS -->
 ## 特别致谢
 
-* [Paulov](https://github.com/paulov-t) | [Ko-Fi 打赏](https://ko-fi.com/paulovt) (Stay in Tarkov 的原作者)
+* [Paulov](https://github.com/paulov-t) (Stay in Tarkov 的原作者)
 * [Mihai](https://github.com/mihaicm93) | [Ko-Fi 打赏](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Lacyway](https://github.com/lacyway)
