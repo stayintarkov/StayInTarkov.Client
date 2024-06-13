@@ -99,7 +99,7 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments & Thanks
 
-* [Paulov](https://github.com/paulov-t) | [Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
+* [Paulov](https://github.com/paulov-t) (original creator of Stay in Tarkov)
 * [Mihai](https://github.com/mihaicm93) | [Ko-Fi Donations](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Lacyway](https://github.com/lacyway)
