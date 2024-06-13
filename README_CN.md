@@ -103,7 +103,7 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki 项目组](https://www.sp-tarkov.com/) (每一个所使用的 Aki 代码均保留了 Aki 的注释信息, 非常感谢每位开发者的支持)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
-* [所有贡献者们](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors)与所有曾经为 SIT.Core 做出过贡献的贡献者
+* [所有贡献者们](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) | [SIT.Core](https://github.com/seionmoya/StayInTarkov.Client/blob/fix-licences/CONTRIBUTORS.md)
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 
