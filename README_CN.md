@@ -98,7 +98,7 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 * [Paulov](https://github.com/paulov-t) | [Ko-Fi 打赏](https://ko-fi.com/paulovt) (Stay in Tarkov 的原作者)
 * [Mihai](https://github.com/mihaicm93) | [Ko-Fi 打赏](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
-* * [Lacyway](https://github.com/lacyway)
+* [Lacyway](https://github.com/lacyway)
 * [Bullet](https://github.com/devbence) | [Ko-Fi 打赏](https://ko-fi.com/bullet4prz)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki 项目组](https://www.sp-tarkov.com/) (每一个所使用的 Aki 代码均保留了 Aki 的注释信息, 非常感谢每位开发者的支持)
