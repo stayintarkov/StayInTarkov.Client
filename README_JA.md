@@ -98,11 +98,11 @@ Stay In Tarkovは少ないチーム員開発者によって作られています
 <!-- ACKNOWLEDGMENTS -->
 ## クレジット & 感謝
 
-* [Paulov Ko-Fi サポート](https://ko-fi.com/paulovt) (Stay in Tarkovを組み上げたオリジナル開発者)
-* [Mihai Ko-Fi サポート](https://ko-fi.com/mmihai)
+* [Paulov](https://github.com/paulov-t) | [Ko-Fi Ko-Fi サポート](https://ko-fi.com/paulovt) (Stay in Tarkovを組み上げたオリジナル開発者)
+* [Mihai](https://github.com/mihaicm93) | [Ko-Fi Ko-Fi サポート](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Lacyway](https://github.com/lacyway)
-* [Bullet](https://github.com/devbence)
+* [Bullet](https://github.com/devbence) | [Ko-Fi Donations](https://ko-fi.com/bullet4prz)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki チーム](https://www.sp-tarkov.com/) (使用した一つ一つのコードファイルと開発担当の人への多くの感謝クレジット)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
