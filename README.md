@@ -23,7 +23,7 @@
     <a href="https://stayintarkov.com/docs"><strong>Explore the docs »</strong></a>
   </p>
 
-  [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
+  [English](README.md) **|** [简体中文](README_CN.md) **|** [日本語](README_JA.md)
 </div>
 
 
@@ -90,10 +90,6 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 
 * 99% of the original core and single-player functionality completed by SPT-Aki teams. There are licenses pertaining to them within this source
 
-* Paulov's work is unlicensed. Unlicensed does not allow any unauthorized or commericial use of Paulov's work. Credit must be provided.
-
-* SIT team's work is MIT licensed
-
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) is MIT licensed
 
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/) projects contain the MIT License (as of 1.10, Drakia's projects are no longer embedded)
@@ -106,6 +102,7 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 * [Paulov Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
 * [Mihai Ko-Fi Donations](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
+* [Lacyway](https://github.com/lacyway)
 * [Bullet](https://github.com/devbence)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki team](https://www.sp-tarkov.com/) (Credits provided on each code file used and much love to their Dev team for their support)
