@@ -106,7 +106,7 @@ Stay In Tarkovは少ないチーム員開発者によって作られています
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki チーム](https://www.sp-tarkov.com/) (使用した一つ一つのコードファイルと開発担当の人への多くの感謝クレジット)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
-* [コントリビューター](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors)と以前のSIT.Coreのコントリビューター
+* [コントリビューター](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) | [SIT.Core](https://github.com/seionmoya/StayInTarkov.Client/blob/fix-licences/CONTRIBUTORS.md)
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 
