@@ -99,11 +99,11 @@ Our Discord invite link can be found at https://stayintarkov.com/discord
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments & Thanks
 
-* [Paulov Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
-* [Mihai Ko-Fi Donations](https://ko-fi.com/mmihai)
+* [Paulov](https://github.com/paulov-t) | [Ko-Fi Donations](https://ko-fi.com/paulovt) (original creator of Stay in Tarkov)
+* [Mihai](https://github.com/mihaicm93) | [Ko-Fi Donations](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Lacyway](https://github.com/lacyway)
-* [Bullet](https://github.com/devbence)
+* [Bullet](https://github.com/devbence) | [Ko-Fi Donations](https://ko-fi.com/bullet4prz)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki team](https://www.sp-tarkov.com/) (Credits provided on each code file used and much love to their Dev team for their support)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
