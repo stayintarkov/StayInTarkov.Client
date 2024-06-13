@@ -98,7 +98,7 @@ Stay In Tarkovは少ないチーム員開発者によって作られています
 <!-- ACKNOWLEDGMENTS -->
 ## クレジット & 感謝
 
-* [Paulov](https://github.com/paulov-t) | [Ko-Fi Ko-Fi サポート](https://ko-fi.com/paulovt) (Stay in Tarkovを組み上げたオリジナル開発者)
+* [Paulov](https://github.com/paulov-t) (Stay in Tarkovを組み上げたオリジナル開発者)
 * [Mihai](https://github.com/mihaicm93) | [Ko-Fi Ko-Fi サポート](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
 * [Lacyway](https://github.com/lacyway)
