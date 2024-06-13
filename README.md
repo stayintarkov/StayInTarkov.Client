@@ -1,3 +1,48 @@
+## The purpose of this fork
+
+This fork is intended to explain, in simple terms, that pull request #330 cannot be merged.
+
+I've made every effort to communicate this to the SIT team. Just like i did when we had issues with licences before. However, due to lies regarding myself, King, and MTGA as a whole, the SIT leadership has banned everyone @ MTGA, and refused to listen to our reasoning. And the community's/contributors reasoning has fallen onto death ears. This has left SIT contributors and users misinformed about their legal status to utilize the code granted under the NCSA license, and the entire repository is in violation of paulovs license.
+
+Despite what you may have been told, our goal is what's best for the EmuTarkov community. We hold no hate, or ill-will towards anyone in the community, including anyone currently at SIT. Merging #330 simply isn't the most suitable course of action, and doesnt offer a solution without screwing over your own community.
+
+As I'm blocked from commenting on that PR, I'm forced to create a pull request for explanation.
+
+**The Issue**
+
+When a project combines code with different licenses, it's nesscary to clearly define which license applies to each portion. This is known as license compatibility. If this isn't done, the fault lies not with the license holder, but with the licensee (Paulov). This is precisely the situation we're facing.
+
+![image](https://github.com/EFHDev/StayInTarkov.Client/assets/70953258/0e7fe9ea-e8cf-4a52-8058-4eb017642ae9)
+
+The biggest issue is that, no one knows what fucking code is what. Paulov could of modified someone elses work, or someone could of modified paulovs work. They were not imformed that it was unlicenced work, and i highly doubt you can hold any of this in court without accidently ousting yourself for Fraudulent Misrepresentation as the licence holders had no idea of this crucial detail, and then you suddenly out of the blue revealed it so people are now violators.
+
+This is why you really never see Multi-licence, or even unlicenced work, in software besides closed-source. It creates a mess. If you dont have a good understanding of licences and contract law that is involved with licences, or how to uphold your end of the contract, i really highly encourage you to stick with the preset ones GitHub offers.
+
+More fuckery, so get ready
+
+## Maybe, just maybe, these are possible solutions. 
+This is so much of a cluster fuck that you should really get a fucking lawyer involved now.
+
+* **Relinquish Rights:** Paulov could relinquish rights to the code, likely already modified by SIT contributors and others.
+* **Revert and License:** Alternatively, the code could be reverted to its original state (before modifications by anyone other than Paulov). Paulov could then add clear license information (File Level Licensing) to any code they wrote (If thats possible, as paulov deleted the last repo and i know for sure Slejm contributed to it.)
+* **Honor NCSA License (if Applicable):** Paulov can also choose to honor the NCSA license, provided all contributors agree to void the previous license.
+
+## Why This Matters
+
+The current situation violates the license terms. To put it simply:
+
+This isn't about claiming ownership or personal gain. It's about transparency and upholding the original NCSA agreement, which was presented to everyone who downloaded the code.
+
+
+
+**Unlicensed Code Limitations:**
+
+* **Limited Use:** Only Paulov can use the code. This includes Stay In Tarkov, meaning anyone interacting with, modifying, or distributing the code has violated the license.
+* **No Commercial Use:** The code cannot be used for financial gain unless you are Paulov. (e.g., the Ko-Fis in funding.md). 
+
+## LEGAL NOTICE: I AM NOT A LAWYER. I am well versed in copyright law, and have a lawyer in the family, but i am not a lawyer, and i am certintly not anyones lawyer on GitHub. 
+
+
 <a name="readme-top"></a>
 
 <!-- PROJECT LOGO -->
