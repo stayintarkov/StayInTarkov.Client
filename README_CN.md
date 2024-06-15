@@ -23,7 +23,7 @@
     <a href="https://docs.stayintarkov.com/zh_CN/index.html"><strong>浏览文档 »</strong></a>
   </p>
 
-  [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
+  [English](README.md) **|** [简体中文](README_CN.md) **|** [日本語](README_JA.md)
 </div>
 
 
@@ -87,10 +87,6 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 
 * 几乎所有的单人游戏与其核心代码为 SPT-Aki 项目组编写. 本项目使用与其相同的开源许可: NCSA 开源许可证
 
-* Paulov 所编写的代码没有任何许可证. 但是, 您不可在未经允许的情况下进行挪用或进行商业行为. 在使用 Paulov 的代码时, 您需要在代码中注明作者.
-
-* SIT 项目组所编写的代码为 MIT 许可证.
-
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) 为 MIT 许可证.
 
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/) 的项目包含 MIT 许可证 (自 1.10 版本开始, DrakiaXYZ 的项目已不再内置于本项目)
@@ -99,14 +95,15 @@ SIT 项目目前由一个小型的开发团队进行共同开发. 虽然本项�
 <!-- ACKNOWLEDGMENTS -->
 ## 特别致谢
 
-* [Paulov](https://github.com/paulov-t) | [Ko-Fi 打赏](https://ko-fi.com/paulovt) (Stay in Tarkov 的原作者)
+* [Paulov](https://github.com/paulov-t) (Stay in Tarkov 的原作者)
 * [Mihai](https://github.com/mihaicm93) | [Ko-Fi 打赏](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
+* [Lacyway](https://github.com/lacyway)
 * [Bullet](https://github.com/devbence) | [Ko-Fi 打赏](https://ko-fi.com/bullet4prz)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki 项目组](https://www.sp-tarkov.com/) (每一个所使用的 Aki 代码均保留了 Aki 的注释信息, 非常感谢每位开发者的支持)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
-* [所有贡献者们](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors)与所有曾经为 SIT.Core 做出过贡献的贡献者
+* [所有贡献者们](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) | [SIT.Core](https://github.com/stayintarkov/StayInTarkov.Client/blob/master/CONTRIBUTORS.md)
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 

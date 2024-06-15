@@ -23,7 +23,7 @@
     <a href="https://stayintarkov.com/docs"><strong>ドキュメントへ »</strong></a>
   </p>
 
-  [English](README.md) **|** [简体中文](README_CN.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [日本語](README_JA.md) **|** [한국어-Korean](README_KO.md) **|** [Français](README_FR.md)
+  [English](README.md) **|** [简体中文](README_CN.md) **|** [日本語](README_JA.md)
 </div>
 
 
@@ -89,10 +89,6 @@ Stay In Tarkovは少ないチーム員開発者によって作られています
 
 * 99%の機能はSPT-Akiチームにより立てられています。このソースと共にライセンスが存在します。
 
-* Paulovはライセンスなしです。Paulovのことを商売の目的には許可しません。クレジットを記載する必要があります。
-
-* SITチームのコントリビュートはMITライセンス基盤です。
-
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib) MITライセンス
 
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)のプロジェクトにはMITライセンスが含まれていましたが、1.10以降はDrakiaのプロジェクトが含まれていません
@@ -102,14 +98,15 @@ Stay In Tarkovは少ないチーム員開発者によって作られています
 <!-- ACKNOWLEDGMENTS -->
 ## クレジット & 感謝
 
-* [Paulov Ko-Fi サポート](https://ko-fi.com/paulovt) (Stay in Tarkovを組み上げたオリジナル開発者)
-* [Mihai Ko-Fi サポート](https://ko-fi.com/mmihai)
+* [Paulov](https://github.com/paulov-t) (Stay in Tarkovを組み上げたオリジナル開発者)
+* [Mihai](https://github.com/mihaicm93) | [Ko-Fi Ko-Fi サポート](https://ko-fi.com/mmihai)
 * [Trippy](https://github.com/trippyone)
-* [Bullet](https://github.com/devbence)
+* [Lacyway](https://github.com/lacyway)
+* [Bullet](https://github.com/devbence) | [Ko-Fi Donations](https://ko-fi.com/bullet4prz)
 * [Dounai](https://github.com/dounai2333)
 * [SPT-Aki チーム](https://www.sp-tarkov.com/) (使用した一つ一つのコードファイルと開発担当の人への多くの感謝クレジット)
 * [DrakiaXYZ](https://github.com/DrakiaXYZ/)
-* [コントリビューター](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors)と以前のSIT.Coreのコントリビューター
+* [コントリビューター](https://github.com/stayintarkov/StayInTarkov.Client/graphs/contributors) | [SIT.Core](https://github.com/stayintarkov/StayInTarkov.Client/blob/master/CONTRIBUTORS.md)
 * [RevenantX LiteNetLib](https://github.com/RevenantX/LiteNetLib)
 
 
