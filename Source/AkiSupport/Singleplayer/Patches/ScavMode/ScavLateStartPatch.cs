@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Bootstrap;
+using Comfort.Common;
 using EFT;
 using StayInTarkov.AkiSupport.Singleplayer.Models.ScavMode;
 using StayInTarkov;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using StayInTarkov.Networking;
+using UnityEngine;
 
 namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 {
@@ -61,6 +63,40 @@ namespace StayInTarkov.AkiSupport.Singleplayer.Patches.ScavMode
 
             // Capture the changes that will be made to the raid so they can be easily accessed by modders
             Utils.InRaid.RaidChangesUtil.UpdateRaidChanges(____raidSettings, serverResult);
+
+            if (Chainloader.PluginInfos.Any(x => x.Key == "com.spt-aki.singleplayer"))
+            {
+                Logger.LogInfo($"AkiSingleplayerPlugin detected. Using reflection call to set raid settings.");
+                var raidChangesUtilType = Type.GetType("Aki.SinglePlayer.Utils.InRaid.RaidChangesUtil, aki-singleplayer");
+                if (raidChangesUtilType != null)
+                {
+                    var raidTimeResponseType = Type.GetType("Aki.SinglePlayer.Patches.ScavMode.RaidTimeResponse, aki-singleplayer");
+                    if (raidTimeResponseType != null)
+                    {
+                        var updateRaidChangesMethod = raidChangesUtilType.GetMethod("UpdateRaidChanges", BindingFlags.NonPublic | BindingFlags.Static);
+                        if (updateRaidChangesMethod != null)
+                        {
+                            updateRaidChangesMethod.Invoke(null, new object[] { ____raidSettings, JsonUtility.FromJson(json, raidTimeResponseType) });
+
+                            var NewEscapeTimeMinutesProperty = raidChangesUtilType.GetProperty("NewEscapeTimeMinutes", BindingFlags.Public | BindingFlags.Static);
+                            NewEscapeTimeMinutesProperty.SetValue(null, serverResult.RaidTimeMinutes);
+                            Logger.LogInfo("UpdateRaidChanges has been successfully called from StayInTarkov");
+                        }
+                        else
+                        {
+                            Logger.LogError("UpdateRaidChanges method not found");
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogError("raidTimeResponseType not found");
+                    }
+                }
+                else
+                {
+                    Logger.LogError("raidChangesUtilType not found");
+                }
+            }
 
             // Set new raid time
             ____raidSettings.SelectedLocation.EscapeTimeLimit = serverResult.RaidTimeMinutes;
