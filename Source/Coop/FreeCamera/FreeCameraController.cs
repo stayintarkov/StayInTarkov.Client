@@ -9,7 +9,6 @@ using EFT.UI;
 using StayInTarkov.Configuration;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.Players;
-using StayInTarkov.Coop.SITGameModes;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -140,9 +139,6 @@ namespace StayInTarkov.Coop.FreeCamera
             if (!SITGameComponent.TryGetCoopGameComponent(out SITGameComponent coopGC))
                 return;
 
-            CoopSITGame coopGame = (CoopSITGame) coopGC.LocalGameInstance;
-            if (coopGame == null)
-                return;
 
             var quitState = coopGC.GetQuitState();
             if (Player.PlayerHealthController.IsAlive && 
